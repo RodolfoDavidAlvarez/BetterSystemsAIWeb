@@ -9,6 +9,7 @@ const navItems = [
   { label: "Services", href: "#services" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
+  { label: "Social", href: "/social" },
 ];
 
 export default function Navbar() {

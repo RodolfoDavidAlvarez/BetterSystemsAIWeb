@@ -1,6 +1,7 @@
+import { forwardRef } from "react";
 import { LucideIcon } from "lucide-react";
 
-export const BrandTiktok: LucideIcon = (props) => (
+export const BrandTiktok: LucideIcon = forwardRef((props, ref) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24"
@@ -11,8 +12,11 @@ export const BrandTiktok: LucideIcon = (props) => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
+    ref={ref}
     {...props}
   >
     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
-);
+));
+
+BrandTiktok.displayName = "BrandTiktok";

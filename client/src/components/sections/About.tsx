@@ -45,9 +45,8 @@ export default function About() {
                   <AvatarImage 
                     src={founder.avatar} 
                     alt={founder.name}
-                    className="object-cover"
+                    className="object-cover object-top"
                     loading="eager"
-                    quality={95}
                   />
                   <AvatarFallback>{founder.name[0]}</AvatarFallback>
                 </Avatar>

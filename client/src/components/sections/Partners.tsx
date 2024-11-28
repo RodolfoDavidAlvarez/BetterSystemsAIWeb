@@ -16,7 +16,7 @@ const partners = [
 
 export default function Partners() {
   return (
-    <section id="partners" className="py-16 bg-white">
+    <section id="partners" className="py-16">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Our Partners</h2>
@@ -36,7 +36,7 @@ export default function Partners() {
             >
               <Card className="h-full shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
                 <CardContent className="p-8">
-                  <div className="h-24 flex items-center justify-center mb-6">
+                  <div className="h-24 flex items-center justify-center mb-6 bg-white rounded-lg p-6">
                     <img
                       src={partner.logo}
                       alt={partner.name}

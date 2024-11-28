@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Github, Linkedin, Facebook, CalendarDays } from "lucide-react";
+import { Github, Linkedin, Facebook, Youtube, CalendarDays } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
@@ -32,6 +32,12 @@ const socialLinks = [
     color: "bg-[#000000] hover:bg-[#111111]",
   },
   {
+    title: "YouTube",
+    href: "https://youtube.com/@bettersystemsai",
+    icon: Youtube,
+    color: "bg-[#FF0000] hover:bg-[#CC0000]",
+  },
+  {
     title: "GitHub",
     href: "https://github.com/bettersystemsai",
     icon: Github,
@@ -55,7 +61,7 @@ export default function SocialPage() {
             <AvatarImage 
               src="/rodolfo-portrait.jpg" 
               alt="Better Systems AI"
-              className="object-cover object-center"
+              className="object-cover object-top"
             />
             <AvatarFallback>BSA</AvatarFallback>
           </Avatar>

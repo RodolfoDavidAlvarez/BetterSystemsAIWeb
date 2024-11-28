@@ -16,7 +16,7 @@ const partners = [
 
 export default function Partners() {
   return (
-    <section id="partners" className="py-16 bg-muted/50">
+    <section id="partners" className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Our Partners</h2>
@@ -34,17 +34,17 @@ export default function Partners() {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full">
-                <CardContent className="p-6">
-                  <div className="h-24 flex items-center justify-center mb-4">
+              <Card className="h-full shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                <CardContent className="p-8">
+                  <div className="h-24 flex items-center justify-center mb-6">
                     <img
                       src={partner.logo}
                       alt={partner.name}
                       className="max-h-full max-w-full object-contain"
                     />
                   </div>
-                  <h3 className="text-xl font-semibold text-center mb-2">{partner.name}</h3>
-                  <p className="text-muted-foreground text-center">{partner.description}</p>
+                  <h3 className="text-xl font-semibold text-center mb-3">{partner.name}</h3>
+                  <p className="text-gray-600 text-center">{partner.description}</p>
                 </CardContent>
               </Card>
             </motion.div>

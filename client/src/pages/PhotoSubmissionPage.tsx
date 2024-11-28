@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -18,6 +18,15 @@ const PhotoSubmissionPage: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  // Cleanup stream when component unmounts
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
+
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,6 +46,12 @@ const PhotoSubmissionPage: React.FC = () => {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.error('Error playing video:', playError);
+          throw new Error('Failed to start video stream');
+        }
       }
       setStream(mediaStream);
       setIsCapturing(true);

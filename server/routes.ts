@@ -39,8 +39,17 @@ const upload = multer({
 });
 
 export function registerRoutes(app: Express) {
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(uploadsDir));
+  // Serve uploaded files statically with CORS headers
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+  }, express.static(uploadsDir, {
+    setHeaders: (res) => {
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    }
+  }));
 
   app.post("/api/contact", async (req, res) => {
     try {
@@ -62,6 +71,7 @@ export function registerRoutes(app: Express) {
 
       // Construct absolute URL for the uploaded file
       const photoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      console.log('Generated photo URL:', photoUrl);
 
       // Send webhook
       try {

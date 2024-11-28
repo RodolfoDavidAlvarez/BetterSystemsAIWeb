@@ -80,35 +80,44 @@ const PhotoSubmissionPage: React.FC = () => {
       return;
     }
 
-    // TODO: Implement file upload logic here
-    toast({
-      title: "Success",
-      description: "Photo submitted successfully!",
-    });
+    const formData = new FormData();
+    formData.append('photo', selectedFile);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Photo uploaded successfully!",
+        });
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        if (stream) {
+          stopCamera();
+        }
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload photo",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8">Photo Submission</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="p-6">
-          <h2 className="text-2xl font-semibold mb-4">Upload Photo</h2>
-          <Input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            className="mb-4"
-          />
-          <div className="flex gap-4">
-            <Button onClick={() => fileInputRef.current?.click()}>
-              Choose File
-            </Button>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-2xl font-semibold mb-4">Take Photo</h2>
+      <Card className="p-6 max-w-2xl mx-auto">
+        <div className="mb-8">
           <div className="relative aspect-video mb-4">
             {isCapturing ? (
               <video
@@ -126,31 +135,51 @@ const PhotoSubmissionPage: React.FC = () => {
                     className="w-full h-full object-contain rounded-lg"
                   />
                 ) : (
-                  <span className="text-gray-500">No photo captured</span>
+                  <span className="text-gray-500">No photo selected</span>
                 )}
               </div>
             )}
           </div>
-          <div className="flex gap-4">
+          
+          <div className="flex justify-center gap-4">
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-40"
+              variant="outline"
+            >
+              Upload Photo
+            </Button>
             {!isCapturing ? (
-              <Button onClick={startCamera}>Start Camera</Button>
+              <Button onClick={startCamera} className="w-40">
+                Take Photo
+              </Button>
             ) : (
-              <>
-                <Button onClick={capturePhoto}>Capture</Button>
-                <Button variant="destructive" onClick={stopCamera}>
-                  Stop Camera
-                </Button>
-              </>
+              <Button onClick={capturePhoto} className="w-40">
+                Capture
+              </Button>
             )}
           </div>
-        </Card>
-      </div>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
 
-      <div className="mt-8">
-        <Button onClick={handleSubmit} disabled={!selectedFile}>
-          Submit Photo
-        </Button>
-      </div>
+        {selectedFile && (
+          <div className="flex justify-center">
+            <Button
+              onClick={handleSubmit}
+              className="w-full max-w-xs"
+              disabled={!selectedFile}
+            >
+              Submit Photo
+            </Button>
+          </div>
+        )}
+      </Card>
     </div>
   );
 };

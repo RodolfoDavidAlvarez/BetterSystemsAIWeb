@@ -127,22 +127,40 @@ const PhotoSubmissionPage: React.FC = () => {
         const pollInterval = setInterval(async () => {
           if (attempts >= maxAttempts) {
             clearInterval(pollInterval);
-            throw new Error("Analysis timeout");
+            setIsUploading(false);
+            toast({
+              title: "Analysis Timeout",
+              description: "The analysis is taking longer than expected. Please try again.",
+              variant: "destructive",
+            });
+            return;
           }
           
           try {
             const analysisResponse = await fetch('/api/photo-analysis');
+            if (!analysisResponse.ok) {
+              throw new Error('Analysis request failed');
+            }
             const analysisData = await analysisResponse.json();
             
             if (analysisData.result) {
               clearInterval(pollInterval);
               setAnalysisResult(analysisData.result);
+              setIsUploading(false);
             }
           } catch (error) {
             console.error('Error polling analysis:', error);
+            // Continue polling despite errors
           }
           attempts++;
         }, 1000);
+
+        // Cleanup interval on component unmount or when analysis is complete
+        return () => {
+          if (pollInterval) {
+            clearInterval(pollInterval);
+          }
+        };
 
         setSelectedFile(null);
         setPreviewUrl(null);

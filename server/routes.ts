@@ -1,8 +1,15 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import express from "express";
-import multer from "multer";
+import multer, { FileFilterCallback } from "multer";
 import path from "path";
 import fetch from "node-fetch";
+
+// In-memory store for analysis results (replace with database in production)
+let latestAnalysis: any = null;
+
+interface FileRequest extends Request {
+  file?: Express.Multer.File;
+}
 
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
@@ -16,7 +23,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
       return cb(new Error('Only image files are allowed!'));
     }
@@ -40,7 +47,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/upload", upload.single('photo'), async (req, res) => {
+  app.post("/api/upload", upload.single('photo'), async (req: FileRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ success: false, message: "No file uploaded" });
@@ -69,6 +76,28 @@ export function registerRoutes(app: Express) {
       });
     } catch (error) {
       console.error('Upload error:', error);
+  // Endpoint to receive analysis results from make.com webhook
+  app.post("/api/photo-analysis", express.json(), (req, res) => {
+    try {
+      const analysisData = req.body;
+      latestAnalysis = {
+        result: {
+          message: analysisData.message,
+          confidence: analysisData.confidence,
+          labels: analysisData.labels
+        }
+      };
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Analysis webhook error:', error);
+      res.status(500).json({ success: false, message: "Failed to process analysis" });
+    }
+  });
+
+  // Endpoint to get latest analysis results
+  app.get("/api/photo-analysis", (req, res) => {
+    res.json(latestAnalysis || { result: null });
+  });
       res.status(500).json({
         success: false,
         message: error instanceof Error ? error.message : "Failed to upload photo"

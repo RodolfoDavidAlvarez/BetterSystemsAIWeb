@@ -4,6 +4,12 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { toast } from "../hooks/use-toast";
 
+interface AnalysisResult {
+  message: string;
+  confidence: number;
+  labels: string[];
+}
+
 const PhotoSubmissionPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -11,6 +17,8 @@ const PhotoSubmissionPage: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -84,6 +92,7 @@ const PhotoSubmissionPage: React.FC = () => {
     formData.append('photo', selectedFile);
 
     try {
+      setIsUploading(true);
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
@@ -94,8 +103,32 @@ const PhotoSubmissionPage: React.FC = () => {
       if (data.success) {
         toast({
           title: "Success",
-          description: "Photo uploaded successfully!",
+          description: "Photo uploaded successfully! Analyzing...",
         });
+        
+        // Poll for analysis results
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds timeout
+        const pollInterval = setInterval(async () => {
+          if (attempts >= maxAttempts) {
+            clearInterval(pollInterval);
+            throw new Error("Analysis timeout");
+          }
+          
+          try {
+            const analysisResponse = await fetch('/api/photo-analysis');
+            const analysisData = await analysisResponse.json();
+            
+            if (analysisData.result) {
+              clearInterval(pollInterval);
+              setAnalysisResult(analysisData.result);
+            }
+          } catch (error) {
+            console.error('Error polling analysis:', error);
+          }
+          attempts++;
+        }, 1000);
+
         setSelectedFile(null);
         setPreviewUrl(null);
         if (stream) {
@@ -110,6 +143,8 @@ const PhotoSubmissionPage: React.FC = () => {
         description: error instanceof Error ? error.message : "Failed to upload photo",
         variant: "destructive",
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -173,11 +208,35 @@ const PhotoSubmissionPage: React.FC = () => {
             <Button
               onClick={handleSubmit}
               className="w-full max-w-xs"
-              disabled={!selectedFile}
+              disabled={!selectedFile || isUploading}
             >
-              Submit Photo
+              {isUploading ? "Analyzing..." : "Submit Photo"}
             </Button>
           </div>
+        )}
+
+        {isUploading && (
+          <div className="mt-4 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Analyzing photo...</p>
+          </div>
+        )}
+
+        {analysisResult && (
+          <Card className="mt-4 p-4">
+            <h3 className="text-lg font-semibold mb-2">Analysis Results</h3>
+            <div className="space-y-2">
+              <p className="text-sm">{analysisResult.message}</p>
+              <p className="text-sm">Confidence: {(analysisResult.confidence * 100).toFixed(1)}%</p>
+              <div className="flex flex-wrap gap-2">
+                {analysisResult.labels.map((label, index) => (
+                  <span key={index} className="text-xs bg-secondary px-2 py-1 rounded-full">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </Card>
         )}
       </Card>
     </div>

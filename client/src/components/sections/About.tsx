@@ -40,10 +40,18 @@ export default function About() {
         <div className="max-w-md mx-auto">
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Avatar className="h-32 w-32 mx-auto mb-4">
-                <AvatarImage src={founder.avatar} alt={founder.name} />
-                <AvatarFallback>{founder.name[0]}</AvatarFallback>
-              </Avatar>
+              <div className="p-4">
+                <Avatar className="h-48 w-48 mx-auto mb-6">
+                  <AvatarImage 
+                    src={founder.avatar} 
+                    alt={founder.name}
+                    className="object-cover"
+                    loading="eager"
+                    quality={95}
+                  />
+                  <AvatarFallback>{founder.name[0]}</AvatarFallback>
+                </Avatar>
+              </div>
               <h4 className="font-bold mb-2">{founder.name}</h4>
               <p className="text-muted-foreground mb-4">{founder.role}</p>
               <p className="text-muted-foreground">

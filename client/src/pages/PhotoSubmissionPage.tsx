@@ -204,13 +204,29 @@ const PhotoSubmissionPage: React.FC = () => {
         </div>
 
         {selectedFile && (
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
             <Button
               onClick={handleSubmit}
               className="w-full max-w-xs"
               disabled={!selectedFile || isUploading}
             >
               {isUploading ? "Analyzing..." : "Submit Photo"}
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                if (stream) {
+                  stopCamera();
+                }
+                setAnalysisResult(null);
+                setIsUploading(false);
+              }}
+              className="w-full max-w-xs"
+              variant="outline"
+              disabled={isUploading}
+            >
+              Reset
             </Button>
           </div>
         )}

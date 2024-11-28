@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+  }
+
   * {
     @apply border-border;
   }

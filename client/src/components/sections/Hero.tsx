@@ -33,8 +33,8 @@ export default function Hero() {
             className="relative"
           >
             <img
-              src="https://images.unsplash.com/photo-1633354931133-27c285ef4a22?w=800&auto=format&fit=crop&q=80"
-              alt="Abstract AI Network Visualization"
+              src="https://images.unsplash.com/photo-1545987796-200677ee1011?w=800&auto=format&fit=crop&q=80"
+              alt="Minimalist Technology Pattern"
               className="rounded-lg shadow-2xl object-cover h-full w-full"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />

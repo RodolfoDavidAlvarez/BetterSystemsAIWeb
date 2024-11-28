@@ -3,6 +3,7 @@ import express from "express";
 import multer, { FileFilterCallback } from "multer";
 import path from "path";
 import fetch from "node-fetch";
+import fs from "fs";
 
 // In-memory store for analysis results (replace with database in production)
 let latestAnalysis: any = null;
@@ -11,9 +12,15 @@ interface FileRequest extends Request {
   file?: Express.Multer.File;
 }
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), 'server', 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
-  destination: "server/public/uploads/",
+  destination: uploadsDir,
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
@@ -33,7 +40,7 @@ const upload = multer({
 
 export function registerRoutes(app: Express) {
   // Serve uploaded files statically
-  app.use('/uploads', express.static('server/public/uploads'));
+  app.use('/uploads', express.static(uploadsDir));
 
   app.post("/api/contact", async (req, res) => {
     try {
@@ -53,6 +60,7 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ success: false, message: "No file uploaded" });
       }
 
+      // Construct absolute URL for the uploaded file
       const photoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
 
       // Send webhook
@@ -76,6 +84,13 @@ export function registerRoutes(app: Express) {
       });
     } catch (error) {
       console.error('Upload error:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to upload photo"
+      });
+    }
+  });
+
   // Endpoint to receive analysis results from make.com webhook
   app.post("/api/photo-analysis", express.json(), (req, res) => {
     try {
@@ -97,11 +112,5 @@ export function registerRoutes(app: Express) {
   // Endpoint to get latest analysis results
   app.get("/api/photo-analysis", (req, res) => {
     res.json(latestAnalysis || { result: null });
-  });
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : "Failed to upload photo"
-      });
-    }
   });
 }

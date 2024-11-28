@@ -44,7 +44,7 @@ export default function Partners() {
                     />
                   </div>
                   <h3 className="text-xl font-semibold text-center mb-3">{partner.name}</h3>
-                  <p className="text-gray-600 text-center">{partner.description}</p>
+                  <p className="text-muted-foreground text-center">{partner.description}</p>
                 </CardContent>
               </Card>
             </motion.div>

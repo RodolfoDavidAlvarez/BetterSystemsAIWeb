@@ -21,7 +21,7 @@ export default function Hero() {
             <div className="flex gap-4">
               <Button size="lg">Get Started</Button>
               <Button size="lg" variant="outline">
-                Learn More
+                Book Consultation
               </Button>
             </div>
           </motion.div>

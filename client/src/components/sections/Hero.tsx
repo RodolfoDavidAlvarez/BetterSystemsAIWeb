@@ -33,8 +33,8 @@ export default function Hero() {
             className="relative"
           >
             <img
-              src="https://images.unsplash.com/photo-1488229297570-58520851e868?w=800&auto=format&fit=crop"
-              alt="AI Business Transformation"
+              src="https://images.unsplash.com/photo-1633354931133-27c285ef4a22?w=800&auto=format&fit=crop&q=80"
+              alt="Abstract AI Network Visualization"
               className="rounded-lg shadow-2xl object-cover h-full w-full"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />

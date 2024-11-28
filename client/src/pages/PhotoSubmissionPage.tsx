@@ -121,12 +121,15 @@ const PhotoSubmissionPage: React.FC = () => {
           description: "Photo uploaded successfully! Analyzing...",
         });
         
-        // Poll for analysis results
-        let attempts = 0;
-        const maxAttempts = 30; // 30 seconds timeout
-        const pollInterval = setInterval(async () => {
-          if (attempts >= maxAttempts) {
-            clearInterval(pollInterval);
+        // Start polling for analysis results
+        const pollTimeout = 30000; // 30 seconds timeout
+        const pollInterval = 2000; // Poll every 2 seconds
+        const startTime = Date.now();
+        
+        const pollForResults = async () => {
+          const timeoutReached = Date.now() - startTime >= pollTimeout;
+          
+          if (timeoutReached) {
             setIsUploading(false);
             toast({
               title: "Analysis Timeout",
@@ -135,7 +138,7 @@ const PhotoSubmissionPage: React.FC = () => {
             });
             return;
           }
-          
+
           try {
             const analysisResponse = await fetch('/api/photo-analysis');
             if (!analysisResponse.ok) {
@@ -144,21 +147,32 @@ const PhotoSubmissionPage: React.FC = () => {
             const analysisData = await analysisResponse.json();
             
             if (analysisData.result) {
-              clearInterval(pollInterval);
               setAnalysisResult(analysisData.result);
               setIsUploading(false);
+              return true; // Polling complete
             }
           } catch (error) {
             console.error('Error polling analysis:', error);
-            // Continue polling despite errors
           }
-          attempts++;
-        }, 1000);
+          
+          return false; // Continue polling
+        };
 
-        // Cleanup interval on component unmount or when analysis is complete
+        let pollingTimer: NodeJS.Timeout;
+        
+        const startPolling = async () => {
+          const complete = await pollForResults();
+          if (!complete) {
+            pollingTimer = setTimeout(startPolling, pollInterval);
+          }
+        };
+
+        startPolling();
+
+        // Cleanup timer on component unmount
         return () => {
-          if (pollInterval) {
-            clearInterval(pollInterval);
+          if (pollingTimer) {
+            clearTimeout(pollingTimer);
           }
         };
 

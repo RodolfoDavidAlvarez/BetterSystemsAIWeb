@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
       return cb(new Error('Only image files are allowed!'));
@@ -50,7 +50,7 @@ export function registerRoutes(app: Express) {
 
       // Send webhook
       try {
-        await fetch('https://hook.us1.make.com/co5yruaxlgm6g5s8phsjqcl8y8xrn8lw', {
+        await fetch('https://hook.us1.make.com/otjodeosdkyu7m26fyl0d93iwwysmtyt', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

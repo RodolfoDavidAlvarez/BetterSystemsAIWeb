@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import HomePage from "./pages/HomePage";
 import Booking from "./components/sections/Booking";
 import SocialPage from "./pages/SocialPage";
+import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/booking" component={Booking} />
       <Route path="/social" component={SocialPage} />
+      <Route path="/photo-submission" component={PhotoSubmissionPage} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );

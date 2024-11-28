@@ -1,23 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 
-const team = [
-  {
-    name: "Sarah Johnson",
-    role: "CEO & Founder",
-    avatar: "https://i.pravatar.cc/150?u=sarah",
-  },
-  {
-    name: "Michael Chen",
-    role: "CTO",
-    avatar: "https://i.pravatar.cc/150?u=michael",
-  },
-  {
-    name: "Emma Davis",
-    role: "Head of AI Strategy",
-    avatar: "https://i.pravatar.cc/150?u=emma",
-  },
-];
+const founder = {
+  name: "Rodolfo",
+  role: "Founder & CEO",
+  avatar: "/rodolfo-portrait.jpg",
+};
 
 export default function About() {
   return (
@@ -43,25 +31,27 @@ export default function About() {
         </div>
 
         <div className="text-center mb-12">
-          <h3 className="text-2xl font-bold mb-4">Our Leadership Team</h3>
+          <h3 className="text-2xl font-bold mb-4">Meet Our Founder</h3>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Meet the experts leading our mission to transform businesses through AI innovation.
+            Leading our mission to transform businesses through innovative AI solutions.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {team.map((member) => (
-            <Card key={member.name} className="text-center">
-              <CardContent className="pt-6">
-                <Avatar className="h-24 w-24 mx-auto mb-4">
-                  <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback>{member.name[0]}</AvatarFallback>
-                </Avatar>
-                <h4 className="font-bold mb-2">{member.name}</h4>
-                <p className="text-muted-foreground">{member.role}</p>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="max-w-md mx-auto">
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Avatar className="h-32 w-32 mx-auto mb-4">
+                <AvatarImage src={founder.avatar} alt={founder.name} />
+                <AvatarFallback>{founder.name[0]}</AvatarFallback>
+              </Avatar>
+              <h4 className="font-bold mb-2">{founder.name}</h4>
+              <p className="text-muted-foreground mb-4">{founder.role}</p>
+              <p className="text-muted-foreground">
+                A passionate technologist and business leader dedicated to helping companies 
+                leverage AI to achieve their full potential.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>

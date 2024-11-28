@@ -17,7 +17,7 @@ export default function Booking() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
       <main>
-        <section className="py-16">
+        <section className="pt-32 pb-16 md:pt-40 md:pb-24">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Book a Consultation</h2>

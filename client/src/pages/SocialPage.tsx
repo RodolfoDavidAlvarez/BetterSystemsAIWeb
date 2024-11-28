@@ -2,7 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Github, Linkedin, Twitter, CalendarDays } from "lucide-react";
+import { Github, Linkedin, Facebook, CalendarDays } from "lucide-react";
+import { BrandX } from "@/components/ui/icons/brand-x";
+import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
 const socialLinks = [
   {
@@ -12,16 +14,28 @@ const socialLinks = [
     color: "bg-[#0077B5] hover:bg-[#006399]",
   },
   {
+    title: "Facebook",
+    href: "https://facebook.com/bettersystemsai",
+    icon: Facebook,
+    color: "bg-[#1877F2] hover:bg-[#1664D9]",
+  },
+  {
+    title: "X (Twitter)",
+    href: "https://x.com/bettersystemsai",
+    icon: BrandX,
+    color: "bg-black hover:bg-neutral-900",
+  },
+  {
+    title: "TikTok",
+    href: "https://tiktok.com/@bettersystemsai",
+    icon: BrandTiktok,
+    color: "bg-[#000000] hover:bg-[#111111]",
+  },
+  {
     title: "GitHub",
     href: "https://github.com/bettersystemsai",
     icon: Github,
     color: "bg-[#333] hover:bg-[#24292e]",
-  },
-  {
-    title: "Twitter",
-    href: "https://twitter.com/bettersystemsai",
-    icon: Twitter,
-    color: "bg-[#1DA1F2] hover:bg-[#1a91da]",
   },
   {
     title: "Book a Consultation",
@@ -37,8 +51,12 @@ export default function SocialPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Profile Section */}
         <div className="text-center">
-          <Avatar className="h-32 w-32 mx-auto mb-4">
-            <AvatarImage src="/rodolfo-portrait.jpg" alt="Better Systems AI" />
+          <Avatar className="h-40 w-40 mx-auto mb-4">
+            <AvatarImage 
+              src="/rodolfo-portrait.jpg" 
+              alt="Better Systems AI"
+              className="object-cover object-center"
+            />
             <AvatarFallback>BSA</AvatarFallback>
           </Avatar>
           <h1 className="text-2xl font-bold mb-2">Better Systems AI</h1>

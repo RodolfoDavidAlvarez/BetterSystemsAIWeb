@@ -39,17 +39,15 @@ const upload = multer({
 });
 
 export function registerRoutes(app: Express) {
-  // Serve uploaded files statically with CORS headers
+  // Add CORS headers middleware before static file serving
   app.use('/uploads', (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
     next();
-  }, express.static(uploadsDir, {
-    setHeaders: (res) => {
-      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
-    }
-  }));
+  });
+
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(uploadsDir));
 
   app.post("/api/contact", async (req, res) => {
     try {
@@ -69,9 +67,15 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ success: false, message: "No file uploaded" });
       }
 
-      // Construct absolute URL for the uploaded file
-      const photoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      // Construct absolute URL for the uploaded file using Replit's public URL
+      const baseUrl = process.env.REPLIT_SLUG 
+        ? `https://${process.env.REPLIT_SLUG}.replit.dev`
+        : `http://${req.get('host')}`;
+      const photoUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      
+      // Log for debugging
       console.log('Generated photo URL:', photoUrl);
+      console.log('File path:', req.file.path);
 
       // Send webhook
       try {

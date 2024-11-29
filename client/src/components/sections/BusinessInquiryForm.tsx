@@ -134,14 +134,34 @@ export default function BusinessInquiryForm() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    // Here you would typically send the data to your backend
-    toast({
-      title: "Inquiry submitted!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    form.reset();
-    setStep(0);
+    try {
+      const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
+
+      toast({
+        title: "Thank you!",
+        description: "We'll be in contact soon",
+      });
+
+      form.reset();
+      setStep(0);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit form. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (

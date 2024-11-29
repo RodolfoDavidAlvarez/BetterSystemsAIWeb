@@ -31,12 +31,11 @@ const formSchema = z.object({
   
   // Step 2: Business Details
   industry: z.string().min(1, "Please select an industry"),
-  size: z.string().min(1, "Please select a company size"),
   currentChallenges: z.string().min(10, "Please describe your challenges"),
+  whyInterested: z.string().min(10, "Please tell us why you're interested in AI solutions"),
   
   // Step 3: Project Specifics
   interestedServices: z.string().min(1, "Please select a service"),
-  budget: z.string().min(1, "Please select a budget range"),
   timeline: z.string().min(1, "Please select a timeline"),
   additionalInfo: z.string().optional(),
 });
@@ -88,10 +87,9 @@ export default function BusinessInquiryForm() {
       email: "",
       company: "",
       industry: "",
-      size: "",
       currentChallenges: "",
+      whyInterested: "",
       interestedServices: "",
-      budget: "",
       timeline: "",
       additionalInfo: "",
     },
@@ -125,9 +123,9 @@ export default function BusinessInquiryForm() {
       case 0:
         return ['name', 'email', 'company'];
       case 1:
-        return ['industry', 'size', 'currentChallenges'];
+        return ['industry', 'currentChallenges', 'whyInterested'];
       case 2:
-        return ['interestedServices', 'budget', 'timeline', 'additionalInfo'];
+        return ['interestedServices', 'timeline', 'additionalInfo'];
       default:
         return [];
     }
@@ -151,18 +149,19 @@ export default function BusinessInquiryForm() {
         <div className="flex justify-between">
           {steps.map((s, i) => (
             <div key={s.id} className="flex flex-col items-center w-full">
-              <div className={`flex items-center ${i !== steps.length - 1 ? 'w-full' : ''}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 
-                  ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
-                  {i + 1}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center w-full">
+                  <div className="flex-1 h-[2px] bg-transparent"></div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 
+                    ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
+                    {i + 1}
+                  </div>
+                  <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`}></div>
                 </div>
-                {i !== steps.length - 1 && (
-                  <div className={`h-[2px] w-full ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
-                )}
-              </div>
-              <div className="text-sm mt-2 text-center">
-                <div className="font-medium">{s.title}</div>
-                <div className="text-muted-foreground text-xs">{s.description}</div>
+                <div className="text-sm mt-2 text-center">
+                  <div className="font-medium">{s.title}</div>
+                  <div className="text-muted-foreground text-xs">{s.description}</div>
+                </div>
               </div>
             </div>
           ))}
@@ -257,24 +256,17 @@ export default function BusinessInquiryForm() {
                   />
                   <FormField
                     control={form.control}
-                    name="size"
+                    name="whyInterested"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Company Size</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select company size" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1-10">1-10 employees</SelectItem>
-                            <SelectItem value="11-50">11-50 employees</SelectItem>
-                            <SelectItem value="51-200">51-200 employees</SelectItem>
-                            <SelectItem value="201-500">201-500 employees</SelectItem>
-                            <SelectItem value="501+">501+ employees</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Why are you interested in AI solutions?</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Example: We're experiencing inefficiencies in our customer service department and need AI automation to handle routine inquiries, allowing our team to focus on complex cases"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -324,29 +316,7 @@ export default function BusinessInquiryForm() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="budget"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Budget Range</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select budget range" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="10k-25k">$10,000 - $25,000</SelectItem>
-                            <SelectItem value="25k-50k">$25,000 - $50,000</SelectItem>
-                            <SelectItem value="50k-100k">$50,000 - $100,000</SelectItem>
-                            <SelectItem value="100k+">$100,000+</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  
                   <FormField
                     control={form.control}
                     name="timeline"

@@ -145,20 +145,24 @@ export default function BusinessInquiryForm() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex justify-between">
+      <div className="mb-24">
+        <div className="flex justify-between relative">
           {steps.map((s, i) => (
             <div key={s.id} className="flex flex-col items-center w-full">
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center flex-1">
                 <div className="flex items-center w-full">
-                  <div className="flex-1 h-[2px] bg-transparent"></div>
+                  {i > 0 && (
+                    <div className={`flex-1 h-[2px] ${step >= i ? 'bg-primary' : 'bg-gray-300'}`} />
+                  )}
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 
                     ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
                     {i + 1}
                   </div>
-                  <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`}></div>
+                  {i < steps.length - 1 && (
+                    <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
+                  )}
                 </div>
-                <div className="text-sm mt-2 text-center">
+                <div className="text-sm mt-2 text-center absolute top-full pt-2 w-full">
                   <div className="font-medium">{s.title}</div>
                   <div className="text-muted-foreground text-xs">{s.description}</div>
                 </div>

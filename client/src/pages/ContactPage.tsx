@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
+import BusinessInquiryForm from "@/components/sections/BusinessInquiryForm";
 
 export default function ContactPage() {
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
           <p className="text-muted-foreground">
@@ -42,37 +41,9 @@ export default function ContactPage() {
         </div>
 
         <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold mb-6">Send us a Message</h2>
-            <form className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Name
-                  </label>
-                  <Input id="name" placeholder="Your name" />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </label>
-                  <Input id="email" type="email" placeholder="your@email.com" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="message" className="text-sm font-medium">
-                  Message
-                </label>
-                <Textarea
-                  id="message"
-                  placeholder="How can we help you?"
-                  rows={6}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Send Message
-              </Button>
-            </form>
+          <CardContent className="p-8">
+            <h2 className="text-2xl font-bold mb-6 text-center">Business Inquiry Form</h2>
+            <BusinessInquiryForm />
           </CardContent>
         </Card>
       </div>

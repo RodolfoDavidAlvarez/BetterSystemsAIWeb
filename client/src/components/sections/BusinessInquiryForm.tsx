@@ -158,11 +158,9 @@ export default function BusinessInquiryForm() {
                     ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
                     {i + 1}
                   </div>
-                  {i < steps.length - 1 && (
-                    <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
-                  )}
+                  <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
                 </div>
-                <div className="text-sm mt-2 text-center absolute top-full pt-2 w-full">
+                <div className="text-sm mt-2 text-center absolute top-full pt-2 w-32 -ml-16 left-1/2">
                   <div className="font-medium">{s.title}</div>
                   <div className="text-muted-foreground text-xs">{s.description}</div>
                 </div>

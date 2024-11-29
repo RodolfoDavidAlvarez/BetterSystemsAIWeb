@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 
 export default function Hero() {
   return (
@@ -19,7 +20,9 @@ export default function Hero() {
               We help companies modernize, optimize, and grow.
             </p>
             <div className="flex gap-4">
-              <Button size="lg">Get Started</Button>
+              <Button asChild size="lg">
+                <Link href="/contact">Get Started</Link>
+              </Button>
               <Button size="lg" variant="outline" asChild>
                 <a href="/booking">Book Consultation</a>
               </Button>

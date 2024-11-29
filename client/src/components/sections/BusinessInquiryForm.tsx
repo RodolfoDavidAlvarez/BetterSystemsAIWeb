@@ -145,33 +145,22 @@ export default function BusinessInquiryForm() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Progress Steps */}
-      <div className="mb-20">
-        <div className="flex justify-between items-center relative">
-          {steps.map((s, i) => (
-            <div key={s.id} className="flex-1 relative">
-              <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-full">
-                  {i > 0 && (
-                    <div className={`h-[3px] w-full ${step > i - 1 ? 'bg-primary' : 'bg-gray-300'}`} />
-                  )}
-                  <div 
-                    className={`w-14 h-14 rounded-full flex items-center justify-center border-2 relative z-10 bg-background
-                      ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}
-                      transition-all duration-200 shrink-0`}
-                  >
-                    <span className="text-lg font-medium">{i + 1}</span>
-                  </div>
-                  {i < steps.length - 1 && (
-                    <div className={`h-[3px] w-full ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
-                  )}
-                </div>
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-max text-center space-y-2 max-w-[160px]">
-                  <div className="font-semibold text-sm">{s.title}</div>
-                  <div className="text-muted-foreground text-xs leading-tight line-clamp-2">{s.description}</div>
-                </div>
-              </div>
+      <div className="mb-8">
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg font-medium">Step {step + 1} of {steps.length}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="font-medium">{steps[step].title}</span>
             </div>
-          ))}
+            <span className="text-sm text-muted-foreground">{steps[step].description}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+            />
+          </div>
         </div>
       </div>
 

@@ -39,9 +39,9 @@ export default function CustomSolutionsPage() {
       </section>
 
       <div className="mt-16 text-center">
-        <Link href="/contact">
-          <Button size="lg">Get Started</Button>
-        </Link>
+        <Button asChild size="lg">
+          <Link href="/contact">Get Started</Link>
+        </Button>
       </div>
     </div>
   );

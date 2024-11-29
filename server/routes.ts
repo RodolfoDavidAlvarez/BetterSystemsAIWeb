@@ -1,9 +1,10 @@
-import type { Express, Request } from "express";
+import type { Express, Request, Response } from "express";
 import express from "express";
 import multer, { FileFilterCallback } from "multer";
 import path from "path";
 import fetch from "node-fetch";
 import fs from "fs";
+import mime from 'mime-types';
 
 // In-memory store for analysis results (replace with database in production)
 let latestAnalysis: any = null;
@@ -39,15 +40,42 @@ const upload = multer({
 });
 
 export function registerRoutes(app: Express) {
-  // Add CORS headers middleware before static file serving
+  // Add enhanced static file serving middleware
   app.use('/uploads', (req, res, next) => {
+    // Set CORS and other necessary headers
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Cache-Control', 'public, max-age=31536000');
+    
+    // Remove any headers that might cause issues with automated tools
+    res.removeHeader('Cross-Origin-Resource-Policy');
+    
     next();
-  });
+  }, express.static(uploadsDir, {
+    setHeaders: (res, path) => {
+      // Set correct content type based on file extension
+      const contentType = mime.lookup(path);
+      if (contentType) {
+        res.setHeader('Content-Type', contentType);
+      }
+    },
+    // Enable direct file access
+    extensions: ['jpg', 'jpeg', 'png'],
+    // Custom 404 handler
+    fallthrough: false
+  }));
 
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(uploadsDir));
+  // Add error handler for 404s
+  app.use('/uploads', (err: any, req: Request, res: Response, next: Function) => {
+    if (err.status === 404) {
+      res.status(404).json({
+        error: 'File not found',
+        status: 404
+      });
+    } else {
+      next(err);
+    }
+  });
 
   app.post("/api/contact", async (req, res) => {
     try {
@@ -71,7 +99,7 @@ export function registerRoutes(app: Express) {
       const baseUrl = process.env.REPLIT_SLUG 
         ? `https://${process.env.REPLIT_SLUG}.replit.dev`
         : `http://${req.get('host')}`;
-      const photoUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      const photoUrl = `${baseUrl}/uploads/${path.basename(req.file.filename)}`;
       
       // Log for debugging
       console.log('Generated photo URL:', photoUrl);

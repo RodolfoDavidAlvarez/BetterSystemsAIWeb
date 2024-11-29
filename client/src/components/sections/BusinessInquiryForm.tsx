@@ -136,24 +136,63 @@ export default function BusinessInquiryForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log('Starting form submission with values:', values);
+    
+    // Verify all required fields are present
+    const requiredFields = [
+      'name', 'email', 'company', 'industry', 'currentChallenges',
+      'whyInterested', 'interestedServices', 'timeline', 'communicationPreference'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !values[field as keyof typeof values]);
+    if (missingFields.length > 0) {
+      console.error('Missing required fields:', missingFields);
+      toast({
+        title: "Validation Error",
+        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
     setIsSubmitting(true);
+    console.log('Setting submission state to true');
+
     try {
+      console.log('Attempting to submit form to webhook');
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': window.location.origin,
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          submissionDate: new Date().toISOString(),
+          source: window.location.href,
+        }),
       });
 
+      console.log('Received response:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
+        const errorData = await response.json().catch(() => {
+          console.error('Failed to parse error response');
+          return null;
+        });
+        console.error('Response error data:', errorData);
         throw new Error(
           errorData?.message || 
-          `Submission failed with status ${response.status}`
+          `Submission failed with status ${response.status}: ${response.statusText}`
         );
       }
 
+      console.log('Form submitted successfully');
       toast({
         title: "Submission Successful! 🎉",
         description: "Thank you for your inquiry. Our team will review your information and contact you within 24-48 hours through your preferred communication method.",
@@ -163,6 +202,7 @@ export default function BusinessInquiryForm() {
       // Reset form and state
       form.reset();
       setStep(0);
+      console.log('Form reset completed');
     } catch (error) {
       console.error('Form submission error:', error);
       
@@ -171,8 +211,13 @@ export default function BusinessInquiryForm() {
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
           errorMessage = "Network error. Please check your internet connection and try again.";
+          console.error('Network error details:', error);
+        } else if (error.message.includes('CORS')) {
+          errorMessage = "Cross-origin request blocked. Please try again later.";
+          console.error('CORS error details:', error);
         } else {
           errorMessage = error.message;
+          console.error('General error details:', error);
         }
       }
 
@@ -184,6 +229,7 @@ export default function BusinessInquiryForm() {
       });
     } finally {
       setIsSubmitting(false);
+      console.log('Form submission process completed');
     }
   }
 

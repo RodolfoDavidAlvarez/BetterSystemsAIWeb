@@ -37,6 +37,7 @@ const formSchema = z.object({
   // Step 3: Project Specifics
   interestedServices: z.string().min(1, "Please select a service"),
   timeline: z.string().min(1, "Please select a timeline"),
+  communicationPreference: z.string().min(1, "Please select your preferred communication method"),
   additionalInfo: z.string().optional(),
 });
 
@@ -92,6 +93,7 @@ export default function BusinessInquiryForm() {
       interestedServices: "",
       timeline: "",
       additionalInfo: "",
+      communicationPreference: "",
     },
   });
 
@@ -125,7 +127,7 @@ export default function BusinessInquiryForm() {
       case 1:
         return ['industry', 'currentChallenges', 'whyInterested'];
       case 2:
-        return ['interestedServices', 'timeline', 'additionalInfo'];
+        return ['interestedServices', 'timeline', 'communicationPreference', 'additionalInfo'];
       default:
         return [];
     }
@@ -336,6 +338,29 @@ export default function BusinessInquiryForm() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="communicationPreference"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preferred Communication Method</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select communication preference" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="video-call">15-minute virtual video call</SelectItem>
+                            <SelectItem value="phone-call">15-minute phone call</SelectItem>
+                            <SelectItem value="email">Email conversation</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <FormField
                     control={form.control}
                     name="additionalInfo"

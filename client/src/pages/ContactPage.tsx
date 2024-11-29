@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
-import BusinessInquiryForm from "@/components/sections/BusinessInquiryForm";
-
 export default function ContactPage() {
   return (
     <div className="container mx-auto px-4 py-16">
@@ -14,7 +12,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 gap-8">
           <Card>
             <CardContent className="p-6">
               <h2 className="text-xl font-bold mb-4">Schedule a Consultation</h2>
@@ -39,13 +37,6 @@ export default function ContactPage() {
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardContent className="p-8">
-            <h2 className="text-2xl font-bold mb-6 text-center">Business Inquiry Form</h2>
-            <BusinessInquiryForm />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

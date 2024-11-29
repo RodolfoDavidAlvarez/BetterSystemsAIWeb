@@ -18,6 +18,7 @@ import ContactPage from "./pages/ContactPage";
 import Booking from "./components/sections/Booking";
 import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
+import BusinessInquiryPage from "./pages/BusinessInquiryPage";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
         <Route path="/booking" component={Booking} />
         <Route path="/social" component={SocialPage} />
         <Route path="/photo-submission" component={PhotoSubmissionPage} />
+        <Route path="/get-started" component={BusinessInquiryPage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </RootLayout>

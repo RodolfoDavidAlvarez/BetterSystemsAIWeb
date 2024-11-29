@@ -40,7 +40,7 @@ export default function CustomSolutionsPage() {
 
       <div className="mt-16 text-center">
         <Button asChild size="lg">
-          <Link href="/contact">Get Started</Link>
+          <Link href="/get-started">Get Started</Link>
         </Button>
       </div>
     </div>

@@ -145,31 +145,23 @@ export default function BusinessInquiryForm() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Progress Steps */}
-      <div className="mb-24">
-        <div className="flex justify-between relative">
-          {steps.map((s, i) => (
-            <div key={s.id} className="flex flex-col items-center w-full">
-              <div className="flex flex-col items-center flex-1">
-                <div className="flex items-center w-full">
-                  {i > 0 && (
-                    <div className={`flex-1 h-[2px] ${step >= i ? 'bg-primary' : 'bg-gray-300'}`} />
-                  )}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 
-                    ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
-                    {i + 1}
-                  </div>
-                  {i < steps.length - 1 && (
-                    <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
-                  )}
-                </div>
-                <div className="text-center absolute -top-10 transform -translate-x-1/2 left-1/2 w-40">
-                  <div className="font-medium truncate">{s.title}</div>
-                  <div className="text-muted-foreground text-xs">{s.description}</div>
-                </div>
-              </div>
+      <div className="flex justify-between relative mb-16">
+        {steps.map((s, i) => (
+          <div key={s.id} className="relative flex flex-col items-center flex-1">
+            <div className="absolute -top-14 w-36 text-center">
+              <div className="font-medium">{s.title}</div>
+              <div className="text-muted-foreground text-xs">{s.description}</div>
             </div>
-          ))}
-        </div>
+            <div className="flex items-center w-full">
+              {i > 0 && <div className={`flex-1 h-[2px] ${step >= i ? 'bg-primary' : 'bg-gray-300'}`} />}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 
+                ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
+                {i + 1}
+              </div>
+              {i < steps.length - 1 && <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />}
+            </div>
+          </div>
+        ))}
       </div>
 
       <Form {...form}>
@@ -283,7 +275,7 @@ export default function BusinessInquiryForm() {
                         <FormLabel>Current Challenges</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe the challenges you're facing..."
+                            placeholder="Example: Our current manual processes are causing delays and errors in customer support, and we need to streamline these operations"
                             className="min-h-[100px]"
                             {...field}
                           />

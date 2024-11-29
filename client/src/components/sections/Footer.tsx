@@ -1,4 +1,16 @@
 import { Link } from "wouter";
+import { Facebook, Github, Linkedin, Youtube } from "lucide-react";
+import { BrandX } from "@/components/ui/icons/brand-x";
+import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
+
+const socialLinks = [
+  { icon: Linkedin, href: "https://linkedin.com/in/bettersystemsai", label: "LinkedIn" },
+  { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
+  { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
+  { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
+  { icon: Youtube, href: "https://youtube.com/@bettersystemsai", label: "YouTube" },
+  { icon: Github, href: "https://github.com/bettersystemsai", label: "GitHub" },
+];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -21,19 +33,19 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#services" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/services" className="text-muted-foreground hover:text-foreground transition-colors">
                   Services
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#partners" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/partners" className="text-muted-foreground hover:text-foreground transition-colors">
                   Partners
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/booking" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -48,17 +60,38 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Contact</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
                   Get in Touch
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/social" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Social Media
+                </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} Better Systems AI. All rights reserved.</p>
+        {/* Social Links */}
+        <div className="border-t mt-8 pt-8">
+          <div className="flex flex-wrap justify-center gap-4 mb-4">
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title={link.label}
+              >
+                <link.icon className="h-5 w-5" />
+              </a>
+            ))}
+          </div>
+          <div className="text-center text-sm text-muted-foreground">
+            <p>© {currentYear} Better Systems AI. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </footer>

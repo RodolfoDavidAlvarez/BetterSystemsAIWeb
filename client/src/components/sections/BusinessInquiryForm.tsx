@@ -97,10 +97,7 @@ export default function BusinessInquiryForm() {
     },
   });
 
-  const nextStep = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    console.log('Next button clicked');
-    
+  const nextStep = () => {
     const fields = getFieldsForStep(step);
     const isValid = fields.every(field => {
       const value = form.getValues(field as any);
@@ -108,21 +105,17 @@ export default function BusinessInquiryForm() {
     });
 
     if (!isValid) {
-      console.log('Form validation failed for fields:', fields);
       fields.forEach(field => {
         form.trigger(field as any);
       });
       return;
     }
 
-    console.log('Moving to next step:', step + 1);
     setDirection(1);
     setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
-  const prevStep = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    console.log('Previous button clicked');
+  const prevStep = () => {
     setDirection(-1);
     setStep((s) => Math.max(s - 1, 0));
   };
@@ -265,13 +258,7 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form 
-          onSubmit={(e) => {
-            console.log('Form submit event triggered');
-            form.handleSubmit(onSubmit)(e);
-          }} 
-          className="space-y-6"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <AnimatePresence initial={false} custom={direction}>
             <motion.div
               key={step}
@@ -281,10 +268,9 @@ export default function BusinessInquiryForm() {
               animate="center"
               exit="exit"
               transition={{
-                x: { type: "spring", stiffness: 200, damping: 25 },
-                opacity: { duration: 0.15 }
+                x: { type: "tween", duration: 0.2 },
+                opacity: { duration: 0.2 }
               }}
-              style={{ pointerEvents: "auto" }}
             >
               {step === 0 && (
                 <div className="space-y-4">
@@ -502,13 +488,6 @@ export default function BusinessInquiryForm() {
                 type="submit" 
                 disabled={isSubmitting}
                 className={`relative ${isSubmitting ? 'cursor-not-allowed opacity-70' : ''}`}
-                onClick={(e) => {
-                  console.log('Submit button clicked');
-                  if (isSubmitting) {
-                    e.preventDefault();
-                    return;
-                  }
-                }}
               >
                 {isSubmitting ? (
                   <>

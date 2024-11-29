@@ -146,21 +146,25 @@ export default function BusinessInquiryForm() {
     <div className="w-full max-w-3xl mx-auto">
       {/* Progress Steps */}
       <div className="mb-8">
-        <div className="flex justify-between">
+        <div className="flex justify-between relative">
           {steps.map((s, i) => (
-            <div key={s.id} className="flex flex-col items-center w-full">
+            <div key={s.id} className="flex-1 relative">
               <div className="flex flex-col items-center">
-                <div className="flex items-center w-full">
-                  <div className="flex-1 h-[2px] bg-transparent"></div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 
+                <div className="flex items-center justify-center w-full">
+                  {i > 0 && (
+                    <div className={`h-[2px] flex-1 ${step > i - 1 ? 'bg-primary' : 'bg-gray-300'}`} />
+                  )}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 relative z-10 bg-background
                     ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
                     {i + 1}
                   </div>
-                  <div className={`flex-1 h-[2px] ${step > i ? 'bg-primary' : 'bg-gray-300'}`}></div>
+                  {i < steps.length - 1 && (
+                    <div className={`h-[2px] flex-1 ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
+                  )}
                 </div>
-                <div className="text-sm mt-2 text-center">
-                  <div className="font-medium">{s.title}</div>
-                  <div className="text-muted-foreground text-xs">{s.description}</div>
+                <div className="absolute top-14 left-1/2 -translate-x-1/2 w-max text-center">
+                  <div className="font-medium whitespace-nowrap">{s.title}</div>
+                  <div className="text-muted-foreground text-xs whitespace-nowrap">{s.description}</div>
                 </div>
               </div>
             </div>

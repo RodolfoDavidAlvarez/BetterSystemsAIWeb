@@ -144,6 +144,7 @@ export default function BusinessInquiryForm() {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold text-center mb-20">Business Inquiry Form</h2>
       {/* Progress Steps */}
       <div className="flex justify-between relative mb-16">
         {steps.map((s, i) => (

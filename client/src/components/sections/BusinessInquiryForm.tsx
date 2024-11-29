@@ -145,26 +145,29 @@ export default function BusinessInquiryForm() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex justify-between relative">
+      <div className="mb-12">
+        <div className="flex justify-between items-center relative">
           {steps.map((s, i) => (
             <div key={s.id} className="flex-1 relative">
               <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-full">
+                <div className="flex items-center w-full">
                   {i > 0 && (
-                    <div className={`h-[2px] flex-1 ${step > i - 1 ? 'bg-primary' : 'bg-gray-300'}`} />
+                    <div className={`h-[3px] flex-grow ${step > i - 1 ? 'bg-primary' : 'bg-gray-300'}`} />
                   )}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 relative z-10 bg-background
-                    ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}`}>
-                    {i + 1}
+                  <div 
+                    className={`w-12 h-12 rounded-full flex items-center justify-center border-2 relative z-10 bg-background
+                      ${step >= i ? 'border-primary bg-primary text-white' : 'border-gray-300'}
+                      transition-all duration-200`}
+                  >
+                    <span className="text-lg">{i + 1}</span>
                   </div>
                   {i < steps.length - 1 && (
-                    <div className={`h-[2px] flex-1 ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
+                    <div className={`h-[3px] flex-grow ${step > i ? 'bg-primary' : 'bg-gray-300'}`} />
                   )}
                 </div>
-                <div className="absolute top-14 left-1/2 -translate-x-1/2 w-max text-center">
-                  <div className="font-medium whitespace-nowrap">{s.title}</div>
-                  <div className="text-muted-foreground text-xs whitespace-nowrap">{s.description}</div>
+                <div className="absolute top-16 left-1/2 -translate-x-1/2 w-max text-center space-y-1">
+                  <div className="font-semibold whitespace-nowrap text-sm">{s.title}</div>
+                  <div className="text-muted-foreground text-xs whitespace-nowrap leading-tight">{s.description}</div>
                 </div>
               </div>
             </div>

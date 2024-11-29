@@ -97,7 +97,10 @@ export default function BusinessInquiryForm() {
     },
   });
 
-  const nextStep = () => {
+  const nextStep = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    console.log('Next button clicked');
+    
     const fields = getFieldsForStep(step);
     const isValid = fields.every(field => {
       const value = form.getValues(field as any);
@@ -105,17 +108,21 @@ export default function BusinessInquiryForm() {
     });
 
     if (!isValid) {
+      console.log('Form validation failed for fields:', fields);
       fields.forEach(field => {
         form.trigger(field as any);
       });
       return;
     }
 
+    console.log('Moving to next step:', step + 1);
     setDirection(1);
     setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
-  const prevStep = () => {
+  const prevStep = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    console.log('Previous button clicked');
     setDirection(-1);
     setStep((s) => Math.max(s - 1, 0));
   };
@@ -233,6 +240,8 @@ export default function BusinessInquiryForm() {
     }
   }
 
+  console.log('Rendering BusinessInquiryForm, current step:', step);
+  
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Progress Steps */}
@@ -256,7 +265,13 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form 
+          onSubmit={(e) => {
+            console.log('Form submit event triggered');
+            form.handleSubmit(onSubmit)(e);
+          }} 
+          className="space-y-6"
+        >
           <AnimatePresence initial={false} custom={direction}>
             <motion.div
               key={step}
@@ -266,9 +281,10 @@ export default function BusinessInquiryForm() {
               animate="center"
               exit="exit"
               transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
+                x: { type: "spring", stiffness: 200, damping: 25 },
+                opacity: { duration: 0.15 }
               }}
+              style={{ pointerEvents: "auto" }}
             >
               {step === 0 && (
                 <div className="space-y-4">
@@ -485,14 +501,22 @@ export default function BusinessInquiryForm() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
+                className={`relative ${isSubmitting ? 'cursor-not-allowed opacity-70' : ''}`}
+                onClick={(e) => {
+                  console.log('Submit button clicked');
+                  if (isSubmitting) {
+                    e.preventDefault();
+                    return;
+                  }
+                }}
               >
                 {isSubmitting ? (
                   <>
                     <span className="animate-spin mr-2">⚪</span>
-                    Submitting...
+                    <span>Submitting...</span>
                   </>
                 ) : (
-                  "Submit Inquiry"
+                  <span>Submit Inquiry</span>
                 )}
               </Button>
             ) : (

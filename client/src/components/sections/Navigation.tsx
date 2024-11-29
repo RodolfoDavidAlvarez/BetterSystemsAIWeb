@@ -7,10 +7,10 @@ export default function Navigation() {
 
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "About", href: "#about" },
-    { label: "Services", href: "#services" },
-    { label: "Partners", href: "#partners" },
-    { label: "Contact", href: "#contact" },
+    { label: "Services", href: "/services" },
+    { label: "About", href: "/about" },
+    { label: "Partners", href: "/partners" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (
@@ -25,13 +25,13 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
             <Button asChild variant="default">
               <Link href="/booking">Book Consultation</Link>
@@ -67,14 +67,14 @@ export default function Navigation() {
           <div className="md:hidden py-4">
             <div className="flex flex-col gap-4">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.label}
                   href={item.href}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
               <Button asChild variant="default" className="w-full">
                 <Link href="/booking">Book Consultation</Link>

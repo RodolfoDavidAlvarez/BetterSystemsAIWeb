@@ -8,17 +8,17 @@ export default function HomePage() {
     {
       title: "AI-Powered Assistants",
       description: "Transform customer service with intelligent virtual assistants",
-      href: "/services#assistants"
+      href: "/services/ai-assistants"
     },
     {
       title: "Efficiency Audit",
       description: "Discover optimization opportunities in your business processes",
-      href: "/services#audit"
+      href: "/services/efficiency-audit"
     },
     {
       title: "Fleet Management",
       description: "Streamline your fleet operations with AI-enhanced tools",
-      href: "/services#fleet"
+      href: "/services/fleet-management"
     }
   ];
 

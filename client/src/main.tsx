@@ -8,6 +8,10 @@ import { Toaster } from "@/components/ui/toaster";
 import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import ServicesPage from "./pages/ServicesPage";
+import AIAssistantsPage from "./pages/services/AIAssistantsPage";
+import EfficiencyAuditPage from "./pages/services/EfficiencyAuditPage";
+import FleetManagementPage from "./pages/services/FleetManagementPage";
+import CustomSolutionsPage from "./pages/services/CustomSolutionsPage";
 import AboutPage from "./pages/AboutPage";
 import PartnersPage from "./pages/PartnersPage";
 import ContactPage from "./pages/ContactPage";
@@ -21,6 +25,10 @@ function Router() {
       <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/services" component={ServicesPage} />
+        <Route path="/services/ai-assistants" component={AIAssistantsPage} />
+        <Route path="/services/efficiency-audit" component={EfficiencyAuditPage} />
+        <Route path="/services/fleet-management" component={FleetManagementPage} />
+        <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
         <Route path="/about" component={AboutPage} />
         <Route path="/partners" component={PartnersPage} />
         <Route path="/contact" component={ContactPage} />

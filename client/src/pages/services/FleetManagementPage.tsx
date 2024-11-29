@@ -40,9 +40,9 @@ export default function FleetManagementPage() {
       </section>
 
       <div className="mt-16 text-center">
-        <Button asChild size="lg">
-          <Link href="/contact">Get Started</Link>
-        </Button>
+        <Link href="/contact">
+          <Button size="lg">Get Started</Button>
+        </Link>
       </div>
     </div>
   );

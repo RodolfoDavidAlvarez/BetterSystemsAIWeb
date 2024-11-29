@@ -43,22 +43,37 @@ const PhotoSubmissionPage: React.FC = () => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        videoRef.current.setAttribute('autoplay', '');
+        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.setAttribute('muted', '');
+        
         try {
           await videoRef.current.play();
+          console.log('Video stream started successfully');
         } catch (playError) {
           console.error('Error playing video:', playError);
           throw new Error('Failed to start video stream');
         }
+      } else {
+        throw new Error('Video element reference not found');
       }
+      
       setStream(mediaStream);
       setIsCapturing(true);
     } catch (err) {
+      console.error('Camera error:', err);
       toast({
         title: "Camera Error",
-        description: "Unable to access camera. Please make sure you have granted permission.",
+        description: err instanceof Error ? err.message : "Unable to access camera. Please make sure you have granted permission.",
         variant: "destructive",
       });
     }
@@ -206,7 +221,9 @@ const PhotoSubmissionPage: React.FC = () => {
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="w-full h-full object-cover rounded-lg"
+                style={{ transform: 'scaleX(-1)' }} // Mirror the video for a more natural selfie experience
               />
             ) : (
               <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">

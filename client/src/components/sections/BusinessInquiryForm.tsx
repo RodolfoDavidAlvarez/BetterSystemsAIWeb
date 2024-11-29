@@ -133,7 +133,10 @@ export default function BusinessInquiryForm() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     try {
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
@@ -144,23 +147,43 @@ export default function BusinessInquiryForm() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit form');
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || 
+          `Submission failed with status ${response.status}`
+        );
       }
 
       toast({
-        title: "Thank you!",
-        description: "We'll be in contact soon",
+        title: "Submission Successful! 🎉",
+        description: "Thank you for your inquiry. Our team will review your information and contact you within 24-48 hours through your preferred communication method.",
+        duration: 6000,
       });
 
+      // Reset form and state
       form.reset();
       setStep(0);
     } catch (error) {
       console.error('Form submission error:', error);
+      
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       toast({
-        title: "Error",
-        description: "Failed to submit form. Please try again.",
+        title: "Submission Failed",
+        description: errorMessage,
         variant: "destructive",
+        duration: 5000,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -413,7 +436,19 @@ export default function BusinessInquiryForm() {
               Previous
             </Button>
             {step === steps.length - 1 ? (
-              <Button type="submit">Submit Inquiry</Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="animate-spin mr-2">⚪</span>
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Inquiry"
+                )}
+              </Button>
             ) : (
               <Button type="button" onClick={nextStep}>
                 Next

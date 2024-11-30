@@ -113,9 +113,11 @@ export default function BusinessInquiryForm() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Form submission started:', { values });
+    console.log('Form submission initiated at:', new Date().toISOString());
+    console.log('Form values:', JSON.stringify(values, null, 2));
     
-    // Validate all fields before submission
+    // Log form validation start
+    console.log('Starting form validation');
     const result = formSchema.safeParse(values);
     if (!result.success) {
       console.error('Validation failed:', result.error.issues);
@@ -256,13 +258,7 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form 
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit(onSubmit)(e);
-          }} 
-          className="space-y-6"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {step === 0 && (
             <>
               <FormField

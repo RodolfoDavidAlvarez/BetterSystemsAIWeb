@@ -5,12 +5,12 @@ const partners = [
   {
     name: "Soil Seed and Water",
     logo: "/ssw-logo.png",
-    description: "Environmental solutions for sustainable agriculture"
+    description: "Innovative organic soil product supplier"
   },
   {
     name: "Agave Environmental Contracting, Inc.",
     logo: "/aec-logo.png",
-    description: "Leading environmental contracting services"
+    description: "Leading proactive, environmental sustainable landscape in Arizona"
   }
 ];
 
@@ -36,11 +36,11 @@ export default function Partners() {
             >
               <Card className="h-full shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
                 <CardContent className="p-8">
-                  <div className="h-24 flex items-center justify-center mb-6 bg-white rounded-lg p-6">
+                  <div className="h-32 flex items-center justify-center mb-6 bg-white rounded-lg p-4 shadow-sm">
                     <img
                       src={partner.logo}
                       alt={partner.name}
-                      className="max-h-full max-w-full object-contain"
+                      className="max-h-full max-w-full object-contain hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
                         e.currentTarget.src = 'https://placehold.co/400x200?text=' + encodeURIComponent(partner.name);
                       }}

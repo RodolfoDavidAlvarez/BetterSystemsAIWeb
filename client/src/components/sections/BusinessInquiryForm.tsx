@@ -113,10 +113,13 @@ export default function BusinessInquiryForm() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log('Form submission started:', { values });
+    
     // Validate all fields before submission
     const result = formSchema.safeParse(values);
     if (!result.success) {
-      const errors = result.error.issues.map(issue => issue.message);
+      console.error('Validation failed:', result.error.issues);
+      const errors = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
       toast({
         title: "Validation Error",
         description: errors.join('\n'),
@@ -126,6 +129,7 @@ export default function BusinessInquiryForm() {
       return;
     }
 
+    console.log('Validation passed, proceeding with submission');
     setIsSubmitting(true);
 
     try {
@@ -136,7 +140,10 @@ export default function BusinessInquiryForm() {
         source: window.location.href,
         userAgent: navigator.userAgent,
         formVersion: '1.0',
+        submissionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       };
+
+      console.log('Preparing to submit form data:', { formData });
 
       // Attempt to submit the form
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
@@ -144,26 +151,41 @@ export default function BusinessInquiryForm() {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'X-Submission-ID': formData.submissionId,
         },
         body: JSON.stringify(formData),
+      });
+
+      console.log('Received response:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
       // Handle different response statuses
       if (!response.ok) {
         let errorMessage = 'Failed to submit the form';
+        let errorDetails = null;
+        
         try {
           const errorData = await response.json();
+          console.error('Error response data:', errorData);
           errorMessage = errorData.message || errorMessage;
-        } catch {
-          // If parsing JSON fails, use status text
+          errorDetails = errorData.details || null;
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
           errorMessage = `Submission failed: ${response.statusText}`;
         }
-        throw new Error(errorMessage);
+
+        throw new Error(errorMessage, { cause: errorDetails });
       }
+
+      const responseData = await response.json();
+      console.log('Submission successful:', responseData);
 
       // Success handling
       toast({
-        title: "Submission Successful!",
+        title: "Submission Successful! 🎉",
         description: "Thank you for your inquiry. Our team will contact you shortly.",
         duration: 5000,
       });
@@ -172,24 +194,36 @@ export default function BusinessInquiryForm() {
       form.reset();
       setStep(0);
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error('Form submission error:', {
+        error,
+        type: error instanceof Error ? 'Error' : typeof error,
+        cause: error instanceof Error ? error.cause : undefined
+      });
       
       // Detailed error handling
       let errorMessage = "An unexpected error occurred while submitting the form.";
+      let errorDetail = "";
+
       if (error instanceof Error) {
         errorMessage = error.message;
+        if (error.cause) {
+          errorDetail = typeof error.cause === 'string' 
+            ? error.cause 
+            : JSON.stringify(error.cause);
+        }
       } else if (error instanceof TypeError) {
         errorMessage = "Network error. Please check your internet connection.";
       }
 
       toast({
         title: "Submission Failed",
-        description: errorMessage,
+        description: errorDetail ? `${errorMessage}\n${errorDetail}` : errorMessage,
         variant: "destructive",
         duration: 7000,
       });
     } finally {
       setIsSubmitting(false);
+      console.log('Form submission completed');
     }
   }
   
@@ -419,14 +453,33 @@ export default function BusinessInquiryForm() {
             </Button>
             
             {step === steps.length - 1 ? (
-              <Button type="submit" disabled={isSubmitting} className="min-w-[100px]">
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                className="min-w-[120px] relative"
+                onClick={(e) => {
+                  if (isSubmitting) {
+                    e.preventDefault();
+                    return;
+                  }
+                  console.log('Submit button clicked, proceeding with form submission');
+                }}
+              >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
-                    <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" 
+                         role="status" 
+                         aria-label="Submitting form" 
+                    />
                     <span>Submitting...</span>
                   </div>
                 ) : (
-                  "Submit"
+                  <div className="flex items-center gap-2">
+                    <span>Submit Inquiry</span>
+                  </div>
+                )}
+                {isSubmitting && (
+                  <div className="absolute inset-0 bg-primary/10 rounded-md" />
                 )}
               </Button>
             ) : (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,6 +75,12 @@ export default function BusinessInquiryForm() {
     },
   });
 
+  // Add form state debugging
+  useEffect(() => {
+    console.log('Form state:', form.formState);
+    console.log('Current values:', form.getValues());
+  }, [form.formState]);
+
   const getFieldsForStep = (stepIndex: number) => {
     switch (stepIndex) {
       case 0:
@@ -88,29 +94,33 @@ export default function BusinessInquiryForm() {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     const fields = getFieldsForStep(step);
-    const isValid = fields.every(field => {
-      const value = form.getValues(field as any);
-      return value && value.length > 0;
-    });
-
-    if (!isValid) {
-      fields.forEach(field => {
-        form.trigger(field as any);
-      });
-      return;
+    
+    // Trigger validation for current step fields
+    const results = await Promise.all(
+      fields.map(field => form.trigger(field as any))
+    );
+    
+    if (results.every(Boolean)) {
+      setStep((s) => Math.min(s + 1, steps.length - 1));
     }
-
-    setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
   const prevStep = () => {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (isSubmitting) return;
+  const handleFormSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    const values = form.getValues();
+    console.log('Form values:', values);
+    
+    if (!form.formState.isValid) {
+      console.log('Form validation failed');
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -124,12 +134,14 @@ export default function BusinessInquiryForm() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit form');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      console.log('Form submitted successfully');
       setIsSuccess(true);
       form.reset();
     } catch (error) {
+      console.error('Submission error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to submit form",
@@ -138,7 +150,7 @@ export default function BusinessInquiryForm() {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
   
   if (isSuccess) {
     return (
@@ -157,6 +169,7 @@ export default function BusinessInquiryForm() {
             onClick={() => {
               setIsSuccess(false);
               form.reset();
+              setStep(0);
             }}
             variant="outline"
           >
@@ -183,7 +196,7 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           {step === 0 && (
             <>
               <FormField
@@ -395,7 +408,7 @@ export default function BusinessInquiryForm() {
             {step === steps.length - 1 ? (
               <Button 
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !form.formState.isValid}
                 className="min-w-[120px] relative"
               >
                 {isSubmitting ? (

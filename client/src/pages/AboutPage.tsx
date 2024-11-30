@@ -72,7 +72,7 @@ export default function AboutPage() {
       </section>
 
       {/* Leadership */}
-      <section>
+      <section className="mb-16">
         <h2 className="text-2xl font-bold mb-8 text-center">Leadership</h2>
         <Card className="max-w-md mx-auto">
           <CardContent className="pt-6">
@@ -92,6 +92,32 @@ export default function AboutPage() {
             <p className="text-muted-foreground text-center">
               A passionate technologist and business leader dedicated to helping companies 
               leverage AI to achieve their full potential.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Team Members */}
+      <section>
+        <h2 className="text-2xl font-bold mb-8 text-center">Our Team</h2>
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="p-4">
+              <Avatar className="h-48 w-48 mx-auto mb-6">
+                <AvatarImage 
+                  src="/team/jesus-landin.jpg"
+                  alt="Jesus Landin"
+                  className="object-cover object-top"
+                  loading="eager"
+                />
+                <AvatarFallback>JL</AvatarFallback>
+              </Avatar>
+            </div>
+            <h3 className="font-bold text-xl mb-2 text-center">Jesus Landin</h3>
+            <p className="text-muted-foreground text-center mb-4">Mechanical Engineer</p>
+            <p className="text-muted-foreground text-center">
+              A skilled mechanical engineer bringing technical expertise and innovative solutions 
+              to our engineering challenges and system implementations.
             </p>
           </CardContent>
         </Card>

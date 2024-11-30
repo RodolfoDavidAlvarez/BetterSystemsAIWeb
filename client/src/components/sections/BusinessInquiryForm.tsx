@@ -113,12 +113,9 @@ export default function BusinessInquiryForm() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Form submission initiated at:', new Date().toISOString());
-    console.log('Form values:', JSON.stringify(values, null, 2));
+    console.log('Form submission started', values);
+    setIsSubmitting(true);
     
-    // Enhanced logging for form validation
-    console.log('Starting form validation process...');
-    console.log('Validating fields:', Object.keys(values).join(', '));
     const result = formSchema.safeParse(values);
     if (!result.success) {
       console.error('Validation failed:', result.error.issues);
@@ -159,10 +156,7 @@ export default function BusinessInquiryForm() {
         submissionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       };
 
-      console.log('Preparing to submit form data:', { formData });
-      console.log('Initiating API request to webhook...');
-
-      // Attempt to submit the form
+      console.log('Sending request to webhook');
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
         headers: {
@@ -173,11 +167,7 @@ export default function BusinessInquiryForm() {
         body: JSON.stringify(formData),
       });
 
-      console.log('Received response:', { 
-        status: response.status, 
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      });
+      console.log('Response received:', response.status);
 
       // Handle different response statuses
       if (!response.ok) {

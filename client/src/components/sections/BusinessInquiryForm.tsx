@@ -258,7 +258,13 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit(onSubmit)(e);
+          }}
+          className="space-y-6"
+        >
           {step === 0 && (
             <>
               <FormField
@@ -469,27 +475,11 @@ export default function BusinessInquiryForm() {
             
             {step === steps.length - 1 ? (
               <Button 
-                type="submit" 
-                disabled={isSubmitting} 
+                type="submit"
+                disabled={isSubmitting}
                 className="min-w-[120px] relative"
               >
-                <div className="flex items-center gap-2">
-                  {isSubmitting ? (
-                    <>
-                      <div 
-                        className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" 
-                        role="status" 
-                        aria-label="Submitting form" 
-                      />
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <span>Submit Inquiry</span>
-                  )}
-                </div>
-                {isSubmitting && (
-                  <div className="absolute inset-0 bg-primary/10 rounded-md" />
-                )}
+                {isSubmitting ? "Submitting..." : "Submit Inquiry"}
               </Button>
             ) : (
               <Button type="button" onClick={nextStep}>

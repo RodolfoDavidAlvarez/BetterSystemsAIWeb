@@ -36,7 +36,7 @@ export default function Hero() {
             className="relative"
           >
             <img
-              src="https://images.unsplash.com/photo-1488229297570-58520851e868?w=800&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1677756119517-756a188d2d94?w=800&auto=format&fit=crop"
               alt="AI Business Transformation"
               className="rounded-lg shadow-2xl object-cover h-full w-full"
             />

@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/sections/Hero";
+import WhatWeDo from "@/components/sections/WhatWeDo";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function HomePage() {
@@ -25,6 +26,9 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Hero />
+      
+      {/* What We Do Section */}
+      <WhatWeDo />
       
       {/* Mission Statement */}
       <section className="bg-primary/5 py-20">

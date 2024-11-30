@@ -35,8 +35,8 @@ export default function Hero() {
             className="relative"
           >
             <img
-              src="https://images.unsplash.com/photo-1677756119517-756a188d2d94?w=800&auto=format&fit=crop"
-              alt="AI Business Transformation"
+              src="https://images.unsplash.com/photo-1560264280-88b68371db39?w=800&auto=format&fit=crop"
+              alt="Business owner with modern automation technology"
               className="rounded-lg shadow-2xl object-cover h-full w-full"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />

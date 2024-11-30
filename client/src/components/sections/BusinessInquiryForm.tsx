@@ -89,7 +89,6 @@ export default function BusinessInquiryForm() {
   };
 
   const nextStep = () => {
-    console.log('Validating fields for step:', step);
     const fields = getFieldsForStep(step);
     const isValid = fields.every(field => {
       const value = form.getValues(field as any);
@@ -97,142 +96,47 @@ export default function BusinessInquiryForm() {
     });
 
     if (!isValid) {
-      console.log('Field validation failed');
       fields.forEach(field => {
         form.trigger(field as any);
       });
       return;
     }
 
-    console.log('Moving to next step');
     setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
   const prevStep = () => {
-    console.log('Moving to previous step');
     setStep((s) => Math.max(s - 1, 0));
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Form submission started:', values);
-    console.log('Form validation starting...');
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     
-    const result = formSchema.safeParse(values);
-    if (!result.success) {
-      console.error('Validation failed:', result.error.issues);
-      const errors = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
-      
-      // Log validation errors for debugging
-      console.log('Validation errors:', errors);
-      
-      // Show toast with detailed error message
-      toast({
-        title: "Please Fix the Following Errors",
-        description: errors.join('\n'),
-        variant: "destructive",
-        duration: 7000,
-      });
-      
-      // Trigger validation on all fields to show errors
-      Object.keys(values).forEach(field => {
-        form.trigger(field as keyof typeof values);
-      });
-      
-      return;
-    }
-    
-    console.log('All fields validated successfully');
-
-    console.log('Validation passed, proceeding with submission');
-    setIsSubmitting(true);
-
     try {
-      // Prepare form data with additional metadata
-      const formData = {
-        ...values,
-        submissionDate: new Date().toISOString(),
-        source: window.location.href,
-        userAgent: navigator.userAgent,
-        formVersion: '1.0',
-        submissionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      };
-
-      console.log('Sending request to webhook');
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-Submission-ID': formData.submissionId,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(values),
       });
 
-      console.log('Response received:', response.status);
-
-      // Handle different response statuses
       if (!response.ok) {
-        let errorMessage = 'Failed to submit the form';
-        let errorDetails = null;
-        
-        try {
-          const errorData = await response.json();
-          console.error('Error response data:', errorData);
-          errorMessage = errorData.message || errorMessage;
-          errorDetails = errorData.details || null;
-        } catch (parseError) {
-          console.error('Failed to parse error response:', parseError);
-          errorMessage = `Submission failed: ${response.statusText}`;
-        }
-
-        throw new Error(errorMessage, { cause: errorDetails });
+        throw new Error('Failed to submit form');
       }
 
-      const responseData = await response.json();
-      console.log('Submission successful:', responseData);
-
-      // Success handling
-      toast({
-        title: "Submission Successful! 🎉",
-        description: "Thank you for your inquiry. We've received your information.",
-        duration: 5000,
-      });
-
-      // Set success state and reset form
       setIsSuccess(true);
-      setStep(0);
+      form.reset();
     } catch (error) {
-      console.error('Form submission error:', {
-        error,
-        type: error instanceof Error ? 'Error' : typeof error,
-        cause: error instanceof Error ? error.cause : undefined
-      });
-      
-      // Detailed error handling
-      let errorMessage = "An unexpected error occurred while submitting the form.";
-      let errorDetail = "";
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        if (error.cause) {
-          errorDetail = typeof error.cause === 'string' 
-            ? error.cause 
-            : JSON.stringify(error.cause);
-        }
-      } else if (error instanceof TypeError) {
-        errorMessage = "Network error. Please check your internet connection.";
-      }
-
       toast({
-        title: "Submission Failed",
-        description: errorDetail ? `${errorMessage}\n${errorDetail}` : errorMessage,
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit form",
         variant: "destructive",
-        duration: 7000,
       });
     } finally {
       setIsSubmitting(false);
-      console.log('Form submission completed');
     }
   }
   
@@ -279,13 +183,7 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form 
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit(onSubmit)(e);
-          }} 
-          className="space-y-6"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {step === 0 && (
             <>
               <FormField
@@ -497,10 +395,6 @@ export default function BusinessInquiryForm() {
             {step === steps.length - 1 ? (
               <Button 
                 type="submit"
-                onClick={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit(onSubmit)(e);
-                }}
                 disabled={isSubmitting}
                 className="min-w-[120px] relative"
               >

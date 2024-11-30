@@ -48,12 +48,17 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 w-2/3 max-w-[300px] z-10"
             >
-              <img
-                src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800&auto=format&fit=crop&q=80"
-                alt="Business growth chart showing increasing trends"
-                className="rounded-lg shadow-xl"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent rounded-lg" />
+              <div className="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&auto=format&fit=crop&q=80"
+                  alt="Rising profit graph showing business growth and success"
+                  className="rounded-lg shadow-xl"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent rounded-lg" />
+                <div className="absolute bottom-2 left-2 bg-background/90 px-3 py-1 rounded text-sm font-medium">
+                  Increased Profits
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>

@@ -28,19 +28,34 @@ export default function Hero() {
             </div>
           </motion.div>
           
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&auto=format&fit=crop&q=80"
-              alt="Modern office with multiple screens displaying AI analytics and data visualizations"
-              className="rounded-lg shadow-2xl object-cover h-full w-full"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />
-          </motion.div>
+          <div className="relative">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <img
+                src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&auto=format&fit=crop&q=80"
+                alt="Modern office with multiple screens displaying AI analytics and data visualizations"
+                className="rounded-lg shadow-2xl object-cover h-full w-full"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 w-2/3 max-w-[300px] z-10"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800&auto=format&fit=crop&q=80"
+                alt="Business growth chart showing increasing trends"
+                className="rounded-lg shadow-xl"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent rounded-lg" />
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>

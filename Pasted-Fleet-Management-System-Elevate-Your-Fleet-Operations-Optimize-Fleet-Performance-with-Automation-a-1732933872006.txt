@@ -1,0 +1,95 @@
+Fleet Management System: Elevate Your Fleet Operations
+
+Optimize Fleet Performance with Automation and AI
+
+Managing a fleet can be complex and time-consuming. Our Fleet Management System simplifies every aspect of vehicle oversight, from repair tracking to operational insights. Powered by advanced automation and AI, this system streamlines workflows, reduces downtime, and enhances communication—saving you time and money.
+
+Why Choose Our Fleet Management System?
+
+With our solution, you’ll experience:
+	•	Seamless Coordination: Automate key processes for more efficient fleet management.
+	•	Smarter Maintenance Tracking: Gain detailed insights into repair costs and frequencies.
+	•	Real-Time Communication: Stay updated with instant notifications and progress reports.
+
+Features Designed for Your Success
+
+AI-Powered Problem Classification
+
+Say goodbye to manual sorting. Issues reported by drivers are automatically categorized for faster resolution. Examples include:
+	•	Oil changes
+	•	Battery issues
+	•	Cooling system problems
+	•	Structural damage
+
+This feature ensures repairs are assigned to the right team instantly, saving valuable time.
+
+Enhanced Repair Request System
+
+Easily track and manage repairs with:
+	•	Unified Status Tracking: Follow each repair request from start to finish in one streamlined view.
+	•	Bilingual Forms: Submit repair requests in English or Spanish.
+	•	Image Attachments: Upload photos for detailed problem descriptions.
+	•	AI Processing: Enjoy precise categorization with minimal delay (~6 seconds).
+
+Comprehensive Fleet Administration Dashboard
+
+Stay on top of your fleet’s needs with actionable insights:
+	•	Cost Analysis: Identify high-frequency and high-cost repairs.
+	•	Monthly Trends: Track patterns in repair requests to inform future planning.
+	•	Historical Data Access: Review past repairs to improve decision-making.
+
+Advanced Time and Cost Metrics
+
+Monitor and optimize your fleet’s performance with:
+	•	Repair Tracking: Analyze time, cost, and frequency to identify inefficiencies.
+	•	Cost Validation: Verify estimates for more accurate financial reporting.
+
+Simplified Appointment Scheduling
+
+Keep maintenance organized with:
+	•	Consolidated Booking System: Schedule services in one easy-to-use interface.
+	•	Priority Status: Highlight urgent repairs with features like “Service Today.”
+	•	QR Code Integration: Book appointments quickly and conveniently.
+
+Vehicle Data Integration
+
+Turn data into actionable insights with:
+	•	Vehicle Records: Link vehicle IDs to details like mileage, department, and inspection history.
+	•	Supervisor Access: Allow supervisors to update records and assign responsibilities with ease.
+
+Real-Time Driver Notifications
+
+Keep drivers informed with:
+	•	Status Updates: Notify drivers about repairs directly on their mobile devices.
+	•	Driver Notes: Include comments for a complete record of communication.
+
+Flexible Repair Status Management
+
+Streamline operations with options for:
+	•	Resolved Without Service: Close out minor issues without unnecessary repairs.
+	•	On Hold: Pause tasks to prioritize active repairs.
+
+Centralized Appointment Calendar
+
+Simplify scheduling and monitoring with:
+	•	Calendar View Homepage: Quickly see upcoming services at a glance.
+	•	Visual Indicators: Completed tasks marked for clear progress tracking.
+
+Detailed Service Records
+
+Access everything you need in one place:
+	•	Linked Information: Connect repair requests, driver details, and vehicle data.
+	•	Comprehensive History: Make informed decisions based on detailed service logs.
+
+The Benefits at a Glance
+
+	•	Automation & Efficiency: Save time by reducing manual processes.
+	•	Enhanced Communication: Keep everyone informed with real-time updates.
+	•	Data-Driven Insights: Make smarter decisions with detailed analytics.
+	•	Streamlined Workflows: Minimize downtime with simplified operations.
+
+Take Control of Your Fleet Today
+
+Ready to transform your fleet operations? Our Fleet Management System delivers everything you need to stay ahead—whether you’re managing a handful of vehicles or a large-scale operation.
+
+Contact us now to schedule a demo and see how this solution can work for you!

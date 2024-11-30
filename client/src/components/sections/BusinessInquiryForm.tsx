@@ -113,19 +113,13 @@ export default function BusinessInquiryForm() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Form submission started with values:', values);
-    
-    const requiredFields = [
-      'name', 'email', 'company', 'industry', 'currentChallenges',
-      'whyInterested', 'interestedServices', 'timeline', 'communicationPreference'
-    ];
-    
-    const missingFields = requiredFields.filter(field => !values[field as keyof typeof values]);
-    if (missingFields.length > 0) {
-      console.error('Missing required fields:', missingFields);
+    // Validate all fields before submission
+    const result = formSchema.safeParse(values);
+    if (!result.success) {
+      const errors = result.error.issues.map(issue => issue.message);
       toast({
         title: "Validation Error",
-        description: `Please fill in all required fields: ${missingFields.join(', ')}`,
+        description: errors.join('\n'),
         variant: "destructive",
         duration: 5000,
       });
@@ -135,41 +129,64 @@ export default function BusinessInquiryForm() {
     setIsSubmitting(true);
 
     try {
-      console.log('Sending form data to webhook');
+      // Prepare form data with additional metadata
+      const formData = {
+        ...values,
+        submissionDate: new Date().toISOString(),
+        source: window.location.href,
+        userAgent: navigator.userAgent,
+        formVersion: '1.0',
+      };
+
+      // Attempt to submit the form
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          ...values,
-          submissionDate: new Date().toISOString(),
-          source: window.location.href,
-        }),
+        body: JSON.stringify(formData),
       });
 
-      console.log('Webhook response status:', response.status);
-
+      // Handle different response statuses
       if (!response.ok) {
-        throw new Error(`Submission failed with status ${response.status}`);
+        let errorMessage = 'Failed to submit the form';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // If parsing JSON fails, use status text
+          errorMessage = `Submission failed: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
-      console.log('Form submitted successfully');
+      // Success handling
       toast({
         title: "Submission Successful!",
-        description: "Thank you for your inquiry. We'll contact you soon.",
+        description: "Thank you for your inquiry. Our team will contact you shortly.",
         duration: 5000,
       });
 
+      // Reset form and state
       form.reset();
       setStep(0);
     } catch (error) {
       console.error('Form submission error:', error);
+      
+      // Detailed error handling
+      let errorMessage = "An unexpected error occurred while submitting the form.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error instanceof TypeError) {
+        errorMessage = "Network error. Please check your internet connection.";
+      }
+
       toast({
         title: "Submission Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
-        duration: 5000,
+        duration: 7000,
       });
     } finally {
       setIsSubmitting(false);
@@ -402,8 +419,15 @@ export default function BusinessInquiryForm() {
             </Button>
             
             {step === steps.length - 1 ? (
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit"}
+              <Button type="submit" disabled={isSubmitting} className="min-w-[100px]">
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span>Submitting...</span>
+                  </div>
+                ) : (
+                  "Submit"
+                )}
               </Button>
             ) : (
               <Button type="button" onClick={nextStep}>

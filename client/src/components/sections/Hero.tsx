@@ -35,8 +35,8 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <img
-                src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&auto=format&fit=crop&q=80"
-                alt="Modern office with multiple screens displaying AI analytics and data visualizations"
+                src="/Cover Photo (Better systems AI).jpg"
+                alt="Business professional presenting AI-powered business model sequence and automation strategies to team"
                 className="rounded-lg shadow-2xl object-cover h-full w-full"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />

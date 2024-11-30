@@ -114,7 +114,8 @@ export default function BusinessInquiryForm() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Form submission started', values);
+    console.log('Form submission started:', values);
+    console.log('Form validation starting...');
     setIsSubmitting(true);
     
     const result = formSchema.safeParse(values);
@@ -278,7 +279,13 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit(onSubmit)(e);
+          }} 
+          className="space-y-6"
+        >
           {step === 0 && (
             <>
               <FormField
@@ -490,10 +497,21 @@ export default function BusinessInquiryForm() {
             {step === steps.length - 1 ? (
               <Button 
                 type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  form.handleSubmit(onSubmit)(e);
+                }}
                 disabled={isSubmitting}
                 className="min-w-[120px] relative"
               >
-                {isSubmitting ? "Submitting..." : "Submit Inquiry"}
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Submitting...</span>
+                  </div>
+                ) : (
+                  "Submit Inquiry"
+                )}
               </Button>
             ) : (
               <Button type="button" onClick={nextStep}>

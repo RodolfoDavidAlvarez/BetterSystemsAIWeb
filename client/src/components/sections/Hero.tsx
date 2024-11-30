@@ -13,11 +13,10 @@ export default function Hero() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-              AI-Powered Solutions for Business Growth
+              Bring Your Business Into the AI Era
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Unlock your business potential with our advanced AI technology. We deliver 
-              custom solutions that drive efficiency, innovation, and measurable results.
+              We make it easy for businesses to use AI to save time, cut costs, and grow.
             </p>
             <div className="flex gap-4">
               <Button asChild size="lg">

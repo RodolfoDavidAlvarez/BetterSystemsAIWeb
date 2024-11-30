@@ -256,7 +256,13 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit(onSubmit)(e);
+          }} 
+          className="space-y-6"
+        >
           {step === 0 && (
             <>
               <FormField

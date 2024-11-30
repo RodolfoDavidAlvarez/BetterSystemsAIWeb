@@ -35,8 +35,8 @@ export default function Hero() {
             className="relative"
           >
             <img
-              src="https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&auto=format&fit=crop&q=80"
-              alt="Business professional analyzing data on multiple screens showing AI automation dashboards"
+              src="https://images.unsplash.com/photo-1581090700227-2fac2db25da5?w=800&auto=format&fit=crop&q=80"
+              alt="Business professional interacting with AI-powered analytics dashboards and data visualizations"
               className="rounded-lg shadow-2xl object-cover h-full w-full"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-lg" />

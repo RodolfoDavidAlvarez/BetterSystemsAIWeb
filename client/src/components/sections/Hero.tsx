@@ -35,7 +35,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <img
-                src="/Cover Photo (Better systems AI).jpg"
+                src="/images/Cover Photo (Better systems AI).jpg"
                 alt="Business professional presenting AI-powered business model sequence and automation strategies to team"
                 className="rounded-lg shadow-2xl object-cover h-full w-full"
               />

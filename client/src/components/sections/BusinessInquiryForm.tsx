@@ -457,27 +457,21 @@ export default function BusinessInquiryForm() {
                 type="submit" 
                 disabled={isSubmitting} 
                 className="min-w-[120px] relative"
-                onClick={(e) => {
-                  if (isSubmitting) {
-                    e.preventDefault();
-                    return;
-                  }
-                  console.log('Submit button clicked, proceeding with form submission');
-                }}
               >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" 
-                         role="status" 
-                         aria-label="Submitting form" 
-                    />
-                    <span>Submitting...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {isSubmitting ? (
+                    <>
+                      <div 
+                        className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" 
+                        role="status" 
+                        aria-label="Submitting form" 
+                      />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
                     <span>Submit Inquiry</span>
-                  </div>
-                )}
+                  )}
+                </div>
                 {isSubmitting && (
                   <div className="absolute inset-0 bg-primary/10 rounded-md" />
                 )}

@@ -120,14 +120,27 @@ export default function BusinessInquiryForm() {
     if (!result.success) {
       console.error('Validation failed:', result.error.issues);
       const errors = result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+      
+      // Log validation errors for debugging
+      console.log('Validation errors:', errors);
+      
+      // Show toast with detailed error message
       toast({
-        title: "Validation Error",
+        title: "Please Fix the Following Errors",
         description: errors.join('\n'),
         variant: "destructive",
-        duration: 5000,
+        duration: 7000,
       });
+      
+      // Trigger validation on all fields to show errors
+      Object.keys(values).forEach(field => {
+        form.trigger(field as keyof typeof values);
+      });
+      
       return;
     }
+    
+    console.log('All fields validated successfully');
 
     console.log('Validation passed, proceeding with submission');
     setIsSubmitting(true);

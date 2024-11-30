@@ -116,8 +116,9 @@ export default function BusinessInquiryForm() {
     console.log('Form submission initiated at:', new Date().toISOString());
     console.log('Form values:', JSON.stringify(values, null, 2));
     
-    // Log form validation start
-    console.log('Starting form validation');
+    // Enhanced logging for form validation
+    console.log('Starting form validation process...');
+    console.log('Validating fields:', Object.keys(values).join(', '));
     const result = formSchema.safeParse(values);
     if (!result.success) {
       console.error('Validation failed:', result.error.issues);
@@ -159,6 +160,7 @@ export default function BusinessInquiryForm() {
       };
 
       console.log('Preparing to submit form data:', { formData });
+      console.log('Initiating API request to webhook...');
 
       // Attempt to submit the form
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
@@ -258,13 +260,7 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit(onSubmit)(e);
-          }}
-          className="space-y-6"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {step === 0 && (
             <>
               <FormField

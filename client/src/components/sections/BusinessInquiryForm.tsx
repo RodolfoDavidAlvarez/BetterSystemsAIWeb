@@ -57,6 +57,7 @@ export default function BusinessInquiryForm() {
   const [step, setStep] = useState(0);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -193,12 +194,12 @@ export default function BusinessInquiryForm() {
       // Success handling
       toast({
         title: "Submission Successful! 🎉",
-        description: "Thank you for your inquiry. Our team will contact you shortly.",
+        description: "Thank you for your inquiry. We've received your information.",
         duration: 5000,
       });
 
-      // Reset form and state
-      form.reset();
+      // Set success state and reset form
+      setIsSuccess(true);
       setStep(0);
     } catch (error) {
       console.error('Form submission error:', {
@@ -234,6 +235,33 @@ export default function BusinessInquiryForm() {
     }
   }
   
+  if (isSuccess) {
+    return (
+      <div className="w-full max-w-3xl mx-auto text-center space-y-6">
+        <div className="rounded-full w-16 h-16 bg-green-100 mx-auto flex items-center justify-center">
+          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">Thank You for Your Interest!</h2>
+        <p className="text-gray-600 max-w-md mx-auto">
+          We've successfully received your inquiry. Our team will review your information and get back to you within 1-2 business days through your preferred communication method.
+        </p>
+        <div className="pt-6">
+          <Button
+            onClick={() => {
+              setIsSuccess(false);
+              form.reset();
+            }}
+            variant="outline"
+          >
+            Submit Another Inquiry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8">

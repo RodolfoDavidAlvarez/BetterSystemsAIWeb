@@ -19,8 +19,11 @@ import Booking from "./components/sections/Booking";
 import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
+import { useScrollToTop } from './hooks/useScrollToTop';
 
 function Router() {
+  useScrollToTop();
+  
   return (
     <RootLayout>
       <Switch>

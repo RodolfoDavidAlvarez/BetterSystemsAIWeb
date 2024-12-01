@@ -70,9 +70,13 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use Replit's provided port or default to 5000
+  // Use port 5000 for both development and production
   const PORT = Number(process.env.PORT) || 5000;
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`serving on port ${PORT}`);
+  
+  // Always bind to all network interfaces for Replit compatibility
+  server.listen(PORT, '0.0.0.0', () => {
+    log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
+    log(`Listening on port ${PORT}`);
+    log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
   });
 })();

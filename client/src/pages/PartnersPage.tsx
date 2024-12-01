@@ -4,24 +4,14 @@ import { Link } from "wouter";
 
 const partners = [
   {
-    name: "TechForward Solutions",
-    logo: "https://placehold.co/200x100",
-    description: "Leading provider of enterprise software solutions"
+    name: "Soil Seed and Water",
+    logo: "/SSW Logo.png",
+    description: "Environmental solutions for sustainable agriculture"
   },
   {
-    name: "DataStream Analytics",
-    logo: "https://placehold.co/200x100",
-    description: "Experts in big data and analytics platforms"
-  },
-  {
-    name: "CloudScale Systems",
-    logo: "https://placehold.co/200x100",
-    description: "Cloud infrastructure and scaling specialists"
-  },
-  {
-    name: "AI Innovations Corp",
-    logo: "https://placehold.co/200x100",
-    description: "Pioneers in artificial intelligence research"
+    name: "Agave Environmental Contracting, Inc.",
+    logo: "/AEC-Horizontal-Official-Logo-2020.png",
+    description: "Leading environmental contracting services"
   }
 ];
 
@@ -36,17 +26,22 @@ export default function PartnersPage() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-16">
+      <div className="grid md:grid-cols-2 gap-12 mb-16 max-w-5xl mx-auto">
         {partners.map((partner, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <img
-                src={partner.logo}
-                alt={partner.name}
-                className="h-20 object-contain mb-4"
-              />
-              <h2 className="text-xl font-bold mb-2">{partner.name}</h2>
-              <p className="text-muted-foreground">{partner.description}</p>
+          <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-8">
+              <div className="h-32 flex items-center justify-center mb-6 bg-white rounded-lg">
+                <img
+                  src={partner.logo}
+                  alt={partner.name}
+                  className="max-h-full max-w-full object-contain p-4"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://placehold.co/400x200?text=' + encodeURIComponent(partner.name);
+                  }}
+                />
+              </div>
+              <h2 className="text-2xl font-bold mb-3 text-center">{partner.name}</h2>
+              <p className="text-muted-foreground text-center">{partner.description}</p>
             </CardContent>
           </Card>
         ))}

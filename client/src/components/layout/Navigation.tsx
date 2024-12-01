@@ -18,7 +18,7 @@ export default function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="font-bold text-xl">
+          <Link href="/" className="font-bold text-base md:text-xl truncate max-w-[200px] md:max-w-none">
             Better Systems AI
           </Link>
 
@@ -40,7 +40,7 @@ export default function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-2 -mr-1"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -64,8 +64,8 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4">
-            <div className="flex flex-col gap-4">
+          <div className="md:hidden py-3 px-2">
+            <div className="flex flex-col gap-2 bg-background/95 rounded-lg p-3 shadow-sm">
               {navItems.map((item) => (
                 <a
                   key={item.label}

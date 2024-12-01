@@ -71,7 +71,7 @@ export default function Navigation() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-lg font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-4 py-3 rounded-md w-full text-right my-1"
+                  className="text-lg font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-3 py-2 rounded-md w-full text-right my-0.5"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}

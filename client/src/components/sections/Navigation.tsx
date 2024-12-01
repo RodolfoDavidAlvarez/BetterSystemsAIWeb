@@ -66,18 +66,18 @@ export default function Navigation() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden py-4">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 items-end">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-base font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
-              <Button asChild variant="default" className="w-full">
+              <Button asChild variant="default" className="w-full md:w-auto">
                 <Link href="/booking">Book Consultation</Link>
               </Button>
             </div>

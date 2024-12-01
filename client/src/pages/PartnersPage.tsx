@@ -6,12 +6,12 @@ const partners = [
   {
     name: "Soil Seed and Water",
     logo: "/SSW Logo.png",
-    description: "Environmental solutions for sustainable agriculture"
+    description: "SSW focuses on sustainable agriculture solutions by providing high-quality composting products, enhancing soil health, and supporting eco-friendly farming practices."
   },
   {
     name: "Agave Environmental Contracting, Inc.",
     logo: "/AEC-Horizontal-Official-Logo-2020.png",
-    description: "Leading environmental contracting services"
+    description: "Agave Environmental Contracting, Inc. provides expert landscaping services with 34+ years of experience and 6,000+ completed projects"
   }
 ];
 

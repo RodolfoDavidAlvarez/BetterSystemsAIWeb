@@ -66,12 +66,12 @@ export default function Navigation() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden py-3 px-2">
-            <div className="flex flex-col gap-1.5 rounded-lg bg-background/95 p-3 shadow-sm">
+            <div className="flex flex-col gap-1.5 rounded-lg bg-background/95 p-4 shadow-sm">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-4 py-2.5 rounded-md w-full"
+                  className="text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-6 py-2.5 rounded-md w-full text-right"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}

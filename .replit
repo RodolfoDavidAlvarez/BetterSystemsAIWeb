@@ -24,26 +24,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Build and Start"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Better Systems AI Website"
-
-[[workflows.workflow]]
-name = "Build and Start"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run build && node server/index.js"
-waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Better Systems AI Website"
@@ -57,5 +38,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build && npm start"
-waitForPort = 3000
+args = "npm run build && NODE_ENV=production node dist/index.js"
+waitForPort = 5000

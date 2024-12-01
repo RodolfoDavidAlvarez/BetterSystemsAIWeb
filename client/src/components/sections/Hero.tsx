@@ -4,7 +4,7 @@ import { Link } from "wouter";
 
 export default function Hero() {
   return (
-    <section className="pt-32 pb-16 md:pt-40 md:pb-24">
+    <section className="pt-20 pb-16 md:pt-40 md:pb-24">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.div

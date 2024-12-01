@@ -19,7 +19,7 @@ export default function Navigation() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="font-bold text-xl">
+          <Link href="/" className="font-bold text-lg md:text-xl truncate max-w-[200px] md:max-w-none">
             Better Systems AI
           </Link>
 
@@ -41,7 +41,7 @@ export default function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-2 -mr-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -65,19 +65,19 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 px-4">
-            <div className="flex flex-col gap-2 items-end rounded-lg bg-background/95 p-2">
+          <div className="md:hidden py-3 px-2">
+            <div className="flex flex-col gap-1.5 rounded-lg bg-background/95 p-3 shadow-sm">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-lg font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-3 py-2 rounded-md w-full text-right my-0.5"
+                  className="text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-4 py-2.5 rounded-md w-full"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
-              <Button asChild variant="default" className="w-full md:w-auto mt-2">
+              <Button asChild variant="default" className="w-full mt-2">
                 <Link href="/booking">Book Consultation</Link>
               </Button>
             </div>

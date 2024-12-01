@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 const partners = [
   {
     name: "Soil Seed and Water",
-    logo: "/ssw-logo.png",
+    logo: "/SSW Logo.png",
     description: "Environmental solutions for sustainable agriculture"
   },
   {
     name: "Agave Environmental Contracting, Inc.",
-    logo: "/aec-logo.png",
+    logo: "/AEC-Horizontal-Official-Logo-2020.png",
     description: "Leading environmental contracting services"
   }
 ];

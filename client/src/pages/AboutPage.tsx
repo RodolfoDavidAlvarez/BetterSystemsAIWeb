@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const founder = {
   name: "Rodolfo",
   role: "Founder & CEO",
-  avatar: "/Professional Portrait Rodolfo.jpg",
+  avatar: "/Professional Headshot Rodolfo compressed.jpg",
 };
 
 const values = [

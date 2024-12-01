@@ -59,7 +59,7 @@ export default function SocialPage() {
         <div className="text-center">
           <Avatar className="h-40 w-40 mx-auto mb-4">
             <AvatarImage 
-              src="/rodolfo-portrait.jpg" 
+              src="/Professional Headshot Rodolfo compressed.jpg" 
               alt="Better Systems AI"
               className="object-cover object-top"
             />

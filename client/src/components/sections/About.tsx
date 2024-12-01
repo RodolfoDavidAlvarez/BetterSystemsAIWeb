@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const founder = {
   name: "Rodolfo",
   role: "Founder & CEO",
-  avatar: "/Professional Portrait Rodolfo.jpg",
+  avatar: "/Professional Headshot Rodolfo compressed.jpg",
 };
 
 export default function About() {

@@ -1,4 +1,4 @@
-import BusinessInquiryForm from "../components/sections/BusinessInquiryForm";
+import BusinessInquiryForm from "@/components/sections/BusinessInquiryForm";
 
 export default function GetStartedPage() {
   return (

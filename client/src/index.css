@@ -9,10 +9,10 @@
   }
 
   * {
-    @apply border-gray-100;
+    @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-white;
+    @apply font-sans antialiased bg-background text-foreground;
   }
 }

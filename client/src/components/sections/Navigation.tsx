@@ -77,7 +77,7 @@ export default function Navigation() {
                   {item.label}
                 </Link>
               ))}
-              <Button asChild variant="default" className="w-full mt-2">
+              <Button asChild variant="default" className="w-full mt-2" onClick={() => setIsMenuOpen(false)}>
                 <Link href="/booking">Book Consultation</Link>
               </Button>
             </div>

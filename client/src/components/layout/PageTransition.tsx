@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -31,7 +31,7 @@ class PageTransitionErrorBoundary extends React.Component<
   }
 }
 
-export default function PageTransition({ children }: PageTransitionProps) {
+const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   const [location] = useLocation();
 
   return (
@@ -39,14 +39,19 @@ export default function PageTransition({ children }: PageTransitionProps) {
       <AnimatePresence mode="wait">
         <motion.div
           key={location}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ 
+            duration: 0.3,
+            ease: "easeInOut"
+          }}
         >
           {children}
         </motion.div>
       </AnimatePresence>
     </PageTransitionErrorBoundary>
   );
-}
+};
+
+export default PageTransition;

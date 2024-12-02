@@ -1,31 +1,30 @@
-import React, { ReactNode } from "react";
+import React from "react";
 import { useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface PageTransitionProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
+export default function PageTransition({ children }: PageTransitionProps) {
   const [location] = useLocation();
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={location}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{
-          duration: 0.3,
-          ease: [0.22, 1, 0.36, 1],
-          opacity: { duration: 0.2 }
+          duration: 0.1,
+          ease: [0.22, 1, 0.36, 1]
         }}
         style={{
           width: '100%',
           height: '100%',
           position: 'relative',
-          willChange: 'transform, opacity',
+          willChange: 'opacity',
           isolation: 'isolate'
         }}
       >
@@ -33,6 +32,4 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
       </motion.div>
     </AnimatePresence>
   );
-};
-
-export default PageTransition;
+}

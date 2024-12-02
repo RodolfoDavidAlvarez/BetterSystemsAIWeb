@@ -24,14 +24,11 @@ class PageTransitionErrorBoundary extends React.Component<
   }
 
   render() {
-    if (this.state.hasError) {
-      return this.props.children;
-    }
     return this.props.children;
   }
 }
 
-const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
+const PageTransition = ({ children }: PageTransitionProps) => {
   const [location] = useLocation();
 
   return (
@@ -39,12 +36,23 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={location}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ 
-            duration: 0.2,
-            ease: "easeInOut"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{
+            type: "spring",
+            stiffness: 100,
+            damping: 15,
+            mass: 0.5,
+            duration: 0.4,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            willChange: 'transform, opacity',
+            isolation: 'isolate'
           }}
         >
           {children}
@@ -54,4 +62,4 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   );
 };
 
-export default PageTransition;
+export { PageTransition };

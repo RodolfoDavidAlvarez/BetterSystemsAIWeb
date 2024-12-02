@@ -20,7 +20,7 @@ import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
-import PageTransition from "./components/layout/PageTransition";
+import { PageTransition } from "./components/layout/PageTransition";
 
 const Router = () => {
   useScrollToTop();
@@ -52,7 +52,14 @@ const Router = () => {
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Failed to find the root element");
 
-const root = createRoot(rootElement);
+let root: ReturnType<typeof createRoot>;
+if (!(rootElement as any).__react_root) {
+  root = createRoot(rootElement);
+  (rootElement as any).__react_root = root;
+} else {
+  root = (rootElement as any).__react_root;
+}
+
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

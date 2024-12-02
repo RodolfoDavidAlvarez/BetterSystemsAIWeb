@@ -100,27 +100,50 @@ export default function AboutPage() {
       {/* Team Members */}
       <section>
         <h2 className="text-2xl font-bold mb-8 text-center">Our Team</h2>
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6">
-            <div className="p-4">
-              <Avatar className="h-48 w-48 mx-auto mb-6">
-                <AvatarImage 
-                  src="/team/jesus-landin.jpg"
-                  alt="Jesus Landin"
-                  className="object-cover object-top"
-                  loading="eager"
-                />
-                <AvatarFallback>JL</AvatarFallback>
-              </Avatar>
-            </div>
-            <h3 className="font-bold text-xl mb-2 text-center">Jesus Landin</h3>
-            <p className="text-muted-foreground text-center mb-4">Mechanical Engineer</p>
-            <p className="text-muted-foreground text-center">
-              A skilled mechanical engineer bringing technical expertise and innovative solutions 
-              to our engineering challenges and system implementations.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="p-4">
+                <Avatar className="h-48 w-48 mx-auto mb-6">
+                  <AvatarImage 
+                    src="/team/jesus-landin.jpg"
+                    alt="Jesus Landin"
+                    className="object-cover object-top"
+                    loading="eager"
+                  />
+                  <AvatarFallback>JL</AvatarFallback>
+                </Avatar>
+              </div>
+              <h3 className="font-bold text-xl mb-2 text-center">Jesus Landin</h3>
+              <p className="text-muted-foreground text-center mb-4">Mechanical Engineer</p>
+              <p className="text-muted-foreground text-center">
+                A skilled mechanical engineer bringing technical expertise and innovative solutions 
+                to our engineering challenges and system implementations.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="p-4">
+                <Avatar className="h-48 w-48 mx-auto mb-6">
+                  <AvatarImage 
+                    src="/Alejandra Portrait Photo for Website.jpg"
+                    alt="Alejandra Alvarez"
+                    className="object-cover object-top"
+                    loading="eager"
+                  />
+                  <AvatarFallback>AA</AvatarFallback>
+                </Avatar>
+              </div>
+              <h3 className="font-bold text-xl mb-2 text-center">Alejandra Alvarez</h3>
+              <p className="text-muted-foreground text-center mb-4">Google Ad and SEO Strategist / Front End Developer</p>
+              <p className="text-muted-foreground text-center">
+                A skilled front-end developer with 4+ years of experience, specializing in Google Ads and SEO strategies to optimize digital presence and drive business growth.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </section>
     </div>
   );

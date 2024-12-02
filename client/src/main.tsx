@@ -20,7 +20,7 @@ import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
-import { PageTransition } from "./components/layout/PageTransition";
+import PageTransition from "./components/layout/PageTransition";
 
 const Router = () => {
   useScrollToTop();

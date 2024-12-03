@@ -45,12 +45,12 @@ export default function HomePage() {
               align: "center",
               loop: true,
               active: true,
-              dragFree: true,
+              dragFree: false,
               containScroll: "trimSnaps",
-              skipSnaps: true,
+              skipSnaps: false,
               breakpoints: {
-                "(max-width: 768px)": { align: "start", dragFree: false },
-                "(min-width: 769px)": { align: "center" }
+                "(max-width: 768px)": { align: "start" },
+                "(min-width: 769px)": { align: "center", dragFree: true }
               }
             }}
             plugins={[
@@ -125,8 +125,8 @@ export default function HomePage() {
                 </Card>
               </CarouselItem>
             </CarouselContent>
-            <CarouselPrevious className="-left-4 lg:-left-8 xl:-left-12" />
-            <CarouselNext className="-right-4 lg:-right-8 xl:-right-12" />
+            <CarouselPrevious className="hidden md:flex -left-4 lg:-left-8 xl:-left-12" />
+            <CarouselNext className="hidden md:flex -right-4 lg:-right-8 xl:-right-12" />
           </Carousel>
 
           <div className="text-center max-w-3xl mx-auto">

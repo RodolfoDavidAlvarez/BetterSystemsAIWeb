@@ -31,7 +31,7 @@ export default function HomePage() {
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl font-bold mb-6">Key AI Benefits</h2>
+            <h2 className="text-4xl font-bold mb-6">Key AI Benefits for Your Business</h2>
             <p className="text-lg text-muted-foreground">
               Discover how AI implementation can transform your business metrics and drive sustainable growth.
             </p>
@@ -40,32 +40,37 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <Card className="text-center p-6">
               <CardContent>
+                <div className="text-4xl font-bold text-primary mb-2">20%+</div>
+                <div className="text-2xl font-bold text-primary/80 mb-4">$4.60 ROI</div>
+                <h3 className="text-xl font-semibold mb-2">Revenue & Profit Growth</h3>
+                <p className="text-muted-foreground mb-4">Leading companies are achieving massive returns through AI implementation, driving unprecedented growth.</p>
+                <p className="text-sm font-medium text-primary">Why It Matters: Unlock new revenue streams and scale your business potential.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center p-6">
+              <CardContent>
+                <div className="text-4xl font-bold text-primary mb-4">Up to 40%</div>
+                <h3 className="text-xl font-semibold mb-2">Cost Savings</h3>
+                <p className="text-muted-foreground mb-4">AI-powered automation dramatically reduces operational costs while improving efficiency.</p>
+                <p className="text-sm font-medium text-primary">Why It Matters: Reinvest saved costs into growth initiatives.</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="text-center p-6">
+              <CardContent>
                 <div className="text-4xl font-bold text-primary mb-2">40%</div>
-                <h3 className="text-xl font-semibold mb-2">Efficiency Increase</h3>
-                <p className="text-muted-foreground">Average productivity boost reported by businesses implementing AI solutions</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center p-6">
-              <CardContent>
-                <div className="text-4xl font-bold text-primary mb-2">25%</div>
-                <h3 className="text-xl font-semibold mb-2">Cost Reduction</h3>
-                <p className="text-muted-foreground">Typical operational cost savings achieved through AI automation</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center p-6">
-              <CardContent>
-                <div className="text-4xl font-bold text-primary mb-2">60%</div>
-                <h3 className="text-xl font-semibold mb-2">Customer Satisfaction</h3>
-                <p className="text-muted-foreground">Improvement in customer satisfaction scores with AI-powered assistance</p>
+                <div className="text-2xl font-bold text-primary/80 mb-4">25% Faster</div>
+                <h3 className="text-xl font-semibold mb-2">Productivity & Decision-Making</h3>
+                <p className="text-muted-foreground mb-4">Transform workflows and leverage data for smarter, faster business decisions.</p>
+                <p className="text-sm font-medium text-primary">Why It Matters: Drive innovation and strategic advantage.</p>
               </CardContent>
             </Card>
           </div>
           
           <div className="text-center">
             <Button asChild variant="default" size="lg" className="font-semibold">
-              <Link href="/business-impact">Learn About Business Impact →</Link>
+              <Link href="/business-impact">Act Now - Transform Your Business →</Link>
             </Button>
           </div>
         </div>

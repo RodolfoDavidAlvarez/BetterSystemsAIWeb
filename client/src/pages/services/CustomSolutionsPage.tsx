@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { fadeIn, staggerChildren } from "@/lib/animations";
 
 export default function CustomSolutionsPage() {
   const service = {
@@ -16,7 +18,12 @@ export default function CustomSolutionsPage() {
 
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="max-w-3xl mx-auto mb-12">
+      <motion.div 
+        className="max-w-3xl mx-auto mb-12"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
@@ -24,19 +31,28 @@ export default function CustomSolutionsPage() {
         <p className="text-muted-foreground text-lg">
           {service.description}
         </p>
-      </div>
+      </motion.div>
 
-      <section className="space-y-8">
+      <motion.section 
+        className="space-y-8"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
         <h2 className="text-2xl font-semibold">Key Features</h2>
         <ul className="grid md:grid-cols-2 gap-4">
           {service.features.map((feature, index) => (
-            <li key={index} className="flex items-center gap-2">
+            <motion.li 
+              key={index} 
+              className="flex items-center gap-2"
+              variants={fadeIn}
+            >
               <span className="size-1.5 rounded-full bg-primary" />
               {feature}
-            </li>
+            </motion.li>
           ))}
         </ul>
-      </section>
+      </motion.section>
 
       <div className="mt-16 text-center">
         <Button asChild size="lg">

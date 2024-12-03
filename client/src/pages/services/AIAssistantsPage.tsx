@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { fadeIn, staggerChildren } from "@/lib/animations";
 
 export default function AIAssistantsPage() {
   const service = {
@@ -79,7 +81,12 @@ export default function AIAssistantsPage() {
 
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="max-w-3xl mx-auto mb-12">
+      <motion.div 
+        className="max-w-3xl mx-auto mb-12"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
@@ -87,27 +94,40 @@ export default function AIAssistantsPage() {
         <p className="text-muted-foreground text-lg mb-8">
           {service.description}
         </p>
-      </div>
+      </motion.div>
 
-      <section className="space-y-12 mb-16">
+      <motion.section className="space-y-12 mb-16">
         <h2 className="text-3xl font-semibold">Channel Capabilities</h2>
-        <div className="grid md:grid-cols-2 gap-8">
+        <motion.div 
+          className="grid md:grid-cols-2 gap-8"
+          variants={staggerChildren}
+          initial="initial"
+          animate="animate"
+        >
           {service.channels.map((channel, index) => (
-            <div key={index} className="bg-card rounded-lg p-6 shadow-sm">
+            <motion.div 
+              key={index} 
+              className="bg-card rounded-lg p-6 shadow-sm"
+              variants={fadeIn}
+            >
               <h3 className="text-xl font-semibold mb-3">{channel.title}</h3>
               <p className="text-muted-foreground mb-4">{channel.description}</p>
               <ul className="space-y-2">
                 {channel.capabilities.map((capability, capIndex) => (
-                  <li key={capIndex} className="flex items-center gap-2">
+                  <motion.li 
+                    key={capIndex} 
+                    className="flex items-center gap-2"
+                    variants={fadeIn}
+                  >
                     <span className="size-1.5 rounded-full bg-primary" />
                     {capability}
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       <section className="space-y-8 mb-16">
         <h2 className="text-3xl font-semibold">Business Benefits</h2>

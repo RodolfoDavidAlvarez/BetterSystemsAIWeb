@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { fadeIn, staggerChildren } from "@/lib/animations";
 
 export default function ServicesPage() {
   const services = [
@@ -27,24 +29,38 @@ export default function ServicesPage() {
 
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="max-w-3xl mx-auto mb-12 text-center">
+      <motion.div 
+        className="max-w-3xl mx-auto mb-12 text-center"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         <h1 className="text-4xl font-bold mb-4">Our Services</h1>
         <p className="text-muted-foreground">
           Transform your business operations with our comprehensive suite of AI-powered solutions.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-8">
+      <motion.div 
+        className="grid gap-8"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
         {services.map((service, index) => (
-          <section key={index} className="group hover:bg-primary/5 rounded-lg p-8 transition-colors">
+          <motion.section 
+            key={index} 
+            className="group hover:bg-primary/5 rounded-lg p-8 transition-colors"
+            variants={fadeIn}
+          >
             <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
             <p className="text-muted-foreground mb-6">{service.description}</p>
             <Button asChild>
               <Link href={service.href}>Learn More →</Link>
             </Button>
-          </section>
+          </motion.section>
         ))}
-      </div>
+      </motion.div>
 
       <div className="mt-16 text-center">
         <Button asChild size="lg">

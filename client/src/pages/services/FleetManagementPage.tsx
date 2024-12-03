@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { fadeIn, staggerChildren } from "@/lib/animations";
 
 export default function FleetManagementPage() {
   const service = {
@@ -61,7 +63,12 @@ export default function FleetManagementPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       {/* Header Section */}
-      <div className="max-w-3xl mx-auto mb-12">
+      <motion.div 
+        className="max-w-3xl mx-auto mb-12"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
@@ -69,42 +76,52 @@ export default function FleetManagementPage() {
         <p className="text-muted-foreground text-lg leading-relaxed">
           {service.description}
         </p>
-      </div>
+      </motion.div>
 
       {/* Key Features Section */}
-      <section className="mb-16">
+      <motion.section 
+        className="mb-16"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
         <h2 className="text-3xl font-bold mb-8">Key Features</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <motion.div 
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          variants={staggerChildren}
+        >
           {service.keyFeatures.map((feature, index) => (
-            <Card key={index} className="h-full">
-              <CardContent className="p-6 space-y-4">
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground mb-4">{feature.description}</p>
-                {feature.examples && (
-                  <div>
-                    <h4 className="font-medium mb-2">Examples:</h4>
-                    <ul className="list-disc list-inside text-muted-foreground">
-                      {feature.examples.map((example, i) => (
-                        <li key={i}>{example}</li>
+            <motion.div key={index} variants={fadeIn}>
+              <Card className="h-full">
+                <CardContent className="p-6 space-y-4">
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground mb-4">{feature.description}</p>
+                  {feature.examples && (
+                    <div>
+                      <h4 className="font-medium mb-2">Examples:</h4>
+                      <ul className="list-disc list-inside text-muted-foreground">
+                        {feature.examples.map((example, i) => (
+                          <li key={i}>{example}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {feature.features && (
+                    <ul className="space-y-2">
+                      {feature.features.map((item, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <span className="size-1.5 rounded-full bg-primary" />
+                          {item}
+                        </li>
                       ))}
                     </ul>
-                  </div>
-                )}
-                {feature.features && (
-                  <ul className="space-y-2">
-                    {feature.features.map((item, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <span className="size-1.5 rounded-full bg-primary" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* Benefits Section */}
       <section className="mb-16 bg-primary/5 rounded-2xl p-8">

@@ -19,6 +19,7 @@ import Booking from "./components/sections/Booking";
 import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
+import BusinessImpactPage from "./pages/BusinessImpactPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 function Router() {
@@ -40,6 +41,7 @@ function Router() {
         <Route path="/social" component={SocialPage} />
         <Route path="/photo-submission" component={PhotoSubmissionPage} />
         <Route path="/get-started" component={GetStartedPage} />
+        <Route path="/business-impact" component={BusinessImpactPage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </RootLayout>

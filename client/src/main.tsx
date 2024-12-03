@@ -1,4 +1,4 @@
-import React, { StrictMode } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route } from "wouter";
 import "./index.css";
@@ -20,51 +20,37 @@ import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
-import PageTransition from "./components/layout/PageTransition";
 
-const Router = () => {
+function Router() {
   useScrollToTop();
   
   return (
     <RootLayout>
-      <PageTransition>
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/services" component={ServicesPage} />
-          <Route path="/services/ai-assistants" component={AIAssistantsPage} />
-          <Route path="/services/efficiency-audit" component={EfficiencyAuditPage} />
-          <Route path="/services/fleet-management" component={FleetManagementPage} />
-          <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
-          <Route path="/about" component={AboutPage} />
-          <Route path="/partners" component={PartnersPage} />
-          <Route path="/contact" component={ContactPage} />
-          <Route path="/booking" component={Booking} />
-          <Route path="/social" component={SocialPage} />
-          <Route path="/photo-submission" component={PhotoSubmissionPage} />
-          <Route path="/get-started" component={GetStartedPage} />
-          <Route>404 Page Not Found</Route>
-        </Switch>
-      </PageTransition>
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/services" component={ServicesPage} />
+        <Route path="/services/ai-assistants" component={AIAssistantsPage} />
+        <Route path="/services/efficiency-audit" component={EfficiencyAuditPage} />
+        <Route path="/services/fleet-management" component={FleetManagementPage} />
+        <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/partners" component={PartnersPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/booking" component={Booking} />
+        <Route path="/social" component={SocialPage} />
+        <Route path="/photo-submission" component={PhotoSubmissionPage} />
+        <Route path="/get-started" component={GetStartedPage} />
+        <Route>404 Page Not Found</Route>
+      </Switch>
     </RootLayout>
   );
-};
-
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Failed to find the root element");
-
-let root: ReturnType<typeof createRoot>;
-if (!(rootElement as any).__react_root) {
-  root = createRoot(rootElement);
-  (rootElement as any).__react_root = root;
-} else {
-  root = (rootElement as any).__react_root;
 }
 
-root.render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Router />
       <Toaster />
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );

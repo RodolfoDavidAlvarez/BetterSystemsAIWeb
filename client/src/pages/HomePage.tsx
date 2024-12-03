@@ -27,23 +27,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <Hero />
       
-      {/* What We Do Section */}
-      <WhatWeDo />
-      
-      {/* Mission Statement */}
-      <section className="bg-primary/5 py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              Empowering businesses through innovative AI solutions, we transform 
-              traditional operations into efficient, automated systems that drive 
-              growth and success in today's digital landscape.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Key AI Benefits */}
       <section className="py-20">
         <div className="container mx-auto px-4">
@@ -84,6 +67,23 @@ export default function HomePage() {
             <Button asChild variant="default" size="lg" className="font-semibold">
               <Link href="/business-impact">Learn About Business Impact →</Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* What We Do Section */}
+      <WhatWeDo />
+      
+      {/* Mission Statement */}
+      <section className="bg-primary/5 py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              Empowering businesses through innovative AI solutions, we transform 
+              traditional operations into efficient, automated systems that drive 
+              growth and success in today's digital landscape.
+            </p>
           </div>
         </div>
       </section>

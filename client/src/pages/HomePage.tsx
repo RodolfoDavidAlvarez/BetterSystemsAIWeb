@@ -124,6 +124,74 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
               </CarouselItem>
+
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                <Card className="h-full transition-all duration-300 hover:scale-105">
+                  <CardContent className="flex flex-col justify-between p-8">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-6">Revenue & Profit Growth</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="text-4xl font-bold text-primary">20%+ Revenue Growth</div>
+                          <p className="text-lg mt-2">Companies using AI report revenue increases of 20% or more.</p>
+                        </div>
+                        <div>
+                          <div className="text-4xl font-bold text-primary">$4.60 ROI per $1</div>
+                          <p className="text-lg mt-2">Every dollar spent on AI delivers massive returns.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-8">
+                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
+                      <p className="text-lg">AI creates new revenue streams and improves decision-making, giving you a clear edge over competitors.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                <Card className="h-full transition-all duration-300 hover:scale-105">
+                  <CardContent className="flex flex-col justify-between p-8">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-6">Cost Savings</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="text-4xl font-bold text-primary">Up to 40% Reduction</div>
+                          <p className="text-lg mt-2">in Costs: AI-powered automation slashes operational expenses.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-8">
+                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
+                      <p className="text-lg">Lower costs mean more profit to reinvest in growing your business.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                <Card className="h-full transition-all duration-300 hover:scale-105">
+                  <CardContent className="flex flex-col justify-between p-8">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-6">Productivity & Decision-Making</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="text-4xl font-bold text-primary">40% Productivity Boost</div>
+                          <p className="text-lg mt-2">AI accelerates workflows and reduces wasted time.</p>
+                        </div>
+                        <div>
+                          <div className="text-4xl font-bold text-primary">25% Faster</div>
+                          <p className="text-lg mt-2">Business Insights: Make smarter decisions, faster, with AI analytics and reporting.</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-8">
+                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
+                      <p className="text-lg">Enhanced productivity frees up time to focus on innovation and strategy.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
             </CarouselContent>
             <CarouselPrevious className="hidden md:flex -left-4 lg:-left-8 xl:-left-12" />
             <CarouselNext className="hidden md:flex -right-4 lg:-right-8 xl:-right-12" />

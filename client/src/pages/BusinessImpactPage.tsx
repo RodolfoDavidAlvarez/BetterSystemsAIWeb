@@ -4,71 +4,71 @@ import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { BarChart3, TrendingUp, BrainCircuit, DollarSign } from "lucide-react";
 
-const impactStats = [
+const economicImpact = [
   {
-    title: "AI Market Growth",
-    value: "$407B",
-    growth: "+38.1%",
-    description: "Expected global AI market size by 2027",
+    title: "Current AI Market",
+    value: "$196B",
+    growth: "+42.6%",
+    description: "Global AI market value in 2024",
     icon: TrendingUp
   },
   {
-    title: "Productivity Boost",
-    value: "40%",
-    growth: "+15%",
-    description: "Average productivity increase with AI implementation",
+    title: "Future Market Size",
+    value: "$826B",
+    growth: "+321%",
+    description: "Projected AI market value by 2030",
     icon: BarChart3
   },
   {
-    title: "AI Adoption Rate",
-    value: "35%",
-    growth: "+12%",
-    description: "Businesses implementing AI solutions in 2024",
-    icon: BrainCircuit
-  },
-  {
-    title: "Cost Reduction",
-    value: "25%",
-    growth: "+8%",
-    description: "Average operational cost savings with AI",
+    title: "Economic Impact",
+    value: "$19.9T",
+    growth: "",
+    description: "Global economic contribution of AI",
     icon: DollarSign
+  },
+  {
+    title: "ROI Impact",
+    value: "4.6x",
+    growth: "",
+    description: "Return on every $1 spent on AI",
+    icon: BrainCircuit
   }
 ];
 
-const businessCases = [
+const businessPerformance = [
   {
-    title: "Customer Service Enhancement",
-    stats: "70% faster response times",
-    description: "AI-powered chatbots and virtual assistants dramatically improve customer service efficiency and satisfaction."
+    title: "Finance Sector Growth",
+    stats: "88% revenue increase",
+    description: "Financial firms seeing revenue growth with AI implementation, with 34% reporting over 20% increase"
   },
   {
-    title: "Process Automation",
-    stats: "45% reduction in manual tasks",
-    description: "Intelligent automation streamlines workflows and reduces human error in routine operations."
+    title: "Productivity Enhancement",
+    stats: "40% efficiency boost",
+    description: "Average productivity increase in organizations implementing AI solutions"
   },
   {
-    title: "Data Analysis & Insights",
-    stats: "3x faster decision making",
-    description: "Advanced analytics and AI-driven insights enable better and faster strategic decisions."
+    title: "Decision Making",
+    stats: "3x faster insights",
+    description: "Acceleration in data analysis and strategic decision-making processes"
   }
 ];
 
-const industryImpacts = [
+const adoptionStats = [
+  {
+    industry: "Financial Services",
+    impact: "88% reporting increased revenue, 34% seeing >20% growth"
+  },
   {
     industry: "Manufacturing",
-    impact: "Predictive maintenance reducing downtime by 50%"
+    impact: "45% reduction in operational costs through AI automation"
   },
   {
     industry: "Healthcare",
-    impact: "Diagnostic accuracy improved by 40%"
+    impact: "35% improvement in patient outcomes with AI diagnostics"
   },
   {
     industry: "Retail",
-    impact: "Personalization driving 30% higher sales"
-  },
-  {
-    industry: "Finance",
-    impact: "Fraud detection improved by 60%"
+    impact: "30% increase in sales through AI-powered personalization"
   }
 ];
 
@@ -84,20 +84,20 @@ export default function BusinessImpactPage() {
       >
         <h1 className="text-4xl font-bold mb-6">Business Impact of AI</h1>
         <p className="text-xl text-muted-foreground">
-          Discover how AI is transforming businesses across industries and driving 
-          unprecedented growth and efficiency.
+          Integrating automation and artificial intelligence (AI) into your business operations isn't just a trend—it's a revolution that's transforming industries worldwide. Here's how AI is set to boost profitability and efficiency for businesses like yours:
         </p>
       </motion.div>
 
-      {/* Key Statistics Grid */}
+      {/* Economic Impact & Market Growth */}
       <motion.section 
         className="mb-20"
         variants={staggerChildren}
         initial="initial"
         animate="animate"
       >
+        <h2 className="text-3xl font-bold mb-8">Economic Impact & Market Growth</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {impactStats.map((stat, index) => (
+          {economicImpact.map((stat, index) => (
             <motion.div key={index} variants={fadeIn}>
               <Card className="h-full">
                 <CardContent className="p-6">
@@ -115,11 +115,11 @@ export default function BusinessImpactPage() {
         </div>
       </motion.section>
 
-      {/* Business Cases Section */}
+      {/* Business Performance & Productivity */}
       <section className="mb-20">
-        <h2 className="text-3xl font-bold mb-8 text-center">Real Business Impact</h2>
+        <h2 className="text-3xl font-bold mb-8">Business Performance & Productivity</h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {businessCases.map((item, index) => (
+          {businessPerformance.map((item, index) => (
             <Card key={index} className="relative overflow-hidden">
               <CardContent className="p-6">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-bl-full" />
@@ -132,11 +132,11 @@ export default function BusinessImpactPage() {
         </div>
       </section>
 
-      {/* Industry Impact Section */}
+      {/* Adoption & Implementation */}
       <section className="mb-20 bg-primary/5 rounded-2xl p-8">
-        <h2 className="text-3xl font-bold mb-8 text-center">Industry-Specific Impact</h2>
+        <h2 className="text-3xl font-bold mb-8">Adoption & Implementation</h2>
         <div className="grid md:grid-cols-2 gap-6">
-          {industryImpacts.map((item, index) => (
+          {adoptionStats.map((item, index) => (
             <Card key={index} className="border-0 bg-background">
               <CardContent className="p-6">
                 <h3 className="text-xl font-semibold mb-3">{item.industry}</h3>

@@ -3,6 +3,8 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { toast } from "../hooks/use-toast";
+import { motion } from "framer-motion";
+import { fadeIn } from "@/lib/animations";
 
 interface AnalysisResult {
   message: string;
@@ -43,11 +45,27 @@ const PhotoSubmissionPage: React.FC = () => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
+      // First check if the device has camera support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Your device or browser does not support camera access');
+      }
+
+      // Try to get the list of available cameras
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length === 0) {
+        throw new Error('No camera found on your device');
+      }
+
+      // Request camera access with fallback options
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user',
+          aspectRatio: { ideal: 16/9 }
+        }
       });
       
       if (videoRef.current) {
@@ -56,24 +74,33 @@ const PhotoSubmissionPage: React.FC = () => {
         videoRef.current.setAttribute('playsinline', '');
         videoRef.current.setAttribute('muted', '');
         
-        try {
-          await videoRef.current.play();
-          console.log('Video stream started successfully');
-        } catch (playError) {
-          console.error('Error playing video:', playError);
-          throw new Error('Failed to start video stream');
-        }
+        // Ensure video loads before proceeding
+        await new Promise((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = resolve;
+          }
+        });
+        
+        await videoRef.current.play();
+        console.log('Video stream started successfully');
+        
+        setStream(mediaStream);
+        setIsCapturing(true);
+        
+        toast({
+          title: "Camera Active",
+          description: "Camera started successfully. Click 'Capture' when ready to take a photo.",
+        });
       } else {
-        throw new Error('Video element reference not found');
+        throw new Error('Video element not initialized');
       }
-      
-      setStream(mediaStream);
-      setIsCapturing(true);
     } catch (err) {
       console.error('Camera error:', err);
       toast({
         title: "Camera Error",
-        description: err instanceof Error ? err.message : "Unable to access camera. Please make sure you have granted permission.",
+        description: err instanceof Error 
+          ? err.message 
+          : "Unable to access camera. Please ensure you've granted camera permissions and try again.",
         variant: "destructive",
       });
     }
@@ -212,8 +239,19 @@ const PhotoSubmissionPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Photo Submission</h1>
-      <Card className="p-6 max-w-2xl mx-auto">
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+        className="max-w-3xl mx-auto text-center mb-8"
+      >
+        <h1 className="text-4xl font-bold mb-4">AI Photo Analysis</h1>
+        <p className="text-lg text-muted-foreground mb-8">
+          Experience our advanced AI photo analysis technology. Upload or capture a photo, 
+          and let our AI analyze its contents with detailed insights.
+        </p>
+      </motion.div>
+      <Card className="p-6 max-w-2xl mx-auto shadow-lg">
         <div className="mb-8">
           <div className="relative aspect-video mb-4">
             {isCapturing ? (

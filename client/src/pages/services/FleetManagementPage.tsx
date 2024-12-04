@@ -9,52 +9,12 @@ import { RepairGallery } from "@/components/ui/repair-gallery";
 export default function FleetManagementPage() {
   const repairs = [
     {
-      id: "471",
-      title: "Repair 471",
-      technician: "Nicholas MacNeil",
-      vehicle: "How we 2023",
-      category: "Alignment Issues",
-      imageUrl: "/repairs/repair-471.jpg"
-    },
-    {
-      id: "470",
-      title: "Repair 470",
-      technician: "Victor Morales",
-      vehicle: "Chevy",
-      category: "Transmission Issues",
-      imageUrl: "/repairs/repair-470.jpg"
-    },
-    {
-      id: "467",
-      title: "Repair 467",
-      technician: "Jose Peralta",
-      vehicle: "Toyota",
-      category: "Body Damage",
-      imageUrl: "/repairs/repair-467.jpg"
-    },
-    {
-      id: "465",
-      title: "Repair 465",
-      technician: "Robert Whan",
-      vehicle: "Kubota x900",
-      category: "Electrical Issues",
-      imageUrl: "/repairs/repair-465.jpg"
-    },
-    {
-      id: "464",
-      title: "Repair 464",
-      technician: "Robert Whan",
-      vehicle: "Gator pro",
-      category: "Oil Change",
-      imageUrl: "/repairs/repair-464.jpg"
-    },
-    {
-      id: "462",
-      title: "Repair 462",
-      technician: "Ryan Morrison",
-      vehicle: "Isuzu npr",
-      category: "Window/Lock Problems",
-      imageUrl: "/repairs/repair-462.jpg"
+      id: "1",
+      title: "AI Classification Gallery",
+      technician: "System",
+      vehicle: "Multiple Vehicles",
+      category: "AI Analysis",
+      imageUrl: "/images/ai-classification-gallery.png"
     }
   ];
 

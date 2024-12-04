@@ -172,9 +172,32 @@ export default function FleetManagementPage() {
         <p className="text-lg text-muted-foreground mb-6">
           As part of our comprehensive Fleet Management System, we provide detailed video tutorials to ensure your team gets the most out of our solution. Our tutorial library walks you through every feature, helping your staff master the system quickly and efficiently. Watch below for an overview of our key features and best practices.
         </p>
-        <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+        <div 
+          className="relative w-full aspect-video rounded-lg overflow-hidden"
+          ref={(element) => {
+            if (!element) return;
+            
+            const observer = new IntersectionObserver(
+              ([entry]) => {
+                if (entry.isIntersecting) {
+                  // When the video enters the viewport, replace the src to trigger autoplay
+                  const iframe = element.querySelector('iframe');
+                  if (iframe) {
+                    iframe.src = "https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&enablejsapi=1";
+                  }
+                }
+              },
+              { threshold: 0.5 } // Trigger when 50% of the element is visible
+            );
+
+            observer.observe(element);
+            
+            // Cleanup observer on unmount
+            return () => observer.disconnect();
+          }}
+        >
           <iframe
-            src="https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&enablejsapi=1"
+            src="https://www.youtube.com/embed/xzkGsKIGNfA?enablejsapi=1"
             title="Fleet Management System Tutorial"
             className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

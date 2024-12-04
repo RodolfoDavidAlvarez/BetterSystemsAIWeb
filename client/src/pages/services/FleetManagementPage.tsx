@@ -176,6 +176,25 @@ export default function FleetManagementPage() {
         </div>
       </section>
 
+      {/* Video Tutorial Section */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-bold mb-4">Video Tutorial</h2>
+        <p className="text-lg text-muted-foreground mb-6">
+          Watch our comprehensive tutorial to learn how to maximize the benefits of our Fleet Management System.
+          This guide walks you through key features and best practices for efficient fleet operations.
+        </p>
+        <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+          <iframe
+            src="https://www.youtube.com/embed/xzkGsKIGNfA"
+            title="Fleet Management System Tutorial"
+            className="absolute inset-0 w-full h-full rounded-lg"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+          />
+        </div>
+      </section>
+
       {/* Additional Features Grid */}
       <section className="mb-16">
         <h2 className="text-3xl font-bold mb-8">Additional Features</h2>

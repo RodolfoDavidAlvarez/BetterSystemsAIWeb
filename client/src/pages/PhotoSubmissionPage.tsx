@@ -80,24 +80,31 @@ const PhotoSubmissionPage: React.FC = () => {
       // Request camera access with fallback options
       // Try to get the rear camera first on mobile devices
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 },
-          facingMode: isMobile ? { ideal: 'environment', exact: 'environment' } : 'user',
-          aspectRatio: { ideal: 16/9 }
-        }
-      }).catch(async () => {
-        // If rear camera fails, fallback to any available camera
-        return navigator.mediaDevices.getUserMedia({
+      let mediaStream;
+      try {
+        // First try with the preferred camera
+        const constraints = {
           video: {
             width: { ideal: 1280, min: 640 },
             height: { ideal: 720, min: 480 },
-            facingMode: 'user',
+            facingMode: usingFrontCamera ? 'user' : 'environment',
             aspectRatio: { ideal: 16/9 }
           }
-        });
-      });
+        };
+        console.log('Attempting to get media with constraints:', constraints);
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err) {
+        console.error('First camera attempt failed:', err);
+        // Fallback to basic video constraints
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: true
+          });
+        } catch (fallbackErr) {
+          console.error('Fallback camera attempt failed:', fallbackErr);
+          throw new Error('Could not access any camera. Please check your camera permissions and try again.');
+        }
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -293,7 +300,7 @@ const PhotoSubmissionPage: React.FC = () => {
                 playsInline
                 muted
                 className="w-full h-full object-cover rounded-lg"
-                style={{ transform: 'scaleX(-1)' }} // Mirror the video for a more natural selfie experience
+                style={{ transform: usingFrontCamera ? 'scaleX(-1)' : 'none' }} // Only mirror for front camera
               />
             ) : (
               <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
@@ -330,11 +337,23 @@ const PhotoSubmissionPage: React.FC = () => {
                 {isMobile && (
                   <Button
                     onClick={async () => {
-                      setUsingFrontCamera(!usingFrontCamera);
                       if (stream) {
+                        // Stop current stream first
                         stopCamera();
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        startCamera();
+                        // Toggle camera
+                        setUsingFrontCamera(prev => !prev);
+                        // Wait for stream to properly stop
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        try {
+                          await startCamera();
+                        } catch (err) {
+                          console.error('Failed to switch camera:', err);
+                          toast({
+                            title: "Camera Switch Failed",
+                            description: "Failed to switch camera. Please try again.",
+                            variant: "destructive",
+                          });
+                        }
                       }
                     }}
                     variant="outline"

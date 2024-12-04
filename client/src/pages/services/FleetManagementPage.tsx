@@ -192,7 +192,7 @@ export default function FleetManagementPage() {
               controls
               poster="/repairs/repair-showcase-thumbnail.jpg"
             >
-              <source src="/Repair Resquest System Showcase.mp4" type="video/mp4" />
+              <source src="/videos/repair-request-showcase.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>

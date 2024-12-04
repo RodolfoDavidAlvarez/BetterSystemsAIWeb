@@ -54,7 +54,7 @@ export function ImageCarousel({ images, interval = 5000 }: ImageCarouselProps) {
             <img
               src={images[currentIndex].src}
               alt={images[currentIndex].alt}
-              className="w-full h-full object-contain bg-black/5"
+              className="w-full h-full object-contain bg-black/5 rounded-lg"
             />
           </motion.div>
         </AnimatePresence>

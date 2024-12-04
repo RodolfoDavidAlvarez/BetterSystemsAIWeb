@@ -80,16 +80,6 @@ export function ContinuousGallery({ images }: ContinuousGalleryProps) {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>{selectedImage?.title}</DialogTitle>
-            <DialogClose asChild>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="absolute right-4 top-4 hover:bg-destructive hover:text-destructive-foreground"
-              >
-                <X className="h-6 w-6" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </DialogClose>
           </DialogHeader>
           {selectedImage && (
             <div className="relative aspect-[4/3] w-full">

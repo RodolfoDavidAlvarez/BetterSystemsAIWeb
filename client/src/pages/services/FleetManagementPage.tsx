@@ -6,7 +6,10 @@ import { fadeIn, staggerChildren } from "@/lib/animations";
 
 import { ContinuousGallery } from "@/components/ui/continuous-gallery";
 
+import { useState } from "react";
+
 export default function FleetManagementPage() {
+  const [hasPlayed, setHasPlayed] = useState(false);
   const service = {
     title: "Fleet Management System 2.0",
     description: "Managing a fleet can be complex and time-consuming. Our Fleet Management System simplifies every aspect of vehicle oversight, from repair tracking to operational insights. Powered by advanced automation and AI, this system streamlines workflows, reduces downtime, and enhances communication—saving you time and money.",
@@ -179,11 +182,12 @@ export default function FleetManagementPage() {
             
             const observer = new IntersectionObserver(
               ([entry]) => {
-                if (entry.isIntersecting) {
-                  // When the video enters the viewport, replace the src to trigger autoplay
+                if (entry.isIntersecting && !hasPlayed) {
+                  // When the video enters the viewport for the first time, replace the src to trigger autoplay
                   const iframe = element.querySelector('iframe');
                   if (iframe) {
                     iframe.src = "https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&enablejsapi=1";
+                    setHasPlayed(true); // Mark as played
                   }
                 }
               },

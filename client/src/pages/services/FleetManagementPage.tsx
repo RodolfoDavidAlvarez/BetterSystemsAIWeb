@@ -174,10 +174,10 @@ export default function FleetManagementPage() {
         </p>
         <div className="relative w-full aspect-video rounded-lg overflow-hidden">
           <iframe
-            src="https://www.youtube.com/embed/xzkGsKIGNfA"
+            src="https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&mute=1"
             title="Fleet Management System Tutorial"
             className="absolute inset-0 w-full h-full rounded-lg"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             loading="lazy"
           />

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-
+import { RepairRequestForm } from "@/components/forms/RepairRequestForm";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
@@ -177,31 +177,33 @@ export default function FleetManagementPage() {
         </div>
       </section>
 
-      {/* Repair Request System Showcase */}
-      <section className="mb-16 bg-gradient-to-r from-primary/5 to-background rounded-2xl p-8">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4 text-center">Repair Request System Showcase</h2>
-          <p className="text-lg text-muted-foreground mb-8 text-center">
-            Experience our innovative repair request workflow in action. Watch how our system streamlines the entire process,
-            from initial submission to completion, featuring real-time updates, automated classification, and seamless communication
-            between drivers, technicians, and fleet managers.
-          </p>
-          <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
-            <video
-              className="absolute inset-0 w-full h-full rounded-xl"
-              controls
-              poster="/repairs/repair-showcase-thumbnail.jpg"
-            >
-              <source src="/videos/repair-request-showcase.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          </div>
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              This showcase demonstrates our complete repair request workflow, including form submission,
-              status tracking, and automated notifications.
-            </p>
-          </div>
+      {/* Repair Request Form Section */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-bold mb-4">Submit a Repair Request</h2>
+        <p className="text-lg text-muted-foreground mb-6">
+          Experience our streamlined repair request process. Submit a new repair request using the form below 
+          to see how our system handles vehicle maintenance and repair tracking.
+        </p>
+        <div className="max-w-2xl mx-auto">
+          <RepairRequestForm />
+        </div>
+      </section>
+
+      {/* Video Tutorial Section */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-bold mb-4">Video Tutorials</h2>
+        <p className="text-lg text-muted-foreground mb-6">
+          As part of our comprehensive Fleet Management System, we provide detailed video tutorials to ensure your team gets the most out of our solution. Our tutorial library walks you through every feature, helping your staff master the system quickly and efficiently. Watch below for an overview of our key features and best practices.
+        </p>
+        <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+          <iframe
+            src="https://www.youtube.com/embed/xzkGsKIGNfA"
+            title="Fleet Management System Tutorial"
+            className="absolute inset-0 w-full h-full rounded-lg"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+          />
         </div>
       </section>
 

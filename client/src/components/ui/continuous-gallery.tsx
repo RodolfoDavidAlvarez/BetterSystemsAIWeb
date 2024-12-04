@@ -62,9 +62,11 @@ export function ContinuousGallery({ images }: ContinuousGalleryProps) {
                   alt={image.alt}
                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent group-hover:from-black/80 transition-colors duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent group-hover:from-black/90 transition-colors duration-300" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white font-semibold transform transition-all duration-300 group-hover:text-primary group-hover:translate-y-[-4px]">{image.title}</h3>
+                  <div className="bg-black/40 rounded px-3 py-2 inline-block">
+                    <h3 className="text-white font-semibold transform transition-all duration-300 group-hover:translate-y-[-2px]">{image.title}</h3>
+                  </div>
                 </div>
               </div>
             </CarouselItem>
@@ -78,9 +80,6 @@ export function ContinuousGallery({ images }: ContinuousGalleryProps) {
         <DialogContent className="max-w-4xl" aria-describedby="gallery-image-desc">
           <DialogHeader>
             <DialogTitle>{selectedImage?.title}</DialogTitle>
-            <p id="gallery-image-desc" className="text-sm text-muted-foreground">
-              Click anywhere outside or use the close button to exit the image view
-            </p>
             <DialogClose asChild>
               <Button 
                 variant="outline" 

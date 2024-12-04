@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 
-import { ImageCarousel } from "@/components/ui/image-carousel";
+import { ContinuousGallery } from "@/components/ui/continuous-gallery";
 
 export default function FleetManagementPage() {
   const service = {
@@ -77,7 +77,7 @@ export default function FleetManagementPage() {
         initial="initial"
         animate="animate"
       >
-        <ImageCarousel
+        <ContinuousGallery
           images={[
             {
               src: "/images/ai-classification-gallery.png",

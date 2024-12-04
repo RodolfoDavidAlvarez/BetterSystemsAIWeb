@@ -178,17 +178,18 @@ export default function FleetManagementPage() {
         <div 
           className="relative w-full aspect-video rounded-lg overflow-hidden"
           ref={(element) => {
-            if (!element) return;
+            if (!element || hasPlayed) return;
             
             const observer = new IntersectionObserver(
               ([entry]) => {
-                if (entry.isIntersecting && !hasPlayed) {
+                if (entry.isIntersecting) {
                   // When the video enters the viewport for the first time, replace the src to trigger autoplay
                   const iframe = element.querySelector('iframe');
                   if (iframe) {
-                    iframe.src = "https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&enablejsapi=1";
+                    iframe.src = "https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&enablejsapi=1&playsinline=1";
                     setHasPlayed(true); // Mark as played
                   }
+                  observer.disconnect(); // Stop observing once video starts playing
                 }
               },
               { threshold: 0.5 } // Trigger when 50% of the element is visible

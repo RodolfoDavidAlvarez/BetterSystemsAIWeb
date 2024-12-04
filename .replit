@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd client && npm run dev -- --host 0.0.0.0 --port 5000"]
+run = ["sh", "-c", "cd client && npm run dev"]
 
 [[ports]]
 localPort = 80
@@ -46,5 +46,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev -- --host 0.0.0.0 --port 5000"
+args = "cd client && npm run dev"
 waitForPort = 5000

@@ -62,10 +62,10 @@ export function ContinuousGallery({ images }: ContinuousGalleryProps) {
                   alt={image.alt}
                   className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent group-hover:from-black/90 transition-colors duration-300" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="bg-black/40 rounded px-3 py-2 inline-block">
-                    <h3 className="text-white font-semibold transform transition-all duration-300 group-hover:translate-y-[-2px]">{image.title}</h3>
+                <div className="absolute bottom-0 left-0 right-0">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/90 to-transparent h-24" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-semibold transform transition-all duration-300">{image.title}</h3>
                   </div>
                 </div>
               </div>
@@ -77,16 +77,17 @@ export function ContinuousGallery({ images }: ContinuousGalleryProps) {
       </Carousel>
 
       <Dialog open={selectedImage !== null} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl" aria-describedby="gallery-image-desc">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>{selectedImage?.title}</DialogTitle>
             <DialogClose asChild>
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="absolute right-4 top-4 p-2 hover:bg-destructive hover:text-destructive-foreground"
+                className="absolute right-4 top-4 hover:bg-destructive hover:text-destructive-foreground"
               >
                 <X className="h-6 w-6" />
+                <span className="sr-only">Close</span>
               </Button>
             </DialogClose>
           </DialogHeader>

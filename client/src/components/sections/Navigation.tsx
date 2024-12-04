@@ -11,7 +11,6 @@ export default function Navigation() {
     { label: "About", href: "/about" },
     { label: "Partners", href: "/partners" },
     { label: "Contact", href: "/contact" },
-    { label: "Photo Analysis", href: "/photo-submission" },
   ];
 
   return (

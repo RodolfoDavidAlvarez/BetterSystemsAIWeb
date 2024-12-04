@@ -20,6 +20,8 @@ const PhotoSubmissionPage: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isMobile] = useState(() => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  const [usingFrontCamera, setUsingFrontCamera] = useState(true);
   // Cleanup stream when component unmounts
   useEffect(() => {
     return () => {
@@ -50,6 +52,18 @@ const PhotoSubmissionPage: React.FC = () => {
         throw new Error('Your device or browser does not support camera access');
       }
 
+      // Request permissions first
+      await navigator.permissions.query({ name: 'camera' as PermissionName })
+        .then((permissionStatus) => {
+          if (permissionStatus.state === 'denied') {
+            throw new Error('Camera permission denied. Please enable camera access in your browser settings.');
+          }
+        })
+        .catch(() => {
+          // Some browsers might not support the permissions API, continue anyway
+          console.log('Permissions API not supported, continuing with camera request');
+        });
+
       // Try to get the list of available cameras
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
@@ -58,14 +72,31 @@ const PhotoSubmissionPage: React.FC = () => {
         throw new Error('No camera found on your device');
       }
 
+      // Reset any existing streams
+      if (stream) {
+        stopCamera();
+      }
+
       // Request camera access with fallback options
+      // Try to get the rear camera first on mobile devices
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 },
-          facingMode: 'user',
+          facingMode: isMobile ? { ideal: 'environment', exact: 'environment' } : 'user',
           aspectRatio: { ideal: 16/9 }
         }
+      }).catch(async () => {
+        // If rear camera fails, fallback to any available camera
+        return navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 },
+            facingMode: 'user',
+            aspectRatio: { ideal: 16/9 }
+          }
+        });
       });
       
       if (videoRef.current) {
@@ -292,9 +323,27 @@ const PhotoSubmissionPage: React.FC = () => {
                 Take Photo
               </Button>
             ) : (
-              <Button onClick={capturePhoto} className="w-40">
-                Capture
-              </Button>
+              <>
+                <Button onClick={capturePhoto} className="w-40">
+                  Capture
+                </Button>
+                {isMobile && (
+                  <Button
+                    onClick={async () => {
+                      setUsingFrontCamera(!usingFrontCamera);
+                      if (stream) {
+                        stopCamera();
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        startCamera();
+                      }
+                    }}
+                    variant="outline"
+                    className="w-40"
+                  >
+                    Switch Camera
+                  </Button>
+                )}
+              </>
             )}
           </div>
           <input

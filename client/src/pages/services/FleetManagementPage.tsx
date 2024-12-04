@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { RepairRequestForm } from "@/components/forms/RepairRequestForm";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
@@ -173,6 +174,18 @@ export default function FleetManagementPage() {
               <p className="text-lg">{benefit}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Repair Request Form Section */}
+      <section className="mb-16">
+        <h2 className="text-3xl font-bold mb-4">Submit a Repair Request</h2>
+        <p className="text-lg text-muted-foreground mb-6">
+          Experience our streamlined repair request process. Submit a new repair request using the form below 
+          to see how our system handles vehicle maintenance and repair tracking.
+        </p>
+        <div className="max-w-2xl mx-auto">
+          <RepairRequestForm />
         </div>
       </section>
 

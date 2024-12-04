@@ -180,8 +180,7 @@ export default function FleetManagementPage() {
       <section className="mb-16">
         <h2 className="text-3xl font-bold mb-4">Video Tutorial</h2>
         <p className="text-lg text-muted-foreground mb-6">
-          Watch our comprehensive tutorial to learn how to maximize the benefits of our Fleet Management System.
-          This guide walks you through key features and best practices for efficient fleet operations.
+          As part of our comprehensive Fleet Management System, we provide detailed video tutorials to ensure your team gets the most out of our solution. Our tutorial library walks you through every feature, helping your staff master the system quickly and efficiently. Watch below for an overview of our key features and best practices.
         </p>
         <div className="relative w-full aspect-video rounded-lg overflow-hidden">
           <iframe

@@ -30,7 +30,7 @@ export function ImageCarousel({ images, interval = 5000 }: ImageCarouselProps) {
   return (
     <div className="w-full max-w-5xl mx-auto">
       <div 
-        className="relative aspect-[16/9] rounded-lg overflow-hidden"
+        className="relative aspect-[16/9] rounded-xl overflow-hidden"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -54,7 +54,7 @@ export function ImageCarousel({ images, interval = 5000 }: ImageCarouselProps) {
             <img
               src={images[currentIndex].src}
               alt={images[currentIndex].alt}
-              className="w-full h-full object-contain bg-black/5 rounded-lg"
+              className="w-full h-full object-contain bg-black/5 rounded-xl transition-all duration-300"
             />
           </motion.div>
         </AnimatePresence>

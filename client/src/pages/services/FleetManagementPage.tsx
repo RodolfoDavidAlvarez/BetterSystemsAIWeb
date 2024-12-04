@@ -166,21 +166,21 @@ export default function FleetManagementPage() {
         </div>
       </section>
 
-      {/* Video Tutorial Section */}
+      {/* System Showcase Video */}
       <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-4">Video Tutorials</h2>
+        <h2 className="text-3xl font-bold mb-4">System Showcase</h2>
         <p className="text-lg text-muted-foreground mb-6">
-          As part of our comprehensive Fleet Management System, we provide detailed video tutorials to ensure your team gets the most out of our solution. Our tutorial library walks you through every feature, helping your staff master the system quickly and efficiently. Watch below for an overview of our key features and best practices.
+          Watch our comprehensive Fleet Management System in action. This showcase demonstrates the powerful features and intuitive interface that make our solution stand out.
         </p>
-        <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-          <iframe
-            src="https://www.youtube.com/embed/xzkGsKIGNfA"
-            title="Fleet Management System Tutorial"
-            className="absolute inset-0 w-full h-full rounded-lg"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            loading="lazy"
-          />
+        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+          <video
+            className="w-full h-full"
+            controls
+            preload="metadata"
+          >
+            <source src="/videos/repair-system-showcase.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
       </section>
 

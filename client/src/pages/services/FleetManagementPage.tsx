@@ -4,21 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 
-import { RepairGallery } from "@/components/ui/repair-gallery";
 import { ImageCarousel } from "@/components/ui/image-carousel";
 
 export default function FleetManagementPage() {
-  const repairs = [
-    {
-      id: "1",
-      title: "AI Classification Gallery",
-      technician: "System",
-      vehicle: "Multiple Vehicles",
-      category: "AI Analysis",
-      imageUrl: "/images/ai-classification-gallery.png"
-    }
-  ];
-
   const service = {
     title: "Fleet Management System 2.0",
     description: "Managing a fleet can be complex and time-consuming. Our Fleet Management System simplifies every aspect of vehicle oversight, from repair tracking to operational insights. Powered by advanced automation and AI, this system streamlines workflows, reduces downtime, and enhances communication—saving you time and money.",
@@ -186,12 +174,6 @@ export default function FleetManagementPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Repair Classification Gallery */}
-      <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-8">Recent Repairs & Classifications</h2>
-        <RepairGallery repairs={repairs} />
       </section>
 
       {/* Additional Features Grid */}

@@ -124,6 +124,19 @@ export default function AIAssistantsPage() {
                   </motion.li>
                 ))}
               </ul>
+              {channel.title === "SMS/Text Messaging" && (
+                <div className="mt-6">
+                  <div className="aspect-video w-full">
+                    <iframe
+                      className="w-full h-full rounded-lg"
+                      src="https://www.youtube.com/embed/_36nIgx8Lic"
+                      title="SMS/Text Messaging Demo"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
             </motion.div>
           ))}
         </motion.div>

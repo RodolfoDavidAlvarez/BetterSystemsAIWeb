@@ -17,16 +17,6 @@ export default function FleetManagementPage() {
         examples: ["Oil changes", "Battery issues", "Cooling system problems", "Structural damage"]
       },
       {
-        title: "Enhanced Repair Request System",
-        description: "Track and manage repairs efficiently with our unified system.",
-        features: [
-          "Unified Status Tracking",
-          "Bilingual Forms (English/Spanish)",
-          "Image Attachments",
-          "AI Processing (~6 seconds)"
-        ]
-      },
-      {
         title: "Comprehensive Dashboard",
         description: "Stay on top of your fleet's needs with actionable insights.",
         features: [
@@ -127,7 +117,7 @@ export default function FleetManagementPage() {
       >
         <h2 className="text-3xl font-bold mb-8">Key Features</h2>
         <motion.div 
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid md:grid-cols-2 gap-8"
           variants={staggerChildren}
         >
           {service.keyFeatures.map((feature, index) => (

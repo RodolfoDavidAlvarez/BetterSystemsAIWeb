@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CarouselImage {
   src: string;
@@ -57,6 +58,22 @@ export function ImageCarousel({ images, interval = 5000 }: ImageCarouselProps) {
             />
           </motion.div>
         </AnimatePresence>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={() => setCurrentIndex((current) => (current - 1 + images.length) % images.length)}
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 transition-colors"
+          aria-label="Previous image"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <button
+          onClick={() => setCurrentIndex((current) => (current + 1) % images.length)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 transition-colors"
+          aria-label="Next image"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
 
         {/* Navigation Dots */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">

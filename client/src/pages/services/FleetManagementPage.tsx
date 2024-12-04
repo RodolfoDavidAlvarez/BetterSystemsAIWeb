@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 
 import { RepairGallery } from "@/components/ui/repair-gallery";
+import { ImageCarousel } from "@/components/ui/image-carousel";
 
 export default function FleetManagementPage() {
   const repairs = [
@@ -90,6 +91,44 @@ export default function FleetManagementPage() {
           {service.description}
         </p>
       </motion.div>
+
+      {/* Fleet Management Carousel */}
+      <motion.section 
+        className="mb-16"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
+        <ImageCarousel
+          images={[
+            {
+              src: "/images/ai-classification-gallery.png",
+              title: "AI Classification Gallery",
+              alt: "AI Classification system showcase"
+            },
+            {
+              src: "/images/cost-analysis-reporting.png",
+              title: "Cost Analysis and Incident Reporting",
+              alt: "Cost analysis and incident reporting interface"
+            },
+            {
+              src: "/images/driver-management.png",
+              title: "Driver Management",
+              alt: "Driver management interface"
+            },
+            {
+              src: "/images/vehicle-management-detail.png",
+              title: "Vehicle Management Detail",
+              alt: "Vehicle management detailed view"
+            },
+            {
+              src: "/images/vehicle-management-detail-2.png",
+              title: "Vehicle Management Detail 2",
+              alt: "Additional vehicle management interface"
+            }
+          ]}
+        />
+      </motion.section>
 
       {/* Key Features Section */}
       <motion.section 

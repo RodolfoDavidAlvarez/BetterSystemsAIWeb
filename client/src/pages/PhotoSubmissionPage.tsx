@@ -20,8 +20,6 @@ const PhotoSubmissionPage: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isMobile] = useState(() => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-  const [usingFrontCamera, setUsingFrontCamera] = useState(true);
   // Cleanup stream when component unmounts
   useEffect(() => {
     return () => {
@@ -52,18 +50,6 @@ const PhotoSubmissionPage: React.FC = () => {
         throw new Error('Your device or browser does not support camera access');
       }
 
-      // Request permissions first
-      await navigator.permissions.query({ name: 'camera' as PermissionName })
-        .then((permissionStatus) => {
-          if (permissionStatus.state === 'denied') {
-            throw new Error('Camera permission denied. Please enable camera access in your browser settings.');
-          }
-        })
-        .catch(() => {
-          // Some browsers might not support the permissions API, continue anyway
-          console.log('Permissions API not supported, continuing with camera request');
-        });
-
       // Try to get the list of available cameras
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
@@ -72,39 +58,15 @@ const PhotoSubmissionPage: React.FC = () => {
         throw new Error('No camera found on your device');
       }
 
-      // Reset any existing streams
-      if (stream) {
-        stopCamera();
-      }
-
       // Request camera access with fallback options
-      // Try to get the rear camera first on mobile devices
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      let mediaStream;
-      try {
-        // First try with the preferred camera
-        const constraints = {
-          video: {
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 },
-            facingMode: usingFrontCamera ? 'user' : 'environment',
-            aspectRatio: { ideal: 16/9 }
-          }
-        };
-        console.log('Attempting to get media with constraints:', constraints);
-        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (err) {
-        console.error('First camera attempt failed:', err);
-        // Fallback to basic video constraints
-        try {
-          mediaStream = await navigator.mediaDevices.getUserMedia({
-            video: true
-          });
-        } catch (fallbackErr) {
-          console.error('Fallback camera attempt failed:', fallbackErr);
-          throw new Error('Could not access any camera. Please check your camera permissions and try again.');
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user',
+          aspectRatio: { ideal: 16/9 }
         }
-      }
+      });
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -283,7 +245,7 @@ const PhotoSubmissionPage: React.FC = () => {
         variants={fadeIn}
         className="max-w-3xl mx-auto text-center mb-8"
       >
-        <p className="text-sm font-medium text-muted-foreground/80 tracking-wide mb-2">Better Systems AI</p>
+        <p className="text-sm font-medium text-primary mb-2">Better Systems AI</p>
         <h1 className="text-4xl font-bold mb-4">AI Photo Analysis</h1>
         <p className="text-lg text-muted-foreground mb-8">
           Experience our advanced AI photo analysis technology. Upload or capture a photo, 
@@ -300,7 +262,7 @@ const PhotoSubmissionPage: React.FC = () => {
                 playsInline
                 muted
                 className="w-full h-full object-cover rounded-lg"
-                style={{ transform: usingFrontCamera ? 'scaleX(-1)' : 'none' }} // Only mirror for front camera
+                style={{ transform: 'scaleX(-1)' }} // Mirror the video for a more natural selfie experience
               />
             ) : (
               <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
@@ -330,39 +292,9 @@ const PhotoSubmissionPage: React.FC = () => {
                 Take Photo
               </Button>
             ) : (
-              <>
-                <Button onClick={capturePhoto} className="w-40">
-                  Capture
-                </Button>
-                {isMobile && (
-                  <Button
-                    onClick={async () => {
-                      if (stream) {
-                        // Stop current stream first
-                        stopCamera();
-                        // Toggle camera
-                        setUsingFrontCamera(prev => !prev);
-                        // Wait for stream to properly stop
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        try {
-                          await startCamera();
-                        } catch (err) {
-                          console.error('Failed to switch camera:', err);
-                          toast({
-                            title: "Camera Switch Failed",
-                            description: "Failed to switch camera. Please try again.",
-                            variant: "destructive",
-                          });
-                        }
-                      }
-                    }}
-                    variant="outline"
-                    className="w-40"
-                  >
-                    Switch Camera
-                  </Button>
-                )}
-              </>
+              <Button onClick={capturePhoto} className="w-40">
+                Capture
+              </Button>
             )}
           </div>
           <input

@@ -245,6 +245,7 @@ const PhotoSubmissionPage: React.FC = () => {
         variants={fadeIn}
         className="max-w-3xl mx-auto text-center mb-8"
       >
+        <p className="text-sm font-medium text-primary mb-2">Better Systems AI</p>
         <h1 className="text-4xl font-bold mb-4">AI Photo Analysis</h1>
         <p className="text-lg text-muted-foreground mb-8">
           Experience our advanced AI photo analysis technology. Upload or capture a photo, 

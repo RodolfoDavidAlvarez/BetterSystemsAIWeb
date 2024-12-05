@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
-
+import { Input } from "../components/ui/input";
 import { toast } from "../hooks/use-toast";
+import { motion } from "framer-motion";
+import { fadeIn } from "@/lib/animations";
 
 interface AnalysisResult {
   message: string;
@@ -18,12 +20,9 @@ const PhotoSubmissionPage: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  // Cleanup resources when component unmounts
+  // Cleanup stream when component unmounts
   useEffect(() => {
-    let mounted = true;
-
     return () => {
-      mounted = false;
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
@@ -46,11 +45,27 @@ const PhotoSubmissionPage: React.FC = () => {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
+      // First check if the device has camera support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Your device or browser does not support camera access');
+      }
+
+      // Try to get the list of available cameras
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length === 0) {
+        throw new Error('No camera found on your device');
+      }
+
+      // Request camera access with fallback options
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: 'user',
+          aspectRatio: { ideal: 16/9 }
+        }
       });
       
       if (videoRef.current) {
@@ -59,24 +74,33 @@ const PhotoSubmissionPage: React.FC = () => {
         videoRef.current.setAttribute('playsinline', '');
         videoRef.current.setAttribute('muted', '');
         
-        try {
-          await videoRef.current.play();
-          console.log('Video stream started successfully');
-        } catch (playError) {
-          console.error('Error playing video:', playError);
-          throw new Error('Failed to start video stream');
-        }
+        // Ensure video loads before proceeding
+        await new Promise((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = resolve;
+          }
+        });
+        
+        await videoRef.current.play();
+        console.log('Video stream started successfully');
+        
+        setStream(mediaStream);
+        setIsCapturing(true);
+        
+        toast({
+          title: "Camera Active",
+          description: "Camera started successfully. Click 'Capture' when ready to take a photo.",
+        });
       } else {
-        throw new Error('Video element reference not found');
+        throw new Error('Video element not initialized');
       }
-      
-      setStream(mediaStream);
-      setIsCapturing(true);
     } catch (err) {
       console.error('Camera error:', err);
       toast({
         title: "Camera Error",
-        description: err instanceof Error ? err.message : "Unable to access camera. Please make sure you have granted permission.",
+        description: err instanceof Error 
+          ? err.message 
+          : "Unable to access camera. Please ensure you've granted camera permissions and try again.",
         variant: "destructive",
       });
     }
@@ -143,12 +167,8 @@ const PhotoSubmissionPage: React.FC = () => {
         const pollTimeout = 30000; // 30 seconds timeout
         const pollInterval = 2000; // Poll every 2 seconds
         const startTime = Date.now();
-        let pollingTimer: NodeJS.Timeout;
-        let mounted = true;
         
         const pollForResults = async () => {
-          if (!mounted) return;
-          
           const timeoutReached = Date.now() - startTime >= pollTimeout;
           
           if (timeoutReached) {
@@ -168,39 +188,31 @@ const PhotoSubmissionPage: React.FC = () => {
             }
             const analysisData = await analysisResponse.json();
             
-            if (analysisData.result && mounted) {
+            if (analysisData.result) {
               setAnalysisResult(analysisData.result);
               setIsUploading(false);
-              return;
-            }
-            
-            if (mounted) {
-              pollingTimer = setTimeout(pollForResults, pollInterval);
+              return true; // Polling complete
             }
           } catch (error) {
             console.error('Error polling analysis:', error);
-            if (mounted) {
-              setIsUploading(false);
-              toast({
-                title: "Error",
-                description: "Failed to get analysis results. Please try again.",
-                variant: "destructive",
-              });
-            }
+          }
+          
+          return false; // Continue polling
+        };
+
+        let pollingTimer: NodeJS.Timeout;
+        
+        const startPolling = async () => {
+          const complete = await pollForResults();
+          if (!complete) {
+            pollingTimer = setTimeout(startPolling, pollInterval);
           }
         };
 
-        pollForResults();
+        startPolling();
 
-        // Reset form state
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        if (stream) {
-          stopCamera();
-        }
-
+        // Cleanup timer on component unmount
         return () => {
-          mounted = false;
           if (pollingTimer) {
             clearTimeout(pollingTimer);
           }
@@ -227,8 +239,20 @@ const PhotoSubmissionPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Photo Submission</h1>
-      <Card className="p-6 max-w-2xl mx-auto">
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+        className="max-w-3xl mx-auto text-center mb-8"
+      >
+        <p className="text-sm font-medium text-muted-foreground/80 tracking-wide mb-2">Better Systems AI</p>
+        <h1 className="text-4xl font-bold mb-4">AI Photo Analysis</h1>
+        <p className="text-lg text-muted-foreground mb-8">
+          Experience our advanced AI photo analysis technology. Upload or capture a photo, 
+          and let our AI analyze its contents with detailed insights.
+        </p>
+      </motion.div>
+      <Card className="p-6 max-w-2xl mx-auto shadow-lg">
         <div className="mb-8">
           <div className="relative aspect-video mb-4">
             {isCapturing ? (

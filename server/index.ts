@@ -71,42 +71,37 @@ app.use((req, res, next) => {
   }
 
   // Get port from environment variable, Replit sets this automatically
-  const PORT = process.env.PORT || '3000';
-  const numericPort = parseInt(PORT, 10);
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   
-  if (isNaN(numericPort)) {
-    log(`Invalid PORT value: ${PORT}, using default port 3000`);
-    numericPort = 3000;
-  }
-  
-  // Always bind to all network interfaces for Replit compatibility
-  const startServer = () => {
-    try {
-      server.listen(numericPort, '0.0.0.0', () => {
-        log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
-        log(`Listening on port ${numericPort}`);
-        if (process.env.REPLIT_SLUG) {
-          log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
-        }
-      });
-
-      server.on('error', (err: any) => {
-        if (err.code === 'EADDRINUSE') {
-          log(`Port ${numericPort} is already in use. Trying again...`);
-          setTimeout(() => {
-            server.close();
-            startServer();
-          }, 1000);
-        } else {
-          log(`Failed to start server: ${err.message}`);
-          process.exit(1);
-        }
-      });
-    } catch (error) {
-      log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      process.exit(1);
-    }
+  // Clean up any existing connections on shutdown
+  const cleanup = () => {
+    server.close(() => {
+      log('Server shutting down');
+      process.exit(0);
+    });
   };
 
-  startServer();
+  process.on('SIGTERM', cleanup);
+  process.on('SIGINT', cleanup);
+
+  try {
+    server.listen(port, '0.0.0.0', () => {
+      log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
+      if (process.env.REPLIT_SLUG) {
+        log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+      }
+    });
+
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        log(`Port ${port} is already in use. Please use a different port.`);
+      } else {
+        log(`Server error: ${err.message}`);
+      }
+      process.exit(1);
+    });
+  } catch (error) {
+    log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    process.exit(1);
+  }
 })();

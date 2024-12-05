@@ -1,4 +1,4 @@
-
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,14 @@ import { Link } from "wouter";
 import { Facebook, CalendarDays, Mail, Phone } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 
-const socialLinks = [
+interface SocialLink {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+const socialLinks: SocialLink[] = [
   {
     title: "X (Twitter)",
     href: "https://x.com/bettersystemsai",
@@ -15,19 +22,19 @@ const socialLinks = [
   },
   {
     title: "Facebook",
-    href: "https://facebook.com/bettersystemsai",
+    href: "https://www.facebook.com/profile.php?id=61568467651639",
     icon: Facebook,
     color: "bg-[#1877F2] hover:bg-[#1664D9]",
   },
   {
     title: "Email Us",
-    href: "mailto:contact@bettersystems.ai",
+    href: "mailto:ralvarez@soilseedandwater.com",
     icon: Mail,
     color: "bg-[#EA4335] hover:bg-[#D93025]",
   },
   {
     title: "Call Us",
-    href: "tel:+1234567890",
+    href: "tel:+19285501649",
     icon: Phone,
     color: "bg-[#34A853] hover:bg-[#2E8B47]",
   },
@@ -39,7 +46,7 @@ const socialLinks = [
   },
 ];
 
-export default function SocialPage() {
+const SocialPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center py-16 px-4">
       <Card className="w-full max-w-md">
@@ -91,4 +98,6 @@ export default function SocialPage() {
       </Card>
     </div>
   );
-}
+};
+
+export default SocialPage;

@@ -1,9 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import checker from "vite-plugin-checker";
+import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    checker({ typescript: true }),
+    runtimeErrorModal()
+  ],
   server: {
     host: '0.0.0.0',
     port: 5173,

@@ -1,0 +1,70 @@
+[TypeScript] 'values' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/sections/Contact.tsx:34:21
+    32 |   });
+    33 |
+  > 34 |   function onSubmit(values: z.infer<typeof formSchema>) {
+       |                     ^^^^^^
+    35 |     toast({
+    36 |       title: "Message sent!",
+    37 |       description: "We'll get back to you as soon as possible.",
+[TypeScript] 'props' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/calendar.tsx:55:20
+    53 |       }}
+    54 |       components={{
+  > 55 |         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
+       |                    ^^^^^^^^^^^^
+    56 |         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+    57 |       }}
+    58 |       {...props}
+[TypeScript] 'props' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/calendar.tsx:56:21
+    54 |       components={{
+    55 |         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
+  > 56 |         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+       |                     ^^^^^^^^^^^^
+    57 |       }}
+    58 |       {...props}
+    59 |     />
+[TypeScript] 'DialogClose' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/continuous-gallery.tsx:14:3
+    12 |   DialogHeader,
+    13 |   DialogTitle,
+  > 14 |   DialogClose,
+       |   ^^^^^^^^^^^
+    15 | } from "@/components/ui/dialog"
+    16 | import { Button } from "@/components/ui/button"
+    17 | import { X } from "lucide-react"
+[TypeScript] 'Button' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/continuous-gallery.tsx:16:1
+    14 |   DialogClose,
+    15 | } from "@/components/ui/dialog"
+  > 16 | import { Button } from "@/components/ui/button"
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    17 | import { X } from "lucide-react"
+    18 | import Autoplay from "embla-carousel-autoplay"
+    19 |
+[TypeScript] 'X' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/continuous-gallery.tsx:17:1
+    15 | } from "@/components/ui/dialog"
+    16 | import { Button } from "@/components/ui/button"
+  > 17 | import { X } from "lucide-react"
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    18 | import Autoplay from "embla-carousel-autoplay"
+    19 |
+    20 | interface GalleryImage {
+[TypeScript] 'Input' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/pages/PhotoSubmissionPage.tsx:4:1
+    2 | import { Button } from "../components/ui/button";
+    3 | import { Card } from "../components/ui/card";
+  > 4 | import { Input } from "../components/ui/input";
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    5 | import { toast } from "../hooks/use-toast";
+    6 | import { motion } from "framer-motion";
+    7 | import { fadeIn } from "@/lib/animations";
+[TypeScript] All imports in import declaration are unused.
+/home/runner/BetterSystemsAIWeb/client/src/pages/SocialPage.tsx:1:1
+  > 1 | import { Card, CardContent } from "@/components/ui/card";
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    2 | import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+    3 | import { Button } from "@/components/ui/button";
+    4 | import { Link } from "wouter";

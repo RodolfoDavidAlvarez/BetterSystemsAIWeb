@@ -12,6 +12,19 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5173
+    port: 5173,
+    hmr: {
+      clientPort: 443,
+      path: '/@vite/client',
+      timeout: 5000
+    }
+  },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
   }
 })

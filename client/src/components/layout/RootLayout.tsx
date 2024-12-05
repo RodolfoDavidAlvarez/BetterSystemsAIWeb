@@ -1,5 +1,3 @@
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Navigation from "@/components/sections/Navigation";
 

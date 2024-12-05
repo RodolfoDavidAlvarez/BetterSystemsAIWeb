@@ -13,7 +13,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    hmr: true,
+    hmr: {
+      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : '0.0.0.0',
+      clientPort: 443,
+      protocol: 'wss'
+    },
     watch: {
       usePolling: true
     }

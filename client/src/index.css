@@ -9,7 +9,7 @@
   }
 
   * {
-    @apply border-neutral-200 dark:border-neutral-800;
+    @apply border-border;
   }
 
   body {

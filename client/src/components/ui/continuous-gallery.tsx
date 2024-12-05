@@ -11,10 +11,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
 import Autoplay from "embla-carousel-autoplay"
 
 interface GalleryImage {

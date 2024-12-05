@@ -1,0 +1,159 @@
+Key AI Benefits for Your Business
+Discover how AI implementation can transform your business metrics and drive sustainable growth.
+
+Customer Experience Enhancement
+40% Faster
+Response Times
+
+AI chatbots and automation streamline customer support, reducing wait times.
+
+Why It Matters:
+
+Improved customer experiences drive loyalty, repeat business, and long-term growth.
+
+Market Leadership Opportunity
+$19.9 Trillion
+Economic Contribution: AI is projected to add trillions to the global economy by 2030.
+
+Why It Matters:
+
+Adopting AI now positions your business as a leader in a rapidly growing market.
+
+Operational Reliability
+30% Reduction
+in Downtime: AI systems optimize processes, preventing costly disruptions.
+
+Why It Matters:
+
+Reliable operations mean smoother workflows, fewer delays, and better customer satisfaction.
+
+Revenue & Profit Growth
+20%+ Revenue Growth
+Companies using AI report revenue increases of 20% or more.
+
+$4.60 ROI per $1
+Every dollar spent on AI delivers massive returns.
+
+Why It Matters:
+
+AI creates new revenue streams and improves decision-making, giving you a clear edge over competitors.
+
+Cost Savings
+Up to 40% Reduction
+in Costs: AI-powered automation slashes operational expenses.
+
+Why It Matters:
+
+Lower costs mean more profit to reinvest in growing your business.
+
+Productivity & Decision-Making
+40% Productivity Boost
+AI accelerates workflows and reduces wasted time.
+
+25% Faster
+Business Insights: Make smarter decisions, faster, with AI analytics and reporting.
+
+Why It Matters:
+
+Enhanced productivity frees up time to focus on innovation and strategy.
+
+Previous slideNext slide
+Act Now: AI adoption is rapidly transforming industries, making it essential to stay ahead of the curve and remain competitive.
+
+Learn more about AI transforming businesses today →
+What We Do
+We help businesses harness the power of AI to transform their operations, boost productivity, and achieve sustainable growth through innovative solutions.
+
+Save Time
+Automate repetitive tasks and streamline workflows to reclaim valuable hours
+
+Reduce Costs
+Optimize operations and minimize overhead through intelligent automation
+
+Improve Efficiency
+Make data-driven decisions with real-time insights and analytics
+
+Drive Growth
+Scale your business with AI-powered solutions that adapt to your needs
+
+Our Mission
+Empowering businesses through innovative AI solutions, we transform traditional operations into efficient, automated systems that drive growth and success in today's digital landscape.
+
+Our Services
+Transform your business with our cutting-edge AI solutions. From virtual assistants to custom AI applications, we provide comprehensive solutions that drive innovation and growth.
+
+AI-Powered Assistants
+Transform customer service with intelligent virtual assistants
+
+Explore Service →
+Efficiency Audit
+Discover optimization opportunities in your business processes
+
+Explore Service →
+Fleet Management
+Streamline your fleet operations with AI-enhanced tools
+
+Explore Service →
+View All Services
+About Better Systems AI
+At Better Systems AI, we're dedicated to helping businesses embrace the future of work through innovative AI solutions and expert guidance. Our team brings together decades of experience in AI, business transformation, and technology implementation to deliver results that matter.
+
+Learn More About Us
+Team collaboration
+Our Partners
+We collaborate with industry leaders to deliver the best AI solutions for your business needs. Join our growing network of successful partnerships and be part of the AI transformation journey.
+
+View Our Partners
+Ready to Transform Your Business?
+Take the first step towards AI-powered efficiency. Contact us today for a consultation or book a meeting with our experts to discuss your unique business needs and how we can help.
+
+Contact Us
+Book Consultation
+Better Systems AI
+Transforming businesses through innovative AI solutions. We help companies modernize, optimize, and grow in the digital age.
+
+Quick Links
+About Us
+Services
+Partners
+Book Consultation
+Contact
+Get in Touch
+Social Media
+© 2024 Better Systems AI. All rights reserved.
+
+Close
+[TypeScript] 'values' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/sections/Contact.tsx:34:21
+    32 |   });
+    33 |
+  > 34 |   function onSubmit(values: z.infer<typeof formSchema>) {
+       |                     ^^^^^^
+    35 |     toast({
+    36 |       title: "Message sent!",
+    37 |       description: "We'll get back to you as soon as possible.",
+[TypeScript] 'DialogClose' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/continuous-gallery.tsx:14:3
+    12 |   DialogHeader,
+    13 |   DialogTitle,
+  > 14 |   DialogClose,
+       |   ^^^^^^^^^^^
+    15 | } from "@/components/ui/dialog"
+    16 | import { Button } from "@/components/ui/button"
+    17 | import { X } from "lucide-react"
+[TypeScript] 'Button' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/continuous-gallery.tsx:16:1
+    14 |   DialogClose,
+    15 | } from "@/components/ui/dialog"
+  > 16 | import { Button } from "@/components/ui/button"
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    17 | import { X } from "lucide-react"
+    18 | import Autoplay from "embla-carousel-autoplay"
+    19 |
+[TypeScript] 'X' is declared but its value is never read.
+/home/runner/BetterSystemsAIWeb/client/src/components/ui/continuous-gallery.tsx:17:1
+    15 | } from "@/components/ui/dialog"
+    16 | import { Button } from "@/components/ui/button"
+  > 17 | import { X } from "lucide-react"
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    18 | import Autoplay from "embla-carousel-autopla

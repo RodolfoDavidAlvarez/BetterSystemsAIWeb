@@ -28,7 +28,7 @@ export default function PartnersPage() {
 
       <div className="grid md:grid-cols-2 gap-12 mb-16 max-w-5xl mx-auto">
         {partners.map((partner, index) => (
-          <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+          <Card key={index} className="border border-border/10 shadow-lg hover:shadow-xl transition-shadow">
             <CardContent className="p-8">
               <div className="h-32 flex items-center justify-center mb-6 bg-white rounded-lg">
                 <img

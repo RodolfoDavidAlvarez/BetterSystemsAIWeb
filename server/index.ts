@@ -70,15 +70,43 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use port 80 for production, fallback to 5000 for development
-  const PORT = process.env.NODE_ENV === 'production' ? 80 : (Number(process.env.PORT) || 5000);
+  // Get port from environment variable, Replit sets this automatically
+  const PORT = process.env.PORT || '3000';
+  const numericPort = parseInt(PORT, 10);
+  
+  if (isNaN(numericPort)) {
+    log(`Invalid PORT value: ${PORT}, using default port 3000`);
+    numericPort = 3000;
+  }
   
   // Always bind to all network interfaces for Replit compatibility
-  server.listen(PORT, '0.0.0.0', () => {
-    log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
-    log(`Listening on port ${PORT}`);
-    if (process.env.REPLIT_SLUG) {
-      log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+  const startServer = () => {
+    try {
+      server.listen(numericPort, '0.0.0.0', () => {
+        log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
+        log(`Listening on port ${numericPort}`);
+        if (process.env.REPLIT_SLUG) {
+          log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+        }
+      });
+
+      server.on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          log(`Port ${numericPort} is already in use. Trying again...`);
+          setTimeout(() => {
+            server.close();
+            startServer();
+          }, 1000);
+        } else {
+          log(`Failed to start server: ${err.message}`);
+          process.exit(1);
+        }
+      });
+    } catch (error) {
+      log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      process.exit(1);
     }
-  });
+  };
+
+  startServer();
 })();

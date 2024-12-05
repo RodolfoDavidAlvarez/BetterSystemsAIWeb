@@ -3,16 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Github, Linkedin, Facebook, Youtube, CalendarDays } from "lucide-react";
+import { Facebook, CalendarDays, Mail, Phone } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
-import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
 const socialLinks = [
   {
-    title: "LinkedIn",
-    href: "https://linkedin.com/in/bettersystemsai",
-    icon: Linkedin,
-    color: "bg-[#0077B5] hover:bg-[#006399]",
+    title: "X (Twitter)",
+    href: "https://x.com/bettersystemsai",
+    icon: BrandX,
+    color: "bg-black hover:bg-neutral-900",
   },
   {
     title: "Facebook",
@@ -21,28 +20,16 @@ const socialLinks = [
     color: "bg-[#1877F2] hover:bg-[#1664D9]",
   },
   {
-    title: "X (Twitter)",
-    href: "https://x.com/bettersystemsai",
-    icon: BrandX,
-    color: "bg-black hover:bg-neutral-900",
+    title: "Email Us",
+    href: "mailto:contact@bettersystems.ai",
+    icon: Mail,
+    color: "bg-[#EA4335] hover:bg-[#D93025]",
   },
   {
-    title: "TikTok",
-    href: "https://tiktok.com/@bettersystemsai",
-    icon: BrandTiktok,
-    color: "bg-[#000000] hover:bg-[#111111]",
-  },
-  {
-    title: "YouTube",
-    href: "https://youtube.com/@bettersystemsai",
-    icon: Youtube,
-    color: "bg-[#FF0000] hover:bg-[#CC0000]",
-  },
-  {
-    title: "GitHub",
-    href: "https://github.com/bettersystemsai",
-    icon: Github,
-    color: "bg-[#333] hover:bg-[#24292e]",
+    title: "Call Us",
+    href: "tel:+1234567890",
+    icon: Phone,
+    color: "bg-[#34A853] hover:bg-[#2E8B47]",
   },
   {
     title: "Book a Consultation",

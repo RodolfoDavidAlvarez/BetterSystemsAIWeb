@@ -70,13 +70,15 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use port 5000 for both development and production
-  const PORT = Number(process.env.PORT) || 5000;
+  // Use port 80 for production, fallback to 5000 for development
+  const PORT = process.env.NODE_ENV === 'production' ? 80 : (Number(process.env.PORT) || 5000);
   
   // Always bind to all network interfaces for Replit compatibility
   server.listen(PORT, '0.0.0.0', () => {
     log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
     log(`Listening on port ${PORT}`);
-    log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+    if (process.env.REPLIT_SLUG) {
+      log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+    }
   });
 })();

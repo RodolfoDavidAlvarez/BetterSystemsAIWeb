@@ -28,7 +28,7 @@ const socialLinks: SocialLink[] = [
   },
   {
     title: "Email Us",
-    href: "mailto:ralvarez@soilseedandwater.com",
+    href: "mailto:contact@bettersystemsai.com",
     icon: Mail,
     color: "bg-[#EA4335] hover:bg-[#D93025]",
   },
@@ -37,6 +37,12 @@ const socialLinks: SocialLink[] = [
     href: "tel:+19285501649",
     icon: Phone,
     color: "bg-[#34A853] hover:bg-[#2E8B47]",
+  },
+  {
+    title: "Schedule Meeting",
+    href: "https://calendly.com/bettersystemsai",
+    icon: CalendarDays,
+    color: "bg-[#006BFF] hover:bg-[#0056CC]",
   },
   {
     title: "Book a Consultation",
@@ -62,9 +68,13 @@ const SocialPage: React.FC = () => {
               <AvatarFallback>BSA</AvatarFallback>
             </Avatar>
             <h1 className="text-2xl font-bold mb-2">Better Systems AI</h1>
-            <p className="text-muted-foreground">
-              Transforming businesses through innovative AI solutions
+            <p className="text-muted-foreground mb-4">
+              Transforming businesses through innovative AI solutions. We specialize in AI implementation, efficiency audits, and custom solutions for your business needs.
             </p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <p>📍 Prescott, Arizona</p>
+              <p>🌐 Serving clients worldwide</p>
+            </div>
           </div>
 
           {/* Links Section */}

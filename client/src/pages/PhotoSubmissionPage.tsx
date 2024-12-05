@@ -18,9 +18,12 @@ const PhotoSubmissionPage: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  // Cleanup stream when component unmounts
+  // Cleanup resources when component unmounts
   useEffect(() => {
+    let mounted = true;
+
     return () => {
+      mounted = false;
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
@@ -140,8 +143,12 @@ const PhotoSubmissionPage: React.FC = () => {
         const pollTimeout = 30000; // 30 seconds timeout
         const pollInterval = 2000; // Poll every 2 seconds
         const startTime = Date.now();
+        let pollingTimer: NodeJS.Timeout;
+        let mounted = true;
         
         const pollForResults = async () => {
+          if (!mounted) return;
+          
           const timeoutReached = Date.now() - startTime >= pollTimeout;
           
           if (timeoutReached) {
@@ -161,31 +168,39 @@ const PhotoSubmissionPage: React.FC = () => {
             }
             const analysisData = await analysisResponse.json();
             
-            if (analysisData.result) {
+            if (analysisData.result && mounted) {
               setAnalysisResult(analysisData.result);
               setIsUploading(false);
-              return true; // Polling complete
+              return;
+            }
+            
+            if (mounted) {
+              pollingTimer = setTimeout(pollForResults, pollInterval);
             }
           } catch (error) {
             console.error('Error polling analysis:', error);
-          }
-          
-          return false; // Continue polling
-        };
-
-        let pollingTimer: NodeJS.Timeout;
-        
-        const startPolling = async () => {
-          const complete = await pollForResults();
-          if (!complete) {
-            pollingTimer = setTimeout(startPolling, pollInterval);
+            if (mounted) {
+              setIsUploading(false);
+              toast({
+                title: "Error",
+                description: "Failed to get analysis results. Please try again.",
+                variant: "destructive",
+              });
+            }
           }
         };
 
-        startPolling();
+        pollForResults();
 
-        // Cleanup timer on component unmount
+        // Reset form state
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        if (stream) {
+          stopCamera();
+        }
+
         return () => {
+          mounted = false;
           if (pollingTimer) {
             clearTimeout(pollingTimer);
           }

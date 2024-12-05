@@ -28,7 +28,7 @@ const socialLinks: SocialLink[] = [
   },
   {
     title: "Email Us",
-    href: "mailto:contact@bettersystemsai.com",
+    href: "mailto:ralvarez@soilseedandwater.com",
     icon: Mail,
     color: "bg-[#EA4335] hover:bg-[#D93025]",
   },
@@ -69,10 +69,10 @@ const SocialPage: React.FC = () => {
             </Avatar>
             <h1 className="text-2xl font-bold mb-2">Better Systems AI</h1>
             <p className="text-muted-foreground mb-4">
-              Transforming businesses through innovative AI solutions. We specialize in AI implementation, efficiency audits, and custom solutions for your business needs.
+              Bring Your Business Into the AI Era
             </p>
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-              <p>📍 Prescott, Arizona</p>
+              <p>📍 Phoenix, Arizona</p>
               <p>🌐 Serving clients worldwide</p>
             </div>
           </div>

@@ -15,6 +15,10 @@ localPort = 80
 externalPort = 3000
 
 [[ports]]
+localPort = 3000
+externalPort = 3001
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
@@ -83,5 +87,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build && NODE_ENV=production node dist/index.js"
-waitForPort = 3000
+args = "NODE_ENV=production PORT=80 node dist/index.js"
+waitForPort = 80

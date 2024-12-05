@@ -15,10 +15,10 @@ export default defineConfig({
     port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
     proxy: {
       '/api': {
-        target: process.env.REPLIT_SLUG 
-          ? `https://${process.env.REPLIT_SLUG}.replit.dev`
-          : 'http://0.0.0.0:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },
   },

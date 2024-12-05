@@ -14,7 +14,6 @@
     "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "types": ["node", "vite/client"],
     "paths": {

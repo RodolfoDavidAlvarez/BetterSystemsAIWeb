@@ -297,7 +297,7 @@ const PhotoSubmissionPage: React.FC = () => {
               </Button>
             )}
           </div>
-          <input
+          <Input
             type="file"
             accept="image/*"
             ref={fileInputRef}

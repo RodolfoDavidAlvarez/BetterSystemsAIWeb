@@ -30,7 +30,7 @@ export default function HomePage() {
       <Hero />
       
       {/* Key AI Benefits */}
-      <section className="py-20">
+      <section id="services" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-4xl font-bold mb-6">Key AI Benefits for Your Business</h2>
@@ -212,7 +212,7 @@ export default function HomePage() {
       <WhatWeDo />
       
       {/* Mission Statement */}
-      <section className="bg-primary/5 py-20">
+      <section id="about" className="bg-primary/5 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
@@ -284,7 +284,7 @@ export default function HomePage() {
         </section>
 
         {/* Partners Overview */}
-        <section className="text-center space-y-8">
+        <section id="partners" className="text-center space-y-8">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">Our Partners</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
@@ -299,7 +299,7 @@ export default function HomePage() {
         </section>
 
         {/* Contact CTA */}
-        <section className="bg-primary/5 rounded-2xl p-16 text-center">
+        <section id="contact" className="bg-primary/5 rounded-2xl p-16 text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Business?</h2>
           <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
             Take the first step towards AI-powered efficiency. Contact us today for a consultation 

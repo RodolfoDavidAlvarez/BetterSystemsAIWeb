@@ -1,14 +1,27 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'wouter';
 
 export const useScrollToTop = () => {
   const [location] = useLocation();
+  const previousLocation = useRef(location);
 
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
   }, []);
 
   useEffect(() => {
-    scrollToTop();
+    if (previousLocation.current !== location) {
+      scrollToTop();
+      previousLocation.current = location;
+    }
   }, [location, scrollToTop]);
+
+  // Cleanup function
+  useEffect(() => {
+    return () => {
+      previousLocation.current = '';
+    };
+  }, []);
 };

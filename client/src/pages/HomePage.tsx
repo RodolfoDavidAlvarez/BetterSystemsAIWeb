@@ -1,13 +1,28 @@
+import React from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/sections/Hero";
 import WhatWeDo from "@/components/sections/WhatWeDo";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious,
+  type CarouselApi
+} from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import type { EmblaOptionsType } from "embla-carousel";
+
+interface Service {
+  title: string;
+  description: string;
+  href: string;
+}
 
 export default function HomePage() {
-  const services = [
+  const services: Service[] = [
     {
       title: "AI-Powered Assistants",
       description: "Transform customer service with intelligent virtual assistants",
@@ -25,6 +40,50 @@ export default function HomePage() {
     }
   ];
 
+  const [api, setApi] = React.useState<CarouselApi | null>(null);
+
+  const options = React.useMemo<EmblaOptionsType>(
+    () => ({
+      align: "center" as const,
+      loop: true,
+      dragFree: false,
+      containScroll: "trimSnaps" as const,
+      skipSnaps: true,
+      duration: 25,
+      breakpoints: {
+        "(max-width: 768px)": { align: "start" as const },
+        "(min-width: 769px)": { align: "center" as const, dragFree: true }
+      }
+    }),
+    []
+  );
+
+  const autoplayPlugin = React.useMemo(
+    () =>
+      Autoplay({
+        delay: 5000,
+        stopOnInteraction: true,
+        stopOnMouseEnter: true,
+      }),
+    []
+  );
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    const onDestroy = () => {
+      autoplayPlugin.stop();
+    };
+
+    autoplayPlugin.reset();
+    api.on("destroy", onDestroy);
+
+    return () => {
+      api.off("destroy", onDestroy);
+      autoplayPlugin.stop();
+    };
+  }, [api, autoplayPlugin]);
+
   return (
     <div className="min-h-screen bg-background">
       <Hero />
@@ -41,25 +100,9 @@ export default function HomePage() {
 
           <Carousel
             className="w-full max-w-[90rem] mx-auto px-4 lg:px-20"
-            opts={{
-              align: "center",
-              loop: true,
-              active: true,
-              dragFree: false,
-              containScroll: "trimSnaps",
-              skipSnaps: false,
-              breakpoints: {
-                "(max-width: 768px)": { align: "start" },
-                "(min-width: 769px)": { align: "center", dragFree: true }
-              }
-            }}
-            plugins={[
-              Autoplay({
-                delay: 5000,
-                stopOnInteraction: true,
-                stopOnMouseEnter: true,
-              }),
-            ]}
+            opts={options}
+            plugins={[autoplayPlugin]}
+            setApi={setApi}
           >
             <CarouselContent>
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
@@ -208,7 +251,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* What We Do Section */}
       <WhatWeDo />
       
       {/* Mission Statement */}

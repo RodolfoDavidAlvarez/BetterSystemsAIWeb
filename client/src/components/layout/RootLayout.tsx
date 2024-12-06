@@ -1,5 +1,5 @@
 import Footer from "@/components/sections/Footer";
-import Navigation from "@/components/sections/Navigation";
+import Navigation from "@/components/layout/Navigation";
 
 interface RootLayoutProps {
   children: React.ReactNode;

@@ -7,18 +7,20 @@ import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
 export default defineConfig({
   plugins: [
     react(),
-    checker({ typescript: true }),
+    checker({ typescript: true, overlay: false }),
     runtimeErrorModal()
   ],
   server: {
     host: '0.0.0.0',
-    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    port: 5173,
+    hmr: {
+      clientPort: 443,
+    },
     proxy: {
       '/api': {
         target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },
   },

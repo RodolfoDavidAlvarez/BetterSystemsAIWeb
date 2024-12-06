@@ -4,12 +4,17 @@
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "target": "ESNext",
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
@@ -19,6 +24,8 @@
     "paths": {
       "@/*": ["./client/src/*"],
       "@db/*": ["./db/*"]
-    }
+    },
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
   }
 }

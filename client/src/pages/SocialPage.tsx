@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Facebook, CalendarDays, Mail, Phone } from "lucide-react";
+import { Facebook, CalendarDays, Mail, Phone, UserPlus } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 
 interface SocialLink {
@@ -53,6 +53,27 @@ const socialLinks: SocialLink[] = [
 ];
 
 const SocialPage: React.FC = () => {
+  const handleDownloadContact = () => {
+    const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:Rodolfo Alvarez
+N:Alvarez;Rodolfo;;;
+ORG:Better Systems AI
+TEL;TYPE=CELL:+19285501649
+EMAIL:ralvarez@soilseedandwater.com
+END:VCARD`;
+
+    const blob = new Blob([vCard], { type: 'text/vcard' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'rodolfo_alvarez.vcf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center py-16 px-4">
       <Card className="w-full max-w-md">
@@ -75,6 +96,14 @@ const SocialPage: React.FC = () => {
               <p>📍 Phoenix, Arizona</p>
               <p>🌐 Serving clients worldwide</p>
             </div>
+            <Button
+              onClick={handleDownloadContact}
+              className="mt-4 bg-primary hover:bg-primary/90 text-white"
+              variant="default"
+            >
+              <UserPlus className="mr-2 h-5 w-5" />
+              Save Contact
+            </Button>
           </div>
 
           {/* Links Section */}

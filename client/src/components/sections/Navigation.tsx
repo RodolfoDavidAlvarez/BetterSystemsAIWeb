@@ -5,12 +5,30 @@ import * as React from "react";
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
+  // Function to handle smooth scrolling with header offset
+  const scrollToSection = (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      const headerOffset = 80; // Height of fixed header plus some padding
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      setIsMenuOpen(false);
+    } else {
+      console.warn(`Section with id ${elementId} not found`);
+    }
+  };
+
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "Services", href: "#services" },
-    { label: "About", href: "#about" },
-    { label: "Partners", href: "#partners" },
-    { label: "Contact", href: "#contact" },
+    { label: "Services", href: "#services", id: "services" },
+    { label: "About", href: "#about", id: "about" },
+    { label: "Partners", href: "#partners", id: "partners" },
+    { label: "Contact", href: "#contact", id: "contact" },
   ];
 
   return (
@@ -27,16 +45,27 @@ export default function Navigation() {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">
               {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {item.label}
-                </Link>
+                <div key={item.label}>
+                  {item.href.startsWith('#') ? (
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none cursor-pointer px-3 py-2 rounded-md hover:bg-accent/10"
+                      onClick={() => item.id && scrollToSection(item.id)}
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-md hover:bg-accent/10 block"
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                </div>
               ))}
               <Button asChild variant="default">
-                <Link href="/booking">Book Consultation</Link>
+                <Link href="/booking" onClick={() => setIsMenuOpen(false)}>Book Consultation</Link>
               </Button>
             </div>
 
@@ -70,17 +99,31 @@ export default function Navigation() {
               <div className="relative flex flex-col gap-1.5 rounded-lg bg-background/95 p-4">
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-b from-zinc-50/30 to-white/90 dark:from-zinc-900/30 dark:to-zinc-900/90" />
                 {navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="relative text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-2.5 rounded-md w-full text-right"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
+                  item.href.startsWith('#') ? (
+                    <button
+                      key={item.label}
+                      className="relative text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-2.5 rounded-md w-full text-right bg-transparent border-none cursor-pointer"
+                      onClick={() => {
+                        if (item.id) {
+                          scrollToSection(item.id);
+                        }
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="relative text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-2.5 rounded-md w-full text-right"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  )
                 ))}
-                <Button asChild variant="default" className="relative w-full mt-2" onClick={() => setIsMenuOpen(false)}>
-                  <Link href="/booking">Book Consultation</Link>
+                <Button asChild variant="default" className="relative w-full mt-2">
+                  <Link href="/booking" onClick={() => setIsMenuOpen(false)}>Book Consultation</Link>
                 </Button>
               </div>
             </div>

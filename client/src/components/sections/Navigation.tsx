@@ -15,11 +15,12 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50">
-      <div className="relative bg-background/95 backdrop-blur-md shadow-[0_1px_3px_0_rgb(0,0,0,0.1)] dark:shadow-[0_1px_3px_0_rgb(255,255,255,0.1)]">
-        <div className="container mx-auto px-4">
+      <div className="relative bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/20 to-background/80" />
+        <div className="container relative mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="font-bold text-lg md:text-xl truncate max-w-[200px] md:max-w-none">
+            <Link href="/" className="font-bold text-lg md:text-xl truncate max-w-[200px] md:max-w-none relative">
               Better Systems AI
             </Link>
 
@@ -66,18 +67,19 @@ export default function Navigation() {
           {/* Mobile Menu */}
           {isMenuOpen && (
             <div className="md:hidden py-3 px-2">
-              <div className="flex flex-col gap-1.5 rounded-lg bg-background/95 p-4 shadow-sm">
+              <div className="relative flex flex-col gap-1.5 rounded-lg bg-background/95 p-4">
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-b from-zinc-50/30 to-white/90 dark:from-zinc-900/30 dark:to-zinc-900/90" />
                 {navItems.map((item) => (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10 transition-all duration-200 px-6 py-2.5 rounded-md w-full text-right"
+                    className="relative text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-2.5 rounded-md w-full text-right"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
                   </Link>
                 ))}
-                <Button asChild variant="default" className="w-full mt-2" onClick={() => setIsMenuOpen(false)}>
+                <Button asChild variant="default" className="relative w-full mt-2" onClick={() => setIsMenuOpen(false)}>
                   <Link href="/booking">Book Consultation</Link>
                 </Button>
               </div>

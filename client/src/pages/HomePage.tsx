@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Hero from "@/components/sections/Hero";
 import WhatWeDo from "@/components/sections/WhatWeDo";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import { 
   Carousel, 
   CarouselContent, 
@@ -169,27 +170,34 @@ export default function HomePage() {
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="flex flex-col justify-between p-8">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Revenue & Profit Growth</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="text-4xl font-bold text-primary">20%+ Revenue Growth</div>
-                          <p className="text-lg mt-2">Companies using AI report revenue increases of 20% or more.</p>
-                        </div>
-                        <div>
-                          <div className="text-4xl font-bold text-primary">$4.60 ROI per $1</div>
-                          <p className="text-lg mt-2">Every dollar spent on AI delivers massive returns.</p>
+                <motion.div
+                  initial={{ y: 50, opacity: 0, scale: 0.95 }}
+                  whileInView={{ y: 0, opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+                >
+                  <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-md hover:shadow-lg">
+                    <CardContent className="flex flex-col justify-between p-8">
+                      <div>
+                        <h3 className="text-2xl font-bold mb-6">Revenue & Profit Growth</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <div className="text-4xl font-bold text-primary">20%+ Revenue Growth</div>
+                            <p className="text-lg mt-2">Companies using AI report revenue increases of 20% or more.</p>
+                          </div>
+                          <div>
+                            <div className="text-4xl font-bold text-primary">$4.60 ROI per $1</div>
+                            <p className="text-lg mt-2">Every dollar spent on AI delivers massive returns.</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                      <p className="text-lg">AI creates new revenue streams and improves decision-making, giving you a clear edge over competitors.</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="mt-8">
+                        <p className="text-lg font-semibold text-primary">Why It Matters:</p>
+                        <p className="text-lg">AI creates new revenue streams and improves decision-making, giving you a clear edge over competitors.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">

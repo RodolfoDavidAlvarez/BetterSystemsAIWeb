@@ -9,8 +9,7 @@ const navItems = [
   { label: "Services", href: "/services" },
   { label: "About", href: "/about" },
   { label: "Partners", href: "/partners" },
-  { label: "Contact", href: "/contact" },
-  { label: "Social", href: "/social" }
+  { label: "Contact", href: "/contact" }
 ];
 
 export default function Navigation() {

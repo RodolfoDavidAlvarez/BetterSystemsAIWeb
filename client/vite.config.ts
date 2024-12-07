@@ -16,21 +16,20 @@ export default defineConfig({
   ],
   server: {
     host: '0.0.0.0',
-    port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
+    port: 5000,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false,
+        ws: true
       }
     },
     hmr: {
       clientPort: process.env.REPLIT_SLUG ? 443 : undefined,
       host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : undefined,
-      protocol: process.env.REPLIT_SLUG ? 'wss' : undefined
-    },
-    watch: {
-      usePolling: true,
-      interval: 1000
+      protocol: process.env.REPLIT_SLUG ? 'wss' : 'ws'
     }
   },
   resolve: {

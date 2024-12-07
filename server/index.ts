@@ -85,8 +85,8 @@ app.use((req, res, next) => {
     }
   });
 
-  // Get port from environment variable, defaulting to 3000 for local development
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+  // Get port from environment variable
+  const port = parseInt(process.env.PORT || '3000', 10);
   
   // Clean up any existing connections on shutdown
   const cleanup = () => {
@@ -99,38 +99,40 @@ app.use((req, res, next) => {
   process.on('SIGTERM', cleanup);
   process.on('SIGINT', cleanup);
 
-  // Function to start server
-  const startServer = (retryPort?: number) => {
-    const finalPort = retryPort || port;
-    try {
-      server.listen(finalPort, '0.0.0.0', () => {
-        log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${finalPort}`);
+  // Start the server with proper error handling
+  const startServer = async () => {
+    return new Promise((resolve, reject) => {
+      const serverInstance = server.listen(port, '0.0.0.0', () => {
+        log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
         if (process.env.REPLIT_SLUG) {
-          log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+          log(`Replit deployment URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+        } else {
+          log(`Local URL: http://localhost:${port}`);
         }
+        resolve(serverInstance);
       });
 
-      server.on('error', (err: any) => {
-        if (err.code === 'EADDRINUSE') {
-          // If port 80 fails, try port 3000
-          if (finalPort === 80 && !retryPort) {
-            log(`Port 80 is not available, falling back to port 3000`);
-            startServer(3000);
-          } else {
-            log(`Port ${finalPort} is already in use. Please check your configuration.`);
-            process.exit(1);
-          }
+      serverInstance.on('error', (error: any) => {
+        if (error.code === 'EADDRINUSE') {
+          log(`Port ${port} is already in use, retrying...`);
+          serverInstance.close(() => {
+            setTimeout(() => {
+              startServer().catch(reject);
+            }, 1000);
+          });
         } else {
-          log(`Server error: ${err.message}`);
-          process.exit(1);
+          log(`Server error: ${error.message}`);
+          reject(error);
         }
       });
-    } catch (error) {
-      log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      process.exit(1);
-    }
+    });
   };
 
-  // Start the server
-  startServer();
+  // Start server with retries
+  try {
+    await startServer();
+  } catch (error) {
+    log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    process.exit(1);
+  }
 })();

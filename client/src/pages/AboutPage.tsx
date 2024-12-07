@@ -61,7 +61,7 @@ export default function AboutPage() {
         <h2 className="text-2xl font-bold mb-8 text-center">Our Values</h2>
         <div className="grid md:grid-cols-2 gap-6">
           {values.map((value, index) => (
-            <Card key={index}>
+            <Card key={index} className="border-border/40 hover:border-border/60 transition-colors duration-300">
               <CardContent className="p-6">
                 <h3 className="text-xl font-bold mb-2">{value.title}</h3>
                 <p className="text-muted-foreground">{value.description}</p>
@@ -74,7 +74,7 @@ export default function AboutPage() {
       {/* Leadership */}
       <section className="mb-16">
         <h2 className="text-2xl font-bold mb-8 text-center">Leadership</h2>
-        <Card className="max-w-md mx-auto">
+        <Card className="max-w-md mx-auto border-border/40 hover:border-border/60 transition-colors duration-300">
           <CardContent className="pt-6">
             <div className="p-4">
               <Avatar className="h-48 w-48 mx-auto mb-6">
@@ -101,7 +101,7 @@ export default function AboutPage() {
       <section>
         <h2 className="text-2xl font-bold mb-8 text-center">Our Team</h2>
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <Card>
+          <Card className="border-border/40 hover:border-border/60 transition-colors duration-300">
             <CardContent className="pt-6">
               <div className="p-4">
                 <Avatar className="h-48 w-48 mx-auto mb-6">
@@ -123,7 +123,7 @@ export default function AboutPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-border/40 hover:border-border/60 transition-colors duration-300">
             <CardContent className="pt-6">
               <div className="p-4">
                 <Avatar className="h-48 w-48 mx-auto mb-6">

@@ -106,7 +106,7 @@ export default function HomePage() {
           >
             <CarouselContent>
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
                   <CardContent className="flex flex-col justify-between p-8">
                     <div>
                       <h3 className="text-2xl font-bold mb-6">Customer Experience Enhancement</h3>
@@ -129,7 +129,7 @@ export default function HomePage() {
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
                   <CardContent className="flex flex-col justify-between p-8">
                     <div>
                       <h3 className="text-2xl font-bold mb-6">Market Leadership Opportunity</h3>
@@ -149,7 +149,7 @@ export default function HomePage() {
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
                   <CardContent className="flex flex-col justify-between p-8">
                     <div>
                       <h3 className="text-2xl font-bold mb-6">Operational Reliability</h3>
@@ -169,7 +169,7 @@ export default function HomePage() {
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
                   <CardContent className="flex flex-col justify-between p-8">
                     <div>
                       <h3 className="text-2xl font-bold mb-6">Revenue & Profit Growth</h3>
@@ -193,7 +193,7 @@ export default function HomePage() {
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
                   <CardContent className="flex flex-col justify-between p-8">
                     <div>
                       <h3 className="text-2xl font-bold mb-6">Cost Savings</h3>
@@ -213,7 +213,7 @@ export default function HomePage() {
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
                   <CardContent className="flex flex-col justify-between p-8">
                     <div>
                       <h3 className="text-2xl font-bold mb-6">Productivity & Decision-Making</h3>
@@ -281,7 +281,7 @@ export default function HomePage() {
           
           <div className="grid md:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-shadow duration-300">
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 hover:bg-accent/5 shadow-sm">
                 <CardContent className="p-8">
                   <h3 className="text-2xl font-bold mb-3">{service.title}</h3>
                   <p className="text-muted-foreground mb-6">{service.description}</p>

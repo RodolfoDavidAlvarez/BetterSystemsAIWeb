@@ -16,7 +16,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 w-full bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/40 border-b border-border/40 [border-bottom-width:0.5px] z-50">
+    <nav className="fixed top-0 w-full bg-background/75 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60 border-b border-border/40 [border-bottom-width:0.5px] z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="font-bold text-xl">
           Better Systems AI
@@ -28,7 +28,7 @@ export default function Navbar() {
             <a
               key={item.label}
               href={item.href}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground/90 hover:text-foreground transition-all duration-200 ease-in-out"
             >
               {item.label}
             </a>

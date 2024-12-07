@@ -22,7 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: uploadsDir,
-  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+  filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
       return cb(new Error('Only image files are allowed!'));
     }
@@ -41,7 +41,7 @@ const upload = multer({
 
 export function registerRoutes(app: Express) {
   // Add enhanced static file serving middleware
-  app.use('/uploads', (req, res, next) => {
+  app.use('/uploads', (_req, res, next) => {
     // Set CORS and other necessary headers
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
@@ -52,9 +52,9 @@ export function registerRoutes(app: Express) {
     
     next();
   }, express.static(uploadsDir, {
-    setHeaders: (res, path) => {
+    setHeaders: (res, _path) => {
       // Set correct content type based on file extension
-      const contentType = mime.lookup(path);
+      const contentType = mime.lookup(_path);
       if (contentType) {
         res.setHeader('Content-Type', contentType);
       }
@@ -66,7 +66,7 @@ export function registerRoutes(app: Express) {
   }));
 
   // Add error handler for 404s
-  app.use('/uploads', (err: any, req: Request, res: Response, next: Function) => {
+  app.use('/uploads', (err: any, _req: Request, res: Response, next: Function) => {
     if (err.status === 404) {
       res.status(404).json({
         error: 'File not found',
@@ -77,9 +77,8 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/contact", async (req, res) => {
+  app.post("/api/contact", async (_req, res) => {
     try {
-      const { name, email, message } = req.body;
       res.json({ success: true, message: "Message received" });
     } catch (error) {
       res.status(500).json({ 
@@ -152,7 +151,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Endpoint to get latest analysis results
-  app.get("/api/photo-analysis", (req, res) => {
+  app.get("/api/photo-analysis", (_req, res) => {
     res.json(latestAnalysis || { result: null });
   });
 }

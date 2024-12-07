@@ -49,27 +49,43 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register regular routes first
   registerRoutes(app);
   const server = createServer(app);
 
-  app.use((err: any, _req: Request, res: Response) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    console.error('Server error:', err);
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup static file serving or development server
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // Get port from environment variable, Replit sets this automatically
+  // Error handling middleware should be last
+  app.use((error: any, _req: Request, res: Response, next: Function) => {
+    console.error('Server error:', error);
+    
+    // If headers already sent, delegate to Express's default error handler
+    if (res.headersSent) {
+      return next(error);
+    }
+
+    // Handle specific error types
+    const status = error.status || error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    
+    try {
+      res.status(status).json({
+        error: true,
+        message: message,
+        ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
+      });
+    } catch (err) {
+      console.error('Error in error handler:', err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  // Get port from environment variable, defaulting to 3000 for local development
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   
   // Clean up any existing connections on shutdown
@@ -83,24 +99,38 @@ app.use((req, res, next) => {
   process.on('SIGTERM', cleanup);
   process.on('SIGINT', cleanup);
 
-  try {
-    server.listen(port, '0.0.0.0', () => {
-      log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
-      if (process.env.REPLIT_SLUG) {
-        log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
-      }
-    });
+  // Function to start server
+  const startServer = (retryPort?: number) => {
+    const finalPort = retryPort || port;
+    try {
+      server.listen(finalPort, '0.0.0.0', () => {
+        log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${finalPort}`);
+        if (process.env.REPLIT_SLUG) {
+          log(`Server URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+        }
+      });
 
-    server.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        log(`Port ${port} is already in use. Please use a different port.`);
-      } else {
-        log(`Server error: ${err.message}`);
-      }
+      server.on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          // If port 80 fails, try port 3000
+          if (finalPort === 80 && !retryPort) {
+            log(`Port 80 is not available, falling back to port 3000`);
+            startServer(3000);
+          } else {
+            log(`Port ${finalPort} is already in use. Please check your configuration.`);
+            process.exit(1);
+          }
+        } else {
+          log(`Server error: ${err.message}`);
+          process.exit(1);
+        }
+      });
+    } catch (error) {
+      log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
       process.exit(1);
-    });
-  } catch (error) {
-    log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    process.exit(1);
-  }
+    }
+  };
+
+  // Start the server
+  startServer();
 })();

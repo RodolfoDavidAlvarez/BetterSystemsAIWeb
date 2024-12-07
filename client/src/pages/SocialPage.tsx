@@ -76,7 +76,7 @@ END:VCARD`;
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center py-16 px-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-0 shadow-sm hover:shadow-md transition-shadow">
         <CardContent className="space-y-8">
           {/* Profile Section */}
           <div className="text-center">

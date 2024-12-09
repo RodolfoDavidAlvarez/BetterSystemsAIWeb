@@ -52,8 +52,9 @@ export default defineConfig({
     },
     hmr: {
       clientPort: process.env.REPLIT_SLUG ? 443 : undefined,
-      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : undefined,
-      protocol: process.env.REPLIT_SLUG ? 'wss' : 'ws'
+      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : 'localhost',
+      protocol: process.env.REPLIT_SLUG ? 'wss' : 'ws',
+      secure: process.env.REPLIT_SLUG ? true : false
     }
   },
   resolve: {
@@ -62,13 +63,15 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../dist/public',
-    sourcemap: false,
+    outDir: path.resolve(__dirname, '../dist/public'),
+    sourcemap: true,
     manifest: true,
     assetsDir: 'assets',
     emptyOutDir: true,
     rollupOptions: {
-      input: path.resolve(__dirname, 'index.html'),
+      input: {
+        index: path.resolve(__dirname, 'index.html')
+      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'wouter'],

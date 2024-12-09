@@ -63,19 +63,23 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, '../dist/public'),
+    outDir: path.resolve(__dirname, 'dist'),
     sourcemap: true,
     manifest: true,
     assetsDir: 'assets',
     emptyOutDir: true,
     rollupOptions: {
-      input: {
-        index: path.resolve(__dirname, 'index.html')
-      },
+      input: path.resolve(__dirname, 'index.html'),
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'wouter'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('wouter')) {
+              return 'vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui';
+            }
+          }
         },
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.');

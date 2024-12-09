@@ -16,11 +16,11 @@ export default defineConfig({
   ],
   server: {
     host: '0.0.0.0',
-    port: 5000,
+    port: process.env.NODE_ENV === 'production' ? 80 : 5173,
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: process.env.NODE_ENV === 'production' ? 'http://0.0.0.0:3000' : 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         ws: true
@@ -30,6 +30,9 @@ export default defineConfig({
       clientPort: process.env.REPLIT_SLUG ? 443 : undefined,
       host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : undefined,
       protocol: process.env.REPLIT_SLUG ? 'wss' : 'ws'
+    },
+    watch: {
+      usePolling: true
     }
   },
   resolve: {

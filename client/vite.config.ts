@@ -64,9 +64,10 @@ export default defineConfig({
   },
   build: {
     outDir: path.resolve(__dirname, '../dist/public'),
+    emptyOutDir: true,
     sourcemap: true,
     manifest: true,
-    emptyOutDir: true,
+    assetsDir: 'assets',
     rollupOptions: {
       input: path.resolve(__dirname, 'index.html'),
       output: {

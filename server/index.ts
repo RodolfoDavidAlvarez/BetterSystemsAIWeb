@@ -1,7 +1,8 @@
 import express, { type Request, Response } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
+import { setupVite } from "./vite";
 import { createServer } from "http";
+import path from "path";
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -57,7 +58,11 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    const distPath = path.resolve(__dirname, "public");
+    app.use(express.static(distPath));
+    app.use("*", (_req, res) => {
+      res.sendFile(path.resolve(distPath, "index.html"));
+    });
   }
 
   // Error handling middleware should be last

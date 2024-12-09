@@ -46,6 +46,14 @@ args = "Production Build"
 task = "workflow.run"
 args = "Production Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client Build"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server Build"
+
 [[workflows.workflow]]
 name = "Client Dev Server"
 author = "agent"
@@ -73,7 +81,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm install && cd client && npm install && npm run build && cd .. && npm run build"
+args = "cd client && NODE_ENV=production npm install && npm run build && cd ../server && npm install && npm run build"
 
 [[workflows.workflow]]
 name = "Production Server"
@@ -89,3 +97,31 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "NODE_ENV=production PORT=3000 node dist/index.js"
 waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Client Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm install && npm run build"
+
+[[workflows.workflow]]
+name = "Server Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npm install && npm run build"

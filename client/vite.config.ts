@@ -7,8 +7,8 @@ import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 
 export default defineConfig({
   root: path.resolve(__dirname),
-  base: '/',
-  publicDir: path.resolve(__dirname, 'public'),
+  publicDir: 'public',
+  base: './',
   plugins: [
     react(),
     checker({ 
@@ -63,10 +63,9 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, 'dist'),
+    outDir: path.resolve(__dirname, '../dist/public'),
     sourcemap: true,
     manifest: true,
-    assetsDir: 'assets',
     emptyOutDir: true,
     rollupOptions: {
       input: path.resolve(__dirname, 'index.html'),

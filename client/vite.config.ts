@@ -6,8 +6,9 @@ import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 
 export default defineConfig({
-  root: './',
-  base: '/',
+  root: path.resolve(__dirname),
+  base: '',
+  publicDir: 'public',
   plugins: [
     react(),
     checker({ 
@@ -35,9 +36,12 @@ export default defineConfig({
     }),
   ],
   server: {
-    host: '0.0.0.0',
+    host: true,
     port: 5173,
     strictPort: true,
+    watch: {
+      usePolling: true
+    },
     proxy: {
       '/api': {
         target: 'http://0.0.0.0:3000',
@@ -58,12 +62,15 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, "../dist/public"),
+    outDir: '../dist/public',
     sourcemap: false,
     manifest: true,
     assetsDir: 'assets',
     emptyOutDir: true,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html')
+      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'wouter'],

@@ -73,7 +73,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build"
+args = "cd client && npm run build"
 
 [[workflows.workflow]]
 name = "Production Server"

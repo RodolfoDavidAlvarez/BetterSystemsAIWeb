@@ -27,8 +27,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: path.resolve(__dirname, '../dist/public'),
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false,
     minify: mode === 'production',
+    target: 'esnext',
     rollupOptions: {
       input: {
         app: path.resolve(__dirname, 'index.html')
@@ -36,22 +37,14 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           'vendor': ['react', 'react-dom'],
-          'ui': [
+          'js': [
             '@radix-ui/react-dialog',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-slot',
             'class-variance-authority',
             'clsx',
             'tailwind-merge'
           ]
         },
-        assetFileNames: (assetInfo) => {
-          const extType = assetInfo.name.split('.')[1];
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
-            return `assets/images/[name].[hash][extname]`;
-          }
-          return `assets/[name].[hash][extname]`;
-        },
+        assetFileNames: 'assets/[name].[hash][extname]',
         chunkFileNames: 'assets/js/[name].[hash].js',
         entryFileNames: 'assets/js/[name].[hash].js'
       }
@@ -63,9 +56,11 @@ export default defineConfig(({ mode }) => ({
     }
   },
   optimizeDeps: {
-    include: ['react', 'react-dom']
+    include: ['react', 'react-dom'],
+    exclude: ['@radix-ui/react-dialog']
   },
   esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
+    target: 'esnext'
   }
 }));

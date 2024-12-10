@@ -15,27 +15,27 @@ const navItems = [
 export default function MobileNav() {
   return (
     <div className="md:hidden">
-      <Drawer>
+      <Drawer direction="right">
         <DrawerTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="ml-auto">
             <Menu className="h-6 w-6" />
             <span className="sr-only">Toggle menu</span>
           </Button>
         </DrawerTrigger>
         <DrawerContent>
-          <div className="px-4 py-6 space-y-3">
-            <div className="flex flex-col items-end space-y-2 w-full">
+          <div className="px-4 py-6">
+            <div className="flex flex-col items-end w-full">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-3 rounded-md text-right w-full max-w-[280px]"
+                  className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-4 rounded-md text-right w-full max-w-[280px] ml-auto"
                 >
                   {item.label}
                 </Link>
               ))}
-              <div className="w-full max-w-[280px] px-6 pt-2">
-                <Button asChild variant="default" className="w-full">
+              <div className="w-full max-w-[280px] px-6 pt-4 ml-auto">
+                <Button asChild variant="default" className="w-full justify-center">
                   <Link href="/booking">Book Consultation</Link>
                 </Button>
               </div>

@@ -29,18 +29,22 @@ export default defineConfig({
   build: {
     outDir: '../dist/public',
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false,
     minify: 'terser',
-    cssCodeSplit: true,
+    cssCodeSplit: false,
     modulePreload: {
       polyfill: true
     },
     terserOptions: {
       compress: {
-        drop_console: false,
-        passes: 2
+        drop_console: true,
+        passes: 3,
+        pure_getters: true,
+        unsafe: true
       },
-      mangle: true,
+      mangle: {
+        properties: false
+      },
       format: {
         comments: false,
         ecma: 2020
@@ -49,21 +53,21 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'wouter'],
-          ui: ['@radix-ui/react-dialog', 'framer-motion'],
+          vendor: ['react', 'react-dom', 'wouter', '@radix-ui/react-dialog', 'framer-motion'],
+          styles: ['./src/index.css']
         },
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name?.split('.').pop();
           if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
-            return `assets/images/[name]-[hash][extname]`;
+            return `assets/images/[name].[hash][extname]`;
           }
           if (/css/i.test(extType || '')) {
-            return 'assets/css/[name]-[hash][extname]';
+            return 'assets/css/styles.[hash].css';
           }
-          return `assets/[name]-[hash][extname]`;
+          return `assets/[name].[hash][extname]`;
         },
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js'
+        chunkFileNames: 'assets/js/[name].[hash].js',
+        entryFileNames: 'assets/js/[name].[hash].js'
       }
     }
   },

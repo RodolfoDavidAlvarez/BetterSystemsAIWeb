@@ -2,26 +2,36 @@
   "name": "better-systems",
   "type": "dark",
   "cssVars": true,
+  "radius": "0.5rem",
   "colors": {
-    "background": "hsl(0, 0%, 0%)",
-    "foreground": "hsl(0, 0%, 100%)",
-    "primary": "hsl(217, 91%, 60%)",
-    "primary-foreground": "hsl(0, 0%, 100%)",
-    "secondary": "hsl(215, 25%, 27%)",
-    "secondary-foreground": "hsl(0, 0%, 100%)",
-    "muted": "hsl(215, 25%, 27%)",
-    "muted-foreground": "hsl(215, 20%, 65%)",
-    "accent": "hsl(217, 91%, 60%)",
-    "accent-foreground": "hsl(0, 0%, 100%)",
-    "popover": "hsl(0, 0%, 0%)",
-    "popover-foreground": "hsl(0, 0%, 100%)",
-    "card": "hsl(0, 0%, 0%)",
-    "card-foreground": "hsl(0, 0%, 100%)",
-    "destructive": "hsl(0, 84.2%, 60.2%)",
-    "destructive-foreground": "hsl(0, 0%, 100%)",
-    "border": "hsl(215, 25%, 27%)",
-    "input": "hsl(215, 25%, 27%)",
-    "ring": "hsl(217, 91%, 60%)"
-  },
-  "radius": "0.5rem"
+    "background": "0 0% 0%",
+    "foreground": "0 0% 100%",
+    "card": "0 0% 0%",
+    "card-foreground": "0 0% 100%",
+    "popover": "0 0% 0%",
+    "popover-foreground": "0 0% 100%",
+    "primary": {
+      "DEFAULT": "217 91% 60%",
+      "foreground": "0 0% 100%"
+    },
+    "secondary": {
+      "DEFAULT": "215 25% 27%",
+      "foreground": "0 0% 100%"
+    },
+    "muted": {
+      "DEFAULT": "215 25% 27%",
+      "foreground": "215 20% 65%"
+    },
+    "accent": {
+      "DEFAULT": "217 91% 60%",
+      "foreground": "0 0% 100%"
+    },
+    "destructive": {
+      "DEFAULT": "0 84.2% 60.2%",
+      "foreground": "0 0% 100%"
+    },
+    "border": "215 25% 27%",
+    "input": "215 25% 27%",
+    "ring": "217 91% 60%"
+  }
 }

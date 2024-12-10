@@ -3,12 +3,12 @@ export default {
     'postcss-import': {
       path: ["client/src"]
     },
-    'tailwindcss/nesting': 'postcss-nesting',
+    'tailwindcss/nesting': {},
     tailwindcss: {},
     autoprefixer: {
       flexbox: true,
       grid: true,
-      overrideBrowserslist: ['last 2 versions', '> 1%']
+      overrideBrowserslist: ['>0.2%', 'not dead', 'not op_mini all']
     },
     'cssnano': process.env.NODE_ENV === 'production' ? {
       preset: ['default', {
@@ -16,7 +16,10 @@ export default {
           removeAll: true,
         },
         normalizeWhitespace: false,
-        colormin: false
+        colormin: true,
+        mergeLonghand: true,
+        cssDeclarationSorter: true,
+        reduceIdents: false
       }],
     } : false
   },

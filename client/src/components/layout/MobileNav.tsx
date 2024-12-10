@@ -28,14 +28,16 @@ export default function MobileNav() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-4 py-2 rounded-md"
+                className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-4 py-2 rounded-md text-right"
               >
                 {item.label}
               </Link>
             ))}
-            <Button asChild variant="default" className="w-full mt-4">
-              <Link href="/booking">Book Consultation</Link>
-            </Button>
+            <div className="text-right">
+              <Button asChild variant="default" className="mt-4">
+                <Link href="/booking">Book Consultation</Link>
+              </Button>
+            </div>
           </div>
         </DrawerContent>
       </Drawer>

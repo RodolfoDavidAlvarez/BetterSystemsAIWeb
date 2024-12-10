@@ -21,25 +21,28 @@ export default function MobileNav() {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </DrawerTrigger>
-        <DrawerContent className="right-0 left-[auto] w-[min(100%,20rem)]">
-          <div className="py-6 px-4">
-            <div className="flex flex-col space-y-4">
+        <DrawerContent className="right-0 w-[min(100%,20rem)]">
+          <div className="py-6 px-2">
+            <div className="flex flex-col gap-1">
               {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="text-lg font-medium text-muted-foreground hover:text-foreground transition-colors py-4 px-8 rounded-l-xl hover:bg-accent/10 text-right rtl:text-left"
-                >
-                  {item.label}
-                </Link>
+                <div key={item.label} className="flex justify-end w-full">
+                  <Link
+                    href={item.href}
+                    className="text-lg font-medium text-muted-foreground hover:text-foreground transition-colors py-4 px-6 rounded-l-2xl hover:bg-accent/10 w-[85%] text-right"
+                  >
+                    {item.label}
+                  </Link>
+                </div>
               ))}
-              <div className="pt-6 px-4">
+              <div className="flex justify-end w-full pt-4 pr-2">
                 <Button 
                   asChild 
                   variant="default" 
-                  className="w-full justify-end text-right bg-primary hover:bg-primary/90 transition-colors"
+                  className="w-[85%] bg-primary hover:bg-primary/90 transition-colors py-6"
                 >
-                  <Link href="/booking">Book Consultation</Link>
+                  <Link href="/booking" className="flex justify-end">
+                    Book Consultation
+                  </Link>
                 </Button>
               </div>
             </div>

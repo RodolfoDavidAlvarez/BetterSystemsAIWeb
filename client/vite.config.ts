@@ -22,13 +22,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      protocol: process.env.REPLIT_SLUG ? 'wss' : 'ws',
-      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : '0.0.0.0',
-      clientPort: process.env.REPLIT_SLUG ? 443 : 5173,
-      port: 443,
-      timeout: 120000,
-      overlay: false,
-      path: '/_vite/ws'
+      protocol: 'ws',
+      host: '0.0.0.0',
+      port: 5173
     }
   },
   build: {
@@ -40,6 +36,14 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true
+      }
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+        assetFileNames: 'assets/[name].[hash][extname]',
+        chunkFileNames: 'assets/[name].[hash].js',
+        entryFileNames: 'assets/[name].[hash].js',
       }
     }
   }

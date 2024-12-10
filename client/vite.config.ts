@@ -22,9 +22,13 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      protocol: 'ws',
-      host: '0.0.0.0',
-      port: 5173
+      protocol: process.env.REPLIT_SLUG ? 'wss' : 'ws',
+      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : '0.0.0.0',
+      clientPort: process.env.REPLIT_SLUG ? 443 : 5173,
+      port: 443,
+      timeout: 120000,
+      overlay: false,
+      path: '/_vite/ws'
     }
   },
   build: {

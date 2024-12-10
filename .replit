@@ -80,7 +80,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=production NODE_OPTIONS='--experimental-modules --es-module-specifier-resolution=node' node dist/index.js"
+args = "npm run build && NODE_ENV=production node dist/index.js"
 waitForPort = 3000
 
 [[workflows.workflow]]

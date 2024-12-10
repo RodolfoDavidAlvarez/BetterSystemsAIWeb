@@ -15,26 +15,22 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve("./client/src"),
-      "@db": path.resolve("./db"),
+      "@": path.resolve(__dirname, "./src"),
+      "@db": path.resolve(__dirname, "../db"),
     },
-  },
-  root: "./client",
-  build: {
-    outDir: "../dist/public",
-    emptyOutDir: true,
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    }
   },
   server: {
     host: "0.0.0.0",
     port: 5173,
+    strictPort: true,
     hmr: {
-      clientPort: 443
+      clientPort: process.env.NODE_ENV === 'production' ? 443 : 5173,
+      host: "0.0.0.0"
     }
+  },
+  build: {
+    outDir: "../dist/public",
+    emptyOutDir: true,
+    sourcemap: true
   }
 });

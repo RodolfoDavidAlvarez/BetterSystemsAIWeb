@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd client && NODE_ENV=development npx vite --host 0.0.0.0 --port 5173"]
+run = ["npm", "start"]
 
 [[ports]]
 localPort = 80

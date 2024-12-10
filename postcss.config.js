@@ -3,11 +3,11 @@ export default {
     'postcss-import': {
       path: ["client/src"]
     },
-    'tailwindcss/nesting': {},
+    'tailwindcss/nesting': 'postcss-nesting',
     tailwindcss: {},
     autoprefixer: {
       flexbox: true,
-      grid: true,
+      grid: 'autoplace',
       overrideBrowserslist: ['>0.2%', 'not dead', 'not op_mini all']
     },
     'cssnano': process.env.NODE_ENV === 'production' ? {

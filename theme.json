@@ -1,6 +1,8 @@
+
 {
-  "variant": "professional",
-  "primary": "hsl(230, 84%, 45%)",
-  "appearance": "system",
-  "radius": 0.75
+  "name": "default",
+  "colors": {
+    "primary": "#3b82f6",
+    "background": "#ffffff"
+  }
 }

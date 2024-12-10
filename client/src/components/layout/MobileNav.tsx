@@ -23,20 +23,22 @@ export default function MobileNav() {
           </Button>
         </DrawerTrigger>
         <DrawerContent>
-          <div className="px-4 py-6 space-y-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-4 py-2 rounded-md text-left"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="text-left">
-              <Button asChild variant="default" className="mt-4">
-                <Link href="/booking">Book Consultation</Link>
-              </Button>
+          <div className="px-4 py-6 space-y-3">
+            <div className="flex flex-col items-end space-y-2 w-full">
+              {navItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-6 py-3 rounded-md text-right w-full max-w-[280px]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <div className="w-full max-w-[280px] px-6 pt-2">
+                <Button asChild variant="default" className="w-full">
+                  <Link href="/booking">Book Consultation</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </DrawerContent>

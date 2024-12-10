@@ -3,12 +3,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import checker from "vite-plugin-checker";
+import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
 import type { PluginOption } from 'vite';
 
 export default defineConfig({
   plugins: [
     react(),
-    checker({ typescript: true, overlay: false })
+    checker({ typescript: true, overlay: false }),
+    themePlugin()
   ] as PluginOption[],
   resolve: {
     alias: {
@@ -29,18 +31,18 @@ export default defineConfig({
   build: {
     outDir: '../dist/public',
     emptyOutDir: true,
-    sourcemap: false,
+    sourcemap: true,
     minify: 'terser',
-    cssCodeSplit: false,
+    cssCodeSplit: true,
     modulePreload: {
       polyfill: true
     },
     terserOptions: {
       compress: {
-        drop_console: true,
-        passes: 3,
+        drop_console: false,
+        passes: 2,
         pure_getters: true,
-        unsafe: true
+        unsafe: false
       },
       mangle: {
         properties: false
@@ -52,9 +54,13 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'wouter', '@radix-ui/react-dialog', 'framer-motion'],
-          styles: ['./src/index.css']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('wouter') || id.includes('@radix-ui') || id.includes('framer-motion')) {
+              return 'vendor';
+            }
+          }
+          return null;
         },
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name?.split('.').pop();
@@ -62,7 +68,7 @@ export default defineConfig({
             return `assets/images/[name].[hash][extname]`;
           }
           if (/css/i.test(extType || '')) {
-            return 'assets/css/styles.[hash].css';
+            return 'assets/css/[name].[hash].css';
           }
           return `assets/[name].[hash][extname]`;
         },

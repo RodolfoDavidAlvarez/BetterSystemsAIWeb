@@ -1,13 +1,11 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
-import path, { dirname } from "path";
 import checker from "vite-plugin-checker";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal"
-import { fileURLToPath } from "url";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import path from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 export default defineConfig({
   plugins: [
     react(),
@@ -17,13 +15,20 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-      "@db": path.resolve(__dirname, "db"),
+      "@": path.resolve("./client/src"),
+      "@db": path.resolve("./db"),
     },
   },
-  root: path.resolve(__dirname, "client"),
+  root: "./client",
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
+    outDir: "../dist/public",
     emptyOutDir: true,
   },
+  server: {
+    host: "0.0.0.0",
+    port: 5173,
+    hmr: {
+      clientPort: 443
+    }
+  }
 });

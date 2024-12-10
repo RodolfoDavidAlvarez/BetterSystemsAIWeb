@@ -80,7 +80,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=production NODE_OPTIONS='--experimental-specifier-resolution=node --enable-source-maps' node dist/index.js"
+args = "NODE_ENV=production NODE_OPTIONS='--experimental-modules --es-module-specifier-resolution=node' node dist/index.js"
+waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Client Build"

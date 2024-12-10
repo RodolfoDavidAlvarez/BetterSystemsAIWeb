@@ -76,10 +76,8 @@ app.use((req, res, next) => {
 
       log(`Serving static files from: ${publicPath}`);
       
-      log(`Serving static files from: ${effectivePath}`);
-      
       // Serve static files with optimized caching
-      app.use(express.static(effectivePath, {
+      app.use(express.static(publicPath, {
         maxAge: '1d',
         etag: true,
         index: false,
@@ -100,17 +98,16 @@ app.use((req, res, next) => {
 
       // Handle SPA routing - serve index.html for all unmatched routes
       app.get('*', (_req, res) => {
-        const indexPath = path.join(effectivePath, 'index.html');
+        const indexPath = path.join(publicPath, 'index.html');
         
         if (fs.existsSync(indexPath)) {
           res.sendFile(indexPath);
         } else {
           log(`Error: index.html not found at ${indexPath}`);
-          // Return a more informative error
           res.status(404).json({
             error: 'Application not ready',
             message: 'The application is still building. Please try again in a moment.',
-            paths_checked: [publicPath, clientDistPath]
+            path: publicPath
           });
         }
       });

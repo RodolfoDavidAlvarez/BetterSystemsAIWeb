@@ -5,10 +5,10 @@ import checker from "vite-plugin-checker";
 import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
-export default defineConfig({
-  root: path.resolve(__dirname), // This is correct
+export default defineConfig(({ command, mode }) => ({
+  root: path.resolve(__dirname),
   publicDir: "public",
-  base: "./",
+  base: command === 'build' ? '/' : './',
   plugins: [
     react(),
     checker({
@@ -56,7 +56,6 @@ export default defineConfig({
         ? `${process.env.REPLIT_SLUG}.replit.dev`
         : "localhost",
       protocol: process.env.REPLIT_SLUG ? "wss" : "ws",
-      secure: process.env.REPLIT_SLUG ? true : false,
     },
   },
   resolve: {
@@ -65,42 +64,29 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../dist/public", // Changed to output to the correct dist folder
+    outDir: "../dist/public",
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false,
     manifest: true,
     assetsDir: "assets",
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, "index.html"), // Explicitly set the entry point
-      },
+      input: path.resolve(__dirname, "index.html"),
       output: {
-        manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            if (id.includes("react") || id.includes("wouter")) {
-              return "vendor";
-            }
-            if (id.includes("@radix-ui")) {
-              return "ui";
-            }
-          }
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'wouter'],
+          'ui': ['@radix-ui/react-alert-dialog', '@radix-ui/react-dialog']
         },
-        assetFileNames: (assetInfo) => {
-          const info = assetInfo.name.split(".");
-          const ext = info[info.length - 1];
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
-            return `assets/images/[name]-[hash][extname]`;
-          }
-          return `assets/[name]-[hash][extname]`;
-        },
-        chunkFileNames: "assets/js/[name]-[hash].js",
-        entryFileNames: "assets/js/[name]-[hash].js",
-      },
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js'
+      }
     },
-    minify: true,
-    cssMinify: true,
-    commonjsOptions: {
-      transformMixedEsModules: true,
-    },
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
   },
 });

@@ -3,21 +3,25 @@
   "name": "better-systems",
   "type": "dark",
   "colors": {
-    "primary": "#3b82f6",
-    "primary-foreground": "#ffffff",
-    "secondary": "#374151",
-    "secondary-foreground": "#ffffff",
-    "background": "#000000",
-    "foreground": "#ffffff",
-    "destructive": "#991b1b",
-    "destructive-foreground": "#ffffff",
-    "border": "#1f2937",
-    "input": "#1f2937",
-    "ring": "#3b82f6"
-  },
-  "borderRadius": {
-    "lg": "0.5rem",
-    "md": "0.375rem",
-    "sm": "0.25rem"
+    "primary": "hsl(217 91% 60%)",
+    "primary-foreground": "hsl(0 0% 100%)",
+    "secondary": "hsl(215 25% 27%)",
+    "secondary-foreground": "hsl(0 0% 100%)",
+    "background": "hsl(0 0% 0%)",
+    "foreground": "hsl(0 0% 100%)",
+    "muted": "hsl(215 25% 27%)",
+    "muted-foreground": "hsl(215 20% 65%)",
+    "accent": "hsl(217 91% 60%)",
+    "accent-foreground": "hsl(0 0% 100%)",
+    "popover": "hsl(0 0% 0%)",
+    "popover-foreground": "hsl(0 0% 100%)",
+    "card": "hsl(0 0% 0%)",
+    "card-foreground": "hsl(0 0% 100%)",
+    "destructive": "hsl(0 84.2% 60.2%)",
+    "destructive-foreground": "hsl(0 0% 100%)",
+    "border": "hsl(215 25% 27%)",
+    "input": "hsl(215 25% 27%)",
+    "ring": "hsl(217 91% 60%)",
+    "radius": "0.5rem"
   }
 }

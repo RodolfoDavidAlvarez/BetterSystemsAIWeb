@@ -22,8 +22,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443,
-      host: '0.0.0.0'
+      protocol: 'ws',
+      host: '0.0.0.0',
+      port: 5173
     }
   },
   build: {
@@ -35,14 +36,6 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true
-      }
-    },
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-        assetFileNames: 'assets/[name].[hash][extname]',
-        chunkFileNames: 'assets/[name].[hash].js',
-        entryFileNames: 'assets/[name].[hash].js',
       }
     }
   }

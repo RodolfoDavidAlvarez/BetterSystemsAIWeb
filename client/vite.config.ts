@@ -31,31 +31,34 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     minify: 'terser',
+    cssCodeSplit: true,
+    modulePreload: {
+      polyfill: true
+    },
     terserOptions: {
       compress: {
         drop_console: false,
-        passes: 1
+        passes: 2
       },
+      mangle: true,
       format: {
-        comments: false
+        comments: false,
+        ecma: 2020
       }
     },
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('wouter')) {
-              return 'vendor';
-            }
-            if (id.includes('@radix-ui') || id.includes('framer-motion')) {
-              return 'ui';
-            }
-          }
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'wouter'],
+          ui: ['@radix-ui/react-dialog', 'framer-motion'],
         },
         assetFileNames: (assetInfo) => {
-          const extType = assetInfo.name.split('.')[1];
-          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
+          const extType = assetInfo.name?.split('.').pop();
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
             return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/css/i.test(extType || '')) {
+            return 'assets/css/[name]-[hash][extname]';
           }
           return `assets/[name]-[hash][extname]`;
         },

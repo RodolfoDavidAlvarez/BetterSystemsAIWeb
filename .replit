@@ -66,8 +66,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && NODE_ENV=development VITE_DEV_SERVER_KEY=true vite --host 0.0.0.0 --port 5173"
-waitForPort = 5173
+args = "cd client && NODE_ENV=development npx vite --host 0.0.0.0 --port 5173"
 
 [[workflows.workflow]]
 name = "Production Server"
@@ -81,7 +80,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=production node dist/index.js"
+args = "NODE_ENV=production NODE_OPTIONS='--experimental-modules --es-module-specifier-resolution=node' node dist/index.js"
 waitForPort = 3000
 
 [[workflows.workflow]]

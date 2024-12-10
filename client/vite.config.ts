@@ -22,12 +22,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      protocol: 'wss',
-      host: '0.0.0.0',
-      port: 5173,
       clientPort: 443,
-      timeout: 120000,
-      maxRetries: 10
+      host: '0.0.0.0'
     }
   },
   build: {

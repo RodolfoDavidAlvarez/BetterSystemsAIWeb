@@ -59,14 +59,31 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    // In ESM context, we need to construct the paths differently
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     const distPath = path.resolve(__dirname, "public");
+    
+    console.log("Current directory:", __dirname);
     console.log("Serving static files from:", distPath);
-    app.use(express.static(distPath, { maxAge: '1y' }));
+    
+    // Serve static files with caching
+    app.use(express.static(distPath, { 
+      maxAge: '1y',
+      etag: true,
+      lastModified: true
+    }));
+    
+    // Serve index.html for all other routes (SPA fallback)
     app.use("*", (_req, res) => {
-      const indexPath = path.resolve(distPath, "index.html");
-      console.log("Serving index.html from:", indexPath);
-      res.sendFile(indexPath);
+      try {
+        const indexPath = path.join(distPath, "index.html");
+        console.log("Serving index.html from:", indexPath);
+        res.sendFile(indexPath);
+      } catch (error) {
+        console.error("Error serving static files:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
   }
 

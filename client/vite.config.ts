@@ -71,17 +71,24 @@ export default defineConfig({
   build: {
     outDir: "../dist/public",
     emptyOutDir: true,
-    sourcemap: false,
+    sourcemap: process.env.NODE_ENV === 'development',
     manifest: true,
     assetsDir: "assets",
+    copyPublicDir: true,
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, "index.html")
       },
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'wouter'],
-          ui: ['@radix-ui']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('wouter')) {
+              return 'vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'ui';
+            }
+          }
         },
         assetFileNames: (assetInfo) => {
           if (!assetInfo.name) return 'assets/[name]-[hash][extname]';

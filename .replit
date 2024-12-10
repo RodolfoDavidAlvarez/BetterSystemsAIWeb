@@ -114,7 +114,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js"
+args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
 
 [[workflows.workflow]]
 name = "Production Build"
@@ -128,4 +128,4 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm install && npm run build && cd ../server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js"
+args = "cd client && npm install && npm run build && cd ../server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"

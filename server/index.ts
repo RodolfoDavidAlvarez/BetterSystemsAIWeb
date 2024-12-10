@@ -1,6 +1,7 @@
-import express, { type Request, Response } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite } from "./vite";
+import express from "express";
+import type { Request, Response } from "express";
+import { registerRoutes } from "./routes.js";
+import { setupVite } from "./vite.js";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -59,32 +60,26 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    // In ESM context, we need to construct the paths differently
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const distPath = path.resolve(__dirname, "public");
-    
-    console.log("Current directory:", __dirname);
-    console.log("Serving static files from:", distPath);
-    
-    // Serve static files with caching
-    app.use(express.static(distPath, { 
-      maxAge: '1y',
-      etag: true,
-      lastModified: true
-    }));
-    
-    // Serve index.html for all other routes (SPA fallback)
-    app.use("*", (_req, res) => {
-      try {
-        const indexPath = path.join(distPath, "index.html");
-        console.log("Serving index.html from:", indexPath);
-        res.sendFile(indexPath);
-      } catch (error) {
-        console.error("Error serving static files:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    });
+    try {
+      // Get the absolute path to the dist/public directory
+      const publicPath = path.resolve(process.cwd(), 'dist', 'public');
+      
+      log(`Serving static files from: ${publicPath}`);
+      
+      // Serve static files with caching enabled
+      app.use(express.static(publicPath, {
+        maxAge: '1d',
+        etag: true
+      }));
+
+      // Handle SPA routing - serve index.html for all unmatched routes
+      app.get('*', (_req, res) => {
+        res.sendFile(path.join(publicPath, 'index.html'));
+      });
+    } catch (error) {
+      console.error('Error setting up static file serving:', error);
+      throw error;
+    }
   }
 
   // Error handling middleware should be last

@@ -24,7 +24,8 @@ export default defineConfig({
     hmr: {
       protocol: 'ws',
       host: '0.0.0.0',
-      port: 5173
+      port: 5173,
+      clientPort: 443
     }
   },
   build: {

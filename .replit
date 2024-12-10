@@ -80,7 +80,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=production NODE_OPTIONS='--experimental-specifier-resolution=node --enable-source-maps --es-module-specifier-resolution=node' PORT=3000 node dist/index.js"
+args = "NODE_ENV=production NODE_OPTIONS='--experimental-specifier-resolution=node --enable-source-maps' node dist/index.js"
 
 [[workflows.workflow]]
 name = "Client Build"
@@ -122,4 +122,4 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && NODE_ENV=production vite build && cd ../server && NODE_ENV=production esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
+args = "rm -rf dist && cd client && npm run build && cd ../server && NODE_ENV=production esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"

@@ -16,19 +16,22 @@ export default defineConfig({
     },
   },
   root: __dirname,
-  base: './',
+  base: '/',
   server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443
+      protocol: 'ws',
+      host: '0.0.0.0',
+      port: 5173
     }
   },
   build: {
     outDir: '../dist/public',
     emptyOutDir: true,
     sourcemap: true,
+    assetsDir: 'assets',
     minify: 'terser',
     terserOptions: {
       compress: {

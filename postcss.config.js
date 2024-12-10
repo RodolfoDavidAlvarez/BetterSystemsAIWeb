@@ -1,7 +1,9 @@
 export default {
   plugins: {
-    'postcss-import': {},
-    'tailwindcss/nesting': {},
+    'postcss-import': {
+      path: ["client/src"]
+    },
+    'tailwindcss/nesting': 'postcss-nesting',
     tailwindcss: {},
     autoprefixer: {
       flexbox: true,
@@ -13,6 +15,8 @@ export default {
         discardComments: {
           removeAll: true,
         },
+        normalizeWhitespace: false,
+        colormin: false
       }],
     } : false
   },

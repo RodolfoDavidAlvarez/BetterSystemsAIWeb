@@ -5,19 +5,24 @@ import checker from "vite-plugin-checker";
 import runtimeErrorModal from "@replit/vite-plugin-runtime-error-modal";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
-export default defineConfig(({ command, mode }) => ({
+export default defineConfig({
   root: path.resolve(__dirname),
   publicDir: "public",
-  base: command === 'build' ? '/' : './',
+  base: "/",
   plugins: [
     react(),
     checker({
       typescript: true,
       overlay: false,
       enableBuild: false,
-    }),
+    }) as any,
     runtimeErrorModal(),
     ViteImageOptimizer({
+      test: /\.(jpe?g|png|gif|tiff|webp|svg|avif)$/i,
+      exclude: undefined,
+      include: undefined,
+      includePublic: true,
+      logStats: true,
       jpeg: {
         quality: 85,
         progressive: true,
@@ -33,7 +38,7 @@ export default defineConfig(({ command, mode }) => ({
       webp: {
         lossless: true,
       },
-    }),
+    }) as any,
   ],
   server: {
     host: true,
@@ -70,13 +75,23 @@ export default defineConfig(({ command, mode }) => ({
     manifest: true,
     assetsDir: "assets",
     rollupOptions: {
-      input: path.resolve(__dirname, "index.html"),
+      input: {
+        main: path.resolve(__dirname, "index.html")
+      },
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom', 'wouter'],
-          'ui': ['@radix-ui/react-alert-dialog', '@radix-ui/react-dialog']
+          vendor: ['react', 'react-dom', 'wouter'],
+          ui: ['@radix-ui']
         },
-        assetFileNames: 'assets/[name]-[hash][extname]',
+        assetFileNames: (assetInfo) => {
+          if (!assetInfo.name) return 'assets/[name]-[hash][extname]';
+          const info = assetInfo.name.split('.');
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
+        },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js'
       }
@@ -88,5 +103,5 @@ export default defineConfig(({ command, mode }) => ({
         drop_debugger: true
       }
     }
-  },
+  }
 });

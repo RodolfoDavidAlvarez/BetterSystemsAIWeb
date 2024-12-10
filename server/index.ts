@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite } from "./vite";
 import { createServer } from "http";
 import path from "path";
+import { fileURLToPath } from "url";
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -58,10 +59,14 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const distPath = path.resolve(__dirname, "public");
-    app.use(express.static(distPath));
+    console.log("Serving static files from:", distPath);
+    app.use(express.static(distPath, { maxAge: '1y' }));
     app.use("*", (_req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
+      const indexPath = path.resolve(distPath, "index.html");
+      console.log("Serving index.html from:", indexPath);
+      res.sendFile(indexPath);
     });
   }
 

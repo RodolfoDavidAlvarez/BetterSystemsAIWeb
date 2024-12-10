@@ -4,7 +4,8 @@ import { registerRoutes } from "./routes.js";
 import { setupVite } from "./vite.js";
 import { createServer } from "http";
 import path from "path";
-import { fileURLToPath, pathToFileURL } from "url";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

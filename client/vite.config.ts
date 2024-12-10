@@ -9,9 +9,9 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  root: path.resolve(__dirname),
-  publicDir: path.resolve(__dirname, "public"),
-  base: process.env.NODE_ENV === "production" ? "/" : "",
+  root: __dirname,
+  publicDir: "public",
+  base: "./",
   plugins: [
     react(),
     checker({
@@ -44,12 +44,11 @@ export default defineConfig({
       },
     },
     hmr: {
-      clientPort: process.env.REPLIT_SLUG ? 443 : undefined,
+      clientPort: process.env.REPLIT_SLUG ? 443 : 5173,
       host: process.env.REPLIT_SLUG 
         ? `${process.env.REPLIT_SLUG}.id.repl.co`
-        : undefined,
+        : "localhost",
       protocol: process.env.REPLIT_SLUG ? "wss" : "ws",
-      timeout: 60000,
     },
   },
   resolve: {
@@ -58,15 +57,12 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "dist",
+    outDir: path.resolve(__dirname, "../dist/public"),
     emptyOutDir: true,
     sourcemap: true,
     manifest: true,
-    assetsDir: "assets",
     rollupOptions: {
-      input: {
-        app: path.resolve(__dirname, "index.html"),
-      },
+      input: path.resolve(__dirname, "index.html"),
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "wouter"],
@@ -81,22 +77,6 @@ export default defineConfig({
           ],
           utils: ["class-variance-authority", "clsx", "tailwind-merge"],
         },
-        assetFileNames: (assetInfo) => {
-          if (!assetInfo.name) return "assets/[name]-[hash][extname]";
-          const ext = assetInfo.name.split(".").pop();
-          return /png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext || "")
-            ? `assets/images/[name]-[hash][extname]`
-            : `assets/[name]-[hash][extname]`;
-        },
-        chunkFileNames: "assets/js/[name]-[hash].js",
-        entryFileNames: "assets/js/[name]-[hash].js",
-      },
-    },
-    minify: "terser",
-    terserOptions: {
-      compress: {
-        drop_console: process.env.NODE_ENV === "production",
-        drop_debugger: process.env.NODE_ENV === "production",
       },
     },
   },

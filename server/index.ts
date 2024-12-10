@@ -4,7 +4,10 @@ import { registerRoutes } from "./routes.js";
 import { setupVite } from "./vite.js";
 import { createServer } from "http";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -64,17 +67,31 @@ app.use((req, res, next) => {
       // Get the absolute path to the dist/public directory
       const publicPath = path.resolve(process.cwd(), 'dist', 'public');
       
+      // Check if the public directory exists
+      if (!fs.existsSync(publicPath)) {
+        log(`Warning: Public directory not found at ${publicPath}`);
+        fs.mkdirSync(publicPath, { recursive: true });
+      }
+      
       log(`Serving static files from: ${publicPath}`);
       
       // Serve static files with caching enabled
       app.use(express.static(publicPath, {
         maxAge: '1d',
-        etag: true
+        etag: true,
+        index: false // Disable automatic serving of index.html
       }));
 
       // Handle SPA routing - serve index.html for all unmatched routes
       app.get('*', (_req, res) => {
-        res.sendFile(path.join(publicPath, 'index.html'));
+        const indexPath = path.join(publicPath, 'index.html');
+        
+        if (fs.existsSync(indexPath)) {
+          res.sendFile(indexPath);
+        } else {
+          log(`Error: index.html not found at ${indexPath}`);
+          res.status(404).send('Application is not built. Please run the build command first.');
+        }
       });
     } catch (error) {
       console.error('Error setting up static file serving:', error);

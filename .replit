@@ -15,6 +15,10 @@ localPort = 80
 externalPort = 3000
 
 [[ports]]
+localPort = 443
+externalPort = 3002
+
+[[ports]]
 localPort = 3000
 externalPort = 3001
 
@@ -67,6 +71,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && NODE_ENV=development npx vite --host 0.0.0.0 --port 5173"
+waitForPort = 5173
 
 [[workflows.workflow]]
 name = "Production Server"

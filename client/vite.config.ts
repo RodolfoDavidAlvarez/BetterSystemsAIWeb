@@ -9,9 +9,9 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  root: path.resolve(__dirname),
-  publicDir: "public",
-  base: "/",
+  root: __dirname,
+  publicDir: path.resolve(__dirname, "public"),
+  base: process.env.NODE_ENV === 'production' ? '/' : '',
   plugins: [
     react(),
     checker({
@@ -61,7 +61,9 @@ export default defineConfig({
     manifest: true,
     assetsDir: "assets",
     rollupOptions: {
-      input: path.resolve(__dirname, "index.html"),
+      input: {
+        app: path.resolve(__dirname, "index.html")
+      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'wouter'],

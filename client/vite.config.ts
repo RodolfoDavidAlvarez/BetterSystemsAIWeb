@@ -1,17 +1,13 @@
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
 import path from "path";
 import checker from "vite-plugin-checker";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
     react(),
-    checker({ typescript: true, overlay: false }),
-    runtimeErrorOverlay(),
-    themePlugin(),
+    checker({ typescript: true, overlay: false })
   ],
   resolve: {
     alias: {
@@ -32,7 +28,7 @@ export default defineConfig({
   build: {
     outDir: '../dist/public',
     emptyOutDir: true,
-    sourcemap: false,
+    sourcemap: true,
     minify: 'terser',
     terserOptions: {
       compress: {

@@ -1,8 +1,12 @@
 
 {
   "name": "default",
-  "colors": {
-    "primary": "#3b82f6",
-    "background": "#ffffff"
-  }
+  "variant": "light",
+  "primary": "#3b82f6",
+  "foreground": "#000000",
+  "background": "#ffffff",
+  "border": "#e5e7eb",
+  "input": "#e5e7eb",
+  "ring": "#3b82f6",
+  "radius": "0.5rem"
 }

@@ -68,30 +68,50 @@ app.use((req, res, next) => {
       // Get the absolute path to the dist/public directory
       const publicPath = path.resolve(process.cwd(), 'dist', 'public');
       
-      // Check if the public directory exists
+      // Ensure the public directory exists
       if (!fs.existsSync(publicPath)) {
-        log(`Warning: Public directory not found at ${publicPath}`);
-        fs.mkdirSync(publicPath, { recursive: true });
+        log(`Error: Build directory not found at ${publicPath}`);
+        throw new Error(`Build directory not found. Please ensure the application is built before starting the server.`);
       }
-      
+
       log(`Serving static files from: ${publicPath}`);
       
-      // Serve static files with caching enabled
-      app.use(express.static(publicPath, {
+      log(`Serving static files from: ${effectivePath}`);
+      
+      // Serve static files with optimized caching
+      app.use(express.static(effectivePath, {
         maxAge: '1d',
         etag: true,
-        index: false // Disable automatic serving of index.html
+        index: false,
+        setHeaders: (res, filepath) => {
+          // Set aggressive caching for assets
+          if (filepath.includes('/assets/')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
+          }
+          // Set appropriate content type
+          const contentType = path.extname(filepath);
+          if (contentType === '.js') {
+            res.setHeader('Content-Type', 'application/javascript');
+          } else if (contentType === '.css') {
+            res.setHeader('Content-Type', 'text/css');
+          }
+        }
       }));
 
       // Handle SPA routing - serve index.html for all unmatched routes
       app.get('*', (_req, res) => {
-        const indexPath = path.join(publicPath, 'index.html');
+        const indexPath = path.join(effectivePath, 'index.html');
         
         if (fs.existsSync(indexPath)) {
           res.sendFile(indexPath);
         } else {
           log(`Error: index.html not found at ${indexPath}`);
-          res.status(404).send('Application is not built. Please run the build command first.');
+          // Return a more informative error
+          res.status(404).json({
+            error: 'Application not ready',
+            message: 'The application is still building. Please try again in a moment.',
+            paths_checked: [publicPath, clientDistPath]
+          });
         }
       });
     } catch (error) {

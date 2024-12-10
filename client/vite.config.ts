@@ -9,8 +9,8 @@ import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  root: path.resolve(__dirname, "client"), // Set "client" as the root directory
-  publicDir: path.resolve(__dirname, "client/public"), // Public assets directory
+  root: path.resolve(__dirname),
+  publicDir: path.resolve(__dirname, "public"),
   base: process.env.NODE_ENV === "production" ? "/" : "",
   plugins: [
     react(),
@@ -31,7 +31,7 @@ export default defineConfig({
     }),
   ],
   server: {
-    host: true,
+    host: "0.0.0.0",
     port: 5173,
     strictPort: true,
     watch: { usePolling: true },
@@ -45,26 +45,27 @@ export default defineConfig({
     },
     hmr: {
       clientPort: process.env.REPLIT_SLUG ? 443 : undefined,
-      host: process.env.REPLIT_SLUG
-        ? `${process.env.REPLIT_SLUG}.replit.dev`
-        : "localhost",
+      host: process.env.REPLIT_SLUG 
+        ? `${process.env.REPLIT_SLUG}.id.repl.co`
+        : undefined,
       protocol: process.env.REPLIT_SLUG ? "wss" : "ws",
+      timeout: 60000,
     },
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client/src"), // Alias for "client/src"
+      "@": path.resolve(__dirname, "src"),
     },
   },
   build: {
-    outDir: path.resolve(__dirname, "dist"), // Output directory for built files
+    outDir: "dist",
     emptyOutDir: true,
     sourcemap: true,
     manifest: true,
     assetsDir: "assets",
     rollupOptions: {
       input: {
-        app: path.resolve(__dirname, "client/index.html"), // Entry point for the app
+        app: path.resolve(__dirname, "index.html"),
       },
       output: {
         manualChunks: {

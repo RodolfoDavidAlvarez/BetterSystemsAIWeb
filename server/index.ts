@@ -5,9 +5,6 @@ import { setupVite } from "./vite.js";
 import { createServer } from "http";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

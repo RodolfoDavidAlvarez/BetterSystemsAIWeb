@@ -28,12 +28,12 @@ export default function MobileNav() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-4 py-2 rounded-md text-right"
+                className="block text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-all duration-200 px-4 py-2 rounded-md text-left"
               >
                 {item.label}
               </Link>
             ))}
-            <div className="text-right">
+            <div className="text-left">
               <Button asChild variant="default" className="mt-4">
                 <Link href="/booking">Book Consultation</Link>
               </Button>

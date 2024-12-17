@@ -137,7 +137,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {service.includedFeatures.map((feature, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full bg-background/50 hover:bg-background/60 transition-colors">
+              <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
                 <CardContent className="p-6">
                   <div className="mb-4">
                     <feature.icon className="h-8 w-8 text-primary" />
@@ -185,7 +185,7 @@ export default function EfficiencyAuditPage() {
           <div className="grid md:grid-cols-3 gap-8">
             {service.process.map((step, index) => (
               <motion.div key={index} variants={fadeIn}>
-                <Card className="h-full bg-background/50 hover:bg-background/60 transition-colors">
+                <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
                   <CardContent className="p-6">
                     <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                       <span className="text-2xl font-bold text-primary">{index + 1}</span>
@@ -198,7 +198,12 @@ export default function EfficiencyAuditPage() {
             ))}
           </div>
           <div className="flex justify-center">
-            <Button variant="outline" size="lg" className="text-muted-foreground hover:text-foreground transition-colors" asChild>
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all" 
+              asChild
+            >
               <Link href="/services/pre-assessment">Start Questionnaire →</Link>
             </Button>
           </div>
@@ -216,7 +221,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {service.testimonials.map((testimonial, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full bg-background/50 hover:bg-background/60 transition-colors">
+              <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
                 <CardContent className="p-6">
                   <div className="mb-4 text-4xl text-primary">❝</div>
                   <p className="text-lg mb-4 italic">{testimonial.quote}</p>
@@ -239,7 +244,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid gap-6">
           {service.faqs.map((faq, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="bg-background/50 hover:bg-background/60 transition-colors">
+              <Card className="border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-3">{faq.question}</h3>
                   <p className="text-muted-foreground">{faq.answer}</p>

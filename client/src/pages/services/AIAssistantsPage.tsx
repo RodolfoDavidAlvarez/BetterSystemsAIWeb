@@ -2,61 +2,122 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
+import { Card, CardContent } from "@/components/ui/card";
+import { BadgeCheck, BrainCircuit, Phone, Mail, MessageSquare, Share2, MessageCircle, Gauge, Clock, DollarSign } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+interface ServiceMetric {
+  value: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+interface Channel {
+  title: string;
+  icon: LucideIcon;
+  description: string;
+  capabilities: string[];
+  highlight: string;
+}
+
+interface Benefit {
+  title: string;
+  description: string;
+}
+
+interface ServiceData {
+  title: string;
+  description: string;
+  metrics: ServiceMetric[];
+  channels: Channel[];
+  benefits: Benefit[];
+}
 
 export default function AIAssistantsPage() {
-  const service = {
+  const service: ServiceData = {
     title: "AI-Powered Assistant Integrations",
-    description: "Revolutionize your customer interactions and operational efficiency with AI-driven virtual assistants integrated into your communication channels.",
+    description: "Transform your business communication with cutting-edge AI assistants. Our intelligent virtual agents handle customer interactions across all channels, delivering 24/7 support with human-like understanding.",
+    metrics: [
+      {
+        value: "70%",
+        label: "Cost Reduction",
+        description: "Lower support costs",
+        icon: DollarSign
+      },
+      {
+        value: "24/7",
+        label: "Availability",
+        description: "Round-the-clock service",
+        icon: Clock
+      },
+      {
+        value: "90%",
+        label: "Efficiency",
+        description: "Faster response times",
+        icon: Gauge
+      }
+    ],
     channels: [
       {
-        title: "Phone Integration",
-        description: "Human-like AI voice assistants that handle calls 24/7, understand context, and seamlessly transfer to human agents when needed.",
+        title: "Smart Voice Assistant",
+        icon: Phone,
+        description: "Experience seamless communication with our advanced AI voice system that understands context, emotion, and intent. Handle high call volumes effortlessly while maintaining a personal touch.",
         capabilities: [
-          "Natural language processing for human-like conversations",
-          "Intelligent call routing and prioritization",
-          "Multilingual support for global operations",
-          "Call transcription and analytics"
-        ]
+          "Natural conversations with 98% accuracy",
+          "Smart routing based on customer intent",
+          "Support in 100+ languages",
+          "Real-time transcription & insights"
+        ],
+        highlight: "Reduce call wait times by up to 80%"
       },
       {
-        title: "Email Automation",
-        description: "Smart email processing system that understands, categorizes, and responds to inquiries automatically.",
+        title: "Intelligent Email Hub",
+        icon: Mail,
+        description: "Transform your email workflow with AI that understands context, intent, and urgency. Automatically process, categorize, and respond to emails with human-like precision.",
         capabilities: [
-          "Intelligent email classification and routing",
-          "Automated response generation",
-          "Attachment and document processing",
-          "Priority inbox management"
-        ]
+          "Smart categorization with 99% accuracy",
+          "Contextual response generation",
+          "Document analysis & processing",
+          "Intelligent priority management"
+        ],
+        highlight: "Process emails 5x faster than traditional methods"
       },
       {
-        title: "Website Chatbot",
-        description: "Interactive chat interface that engages visitors, answers questions, and guides them through your services.",
+        title: "Interactive Web Assistant",
+        icon: MessageSquare,
+        description: "Deploy an AI-powered chat interface that provides instant, personalized assistance to website visitors. Convert inquiries into opportunities with intelligent conversation flows.",
         capabilities: [
-          "Real-time visitor engagement",
-          "Product recommendations",
-          "FAQ automation",
-          "Lead qualification"
-        ]
+          "Instant 24/7 visitor support",
+          "Smart product recommendations",
+          "Dynamic FAQ & knowledge base",
+          "Qualified lead generation"
+        ],
+        highlight: "Convert 40% more visitors into leads"
       },
       {
-        title: "Social Media Integration",
-        description: "Unified social media management with AI-powered responses and engagement tracking.",
+        title: "Social Media Command Center",
+        icon: Share2,
+        description: "Unify your social media presence with AI-driven engagement tools. Monitor, respond, and analyze interactions across all platforms from a single dashboard.",
         capabilities: [
-          "Multi-platform message management",
-          "Automated content moderation",
-          "Sentiment analysis",
-          "Engagement analytics"
-        ]
+          "Cross-platform message handling",
+          "Smart content moderation",
+          "Real-time sentiment tracking",
+          "Performance analytics dashboard"
+        ],
+        highlight: "Improve response time by 75%"
       },
       {
-        title: "SMS/Text Messaging",
-        description: "Automated messaging system for updates, reminders, and two-way communication.",
+        title: "Smart SMS Gateway",
+        icon: MessageCircle,
+        description: "Engage customers through personalized text messaging powered by AI. Send timely updates and handle responses automatically while maintaining a personal connection.",
         capabilities: [
-          "Automated appointment reminders",
-          "Order status updates",
-          "Two-way conversation handling",
-          "Campaign management"
-        ]
+          "Intelligent scheduling system",
+          "Real-time status notifications",
+          "Natural conversation flow",
+          "Campaign optimization"
+        ],
+        highlight: "Achieve 98% message open rates"
       }
     ],
     benefits: [
@@ -82,7 +143,7 @@ export default function AIAssistantsPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <motion.div 
-        className="max-w-3xl mx-auto mb-12"
+        className="max-w-4xl mx-auto mb-16"
         initial="initial"
         animate="animate"
         variants={fadeIn}
@@ -90,14 +151,28 @@ export default function AIAssistantsPage() {
         <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
-        <h1 className="text-4xl font-bold mb-4">{service.title}</h1>
-        <p className="text-muted-foreground text-lg mb-8">
+        <h1 className="text-5xl font-bold mb-6">{service.title}</h1>
+        <p className="text-muted-foreground text-xl leading-relaxed mb-12">
           {service.description}
         </p>
+        
+        {/* Metrics Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {service.metrics.map((metric, index) => (
+            <Card key={index} className="border-0 bg-primary/5 transition-all duration-300 hover:scale-105">
+              <CardContent className="p-6 text-center">
+                <metric.icon className="h-8 w-8 mx-auto mb-4 text-primary" />
+                <div className="text-3xl font-bold text-primary mb-2">{metric.value}</div>
+                <div className="font-semibold mb-2">{metric.label}</div>
+                <p className="text-sm text-muted-foreground">{metric.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </motion.div>
 
       <motion.section className="space-y-12 mb-16">
-        <h2 className="text-3xl font-semibold">Channel Capabilities</h2>
+        <h2 className="text-3xl font-semibold text-center mb-12">Integrated Communication Channels</h2>
         <motion.div 
           className="grid md:grid-cols-2 gap-8"
           variants={staggerChildren}
@@ -107,58 +182,112 @@ export default function AIAssistantsPage() {
           {service.channels.map((channel, index) => (
             <motion.div 
               key={index} 
-              className="bg-card rounded-lg p-6 shadow-sm"
+              className="group"
               variants={fadeIn}
             >
-              <h3 className="text-xl font-semibold mb-3">{channel.title}</h3>
-              <p className="text-muted-foreground mb-4">{channel.description}</p>
-              <ul className="space-y-2">
-                {channel.capabilities.map((capability, capIndex) => (
-                  <motion.li 
-                    key={capIndex} 
-                    className="flex items-center gap-2"
-                    variants={fadeIn}
-                  >
-                    <span className="size-1.5 rounded-full bg-primary" />
-                    {capability}
-                  </motion.li>
-                ))}
-              </ul>
-              {channel.title === "SMS/Text Messaging" && (
-                <div className="mt-6">
-                  <div className="aspect-video w-full">
-                    <iframe
-                      className="w-full h-full rounded-lg"
-                      src="https://www.youtube.com/embed/_36nIgx8Lic"
-                      title="SMS/Text Messaging Demo"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+              <Card className="h-full border-0 bg-background/50 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-primary/5">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                      <channel.icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-2xl font-semibold">{channel.title}</h3>
                   </div>
-                </div>
-              )}
+                  <p className="text-muted-foreground mb-6 leading-relaxed">{channel.description}</p>
+                  <ul className="space-y-3 mb-6">
+                    {channel.capabilities.map((capability, capIndex) => (
+                      <motion.li 
+                        key={capIndex} 
+                        className="flex items-center gap-3"
+                        variants={fadeIn}
+                      >
+                        <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0" />
+                        <span>{capability}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                  <div className="pt-4 border-t border-border">
+                    <div className="flex items-center gap-2 text-primary">
+                      <BrainCircuit className="h-5 w-5" />
+                      <span className="font-semibold">{channel.highlight}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
       </motion.section>
 
-      <section className="space-y-8 mb-16">
-        <h2 className="text-3xl font-semibold">Business Benefits</h2>
-        <div className="grid md:grid-cols-2 gap-6">
+      {/* Demo Video Section */}
+      <motion.section 
+        className="mb-20 bg-primary/5 rounded-2xl p-12"
+        variants={fadeIn}
+        initial="initial"
+        animate="animate"
+      >
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-semibold mb-6">See AI Assistant in Action</h2>
+          <p className="text-lg text-muted-foreground mb-8">
+            Watch how our AI Assistant handles real-world scenarios with natural conversation flow and intelligent decision-making.
+          </p>
+          <div className="aspect-video w-full">
+            <iframe
+              className="w-full h-full rounded-xl shadow-lg"
+              src="https://www.youtube.com/embed/_36nIgx8Lic"
+              title="AI Assistant Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Benefits Section */}
+      <motion.section 
+        className="mb-20"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
+        <h2 className="text-3xl font-semibold text-center mb-12">Transform Your Business Communication</h2>
+        <div className="grid md:grid-cols-2 gap-8">
           {service.benefits.map((benefit, index) => (
-            <div key={index} className="bg-muted p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-              <p className="text-muted-foreground">{benefit.description}</p>
-            </div>
+            <motion.div 
+              key={index}
+              variants={fadeIn}
+            >
+              <Card className="h-full border-0 bg-background/50 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-primary/5">
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-semibold mb-4">{benefit.title}</h3>
+                  <p className="text-lg text-muted-foreground leading-relaxed">{benefit.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <div className="mt-16 text-center">
-        <Button asChild size="lg">
-          <Link href="/get-started">Get Started</Link>
-        </Button>
-      </div>
+      {/* CTA Section */}
+      <motion.section 
+        className="text-center bg-primary/5 rounded-2xl p-12"
+        variants={fadeIn}
+        initial="initial"
+        animate="animate"
+      >
+        <h2 className="text-3xl font-semibold mb-4">Ready to Transform Your Customer Experience?</h2>
+        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Join innovative businesses already using our AI Assistants to deliver exceptional customer service while reducing costs.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button asChild size="lg" className="px-8">
+            <Link href="/get-started">Get Started</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="px-8">
+            <Link href="/contact">Contact Sales</Link>
+          </Button>
+        </div>
+      </motion.section>
     </div>
   );
 }

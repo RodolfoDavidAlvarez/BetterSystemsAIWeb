@@ -137,7 +137,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {service.includedFeatures.map((feature, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full">
+              <Card className="h-full border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
                 <CardContent className="p-6">
                   <div className="mb-4">
                     <feature.icon className="h-8 w-8 text-primary" />
@@ -184,7 +184,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-3 gap-8">
           {service.process.map((step, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full">
+              <Card className="h-full border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
                 <CardContent className="p-6">
                   <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <span className="text-2xl font-bold text-primary">{index + 1}</span>
@@ -209,7 +209,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {service.testimonials.map((testimonial, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full">
+              <Card className="h-full border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
                 <CardContent className="p-6">
                   <div className="mb-4 text-4xl text-primary">❝</div>
                   <p className="text-lg mb-4 italic">{testimonial.quote}</p>
@@ -232,7 +232,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid gap-6">
           {service.faqs.map((faq, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card>
+              <Card className="border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-3">{faq.question}</h3>
                   <p className="text-muted-foreground">{faq.answer}</p>
@@ -256,7 +256,7 @@ export default function EfficiencyAuditPage() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button asChild size="lg">
-            <Link href="/booking">Claim Your Free Assessment</Link>
+            <Link href="/services/pre-assessment">Start Your Free Assessment</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
             <Link href="/contact">Contact Us</Link>

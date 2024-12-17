@@ -121,9 +121,17 @@ export default function EfficiencyAuditPage() {
           ← Back to Services
         </Link>
         <h1 className="text-5xl font-bold mb-6">{service.title}</h1>
-        <p className="text-muted-foreground text-xl leading-relaxed">
+        <p className="text-muted-foreground text-xl leading-relaxed mb-8">
           {service.description}
         </p>
+        <Button 
+          variant="ghost" 
+          size="lg"
+          className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10"
+          asChild
+        >
+          <Link href="/services/pre-assessment">Start Questionnaire →</Link>
+        </Button>
       </motion.div>
 
       {/* What's Included Section */}
@@ -201,10 +209,10 @@ export default function EfficiencyAuditPage() {
             <Button 
               variant="ghost" 
               size="lg" 
-              className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all" 
+              className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10" 
               asChild
             >
-              <Link href="/services/pre-assessment">Start Questionnaire →</Link>
+              <Link href="/services/pre-assessment">Start Your Assessment →</Link>
             </Button>
           </div>
         </div>

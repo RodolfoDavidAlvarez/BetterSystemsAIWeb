@@ -22,9 +22,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      protocol: 'ws',
-      host: '0.0.0.0',
-      port: 5173
+      clientPort: 443,
+      protocol: 'wss',
+      path: 'hmr'
     }
   },
   build: {

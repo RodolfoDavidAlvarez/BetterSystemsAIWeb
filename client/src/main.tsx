@@ -22,6 +22,7 @@ import SocialPage from "./pages/SocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
 import BusinessImpactPage from "./pages/BusinessImpactPage";
+import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 function Router() {
@@ -44,6 +45,7 @@ function Router() {
         <Route path="/photo-submission" component={PhotoSubmissionPage} />
         <Route path="/get-started" component={GetStartedPage} />
         <Route path="/business-impact" component={BusinessImpactPage} />
+        <Route path="/pre-assessment" component={PreAssessmentQuestionnairePage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </RootLayout>

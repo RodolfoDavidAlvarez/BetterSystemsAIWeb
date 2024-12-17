@@ -9,80 +9,145 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
+import { useToast } from "@/components/ui/use-toast";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const formSchema = z.object({
+  // Step 1
+  legalBusinessName: z.string().min(2, "Business name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  businessSlogan: z.string().optional(),
+  coreValues: z.array(z.string()).optional().default([]),
+  missionStatement: z.string().min(10, "Mission statement should be at least 10 characters"),
+  visionStatement: z.string().min(10, "Vision statement should be at least 10 characters"),
+  
+  // Step 2
+  locations: z.string().min(1, "Please enter number of locations"),
+  employeesPerLocation: z.string().min(1, "Please provide employee distribution"),
+  productsServices: z.string().min(10, "Please describe your products/services"),
+  operationalPainPoints: z.string().min(10, "Please describe your pain points"),
+  technology: z.object({
+    accounting: z.string().optional(),
+    administration: z.string().optional(),
+    operations: z.string().optional(),
+    marketing: z.string().optional(),
+  }),
+
+  // Step 3
+  manualTasks: z.string().min(10, "Please describe manual tasks"),
+  efficiencyImprovements: z.string().min(10, "Please describe areas needing improvement"),
+
+  // Step 4
+  preferredContact: z.enum(["Email", "Phone", "Video Call"]),
+  additionalNotes: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface FormStep {
   title: string;
   description: string;
 }
 
+const CORE_VALUES = [
+  "Integrity",
+  "Innovation",
+  "Customer Focus",
+  "Excellence",
+  "Teamwork",
+  "Sustainability"
+] as const;
+
 export default function PreAssessmentQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    businessName: "",
-    industry: "",
-    otherIndustry: "",
-    fullTimeEmployees: "",
-    partTimeEmployees: "",
-    primaryProducts: "",
-    timeConsumingTasks: [] as string[],
-    repetitiveTasks: "",
-    operationsTracking: [] as string[],
-    annualRevenue: "",
-    laborCost: "",
-    automationTools: "",
-    challenges: "",
-    timeUsage: "",
-    businessGoals: [] as string[],
-    name: "",
-    email: "",
-    phone: "",
-    preferredTime: ""
+  const { toast } = useToast();
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      legalBusinessName: "",
+      email: "",
+      phone: "",
+      businessSlogan: "",
+      coreValues: [],
+      missionStatement: "",
+      visionStatement: "",
+      locations: "",
+      employeesPerLocation: "",
+      productsServices: "",
+      operationalPainPoints: "",
+      technology: {
+        accounting: "",
+        administration: "",
+        operations: "",
+        marketing: "",
+      },
+      manualTasks: "",
+      efficiencyImprovements: "",
+      preferredContact: "Email",
+      additionalNotes: "",
+    },
   });
 
   const steps: FormStep[] = [
     {
-      title: "Business Overview",
-      description: "Tell us about your business structure and operations"
+      title: "Preliminary Business Details",
+      description: "Tell us about your company's foundation and identity"
     },
     {
-      title: "Current Operations",
-      description: "Help us understand your day-to-day processes"
+      title: "Organizational Structure and Current Operations",
+      description: "Help us understand your company structure and processes"
     },
     {
-      title: "Financial Metrics",
-      description: "Share some basic financial information to help us assess potential savings"
+      title: "Automation & Bottlenecks",
+      description: "Identify areas where we can improve efficiency"
     },
     {
-      title: "Goals and Challenges",
-      description: "Let us know what you're trying to achieve"
-    },
-    {
-      title: "Contact Information",
-      description: "How can we reach you to discuss the assessment?"
+      title: "Preferred Communication & Submission",
+      description: "Let us know how to best reach you for the next steps"
     }
   ];
 
-  const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
+    const currentFields = Object.keys(form.formState.errors);
+    if (currentFields.length === 0) {
+      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+    } else {
+      toast({
+        title: "Please check your inputs",
+        description: "Some fields require your attention",
+        variant: "destructive",
+      });
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
+    setCurrentStep(prev => Math.max(prev - 1, 0));
   };
 
-  const handleSubmit = async () => {
-    // Here you would typically send the form data to your backend
-    console.log("Form submitted:", formData);
-    // Redirect to booking page after submission
-    window.location.href = "/booking";
+  const onSubmit = async (values: FormValues) => {
+    try {
+      // Here you would send the form data to your backend
+      console.log("Form submitted:", values);
+      
+      toast({
+        title: "Success!",
+        description: "Thank you! We'll be in touch soon to discuss your pre-assessment results.",
+      });
+      
+      // Redirect to booking page after submission
+      window.location.href = "/booking";
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit the form. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderStep = () => {
@@ -90,132 +155,274 @@ export default function PreAssessmentQuestionnairePage() {
       case 0:
         return (
           <div className="space-y-6">
-            <div className="space-y-4">
-              <Label htmlFor="businessName">Business Name</Label>
-              <Input
-                id="businessName"
-                value={formData.businessName}
-                onChange={(e) => handleInputChange("businessName", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label>Industry</Label>
-              <RadioGroup
-                value={formData.industry}
-                onValueChange={(value) => handleInputChange("industry", value)}
-              >
-                {["Retail", "Manufacturing", "Professional Services", "Healthcare", "Other"].map((industry) => (
-                  <div key={industry} className="flex items-center space-x-2">
-                    <RadioGroupItem value={industry} id={industry} />
-                    <Label htmlFor={industry}>{industry}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-              {formData.industry === "Other" && (
-                <Input
-                  placeholder="Please specify"
-                  value={formData.otherIndustry}
-                  onChange={(e) => handleInputChange("otherIndustry", e.target.value)}
-                />
+            <FormField
+              control={form.control}
+              name="legalBusinessName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Legal Business Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ABC Innovations LLC" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <Label htmlFor="fullTimeEmployees">Full-Time Employees</Label>
-                <Input
-                  id="fullTimeEmployees"
-                  type="number"
-                  value={formData.fullTimeEmployees}
-                  onChange={(e) => handleInputChange("fullTimeEmployees", e.target.value)}
-                />
-              </div>
-              <div className="space-y-4">
-                <Label htmlFor="partTimeEmployees">Part-Time Employees</Label>
-                <Input
-                  id="partTimeEmployees"
-                  type="number"
-                  value={formData.partTimeEmployees}
-                  onChange={(e) => handleInputChange("partTimeEmployees", e.target.value)}
-                />
-              </div>
-            </div>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="info@abcinnovations.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-4">
-              <Label htmlFor="primaryProducts">What are your primary products or services?</Label>
-              <Textarea
-                id="primaryProducts"
-                value={formData.primaryProducts}
-                onChange={(e) => handleInputChange("primaryProducts", e.target.value)}
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 123-4567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="businessSlogan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Slogan or Tagline</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Innovating the Future" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="coreValues"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Core Values</FormLabel>
+                  <div className="grid grid-cols-2 gap-4">
+                    {CORE_VALUES.map((value) => (
+                      <FormField
+                        key={value}
+                        control={form.control}
+                        name="coreValues"
+                        render={({ field }) => (
+                          <FormItem
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(value)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value, value])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (item) => item !== value
+                                        )
+                                      );
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              {value}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="missionStatement"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mission Statement</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Our mission is to leverage AI solutions..." 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="visionStatement"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Vision Statement</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="To be the global leader in AI-driven operational efficiency..." 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         );
 
       case 1:
-        const taskOptions = [
-          "Data entry",
-          "Invoicing or billing",
-          "Managing inventory",
-          "Customer support",
-          "Scheduling or coordinating",
-          "Payroll or HR tasks",
-          "Marketing",
-          "Sales follow-ups"
-        ];
-
         return (
           <div className="space-y-6">
-            <div className="space-y-4">
-              <Label>What are the most time-consuming tasks in your business? (Choose up to 3)</Label>
-              <div className="grid grid-cols-2 gap-4">
-                {taskOptions.map((task) => (
-                  <div key={task} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={task}
-                      checked={formData.timeConsumingTasks.includes(task)}
-                      onCheckedChange={(checked) => {
-                        const tasks = checked
-                          ? [...formData.timeConsumingTasks, task].slice(0, 3)
-                          : formData.timeConsumingTasks.filter(t => t !== task);
-                        handleInputChange("timeConsumingTasks", tasks);
-                      }}
+            <FormField
+              control={form.control}
+              name="locations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Locations</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="3" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="employeesPerLocation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Employees per Location</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Location 1: 10 employees&#10;Location 2: 8 employees&#10;Location 3: 5 employees"
+                      className="min-h-[100px]"
+                      {...field} 
                     />
-                    <Label htmlFor={task}>{task}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="productsServices"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Products/Services Offered</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Product A: Accounting Platform&#10;Service B: HR Consulting"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="operationalPainPoints"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Biggest Operational Pain Points</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="1. Data entry takes too long&#10;2. Scheduling conflicts in team collaboration"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="space-y-4">
-              <Label htmlFor="repetitiveTasks">Which tasks do you feel are repetitive or inefficient?</Label>
-              <Textarea
-                id="repetitiveTasks"
-                value={formData.repetitiveTasks}
-                onChange={(e) => handleInputChange("repetitiveTasks", e.target.value)}
+              <h3 className="text-lg font-semibold">Departmental Technology Stacks & Tools</h3>
+              
+              <FormField
+                control={form.control}
+                name="technology.accounting"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Accounting</FormLabel>
+                    <FormControl>
+                      <Input placeholder="QuickBooks Online, Xero Cloud" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-4">
-              <Label>How do you currently track and manage your business operations?</Label>
-              <div className="space-y-2">
-                {["Spreadsheets", "Manual processes", "Software tools"].map((method) => (
-                  <div key={method} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={method}
-                      checked={formData.operationsTracking.includes(method)}
-                      onCheckedChange={(checked) => {
-                        const methods = checked
-                          ? [...formData.operationsTracking, method]
-                          : formData.operationsTracking.filter(m => m !== method);
-                        handleInputChange("operationsTracking", methods);
-                      }}
-                    />
-                    <Label htmlFor={method}>{method}</Label>
-                  </div>
-                ))}
-              </div>
+              <FormField
+                control={form.control}
+                name="technology.administration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Administration/Data Management</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Google Sheets, SQL Database for inventory" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="technology.operations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Operations (POS/Inventory/Project Management)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Square POS, Zoho Inventory, Asana" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="technology.marketing"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Marketing & Sales Tools</FormLabel>
+                    <FormControl>
+                      <Input placeholder="MailChimp, HubSpot CRM, Hootsuite" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
         );
@@ -223,153 +430,95 @@ export default function PreAssessmentQuestionnairePage() {
       case 2:
         return (
           <div className="space-y-6">
-            <div className="space-y-4">
-              <Label>What is your estimated annual revenue?</Label>
-              <RadioGroup
-                value={formData.annualRevenue}
-                onValueChange={(value) => handleInputChange("annualRevenue", value)}
-              >
-                {[
-                  "Less than $100,000",
-                  "$100,000–$500,000",
-                  "$500,000–$1,000,000",
-                  "Over $1,000,000"
-                ].map((range) => (
-                  <div key={range} className="flex items-center space-x-2">
-                    <RadioGroupItem value={range} id={range} />
-                    <Label htmlFor={range}>{range}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
+            <FormField
+              control={form.control}
+              name="manualTasks"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Manual Tasks or Processes to Potentially Automate</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Manual invoice entry&#10;Copy-pasting client emails from spreadsheets"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-4">
-              <Label>What is your estimated annual labor cost?</Label>
-              <RadioGroup
-                value={formData.laborCost}
-                onValueChange={(value) => handleInputChange("laborCost", value)}
-              >
-                {[
-                  "Less than $50,000",
-                  "$50,000–$100,000",
-                  "$100,000–$250,000",
-                  "Over $250,000"
-                ].map((range) => (
-                  <div key={range} className="flex items-center space-x-2">
-                    <RadioGroupItem value={range} id={range} />
-                    <Label htmlFor={range}>{range}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-4">
-              <Label htmlFor="automationTools">Do you currently use any automation or AI tools?</Label>
-              <Textarea
-                id="automationTools"
-                placeholder="If yes, please specify which tools"
-                value={formData.automationTools}
-                onChange={(e) => handleInputChange("automationTools", e.target.value)}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="efficiencyImprovements"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Key Areas Needing Efficiency Improvements</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Inventory restocking notifications&#10;Customer follow-ups"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         );
 
       case 3:
         return (
           <div className="space-y-6">
-            <div className="space-y-4">
-              <Label htmlFor="challenges">What are the top 3 challenges you're facing in your business?</Label>
-              <Textarea
-                id="challenges"
-                value={formData.challenges}
-                onChange={(e) => handleInputChange("challenges", e.target.value)}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="preferredContact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Contact Method</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Email" id="email" />
+                        <Label htmlFor="email">Email</Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Phone" id="phone" />
+                        <Label htmlFor="phone">Phone</Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Video Call" id="video" />
+                        <Label htmlFor="video">Video Call</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-4">
-              <Label htmlFor="timeUsage">If you could save 10–20 hours per week, how would you use that time?</Label>
-              <Textarea
-                id="timeUsage"
-                value={formData.timeUsage}
-                onChange={(e) => handleInputChange("timeUsage", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label>What are your primary business goals for the next 12 months?</Label>
-              <div className="space-y-2">
-                {[
-                  "Increase revenue",
-                  "Reduce costs",
-                  "Improve customer satisfaction",
-                  "Expand your team"
-                ].map((goal) => (
-                  <div key={goal} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={goal}
-                      checked={formData.businessGoals.includes(goal)}
-                      onCheckedChange={(checked) => {
-                        const goals = checked
-                          ? [...formData.businessGoals, goal]
-                          : formData.businessGoals.filter(g => g !== goal);
-                        handleInputChange("businessGoals", goals);
-                      }}
+            <FormField
+              control={form.control}
+              name="additionalNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Notes or Special Requests</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Please send a calendar invite&#10;I'm usually available afternoons"
+                      className="min-h-[100px]"
+                      {...field} 
                     />
-                    <Label htmlFor={goal}>{goal}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <Label htmlFor="name">Your Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label>Preferred Time for Consultation</Label>
-              <RadioGroup
-                value={formData.preferredTime}
-                onValueChange={(value) => handleInputChange("preferredTime", value)}
-              >
-                {["Morning", "Afternoon", "Evening"].map((time) => (
-                  <div key={time} className="flex items-center space-x-2">
-                    <RadioGroupItem value={time} id={time} />
-                    <Label htmlFor={time}>{time}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         );
 
@@ -415,26 +564,32 @@ export default function PreAssessmentQuestionnairePage() {
               <p className="text-muted-foreground">{steps[currentStep].description}</p>
             </div>
 
-            {renderStep()}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {renderStep()}
 
-            <div className="flex justify-between mt-8 pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
-              >
-                Previous
-              </Button>
-              {currentStep === steps.length - 1 ? (
-                <Button onClick={handleSubmit}>
-                  Submit and Book Consultation
-                </Button>
-              ) : (
-                <Button onClick={handleNext}>
-                  Next Step
-                </Button>
-              )}
-            </div>
+                <div className="flex justify-between mt-8 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentStep === 0}
+                  >
+                    Previous
+                  </Button>
+                  
+                  {currentStep === steps.length - 1 ? (
+                    <Button type="submit">
+                      Submit and Book Consultation
+                    </Button>
+                  ) : (
+                    <Button type="button" onClick={handleNext}>
+                      Next Step
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </motion.div>

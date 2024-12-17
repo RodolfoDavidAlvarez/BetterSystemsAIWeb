@@ -48,11 +48,11 @@ args = "Production Build"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Dev Server"
+args = "Client Build"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Build"
+args = "Client Dev Server"
 
 [[workflows.workflow]]
 name = "Production Server"
@@ -98,6 +98,20 @@ task = "shell.exec"
 args = "rm -rf dist && cd client && npm run build && cd ../server && NODE_ENV=production esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
 
 [[workflows.workflow]]
+name = "Client Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run build"
+
+[[workflows.workflow]]
 name = "Client Dev Server"
 author = "agent"
 
@@ -111,17 +125,3 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd client && NODE_ENV=development vite --host 0.0.0.0 --port 5173"
 waitForPort = 5173
-
-[[workflows.workflow]]
-name = "Client Build"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd client && npm run build"

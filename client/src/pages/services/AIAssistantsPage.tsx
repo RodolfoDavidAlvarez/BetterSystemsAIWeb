@@ -91,15 +91,9 @@ export default function AIAssistantsPage() {
           ← Back to Services
         </Link>
         <h1 className="text-4xl font-bold mb-4">{service.title}</h1>
-        <p className="text-muted-foreground text-lg mb-4">
+        <p className="text-muted-foreground text-lg mb-8">
           {service.description}
         </p>
-        <div className="bg-primary/5 p-6 rounded-lg mb-8">
-          <h3 className="text-xl font-semibold mb-3">Transform Your Communication</h3>
-          <p className="text-muted-foreground">
-            Our AI-powered assistant integrations span across multiple channels, from sophisticated voice interactions to intelligent email management. We provide seamless automation that handles everything from customer inquiries to appointment scheduling, while maintaining the personal touch your business is known for. With support for multiple languages and 24/7 availability, our solutions ensure you're always there for your customers, no matter when or how they reach out.
-          </p>
-        </div>
       </motion.div>
 
       <motion.section className="space-y-12 mb-16">

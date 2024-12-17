@@ -137,7 +137,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {service.includedFeatures.map((feature, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
+              <Card className="h-full bg-background/50 hover:bg-background/60 transition-colors">
                 <CardContent className="p-6">
                   <div className="mb-4">
                     <feature.icon className="h-8 w-8 text-primary" />
@@ -181,20 +181,27 @@ export default function EfficiencyAuditPage() {
         animate="animate"
       >
         <h2 className="text-3xl font-bold mb-8">How It Works</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {service.process.map((step, index) => (
-            <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
-                <CardContent className="p-6">
-                  <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <span className="text-2xl font-bold text-primary">{index + 1}</span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.description}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            {service.process.map((step, index) => (
+              <motion.div key={index} variants={fadeIn}>
+                <Card className="h-full bg-background/50 hover:bg-background/60 transition-colors">
+                  <CardContent className="p-6">
+                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <span className="text-2xl font-bold text-primary">{index + 1}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                    <p className="text-muted-foreground">{step.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <Button variant="outline" size="lg" className="text-muted-foreground hover:text-foreground transition-colors" asChild>
+              <Link href="/services/pre-assessment">Start Questionnaire →</Link>
+            </Button>
+          </div>
         </div>
       </motion.section>
 
@@ -209,7 +216,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {service.testimonials.map((testimonial, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
+              <Card className="h-full bg-background/50 hover:bg-background/60 transition-colors">
                 <CardContent className="p-6">
                   <div className="mb-4 text-4xl text-primary">❝</div>
                   <p className="text-lg mb-4 italic">{testimonial.quote}</p>
@@ -232,7 +239,7 @@ export default function EfficiencyAuditPage() {
         <div className="grid gap-6">
           {service.faqs.map((faq, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
+              <Card className="bg-background/50 hover:bg-background/60 transition-colors">
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-3">{faq.question}</h3>
                   <p className="text-muted-foreground">{faq.answer}</p>

@@ -26,6 +26,14 @@ externalPort = 80
 localPort = 5173
 externalPort = 5173
 
+[[ports]]
+localPort = 5174
+externalPort = 3002
+
+[[ports]]
+localPort = 5175
+externalPort = 3003
+
 [workflows]
 runButton = "Project"
 
@@ -33,10 +41,6 @@ runButton = "Project"
 name = "Project"
 mode = "parallel"
 author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Production Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
@@ -53,21 +57,6 @@ args = "Client Build"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Client Dev Server"
-
-[[workflows.workflow]]
-name = "Production Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "NODE_ENV=production NODE_OPTIONS='--experimental-modules --es-module-specifier-resolution=node' node dist/index.js"
-waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -123,5 +112,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && NODE_ENV=development npm run dev -- --port 5173"
-waitForPort = 5173
+args = "cd client && NODE_ENV=development npm run dev -- --port 5175"
+waitForPort = 5175

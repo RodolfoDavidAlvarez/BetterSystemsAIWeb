@@ -7,7 +7,7 @@ export default function ServicesPage() {
   const services = [
     {
       title: "AI-Powered Assistant Integrations",
-      description: "Revolutionize your customer interactions and operational efficiency with AI-driven virtual assistants integrated into your communication channels.",
+      description: "Transform your business with intelligent virtual assistants that handle customer interactions 24/7 across multiple channels - phone, email, chat, and social media. Our AI assistants understand context, process natural language, and seamlessly integrate with your existing systems to boost efficiency by up to 70%.",
       href: "/services/ai-assistants"
     },
     {

@@ -22,29 +22,14 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443,
+      port: 443,
       protocol: 'wss',
-      path: 'hmr'
+      host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'
     }
   },
   build: {
     outDir: '../dist/public',
     emptyOutDir: true,
-    sourcemap: true,
-    assetsDir: 'assets',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true
-      }
-    },
-    rollupOptions: {
-      output: {
-        manualChunks: undefined,
-        assetFileNames: 'assets/[name].[hash][extname]',
-        chunkFileNames: 'assets/[name].[hash].js',
-        entryFileNames: 'assets/[name].[hash].js',
-      }
-    }
+    sourcemap: true
   }
 });

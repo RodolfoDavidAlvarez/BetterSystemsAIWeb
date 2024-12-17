@@ -1,0 +1,46 @@
+Create a responsive, multi-step 'Better Systems AI Pre-Questionnaire' web application that follows the same dark, modern, and professional visual style as previously described (charcoal grays, subtle gradients, sleek typography). The look, feel, and branding should remain consistent with the 'Better Systems AI Onboarding' experience, ensuring the user seamlessly transitions into this pre-questionnaire phase.
+
+Overall Guidelines:
+
+Use a progress indicator to show the user’s place in the process.
+Keep the UI dark and modern, maintaining the same branding (logo, name, accent colors).
+Include clear instructions, labels, tooltips, and placeholder examples throughout.
+Ensure all fields are well-organized and easy to understand.
+At the end, provide a ‘Submit’ button with a hover effect, and upon completion show a confirmation message: "Thank you! We’ll be in touch soon to discuss your pre-assessment results."
+Step 1: Preliminary Business Details
+
+Legal Business Name: (e.g., “ABC Innovations LLC”)
+Contact Information: (Email, e.g., “info@abcinnovations.com”, Phone, e.g., “+1 (555) 123-4567”)
+Business Slogan or Tagline: (e.g., “Innovating the Future”)
+Core Values (Allow multiple entries, e.g., “Integrity”, “Customer Focus”, “Innovation”)
+Mission Statement (Multi-line text area, e.g., “Our mission is to leverage AI solutions…”)
+Vision Statement (Multi-line text area, e.g., “To be the global leader in AI-driven operational efficiency…”)
+Step 2: Organizational Structure and Current Operations
+
+Number of Locations: (e.g., “3”)
+Employees per Location: (e.g., “Location 1: 10 employees, Location 2: 8 employees, Location 3: 5 employees”)
+Products/Services Offered: (List format, e.g., “Product A: Accounting Platform”, “Service B: HR Consulting”)
+Biggest Operational Pain Points: (Multi-line text, e.g., “Data entry takes too long”, “Scheduling conflicts in team collaboration”)
+Departmental Technology Stacks & Tools:
+
+Accounting: (e.g., “QuickBooks Online”, “Xero Cloud”)
+Administration/Data Management: (e.g., “Google Sheets”, “SQL Database for inventory”)
+Operations (POS/Inventory/Project Management): (e.g., “Square POS”, “Zoho Inventory”, “Asana for project tasks”)
+Marketing & Sales Tools: (e.g., “MailChimp for email campaigns”, “HubSpot CRM for leads”, “Hootsuite for social media”)
+Step 3: Automation & Bottlenecks
+
+Manual Tasks or Processes to Potentially Automate: (Multi-line text, e.g., “Manual invoice entry”, “Copy-pasting client emails from spreadsheets”)
+Key Areas Needing Efficiency Improvements: (Multi-line text, e.g., “Inventory restocking notifications”, “Customer follow-ups”)
+Step 4: Preferred Communication & Submission
+
+Preferred Contact Method: (e.g., “Email”, “Phone”, “Video Call”)
+Additional Notes or Special Requests: (Multi-line text, e.g., “Please send a calendar invite”, “I’m usually available afternoons”)
+Submit Button: Include a subtle animation on hover and, after submission, a confirmation message: “Thank you! We’ll be in touch soon to discuss your pre-assessment results.”
+Additional Notes to the AI:
+
+The pre-questionnaire should maintain the same overall brand identity and feel as the previous onboarding application.
+Ensure consistent use of dark theme, accent colors, and font styles.
+Make the layout clean, intuitive, and accessible.
+Provide clear instructions or examples for each input field to guide the user.
+Ensure the entire flow is responsive and looks great on all devices.
+With these detailed instructions, create the pre-questionnaire web application that aligns perfectly with the existing brand and onboarding experience."

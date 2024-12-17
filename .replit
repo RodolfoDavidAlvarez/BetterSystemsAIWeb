@@ -40,10 +40,6 @@ args = "Production Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Build"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Server Build"
 
 [[workflows.workflow.tasks]]
@@ -53,6 +49,10 @@ args = "Production Build"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Client Dev Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client Build"
 
 [[workflows.workflow]]
 name = "Production Server"
@@ -68,20 +68,6 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "NODE_ENV=production NODE_OPTIONS='--experimental-modules --es-module-specifier-resolution=node' node dist/index.js"
 waitForPort = 3000
-
-[[workflows.workflow]]
-name = "Client Build"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd client && npm run build"
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -124,3 +110,18 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && NODE_ENV=development vite --host 0.0.0.0 --port 5173"
+waitForPort = 5173
+
+[[workflows.workflow]]
+name = "Client Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run build"

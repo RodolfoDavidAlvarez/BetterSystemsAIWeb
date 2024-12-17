@@ -2,28 +2,37 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
+import { BrainCircuit } from "lucide-react";
 
 export default function ServicesPage() {
   const services = [
     {
       title: "AI-Powered Assistant Integrations",
-      description: "Transform your business with intelligent virtual assistants that handle customer interactions 24/7 across multiple channels - phone, email, chat, and social media. Our AI assistants understand context, process natural language, and seamlessly integrate with your existing systems to boost efficiency by up to 70%.",
-      href: "/services/ai-assistants"
+      description: "Transform your customer experience with intelligent virtual assistants that operate 24/7 across all channels. Our AI assistants leverage cutting-edge natural language processing to understand context, emotions, and intent, delivering personalized interactions that boost efficiency by up to 70% while maintaining a human touch.",
+      benefits: ["24/7 Multi-channel Support", "Natural Language Understanding", "Seamless System Integration", "70% Efficiency Boost"],
+      href: "/services/ai-assistants",
+      highlight: "Reduce response times by 90% while improving satisfaction"
     },
     {
       title: "Comprehensive Efficiency Audit",
-      description: "Unlock your business's full potential with our in-depth efficiency audit that analyzes your processes to uncover opportunities for AI-driven automation.",
-      href: "/services/efficiency-audit"
+      description: "Unlock hidden potential in your business processes through our AI-powered efficiency audit. Using advanced analytics and machine learning, we identify optimization opportunities that can dramatically reduce costs and improve productivity.",
+      benefits: ["Process Analysis", "Cost Reduction Planning", "AI Implementation Strategy", "ROI Forecasting"],
+      href: "/services/efficiency-audit",
+      highlight: "Average 40% cost reduction identified"
     },
     {
       title: "Fleet Management System 2.0",
-      description: "Optimize your vehicle operations with our AI-enhanced fleet management tools.",
-      href: "/services/fleet-management"
+      description: "Revolutionary AI-enhanced fleet management that transforms how you monitor, maintain, and optimize your vehicle operations. From predictive maintenance to real-time route optimization, take control of your fleet like never before.",
+      benefits: ["Real-time Monitoring", "Predictive Maintenance", "Route Optimization", "Cost Analytics"],
+      href: "/services/fleet-management",
+      highlight: "Reduce fleet costs by up to 35%"
     },
     {
       title: "Custom AI Solutions",
-      description: "Have a unique business challenge? We develop tailored AI applications to meet your specific needs.",
-      href: "/services/custom-solutions"
+      description: "Face unique business challenges? Our team of AI experts develops tailored solutions that address your specific needs. From automated workflows to intelligent decision support systems, we turn your vision into reality.",
+      benefits: ["Customized Development", "Seamless Integration", "Scalable Solutions", "Ongoing Support"],
+      href: "/services/custom-solutions",
+      highlight: "Achieve 200% ROI on custom solutions"
     }
   ];
 
@@ -50,13 +59,36 @@ export default function ServicesPage() {
         {services.map((service, index) => (
           <motion.section 
             key={index} 
-            className="group hover:bg-primary/5 rounded-lg p-8 transition-colors"
+            className="group relative overflow-hidden rounded-xl p-8 transition-all duration-300 hover:bg-primary/5 hover:shadow-lg"
             variants={fadeIn}
+            whileHover={{ scale: 1.02 }}
           >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
             <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
-            <p className="text-muted-foreground mb-6">{service.description}</p>
-            <Button asChild>
-              <Link href={service.href}>Learn More →</Link>
+            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {service.benefits.map((benefit, idx) => (
+                <motion.div 
+                  key={idx}
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <div className="size-1.5 rounded-full bg-primary" />
+                  <span className="text-sm font-medium">{benefit}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 mb-6 text-primary">
+              <BrainCircuit className="h-5 w-5" />
+              <p className="font-semibold">{service.highlight}</p>
+            </div>
+
+            <Button asChild className="group-hover:translate-x-1 transition-transform">
+              <Link href={service.href}>Explore Service →</Link>
             </Button>
           </motion.section>
         ))}

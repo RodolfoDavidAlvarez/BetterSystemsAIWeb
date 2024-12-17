@@ -16,7 +16,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-muted/50 mt-auto">
+    <footer className="bg-background mt-auto">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -70,8 +70,8 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         {/* Social Links */}
-        <div className="border-t mt-8 pt-8">
-          <div className="flex flex-wrap justify-center gap-4 mb-4">
+        <div className="mt-16 py-8">
+          <div className="flex flex-wrap justify-center gap-4 mb-6">
             {socialLinks.map((link) => (
               <a
                 key={link.label}

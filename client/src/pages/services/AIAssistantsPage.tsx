@@ -41,20 +41,20 @@ export default function AIAssistantsPage() {
     metrics: [
       {
         value: "70%",
-        label: "Cost Reduction",
-        description: "Lower support costs",
+        label: "Cost Savings",
+        description: "Reduce operational costs through AI automation",
         icon: DollarSign
       },
       {
         value: "24/7",
-        label: "Availability",
-        description: "Round-the-clock service",
+        label: "Always On",
+        description: "Non-stop customer support across all channels",
         icon: Clock
       },
       {
-        value: "90%",
-        label: "Efficiency",
-        description: "Faster response times",
+        value: "< 10s",
+        label: "Response Time",
+        description: "Lightning-fast replies to customer inquiries",
         icon: Gauge
       }
     ],
@@ -151,22 +151,39 @@ export default function AIAssistantsPage() {
         <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
-        <h1 className="text-5xl font-bold mb-6">{service.title}</h1>
+        <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+          {service.title}
+        </h1>
         <p className="text-muted-foreground text-xl leading-relaxed mb-12">
-          {service.description}
+          Transform your business communication with our cutting-edge AI assistants. 
+          Our intelligent virtual agents deliver personalized, human-like interactions 
+          across all channels, ensuring 24/7 support that delights your customers and 
+          drives business growth.
         </p>
+        <div className="inline-flex items-center gap-2 text-lg text-primary mb-8">
+          <BrainCircuit className="h-6 w-6 animate-pulse" />
+          <span className="font-semibold">Powered by Advanced AI Technology</span>
+        </div>
         
         {/* Metrics Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {service.metrics.map((metric, index) => (
-            <Card key={index} className="border-0 bg-primary/5 transition-all duration-300 hover:scale-105">
-              <CardContent className="p-6 text-center">
-                <metric.icon className="h-8 w-8 mx-auto mb-4 text-primary" />
-                <div className="text-3xl font-bold text-primary mb-2">{metric.value}</div>
-                <div className="font-semibold mb-2">{metric.label}</div>
-                <p className="text-sm text-muted-foreground">{metric.description}</p>
-              </CardContent>
-            </Card>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Card className="border-0 bg-gradient-to-br from-primary/5 to-primary/10 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                <CardContent className="p-6 text-center relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full transform rotate-45" />
+                  <metric.icon className="h-10 w-10 mx-auto mb-4 text-primary relative z-10" />
+                  <div className="text-4xl font-bold text-primary mb-2 relative z-10">{metric.value}</div>
+                  <div className="font-semibold mb-2 relative z-10">{metric.label}</div>
+                  <p className="text-sm text-muted-foreground relative z-10">{metric.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </motion.div>
@@ -185,31 +202,33 @@ export default function AIAssistantsPage() {
               className="group"
               variants={fadeIn}
             >
-              <Card className="h-full border-0 bg-background/50 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-primary/5">
-                <CardContent className="p-8">
+              <Card className="h-full border-0 bg-background/50 shadow-sm transition-all duration-300 hover:shadow-xl hover:bg-primary/5 group">
+                <CardContent className="p-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] transform rotate-45 transition-all duration-300 group-hover:scale-110" />
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                      <channel.icon className="h-6 w-6" />
+                    <div className="p-4 rounded-2xl bg-primary/10 text-primary transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                      <channel.icon className="h-7 w-7" />
                     </div>
                     <h3 className="text-2xl font-semibold">{channel.title}</h3>
                   </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{channel.description}</p>
-                  <ul className="space-y-3 mb-6">
+                  <p className="text-muted-foreground mb-8 leading-relaxed text-lg">{channel.description}</p>
+                  <ul className="space-y-4 mb-8">
                     {channel.capabilities.map((capability, capIndex) => (
                       <motion.li 
                         key={capIndex} 
-                        className="flex items-center gap-3"
+                        className="flex items-start gap-3 group/item"
                         variants={fadeIn}
+                        whileHover={{ x: 4 }}
                       >
-                        <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0" />
-                        <span>{capability}</span>
+                        <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0 mt-1 transform transition-all duration-300 group-hover/item:scale-110" />
+                        <span className="text-base">{capability}</span>
                       </motion.li>
                     ))}
                   </ul>
-                  <div className="pt-4 border-t border-border">
-                    <div className="flex items-center gap-2 text-primary">
-                      <BrainCircuit className="h-5 w-5" />
-                      <span className="font-semibold">{channel.highlight}</span>
+                  <div className="pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 text-primary transition-all duration-300 hover:translate-x-1">
+                      <BrainCircuit className="h-6 w-6 animate-pulse" />
+                      <span className="font-semibold text-lg">{channel.highlight}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -221,17 +240,21 @@ export default function AIAssistantsPage() {
 
       {/* Demo Video Section */}
       <motion.section 
-        className="mb-20 bg-primary/5 rounded-2xl p-12"
+        className="mb-20 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-12 relative overflow-hidden"
         variants={fadeIn}
         initial="initial"
         animate="animate"
       >
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-semibold mb-6">See AI Assistant in Action</h2>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2" />
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <h2 className="text-3xl font-semibold mb-6">Experience AI Innovation Live</h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Watch how our AI Assistant handles real-world scenarios with natural conversation flow and intelligent decision-making.
+            Watch our AI Assistant seamlessly handle complex customer interactions in real-time. 
+            See how natural language processing and contextual understanding create human-like conversations 
+            that drive results.
           </p>
-          <div className="aspect-video w-full">
+          <div className="aspect-video w-full transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
             <iframe
               className="w-full h-full rounded-xl shadow-lg"
               src="https://www.youtube.com/embed/_36nIgx8Lic"
@@ -258,7 +281,11 @@ export default function AIAssistantsPage() {
               variants={fadeIn}
             >
               <Card className="h-full border-0 bg-background/50 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-primary/5">
-                <CardContent className="p-8">
+                <CardContent className="p-8 relative">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full transform rotate-45" />
+                  <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <span className="text-2xl font-bold text-primary">{index + 1}</span>
+                  </div>
                   <h3 className="text-2xl font-semibold mb-4">{benefit.title}</h3>
                   <p className="text-lg text-muted-foreground leading-relaxed">{benefit.description}</p>
                 </CardContent>

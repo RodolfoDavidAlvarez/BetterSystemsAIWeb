@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Facebook, Github, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Linkedin, Youtube } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
@@ -9,7 +9,6 @@ const socialLinks = [
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
   { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
   { icon: Youtube, href: "https://youtube.com/@bettersystemsai", label: "YouTube" },
-  { icon: Github, href: "https://github.com/bettersystemsai", label: "GitHub" },
 ];
 
 export default function Footer() {

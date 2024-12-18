@@ -1,15 +1,13 @@
 import { Link } from "wouter";
-import { Facebook, Github, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Mail, Phone } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
 const socialLinks = [
-  { icon: Linkedin, href: "https://linkedin.com/in/bettersystemsai", label: "LinkedIn" },
-  { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
-  { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
-  { icon: Youtube, href: "https://youtube.com/@bettersystemsai", label: "YouTube" },
-  { icon: Github, href: "https://github.com/bettersystemsai", label: "GitHub" },
+  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61568467651639", label: "Facebook" },
+  { icon: Mail, href: "mailto:ralvarez@soilseedandwater.com", label: "Email" },
+  { icon: Phone, href: "tel:+19285501649", label: "Phone" },
 ];
 
 export default function Footer() {

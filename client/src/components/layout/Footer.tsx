@@ -1,7 +1,6 @@
 import { Link } from "wouter";
 import { Facebook, Mail, Phone } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
-import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
 const socialLinks = [
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },

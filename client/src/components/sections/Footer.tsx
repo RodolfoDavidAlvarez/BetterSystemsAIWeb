@@ -5,10 +5,10 @@ import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
 const socialLinks = [
   { icon: Linkedin, href: "https://linkedin.com/in/bettersystemsai", label: "LinkedIn" },
-  { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
+  { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
   { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
-  { icon: Youtube, href: "https://youtube.com/@bettersystemsai", label: "YouTube" },
+  { icon: Youtube, href: "https://youtube.com/@bettersystemsai", label: "YouTube" }
 ];
 
 export default function Footer() {

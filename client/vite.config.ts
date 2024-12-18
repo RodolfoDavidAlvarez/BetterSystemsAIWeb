@@ -11,9 +11,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
-      "@db": path.resolve(__dirname, "..", "db"),
-    },
+      '@': path.resolve(__dirname, 'src'),
+      '@db': path.resolve(__dirname, '..', 'db')
+    }
   },
   root: __dirname,
   base: '/',
@@ -22,9 +22,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      port: 443,
       protocol: 'wss',
-      host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'
+      host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co',
+      clientPort: 443
     }
   },
   build: {

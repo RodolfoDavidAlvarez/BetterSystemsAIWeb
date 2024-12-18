@@ -48,14 +48,6 @@ args = "Server Build"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Production Build"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Client Build"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Client Dev Server"
 
 [[workflows.workflow]]
@@ -71,34 +63,6 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
-
-[[workflows.workflow]]
-name = "Production Build"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "rm -rf dist && cd client && npm run build && cd ../server && NODE_ENV=production esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
-
-[[workflows.workflow]]
-name = "Client Build"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd client && npm run build"
 
 [[workflows.workflow]]
 name = "Client Dev Server"

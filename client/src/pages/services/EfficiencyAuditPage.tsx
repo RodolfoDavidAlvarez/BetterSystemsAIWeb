@@ -117,7 +117,7 @@ export default function EfficiencyAuditPage() {
         animate="animate"
         variants={fadeIn}
       >
-        <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
+        <Link to="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
         <h1 className="text-5xl font-bold mb-6">{service.title}</h1>
@@ -130,7 +130,7 @@ export default function EfficiencyAuditPage() {
           className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10"
           asChild
         >
-          <Link href="/services/pre-assessment">Start Questionnaire →</Link>
+          <Link to="/services/pre-assessment">Start Questionnaire →</Link>
         </Button>
       </motion.div>
 
@@ -212,7 +212,7 @@ export default function EfficiencyAuditPage() {
               className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10" 
               asChild
             >
-              <Link href="/services/pre-assessment">Start Your Assessment →</Link>
+              <Link to="/services/pre-assessment">Start Your Assessment →</Link>
             </Button>
           </div>
         </div>
@@ -276,10 +276,10 @@ export default function EfficiencyAuditPage() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button asChild size="lg">
-            <Link href="/services/pre-assessment">Start Your Free Assessment</Link>
+            <Link to="/services/pre-assessment">Start Your Free Assessment</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link href="/contact">Contact Us</Link>
+            <Link to="/contact">Contact Us</Link>
           </Button>
         </div>
       </motion.section>

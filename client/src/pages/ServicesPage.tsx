@@ -14,8 +14,8 @@ export default function ServicesPage() {
       highlight: "Reduce response times by 90% while improving satisfaction"
     },
     {
-      title: "Comprehensive Efficiency Audit",
-      description: "Unlock hidden potential in your business processes through our AI-powered efficiency audit. Using advanced analytics and machine learning, we identify optimization opportunities that can dramatically reduce costs and improve productivity.",
+      title: "Business Efficiency and Profit Maximization Audit",
+      description: "We conduct a comprehensive analysis of your business's systems, technology, processes, and structure to uncover opportunities for improvement. Our expert team provides a detailed report highlighting inefficiencies and offering actionable recommendations that could significantly reduce costs, enhance productivity, and unlock profit potential.",
       benefits: ["Process Analysis", "Cost Reduction Planning", "AI Implementation Strategy", "ROI Forecasting"],
       href: "/services/efficiency-audit",
       highlight: "Average 40% cost reduction identified"

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
-import { Facebook, CalendarDays, Mail, Phone } from "lucide-react";
+import { Mail, MessageSquare, User } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -93,7 +93,10 @@ export default function ContactPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Name
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Your name" {...field} />
                       </FormControl>
@@ -107,7 +110,10 @@ export default function ContactPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Email
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="your@email.com" {...field} />
                       </FormControl>
@@ -121,7 +127,10 @@ export default function ContactPage() {
                   name="question"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Your Question</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        Your Question
+                      </FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="What would you like to know?"

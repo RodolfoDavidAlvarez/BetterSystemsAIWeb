@@ -28,7 +28,7 @@ export default function ServicesPage() {
       highlight: "Reduce fleet costs by up to 35%"
     },
     {
-      title: "Request Your Custom Business Solution",
+      title: "Custom AI Solutions",
       description: "Face unique business challenges? Our team of AI experts develops tailored solutions that address your specific needs. From automated workflows to intelligent decision support systems, we turn your vision into reality.",
       benefits: ["Customized Development", "Seamless Integration", "Scalable Solutions", "Ongoing Support"],
       href: "/services/custom-solutions",
@@ -92,7 +92,7 @@ export default function ServicesPage() {
                 <Link href={service.href}>Explore Service →</Link>
               </Button>
               <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
-                <Link href="/get-started">Request Solution</Link>
+                <Link href="/services/pre-assessment">Start Assessment</Link>
               </Button>
             </div>
           </motion.section>

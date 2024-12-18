@@ -17,13 +17,9 @@ export default defineConfig({
     }
   },
   server: {
-    host: true,
-    strictPort: true,
+    host: '0.0.0.0',
     port: 5173,
-    hmr: {
-      clientPort: 443,
-      path: '/@vite/client',
-      timeout: 5000
-    }
+    strictPort: true,
+    hmr: false
   }
 });

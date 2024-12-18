@@ -28,9 +28,12 @@ import { useScrollToTop } from './hooks/useScrollToTop';
 function Router() {
   useScrollToTop();
   
+  // Get the base path from the environment or default to ''
+  const base = import.meta.env.BASE_URL || '';
+  
   return (
     <RootLayout>
-      <Switch>
+      <Switch base={base}>
         <Route path="/" component={HomePage} />
         <Route path="/services" component={ServicesPage} />
         <Route path="/services/ai-assistants" component={AIAssistantsPage} />

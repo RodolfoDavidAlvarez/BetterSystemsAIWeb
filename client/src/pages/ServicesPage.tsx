@@ -87,9 +87,14 @@ export default function ServicesPage() {
               <p className="font-semibold">{service.highlight}</p>
             </div>
 
-            <Button asChild className="group-hover:translate-x-1 transition-transform">
-              <Link href={service.href}>Explore Service →</Link>
-            </Button>
+            <div className="flex gap-4">
+              <Button asChild className="group-hover:translate-x-1 transition-transform">
+                <Link href={service.href}>Explore Service →</Link>
+              </Button>
+              <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
+                <Link href="/services/pre-assessment">Start Assessment</Link>
+              </Button>
+            </div>
           </motion.section>
         ))}
       </motion.div>

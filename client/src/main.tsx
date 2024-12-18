@@ -45,7 +45,7 @@ function Router() {
         <Route path="/photo-submission" component={PhotoSubmissionPage} />
         <Route path="/get-started" component={GetStartedPage} />
         <Route path="/business-impact" component={BusinessImpactPage} />
-        <Route path="/pre-assessment" component={PreAssessmentQuestionnairePage} />
+        <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
         <Route>404 Page Not Found</Route>
       </Switch>
     </RootLayout>

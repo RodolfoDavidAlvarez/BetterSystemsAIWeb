@@ -17,25 +17,13 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173,
     host: '0.0.0.0',
+    port: 5173,
     strictPort: true,
-    watch: {
-      usePolling: true
-    },
     hmr: {
       clientPort: 443,
       protocol: 'wss',
       host: process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'localhost'
-    }
-  },
-  build: {
-    sourcemap: true,
-    outDir: 'dist',
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html')
-      }
     }
   }
 });

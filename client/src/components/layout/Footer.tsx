@@ -4,7 +4,7 @@ import { BrandX } from "@/components/ui/icons/brand-x";
 
 const socialLinks = [
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
-  { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61568467651639", label: "Facebook" },
+  { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
   { icon: Mail, href: "mailto:ralvarez@soilseedandwater.com", label: "Email" },
   { icon: Phone, href: "tel:+19285501649", label: "Phone" },
 ];

@@ -62,7 +62,7 @@ app.use((req, res, next) => {
   } else {
     try {
       // Get the absolute path to the dist/public directory
-      const publicPath = path.resolve(process.cwd(), 'dist');
+      const publicPath = path.resolve(process.cwd(), 'dist', 'public');
       
       // Ensure the public directory exists
       if (!fs.existsSync(publicPath)) {

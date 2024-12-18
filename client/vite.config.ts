@@ -10,6 +10,11 @@ export default defineConfig({
     port: 80,
     strictPort: true
   },
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+    sourcemap: true
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

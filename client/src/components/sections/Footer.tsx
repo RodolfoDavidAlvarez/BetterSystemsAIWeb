@@ -8,7 +8,7 @@ const socialLinks = [
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
   { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
   { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
-  { icon: Youtube, href: "https://youtube.com/@bettersystemsai", label: "YouTube" }
+  { icon: Youtube, href: "https://youtube.com/bettersystemsai", label: "YouTube" }
 ];
 
 export default function Footer() {

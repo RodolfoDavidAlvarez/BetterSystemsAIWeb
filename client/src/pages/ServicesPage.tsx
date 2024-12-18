@@ -92,7 +92,9 @@ export default function ServicesPage() {
                 <Link href={service.href}>Explore Service →</Link>
               </Button>
               <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
-                <Link href="/get-started">Request Solution</Link>
+                <Link href={service.title === "Request Your Custom Business Solution" ? "/services/pre-assessment" : "/get-started"}>
+                  {service.title === "Request Your Custom Business Solution" ? "Start Assessment" : "Request Solution"}
+                </Link>
               </Button>
             </div>
           </motion.section>

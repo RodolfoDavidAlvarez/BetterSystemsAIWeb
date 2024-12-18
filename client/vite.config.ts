@@ -23,7 +23,7 @@ export default defineConfig({
     hmr: {
       clientPort: 443,
       protocol: 'wss',
-      host: process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'localhost'
+      host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co'
     }
   }
 });

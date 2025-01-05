@@ -1,19 +1,21 @@
 import { Link } from "wouter";
-import { Facebook, Mail, Phone } from "lucide-react";
+import { Facebook, Linkedin, Youtube } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
+import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
 
 const socialLinks = [
+  { icon: Linkedin, href: "https://linkedin.com/in/bettersystemsai", label: "LinkedIn" },
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
   { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
-  { icon: Mail, href: "mailto:ralvarez@soilseedandwater.com", label: "Email" },
-  { icon: Phone, href: "tel:+19285501649", label: "Phone" },
+  { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
+  { icon: Youtube, href: "https://youtube.com/bettersystemsai", label: "YouTube" }
 ];
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-background mt-auto">
+    <footer className="bg-muted/50 border-t">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -30,19 +32,19 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#services" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/services" className="text-muted-foreground hover:text-foreground transition-colors">
                   Services
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#partners" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/partners" className="text-muted-foreground hover:text-foreground transition-colors">
                   Partners
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/booking" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -57,18 +59,22 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Contact</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
                   Get in Touch
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/social" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Social Media
+                </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
         {/* Social Links */}
-        <div className="mt-16 py-8">
-          <div className="flex flex-wrap justify-center gap-4 mb-6">
+        <div className="border-t mt-8 pt-8">
+          <div className="flex flex-wrap justify-center gap-4 mb-4">
             {socialLinks.map((link) => (
               <a
                 key={link.label}

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,7 +74,7 @@ export default function ContactPage() {
                 Follow us on social media for the latest updates and insights.
               </p>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/founderssocial">Social Links</Link>
+                <Link href="/social">Social Links</Link>
               </Button>
             </CardContent>
           </Card>
@@ -130,7 +129,7 @@ export default function ContactPage() {
                         Your Question
                       </FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="What would you like to know?"
                           className="min-h-[100px]"
                           {...field}

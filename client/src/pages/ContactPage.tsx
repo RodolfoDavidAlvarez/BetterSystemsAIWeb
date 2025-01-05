@@ -75,7 +75,7 @@ export default function ContactPage() {
                 Follow us on social media for the latest updates and insights.
               </p>
               <Button asChild variant="outline" className="w-full">
-                <Link href="/social">Social Links</Link>
+                <Link href="/founderssocial">Social Links</Link>
               </Button>
             </CardContent>
           </Card>

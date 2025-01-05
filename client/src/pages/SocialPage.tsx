@@ -52,7 +52,7 @@ const socialLinks: SocialLink[] = [
   },
 ];
 
-const FoundersSocialPage: React.FC = () => {
+const SocialPage: React.FC = () => {
   const handleDownloadContact = () => {
     const vCard = `BEGIN:VCARD
 VERSION:3.0

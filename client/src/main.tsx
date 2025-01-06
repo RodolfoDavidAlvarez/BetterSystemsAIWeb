@@ -41,7 +41,7 @@ function Router() {
         <Route path="/partners" component={PartnersPage} />
         <Route path="/contact" component={ContactPage} />
         <Route path="/booking" component={Booking} />
-        <Route path="/social" component={SocialPage} />
+        <Route path="/founders-social" component={SocialPage} />
         <Route path="/photo-submission" component={PhotoSubmissionPage} />
         <Route path="/get-started" component={GetStartedPage} />
         <Route path="/business-impact" component={BusinessImpactPage} />

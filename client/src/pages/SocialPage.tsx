@@ -28,7 +28,7 @@ const socialLinks: SocialLink[] = [
   },
   {
     title: "Email Us",
-    href: "mailto:ralvarez@soilseedandwater.com",
+    href: "mailto:ralvarez@bettersystems.ai",
     icon: Mail,
     color: "bg-[#EA4335] hover:bg-[#D93025]",
   },

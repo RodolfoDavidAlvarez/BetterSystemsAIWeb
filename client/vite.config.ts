@@ -1,7 +1,7 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-import checker from "vite-plugin-checker";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import checker from 'vite-plugin-checker';
 import type { PluginOption } from 'vite';
 
 export default defineConfig({
@@ -21,12 +21,16 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      host: '0.0.0.0',
-      port: 5173
+      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : 'localhost',
+      port: 443,
+      clientPort: 443,
+      protocol: 'wss'
     }
   },
   build: {
     outDir: 'dist',
+    minify: 'esbuild',
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: undefined
@@ -35,7 +39,7 @@ export default defineConfig({
   },
   preview: {
     port: 5173,
-    host: true,
+    host: '0.0.0.0',
     strictPort: true
   }
 });

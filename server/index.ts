@@ -21,6 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -52,7 +53,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Register regular routes first
+  // Register API routes first
   registerRoutes(app);
   const server = createServer(app);
 
@@ -61,9 +62,9 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     try {
-      // Get the absolute path to the dist/public directory
-      const publicPath = path.resolve(process.cwd(), 'dist', 'public');
-      
+      // Get the absolute path to the dist directory
+      const publicPath = path.resolve(process.cwd(), 'client', 'dist');
+
       // Ensure the public directory exists
       if (!fs.existsSync(publicPath)) {
         log(`Error: Build directory not found at ${publicPath}`);
@@ -71,31 +72,40 @@ app.use((req, res, next) => {
       }
 
       log(`Serving static files from: ${publicPath}`);
-      
+
       // Serve static files with optimized caching
       app.use(express.static(publicPath, {
         maxAge: '1d',
         etag: true,
-        index: false,
+        index: false, // Don't auto-serve index.html
         setHeaders: (res, filepath) => {
           // Set aggressive caching for assets
           if (filepath.includes('/assets/')) {
             res.setHeader('Cache-Control', 'public, max-age=31536000');
           }
           // Set appropriate content type
-          const contentType = path.extname(filepath);
-          if (contentType === '.js') {
+          if (filepath.endsWith('.js')) {
             res.setHeader('Content-Type', 'application/javascript');
-          } else if (contentType === '.css') {
+          } else if (filepath.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css');
           }
         }
       }));
 
-      // Handle SPA routing - serve index.html for all unmatched routes
-      app.get('*', (_req, res) => {
+      // Handle SPA routing - serve index.html for all non-file routes
+      app.get('*', (req, res, next) => {
+        // Skip API routes
+        if (req.path.startsWith('/api')) {
+          return next();
+        }
+
+        // Skip actual files
+        if (req.path.includes('.')) {
+          return next();
+        }
+
         const indexPath = path.join(publicPath, 'index.html');
-        
+
         if (fs.existsSync(indexPath)) {
           res.sendFile(indexPath);
         } else {
@@ -116,16 +126,14 @@ app.use((req, res, next) => {
   // Error handling middleware should be last
   app.use((error: any, _req: Request, res: Response, next: Function) => {
     console.error('Server error:', error);
-    
-    // If headers already sent, delegate to Express's default error handler
+
     if (res.headersSent) {
       return next(error);
     }
 
-    // Handle specific error types
     const status = error.status || error.statusCode || 500;
     const message = error.message || "Internal Server Error";
-    
+
     try {
       res.status(status).json({
         error: true,
@@ -138,10 +146,8 @@ app.use((req, res, next) => {
     }
   });
 
-  // Always use PORT environment variable, letting Replit handle port mapping
   const port = parseInt(process.env.PORT || '3000', 10);
-  
-  // Clean up any existing connections on shutdown
+
   const cleanup = () => {
     server.close(() => {
       log('Server shutting down');
@@ -152,7 +158,6 @@ app.use((req, res, next) => {
   process.on('SIGTERM', cleanup);
   process.on('SIGINT', cleanup);
 
-  // Start server on the specified port
   try {
     server.listen(port, '0.0.0.0', () => {
       log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);

@@ -62,10 +62,8 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     try {
-      // Get the absolute path to the dist directory
       const publicPath = path.resolve(process.cwd(), 'client', 'dist');
 
-      // Ensure the public directory exists
       if (!fs.existsSync(publicPath)) {
         log(`Error: Build directory not found at ${publicPath}`);
         throw new Error(`Build directory not found. Please ensure the application is built before starting the server.`);
@@ -77,13 +75,11 @@ app.use((req, res, next) => {
       app.use(express.static(publicPath, {
         maxAge: '1d',
         etag: true,
-        index: false, // Don't auto-serve index.html
+        index: false,
         setHeaders: (res, filepath) => {
-          // Set aggressive caching for assets
           if (filepath.includes('/assets/')) {
             res.setHeader('Cache-Control', 'public, max-age=31536000');
           }
-          // Set appropriate content type
           if (filepath.endsWith('.js')) {
             res.setHeader('Content-Type', 'application/javascript');
           } else if (filepath.endsWith('.css')) {
@@ -92,7 +88,7 @@ app.use((req, res, next) => {
         }
       }));
 
-      // Handle SPA routing - serve index.html for all non-file routes
+      // Handle all routes for SPA
       app.get('*', (req, res, next) => {
         // Skip API routes
         if (req.path.startsWith('/api')) {
@@ -100,23 +96,29 @@ app.use((req, res, next) => {
         }
 
         // Skip actual files
-        if (req.path.includes('.')) {
+        if (path.extname(req.path)) {
           return next();
         }
 
         const indexPath = path.join(publicPath, 'index.html');
 
-        if (fs.existsSync(indexPath)) {
-          res.sendFile(indexPath);
-        } else {
-          log(`Error: index.html not found at ${indexPath}`);
-          res.status(404).json({
-            error: 'Application not ready',
-            message: 'The application is still building. Please try again in a moment.',
-            path: publicPath
-          });
+        try {
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            log(`Error: index.html not found at ${indexPath}`);
+            res.status(404).json({
+              error: 'Application not ready',
+              message: 'The application is still building. Please try again in a moment.',
+              path: publicPath
+            });
+          }
+        } catch (error) {
+          console.error('Error serving index.html:', error);
+          next(error);
         }
       });
+
     } catch (error) {
       console.error('Error setting up static file serving:', error);
       throw error;

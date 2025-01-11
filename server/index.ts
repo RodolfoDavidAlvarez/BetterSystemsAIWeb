@@ -15,17 +15,17 @@ function log(message: string) {
 const app = express();
 
 // Set up static file serving for public assets
-const projectRoot = path.resolve(process.cwd(), '..');
+const projectRoot = process.cwd();
 log(`Project root: ${projectRoot}`);
 
-const publicPath = path.resolve(projectRoot, 'server', 'public');
+const publicPath = path.resolve(projectRoot, 'public');
 if (!fs.existsSync(publicPath)) {
   fs.mkdirSync(publicPath, { recursive: true });
   log(`Created public directory at ${publicPath}`);
 }
 
 // Copy the headshot image to public directory if it doesn't exist
-const sourceImage = path.resolve(projectRoot, 'Professional Headshot Rodolfo compressed.jpg');
+const sourceImage = path.resolve(projectRoot, '..', 'attached_assets', 'Professional Headshot Rodolfo compressed.jpg');
 const targetImage = path.resolve(publicPath, 'rodolfo-headshot.jpg');
 
 try {
@@ -33,14 +33,7 @@ try {
     fs.copyFileSync(sourceImage, targetImage);
     log(`Copied headshot image from ${sourceImage} to ${targetImage}`);
   } else {
-    log(`Source image not found at ${sourceImage}, trying alternative location...`);
-    const altSourceImage = path.resolve(projectRoot, 'attached_assets', 'Professional Headshot Rodolfo compressed.jpg');
-    if (fs.existsSync(altSourceImage)) {
-      fs.copyFileSync(altSourceImage, targetImage);
-      log(`Copied headshot image from ${altSourceImage} to ${targetImage}`);
-    } else {
-      log(`Image not found in either location: ${sourceImage} or ${altSourceImage}`);
-    }
+    log(`Source image not found at ${sourceImage}`);
   }
 } catch (error) {
   log(`Error copying image: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -60,10 +53,30 @@ const port = parseInt(process.env.PORT || '3000', 10);
 
 app.listen(port, '0.0.0.0', () => {
   log(`Server running on port ${port}`);
-  if (process.env.REPLIT_SLUG) {
-    const imageUrl = `https://${process.env.REPLIT_SLUG}.replit.dev/static/rodolfo-headshot.jpg`;
-    log(`Replit deployment URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
-    log(`Image URL: ${imageUrl}`);
+
+  // Log all relevant environment variables for debugging
+  log('Environment variables:');
+  log(`REPL_ID: ${process.env.REPL_ID || 'not set'}`);
+  log(`REPL_SLUG: ${process.env.REPL_SLUG || 'not set'}`);
+  log(`REPL_OWNER: ${process.env.REPL_OWNER || 'not set'}`);
+
+  // Get the Replit deployment URL
+  const replId = process.env.REPL_ID;
+  const replSlug = process.env.REPL_SLUG;
+  const replOwner = process.env.REPL_OWNER;
+
+  if (replSlug && replOwner) {
+    // Use slug-based URL if available
+    const baseUrl = `https://${replSlug}.${replOwner}.repl.co`;
+    log(`Replit deployment URL (slug-based): ${baseUrl}`);
+    log(`Image URL (slug-based): ${baseUrl}/static/rodolfo-headshot.jpg`);
+  } else if (replId) {
+    // Fallback to ID-based URL
+    const baseUrl = `https://${replId}.id.repl.co`;
+    log(`Replit deployment URL (ID-based): ${baseUrl}`);
+    log(`Image URL (ID-based): ${baseUrl}/static/rodolfo-headshot.jpg`);
+  } else {
+    log('Not running on Replit - image will be served locally at http://localhost:3000/static/rodolfo-headshot.jpg');
   }
 }).on('error', (error: any) => {
   log(`Server error: ${error.message}`);

@@ -96,3 +96,4 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd server && node --loader ts-node/esm index.ts"
+waitForPort = 3000

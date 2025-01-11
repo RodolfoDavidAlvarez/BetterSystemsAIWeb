@@ -13,7 +13,7 @@ export default function Hero() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-              Bring Your Business Into the AI Era
+              Your Business, One Step Ahead
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
               We make it easy for businesses to use AI to save time, cut costs, and grow.
@@ -27,7 +27,7 @@ export default function Hero() {
               </Button>
             </div>
           </motion.div>
-          
+
           <div className="relative">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}

@@ -5,11 +5,11 @@ import Hero from "@/components/sections/Hero";
 import WhatWeDo from "@/components/sections/WhatWeDo";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselNext, 
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
   CarouselPrevious,
   type CarouselApi
 } from "@/components/ui/carousel";
@@ -88,7 +88,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Hero />
-      
+
       {/* Key AI Benefits */}
       <section id="services" className="py-20">
         <div className="container mx-auto px-4">
@@ -260,15 +260,15 @@ export default function HomePage() {
       </section>
 
       <WhatWeDo />
-      
+
       {/* Mission Statement */}
       <section id="about" className="bg-primary/5 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Empowering businesses through innovative AI solutions, we transform 
-              traditional operations into efficient, automated systems that drive 
+              Your Business, One Step Ahead: Empowering businesses through innovative AI solutions, we transform
+              traditional operations into efficient, automated systems that drive
               growth and success in today's digital landscape.
             </p>
           </div>
@@ -282,11 +282,11 @@ export default function HomePage() {
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">Our Services</h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Transform your business with our cutting-edge AI solutions. From virtual assistants to 
+              Transform your business with our cutting-edge AI solutions. From virtual assistants to
               custom AI applications, we provide comprehensive solutions that drive innovation and growth.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 hover:bg-accent/5 shadow-sm">
@@ -313,7 +313,7 @@ export default function HomePage() {
           <div className="space-y-8">
             <h2 className="text-4xl font-bold">About Better Systems AI</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              At Better Systems AI, we're dedicated to helping businesses embrace the future 
+              At Better Systems AI, we're dedicated to helping businesses embrace the future
               of work through innovative AI solutions and expert guidance. Our team brings together
               decades of experience in AI, business transformation, and technology implementation
               to deliver results that matter.
@@ -338,7 +338,7 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">Our Partners</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              We collaborate with industry leaders to deliver the best AI solutions 
+              We collaborate with industry leaders to deliver the best AI solutions
               for your business needs. Join our growing network of successful partnerships
               and be part of the AI transformation journey.
             </p>
@@ -352,7 +352,7 @@ export default function HomePage() {
         <section id="contact" className="bg-primary/5 rounded-2xl p-16 text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Business?</h2>
           <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-            Take the first step towards AI-powered efficiency. Contact us today for a consultation 
+            Take the first step towards AI-powered efficiency. Contact us today for a consultation
             or book a meeting with our experts to discuss your unique business needs and how we can help.
           </p>
           <div className="flex gap-6 justify-center">

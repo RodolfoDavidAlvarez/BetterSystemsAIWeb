@@ -90,7 +90,7 @@ END:VCARD`;
             </Avatar>
             <h1 className="text-2xl font-bold mb-2">Better Systems AI</h1>
             <p className="text-muted-foreground mb-4">
-              Bring Your Business Into the AI Era
+              Your Business, One Step Ahead
             </p>
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
               <p>📍 Phoenix, Arizona</p>

@@ -19,7 +19,6 @@ import PartnersPage from "./pages/PartnersPage";
 import ContactPage from "./pages/ContactPage";
 import Booking from "./components/sections/Booking";
 import SocialPage from "./pages/SocialPage";
-import JesusSocialPage from "./pages/JesusSocialPage";
 import PhotoSubmissionPage from "./pages/PhotoSubmissionPage";
 import GetStartedPage from "./pages/GetStartedPage";
 import BusinessImpactPage from "./pages/BusinessImpactPage";
@@ -43,7 +42,6 @@ function Router() {
         <Route path="/contact" component={ContactPage} />
         <Route path="/booking" component={Booking} />
         <Route path="/founders-social" component={SocialPage} />
-        <Route path="/jesus-social" component={JesusSocialPage} />
         <Route path="/photo-submission" component={PhotoSubmissionPage} />
         <Route path="/get-started" component={GetStartedPage} />
         <Route path="/business-impact" component={BusinessImpactPage} />

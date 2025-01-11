@@ -19,6 +19,10 @@ localPort = 3000
 externalPort = 3001
 
 [[ports]]
+localPort = 3001
+externalPort = 4200
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
@@ -48,11 +52,11 @@ args = "Server Build"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Dev Server"
+args = "Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Server"
+args = "Client Dev Server"
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -69,21 +73,6 @@ task = "shell.exec"
 args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
 
 [[workflows.workflow]]
-name = "Client Dev Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd client && NODE_ENV=development npm run dev"
-waitForPort = 5173
-
-[[workflows.workflow]]
 name = "Server"
 author = "agent"
 
@@ -97,3 +86,18 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd server && node --loader ts-node/esm index.ts"
 waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Client Dev Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && NODE_ENV=development npm run dev"
+waitForPort = 5174

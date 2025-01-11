@@ -1,4 +1,8 @@
 import express from "express";
+import type { Request, Response } from "express";
+import { registerRoutes } from "./routes.js";
+import { setupVite } from "./vite.js";
+import { createServer } from "http";
 import path from "path";
 import fs from "fs";
 
@@ -9,76 +13,165 @@ function log(message: string) {
     second: "2-digit",
     hour12: true,
   });
+
   console.log(`${formattedTime} [express] ${message}`);
 }
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-// Set up static file serving for public assets
-const projectRoot = process.cwd();
-log(`Project root: ${projectRoot}`);
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-const publicPath = path.resolve(projectRoot, 'public');
-if (!fs.existsSync(publicPath)) {
-  fs.mkdirSync(publicPath, { recursive: true });
-  log(`Created public directory at ${publicPath}`);
-}
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
 
-// Copy the headshot image to public directory if it doesn't exist
-const sourceImage = path.resolve(projectRoot, '..', 'attached_assets', 'Professional Headshot Rodolfo compressed.jpg');
-const targetImage = path.resolve(publicPath, 'rodolfo-headshot.jpg');
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
 
-try {
-  if (fs.existsSync(sourceImage)) {
-    fs.copyFileSync(sourceImage, targetImage);
-    log(`Copied headshot image from ${sourceImage} to ${targetImage}`);
-  } else {
-    log(`Source image not found at ${sourceImage}`);
-  }
-} catch (error) {
-  log(`Error copying image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-}
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
 
-// Configure static file serving with caching
-app.use('/static', express.static(publicPath, {
-  maxAge: '1y',
-  etag: true,
-  lastModified: true,
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-  }
-}));
+      log(logLine);
+    }
+  });
 
-const port = parseInt(process.env.PORT || '3000', 10);
-
-app.listen(port, '0.0.0.0', () => {
-  log(`Server running on port ${port}`);
-
-  // Log all relevant environment variables for debugging
-  log('Environment variables:');
-  log(`REPL_ID: ${process.env.REPL_ID || 'not set'}`);
-  log(`REPL_SLUG: ${process.env.REPL_SLUG || 'not set'}`);
-  log(`REPL_OWNER: ${process.env.REPL_OWNER || 'not set'}`);
-
-  // Get the Replit deployment URL
-  const replId = process.env.REPL_ID;
-  const replSlug = process.env.REPL_SLUG;
-  const replOwner = process.env.REPL_OWNER;
-
-  if (replSlug && replOwner) {
-    // Use slug-based URL if available
-    const baseUrl = `https://${replSlug}.${replOwner}.repl.co`;
-    log(`Replit deployment URL (slug-based): ${baseUrl}`);
-    log(`Image URL (slug-based): ${baseUrl}/static/rodolfo-headshot.jpg`);
-  } else if (replId) {
-    // Fallback to ID-based URL
-    const baseUrl = `https://${replId}.id.repl.co`;
-    log(`Replit deployment URL (ID-based): ${baseUrl}`);
-    log(`Image URL (ID-based): ${baseUrl}/static/rodolfo-headshot.jpg`);
-  } else {
-    log('Not running on Replit - image will be served locally at http://localhost:3000/static/rodolfo-headshot.jpg');
-  }
-}).on('error', (error: any) => {
-  log(`Server error: ${error.message}`);
-  process.exit(1);
+  next();
 });
+
+(async () => {
+  // Register API routes first
+  registerRoutes(app);
+  const server = createServer(app);
+
+  // Setup static file serving or development server
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    try {
+      const publicPath = path.resolve(process.cwd(), 'client', 'dist');
+
+      if (!fs.existsSync(publicPath)) {
+        log(`Error: Build directory not found at ${publicPath}`);
+        throw new Error(`Build directory not found. Please ensure the application is built before starting the server.`);
+      }
+
+      log(`Serving static files from: ${publicPath}`);
+
+      // Serve static files with optimized caching
+      app.use(express.static(publicPath, {
+        maxAge: '1d',
+        etag: true,
+        index: false,
+        setHeaders: (res, filepath) => {
+          if (filepath.includes('/assets/')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
+          }
+          if (filepath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+          } else if (filepath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+          }
+        }
+      }));
+
+      // Handle all routes for SPA
+      app.get('*', (req, res, next) => {
+        // Skip API routes
+        if (req.path.startsWith('/api')) {
+          return next();
+        }
+
+        // Skip actual files
+        if (path.extname(req.path)) {
+          return next();
+        }
+
+        const indexPath = path.join(publicPath, 'index.html');
+
+        try {
+          if (fs.existsSync(indexPath)) {
+            res.sendFile(indexPath);
+          } else {
+            log(`Error: index.html not found at ${indexPath}`);
+            res.status(404).json({
+              error: 'Application not ready',
+              message: 'The application is still building. Please try again in a moment.',
+              path: publicPath
+            });
+          }
+        } catch (error) {
+          console.error('Error serving index.html:', error);
+          next(error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error setting up static file serving:', error);
+      throw error;
+    }
+  }
+
+  // Error handling middleware should be last
+  app.use((error: any, _req: Request, res: Response, next: Function) => {
+    console.error('Server error:', error);
+
+    if (res.headersSent) {
+      return next(error);
+    }
+
+    const status = error.status || error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+
+    try {
+      res.status(status).json({
+        error: true,
+        message: message,
+        ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
+      });
+    } catch (err) {
+      console.error('Error in error handler:', err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  const port = parseInt(process.env.PORT || '3000', 10);
+
+  const cleanup = () => {
+    server.close(() => {
+      log('Server shutting down');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', cleanup);
+  process.on('SIGINT', cleanup);
+
+  try {
+    server.listen(port, '0.0.0.0', () => {
+      log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
+      if (process.env.REPLIT_SLUG) {
+        log(`Replit deployment URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
+      }
+    }).on('error', (error: any) => {
+      log(`Server error: ${error.message}`);
+      process.exit(1);
+    });
+  } catch (error) {
+    log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    process.exit(1);
+  }
+})();

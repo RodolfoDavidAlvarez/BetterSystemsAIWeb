@@ -50,6 +50,10 @@ args = "Server Build"
 task = "workflow.run"
 args = "Client Dev Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server"
+
 [[workflows.workflow]]
 name = "Server Build"
 author = "agent"
@@ -78,3 +82,17 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd client && NODE_ENV=development npm run dev"
 waitForPort = 5173
+
+[[workflows.workflow]]
+name = "Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && node --loader ts-node/esm index.ts"

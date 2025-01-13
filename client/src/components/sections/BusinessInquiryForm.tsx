@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number").max(20, "Phone number too long"),
   company: z.string().min(2, "Company name must be at least 2 characters"),
   industry: z.string().min(1, "Please select an industry"),
   currentChallenges: z.string().min(10, "Please describe your challenges"),
@@ -64,6 +65,7 @@ export default function BusinessInquiryForm() {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
       company: "",
       industry: "",
       currentChallenges: "",
@@ -75,7 +77,6 @@ export default function BusinessInquiryForm() {
     },
   });
 
-  // Add form state debugging
   useEffect(() => {
     console.log('Form state:', form.formState);
     console.log('Current values:', form.getValues());
@@ -84,7 +85,7 @@ export default function BusinessInquiryForm() {
   const getFieldsForStep = (stepIndex: number) => {
     switch (stepIndex) {
       case 0:
-        return ['name', 'email', 'company'];
+        return ['name', 'email', 'phone', 'company'];
       case 1:
         return ['industry', 'currentChallenges', 'whyInterested'];
       case 2:
@@ -96,12 +97,9 @@ export default function BusinessInquiryForm() {
 
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
-    
-    // Trigger validation for current step fields
     const results = await Promise.all(
       fields.map(field => form.trigger(field as any))
     );
-    
     if (results.every(Boolean)) {
       setStep((s) => Math.min(s + 1, steps.length - 1));
     }
@@ -113,24 +111,27 @@ export default function BusinessInquiryForm() {
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
+
     const values = form.getValues();
     console.log('Form values:', values);
-    
+
     if (!form.formState.isValid) {
       console.log('Form validation failed');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          formIdentifier: "Get Started Form"
+        }),
       });
 
       if (!response.ok) {
@@ -151,7 +152,7 @@ export default function BusinessInquiryForm() {
       setIsSubmitting(false);
     }
   };
-  
+
   if (isSuccess) {
     return (
       <div className="w-full max-w-3xl mx-auto text-center space-y-6">
@@ -220,6 +221,19 @@ export default function BusinessInquiryForm() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input placeholder="john@company.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+1 (555) 123-4567" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -404,9 +418,9 @@ export default function BusinessInquiryForm() {
             >
               Previous
             </Button>
-            
+
             {step === steps.length - 1 ? (
-              <Button 
+              <Button
                 type="submit"
                 disabled={isSubmitting || !form.formState.isValid}
                 className="min-w-[120px] relative"

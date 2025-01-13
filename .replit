@@ -23,6 +23,10 @@ localPort = 3001
 externalPort = 4200
 
 [[ports]]
+localPort = 4000
+externalPort = 5000
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
@@ -80,5 +84,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && NODE_ENV=development npm run dev"
-waitForPort = 5173
+args = "cd client && npm run dev -- --port 4000"
+waitForPort = 4000

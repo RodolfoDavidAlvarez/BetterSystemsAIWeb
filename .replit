@@ -15,6 +15,10 @@ localPort = 80
 externalPort = 3000
 
 [[ports]]
+localPort = 443
+externalPort = 6000
+
+[[ports]]
 localPort = 3000
 externalPort = 3001
 
@@ -84,5 +88,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && VITE_DEBUG=true NODE_ENV=development npm run dev"
+args = "cd client && VITE_CJS_TRACE=1 NODE_ENV=development npm run dev"
 waitForPort = 5173

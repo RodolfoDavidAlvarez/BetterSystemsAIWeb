@@ -23,7 +23,7 @@ export default function Hero() {
                 <Link href="/get-started">Get Started</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <a href="/booking">Book Consultation</a>
+                <Link href="/contact">Contact Us</Link>
               </Button>
             </div>
           </motion.div>

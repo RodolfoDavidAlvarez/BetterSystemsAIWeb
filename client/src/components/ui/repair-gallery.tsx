@@ -18,7 +18,6 @@ interface RepairGalleryProps {
 export function RepairGallery({ repairs }: RepairGalleryProps) {
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'AI Analysis': 'bg-primary',
       'Alignment Issues': 'bg-orange-500',
       'Transmission Issues': 'bg-yellow-500',
       'Body Damage': 'bg-blue-500',

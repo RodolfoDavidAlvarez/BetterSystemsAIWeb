@@ -155,6 +155,10 @@ const PhotoSubmissionPage: React.FC = () => {
         body: formData,
       });
 
+      if (!response.ok) {
+        throw new Error('Failed to upload photo');
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -162,15 +166,16 @@ const PhotoSubmissionPage: React.FC = () => {
           title: "Success",
           description: "Photo uploaded successfully! Analyzing...",
         });
-        
+
         // Start polling for analysis results
         const pollTimeout = 30000; // 30 seconds timeout
         const pollInterval = 2000; // Poll every 2 seconds
         const startTime = Date.now();
-        
+        let pollingTimer: NodeJS.Timeout | null = null;
+
         const pollForResults = async () => {
           const timeoutReached = Date.now() - startTime >= pollTimeout;
-          
+
           if (timeoutReached) {
             setIsUploading(false);
             toast({
@@ -178,7 +183,7 @@ const PhotoSubmissionPage: React.FC = () => {
               description: "The analysis is taking longer than expected. Please try again.",
               variant: "destructive",
             });
-            return;
+            return true; // Stop polling on timeout
           }
 
           try {
@@ -187,7 +192,7 @@ const PhotoSubmissionPage: React.FC = () => {
               throw new Error('Analysis request failed');
             }
             const analysisData = await analysisResponse.json();
-            
+
             if (analysisData.result) {
               setAnalysisResult(analysisData.result);
               setIsUploading(false);
@@ -195,45 +200,46 @@ const PhotoSubmissionPage: React.FC = () => {
             }
           } catch (error) {
             console.error('Error polling analysis:', error);
+            setIsUploading(false);
+            toast({
+              title: "Error",
+              description: "Failed to get analysis results",
+              variant: "destructive",
+            });
+            return true; // Stop polling on error
           }
-          
+
           return false; // Continue polling
         };
 
-        let pollingTimer: NodeJS.Timeout;
-        
         const startPolling = async () => {
           const complete = await pollForResults();
-          if (!complete) {
+          if (!complete && pollingTimer !== null) {
             pollingTimer = setTimeout(startPolling, pollInterval);
           }
         };
 
-        startPolling();
-
-        // Cleanup timer on component unmount
-        return () => {
+        // Cleanup function to clear the polling timer
+        const cleanup = () => {
           if (pollingTimer) {
             clearTimeout(pollingTimer);
+            pollingTimer = null;
           }
         };
 
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        if (stream) {
-          stopCamera();
-        }
+        startPolling();
+        return cleanup;
+
       } else {
-        throw new Error(data.message);
+        throw new Error(data.message || 'Failed to upload photo');
       }
     } catch (error) {
+      setIsUploading(false);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to upload photo",
         variant: "destructive",
       });
-    } finally {
-      setIsUploading(false);
     }
   };
 

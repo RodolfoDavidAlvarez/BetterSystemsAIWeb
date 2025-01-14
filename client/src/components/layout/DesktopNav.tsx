@@ -22,7 +22,7 @@ export default function DesktopNav() {
         </Link>
       ))}
       <Button asChild variant="default">
-        <Link href="/founders-social">Contact Us</Link>
+        <Link href="/booking">Book Consultation</Link>
       </Button>
     </div>
   );

@@ -74,8 +74,8 @@ export default function EfficiencyAuditPage() {
         description: "Help us understand your business with a few simple questions."
       },
       {
-        title: "Schedule Your Assessment",
-        description: "Connect with our experts to review your operations."
+        title: "Schedule Your Free Consultation",
+        description: "Book a 30-minute call to review your operations with our experts."
       },
       {
         title: "Receive Your Custom Report",
@@ -99,7 +99,7 @@ export default function EfficiencyAuditPage() {
       },
       {
         question: "How long does it take?",
-        answer: "The pre-questionnaire takes about 10 minutes, and the assessment is thorough yet efficient."
+        answer: "The pre-questionnaire takes about 10 minutes, and the consultation is just 30 minutes."
       },
       {
         question: "What happens after the assessment?",
@@ -130,7 +130,7 @@ export default function EfficiencyAuditPage() {
           className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10"
           asChild
         >
-          <Link to="/founders-social">Contact Us →</Link>
+          <Link to="/services/pre-assessment">Start Questionnaire →</Link>
         </Button>
       </motion.div>
 
@@ -276,10 +276,10 @@ export default function EfficiencyAuditPage() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button asChild size="lg">
-            <Link to="/founders-social">Contact Us</Link>
+            <Link to="/services/pre-assessment">Start Your Free Assessment</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link to="/services">View Services</Link>
+            <Link to="/contact">Contact Us</Link>
           </Button>
         </div>
       </motion.section>

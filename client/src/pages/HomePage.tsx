@@ -355,9 +355,12 @@ export default function HomePage() {
             Take the first step towards AI-powered efficiency. Contact us today for a consultation
             or book a meeting with our experts to discuss your unique business needs and how we can help.
           </p>
-          <div className="flex justify-center">
+          <div className="flex gap-6 justify-center">
             <Button asChild size="lg" className="font-semibold">
               <Link href="/contact">Contact Us</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="font-semibold">
+              <Link href="/booking">Book Consultation</Link>
             </Button>
           </div>
         </section>

@@ -57,12 +57,12 @@ export default function ContactPage() {
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-0">
             <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4">Schedule a Consultation</h2>
+              <h2 className="text-xl font-bold mb-4">Social Connections</h2>
               <p className="text-muted-foreground mb-6">
-                Book a free consultation with our experts to discuss your business needs.
+                Connect with our founders and experts to discuss your business needs.
               </p>
               <Button asChild className="w-full">
-                <Link href="/booking">Book Consultation</Link>
+                <Link href="/founders-social">Connect with Us</Link>
               </Button>
             </CardContent>
           </Card>

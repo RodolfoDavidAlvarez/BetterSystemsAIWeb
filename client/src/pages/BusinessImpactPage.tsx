@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { BarChart3, TrendingUp, BrainCircuit, DollarSign } from "lucide-react";
+import { Link } from "wouter";
 
 const economicImpact = [
   {
@@ -156,10 +157,10 @@ export default function BusinessImpactPage() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button size="lg" asChild>
-            <a href="/contact">Get Started</a>
+            <Link href="/contact">Get Started</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <a href="/booking">Schedule Consultation</a>
+            <Link href="/founders-social">Contact Us</Link>
           </Button>
         </div>
       </section>

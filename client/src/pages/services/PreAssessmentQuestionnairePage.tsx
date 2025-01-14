@@ -24,7 +24,7 @@ const formSchema = z.object({
   coreValues: z.array(z.string()).optional().default([]),
   missionStatement: z.string().min(10, "Mission statement should be at least 10 characters"),
   visionStatement: z.string().min(10, "Vision statement should be at least 10 characters"),
-  
+
   // Step 2
   locations: z.string().min(1, "Please enter number of locations"),
   employeesPerLocation: z.string().min(1, "Please provide employee distribution"),
@@ -133,14 +133,14 @@ export default function PreAssessmentQuestionnairePage() {
     try {
       // Here you would send the form data to your backend
       console.log("Form submitted:", values);
-      
+
       toast({
         title: "Success!",
         description: "Thank you! We'll be in touch soon to discuss your pre-assessment results.",
       });
-      
-      // Redirect to booking page after submission
-      window.location.href = "/booking";
+
+      // Redirect to founders-social page after submission
+      window.location.href = "/founders-social";
     } catch (error) {
       toast({
         title: "Error",
@@ -263,10 +263,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Mission Statement</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Our mission is to leverage AI solutions..." 
+                    <Textarea
+                      placeholder="Our mission is to leverage AI solutions..."
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -281,10 +281,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Vision Statement</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="To be the global leader in AI-driven operational efficiency..." 
+                    <Textarea
+                      placeholder="To be the global leader in AI-driven operational efficiency..."
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -318,10 +318,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Employees per Location</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Location 1: 10 employees&#10;Location 2: 8 employees&#10;Location 3: 5 employees"
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -336,10 +336,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Products/Services Offered</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Product A: Accounting Platform&#10;Service B: HR Consulting"
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -354,10 +354,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Biggest Operational Pain Points</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="1. Data entry takes too long&#10;2. Scheduling conflicts in team collaboration"
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -367,7 +367,7 @@ export default function PreAssessmentQuestionnairePage() {
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Departmental Technology Stacks & Tools</h3>
-              
+
               <FormField
                 control={form.control}
                 name="technology.accounting"
@@ -437,10 +437,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Manual Tasks or Processes to Potentially Automate</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Manual invoice entry&#10;Copy-pasting client emails from spreadsheets"
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -455,10 +455,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Key Areas Needing Efficiency Improvements</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Inventory restocking notifications&#10;Customer follow-ups"
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -509,10 +509,10 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Additional Notes or Special Requests</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Please send a calendar invite&#10;I'm usually available afternoons"
                       className="min-h-[100px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -540,8 +540,8 @@ export default function PreAssessmentQuestionnairePage() {
         </Link>
         <h1 className="text-4xl font-bold mb-4">Pre-Assessment Questionnaire</h1>
         <p className="text-lg text-muted-foreground">
-          Thank you for your interest in our Business Efficiency & Savings Assessment! 
-          Please take 5–10 minutes to answer the following questions to help us understand 
+          Thank you for your interest in our Business Efficiency & Savings Assessment!
+          Please take 5–10 minutes to answer the following questions to help us understand
           your business and identify areas for improvement.
         </p>
       </motion.div>
@@ -577,10 +577,10 @@ export default function PreAssessmentQuestionnairePage() {
                   >
                     Previous
                   </Button>
-                  
+
                   {currentStep === steps.length - 1 ? (
                     <Button type="submit">
-                      Submit and Book Consultation
+                      Submit and Contact Us
                     </Button>
                   ) : (
                     <Button type="button" onClick={handleNext}>

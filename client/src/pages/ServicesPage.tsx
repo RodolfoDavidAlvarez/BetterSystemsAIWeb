@@ -92,21 +92,21 @@ export default function ServicesPage() {
                 <Link href={service.href}>Explore Service →</Link>
               </Button>
               <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
-                  <Link 
-                    href={
-                      service.title === "Business Efficiency and Profit Maximization Audit" 
-                        ? "/services/pre-assessment"
-                        : service.title === "Request Your Custom Business Solution"
-                        ? "/get-started"
-                        : "/booking"
-                    }
-                  >
-                    {service.title === "Business Efficiency and Profit Maximization Audit"
-                      ? "Start Assessment" 
-                      : "Request Solution"
-                    }
-                  </Link>
-                </Button>
+                <Link 
+                  href={
+                    service.title === "Business Efficiency and Profit Maximization Audit" 
+                      ? "/services/pre-assessment"
+                      : service.title === "Request Your Custom Business Solution"
+                      ? "/get-started"
+                      : "/founders-social"
+                  }
+                >
+                  {service.title === "Business Efficiency and Profit Maximization Audit"
+                    ? "Start Assessment" 
+                    : "Request Solution"
+                  }
+                </Link>
+              </Button>
             </div>
           </motion.section>
         ))}

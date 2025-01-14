@@ -5,8 +5,7 @@ const navItems = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
   { label: "About", href: "/about" },
-  { label: "Partners", href: "/partners" },
-  { label: "Contact", href: "/contact" }
+  { label: "Partners", href: "/partners" }
 ];
 
 export default function DesktopNav() {
@@ -22,7 +21,7 @@ export default function DesktopNav() {
         </Link>
       ))}
       <Button asChild variant="default">
-        <Link href="/booking">Book Consultation</Link>
+        <Link href="/contact">Contact Us</Link>
       </Button>
     </div>
   );

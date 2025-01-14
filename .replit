@@ -88,5 +88,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && VITE_CJS_TRACE=1 NODE_ENV=development npm run dev"
+args = "cd client && NODE_ENV=development VITE_CJS_IGNORE_WARNING=true npm run dev"
 waitForPort = 5173

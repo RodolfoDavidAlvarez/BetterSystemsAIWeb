@@ -74,7 +74,7 @@ export default function EfficiencyAuditPage() {
         description: "Help us understand your business with a few simple questions."
       },
       {
-        title: "Schedule Your Free Consultation",
+        title: "Schedule Your Free Assessment",
         description: "Book a 30-minute call to review your operations with our experts."
       },
       {
@@ -279,7 +279,7 @@ export default function EfficiencyAuditPage() {
             <Link to="/services/pre-assessment">Start Your Free Assessment</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
-            <Link to="/contact">Contact Us</Link>
+            <Link to="/founders-social">Contact Us</Link>
           </Button>
         </div>
       </motion.section>

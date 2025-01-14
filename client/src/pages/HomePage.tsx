@@ -353,14 +353,14 @@ export default function HomePage() {
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Business?</h2>
           <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
             Take the first step towards AI-powered efficiency. Contact us today for a consultation
-            or book a meeting with our experts to discuss your unique business needs and how we can help.
+            or get in touch with our experts to discuss your unique business needs and how we can help.
           </p>
           <div className="flex gap-6 justify-center">
             <Button asChild size="lg" className="font-semibold">
-              <Link href="/contact">Contact Us</Link>
+              <Link href="/contact">Get Started</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="font-semibold">
-              <Link href="/booking">Book Consultation</Link>
+              <Link href="/founders-social">Contact Us</Link>
             </Button>
           </div>
         </section>

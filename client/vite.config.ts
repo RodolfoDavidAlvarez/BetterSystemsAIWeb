@@ -11,23 +11,11 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5174,
-    strictPort: true,
+    port: 5173,
     hmr: {
       clientPort: 443,
       protocol: 'wss',
-      host: process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : undefined,
-      timeout: 120000
-    }
-  },
-  build: {
-    sourcemap: true,
-    outDir: 'dist',
-    assetsDir: 'assets',
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
+      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : 'localhost'
     }
   }
 });

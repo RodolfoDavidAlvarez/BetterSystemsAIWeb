@@ -40,8 +40,8 @@ export default function MobileNav() {
                   variant="default" 
                   className="w-[85%] bg-primary hover:bg-primary/90 transition-colors py-6"
                 >
-                  <Link href="/founders-social" className="flex justify-end">
-                    Contact Us
+                  <Link href="/booking" className="flex justify-end">
+                    Book Consultation
                   </Link>
                 </Button>
               </div>

@@ -20,8 +20,12 @@ export default function Navigation() {
       <nav className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="font-bold text-xl">
-            Better Systems AI
+          <Link href="/" className="flex items-center">
+            <img 
+              src="/images/Better-Systems-AI.png" 
+              alt="Better Systems AI Logo" 
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}

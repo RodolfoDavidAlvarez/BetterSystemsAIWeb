@@ -242,13 +242,13 @@ export default function FleetManagementPage() {
           you need to stay ahead—whether you're managing a handful of vehicles or a large-scale operation.
         </p>
         <div className="flex gap-4 justify-center">
-          <Button asChild size="lg">
-            <Link href="/get-started">Get Started</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/booking">Schedule Demo</Link>
-          </Button>
-        </div>
+            <Button asChild size="lg">
+              <Link href="/founders-social">Contact Us</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/services">View Services</Link>
+            </Button>
+          </div>
       </div>
     </div>
   );

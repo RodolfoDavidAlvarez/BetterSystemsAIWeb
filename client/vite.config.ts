@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -10,17 +11,18 @@ export default defineConfig({
     }
   },
   server: {
-    host: true,
+    host: '0.0.0.0', // Required for Replit
     port: 5173,
-    strictPort: true,
+    strictPort: true, // Required to match the workflow configuration
     hmr: {
-      clientPort: 443,
+      clientPort: process.env.NODE_ENV === 'development' ? 443 : undefined,
       protocol: 'wss',
-      timeout: 120000
+      host: process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : undefined,
     }
   },
-  preview: {
-    port: 5173,
-    host: true
+  build: {
+    sourcemap: true,
+    outDir: 'dist',
+    assetsDir: 'assets'
   }
 });

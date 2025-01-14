@@ -5,6 +5,7 @@ import { setupVite } from "./vite.js";
 import { createServer } from "http";
 import path from "path";
 import fs from "fs";
+import cors from "cors";
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -18,6 +19,23 @@ function log(message: string) {
 }
 
 const app = express();
+
+// Basic security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'development' ? true : process.env.ALLOWED_ORIGINS?.split(',') || false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -53,9 +71,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  let activeConnections = new Set<any>();
+
   // Register API routes first
   registerRoutes(app);
   const server = createServer(app);
+
+  // Track active connections for graceful shutdown
+  server.on('connection', connection => {
+    activeConnections.add(connection);
+    connection.on('close', () => {
+      activeConnections.delete(connection);
+    });
+  });
 
   // Setup static file serving or development server
   if (app.get("env") === "development") {
@@ -125,8 +153,8 @@ app.use((req, res, next) => {
     }
   }
 
-  // Error handling middleware should be last
-  app.use((error: any, _req: Request, res: Response, next: Function) => {
+  // Improved error handling middleware
+  app.use((error: any, req: Request, res: Response, next: Function) => {
     console.error('Server error:', error);
 
     if (res.headersSent) {
@@ -136,12 +164,18 @@ app.use((req, res, next) => {
     const status = error.status || error.statusCode || 500;
     const message = error.message || "Internal Server Error";
 
+    // Don't expose stack traces in production
+    const errorResponse = {
+      error: true,
+      message: message,
+      ...(process.env.NODE_ENV === 'development' ? { 
+        stack: error.stack,
+        details: error.details || undefined
+      } : {})
+    };
+
     try {
-      res.status(status).json({
-        error: true,
-        message: message,
-        ...(process.env.NODE_ENV === 'development' ? { stack: error.stack } : {})
-      });
+      res.status(status).json(errorResponse);
     } catch (err) {
       console.error('Error in error handler:', err);
       res.status(500).send('Internal Server Error');
@@ -150,15 +184,36 @@ app.use((req, res, next) => {
 
   const port = parseInt(process.env.PORT || '3000', 10);
 
-  const cleanup = () => {
+  // Improved cleanup function with timeout
+  const cleanup = (signal: string) => {
+    log(`Received ${signal}. Starting graceful shutdown...`);
+
+    // Set a timeout for the graceful shutdown
+    const forcedShutdownTimeout = setTimeout(() => {
+      log('Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+
     server.close(() => {
-      log('Server shutting down');
+      clearTimeout(forcedShutdownTimeout);
+      log('Server closed successfully');
+
+      // Close all remaining connections
+      activeConnections.forEach(conn => {
+        conn.destroy();
+      });
+
       process.exit(0);
+    });
+
+    // Stop accepting new connections
+    activeConnections.forEach(conn => {
+      conn.end();
     });
   };
 
-  process.on('SIGTERM', cleanup);
-  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', () => cleanup('SIGTERM'));
+  process.on('SIGINT', () => cleanup('SIGINT'));
 
   try {
     server.listen(port, '0.0.0.0', () => {

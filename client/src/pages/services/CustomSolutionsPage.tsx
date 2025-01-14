@@ -12,8 +12,7 @@ export default function CustomSolutionsPage() {
       "Automated contracts and proposal generation",
       "Operational dashboards with real-time data",
       "Automated email content creation",
-      "CRM enhancements",
-      "Photo & Image Analysis"
+      "CRM enhancements"
     ]
   };
 
@@ -53,26 +52,6 @@ export default function CustomSolutionsPage() {
             </motion.li>
           ))}
         </ul>
-      </motion.section>
-
-      {/* Photo Analysis Demo Section */}
-      <motion.section 
-        className="mt-16 mb-16 bg-primary/5 rounded-2xl p-8"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-2xl font-semibold mb-4">Try Our Photo Analysis Demo</h2>
-        <p className="text-muted-foreground text-lg mb-6">
-          Experience the power of our AI-driven photo analysis system. Upload any image and our AI will analyze its contents, 
-          providing detailed insights and classifications. This demo showcases just one example of how we can integrate 
-          advanced AI capabilities into your business processes.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Button asChild>
-            <Link href="/photo-submission">Try Photo Analysis Demo</Link>
-          </Button>
-        </div>
       </motion.section>
 
       <div className="mt-8 text-center">

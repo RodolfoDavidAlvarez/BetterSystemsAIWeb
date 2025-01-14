@@ -37,7 +37,9 @@ export default function Navbar() {
               {item.label}
             </a>
           ))}
-          <Button>Get Started</Button>
+          <Button asChild>
+            <Link href="/founders-social">Contact Us</Link>
+          </Button>
         </div>
 
         {/* Mobile Navigation */}
@@ -59,7 +61,9 @@ export default function Navbar() {
                   {item.label}
                 </a>
               ))}
-              <Button className="mt-4">Get Started</Button>
+              <Button asChild className="mt-4">
+                <Link href="/founders-social">Contact Us</Link>
+              </Button>
             </div>
           </SheetContent>
         </Sheet>

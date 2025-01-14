@@ -41,7 +41,7 @@ export default function MobileNav() {
                   className="w-[85%] bg-primary hover:bg-primary/90 transition-colors py-6"
                 >
                   <Link href="/booking" className="flex justify-end">
-                    Contact Us
+                    Book Consultation
                   </Link>
                 </Button>
               </div>

@@ -15,31 +15,19 @@ export default defineConfig({
       '@db': path.resolve(__dirname, '..', 'db')
     }
   },
-  base: '/',
   server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
     hmr: {
-      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : 'localhost',
-      port: 443,
       clientPort: 443,
-      protocol: 'wss'
+      port: 443,
+      protocol: 'wss',
+      host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : 'localhost'
     }
   },
   build: {
     outDir: 'dist',
-    minify: 'esbuild',
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    }
-  },
-  preview: {
-    port: 5173,
-    host: '0.0.0.0',
-    strictPort: true
+    sourcemap: true
   }
 });

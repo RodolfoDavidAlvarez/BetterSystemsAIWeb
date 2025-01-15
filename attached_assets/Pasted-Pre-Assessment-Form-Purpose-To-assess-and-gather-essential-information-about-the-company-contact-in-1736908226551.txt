@@ -1,0 +1,51 @@
+Pre Assessment Form
+Purpose: To assess and gather essential information about the company contact info, technology used to operate and pain points (bottlenecks) and last the companies scale. 
+
+Things to fix of the existing for located at: /services/pre-assessment
+Make sure that:
+All the form input fields is set up correctly structurally to send to webhook after completion
+Form Structure
+1.Webhook Integration
+Confirm the form is set up to send data securely to your webhook after submission.
+Add a confirmation message or screen for users after they submit the form, to reassure them it was successfully completed.
+Ensure only the Contact Name and either Phone Number or Email Address are marked as required.
+	Use logic to validate that either one of those fields is completed, but not necessarily both.
+	3.	User Experience
+	•	Make the form mobile-friendly and responsive.
+	•	Use placeholders in input fields as examples to guide users.
+	•	For long sections like “Products and Services Descriptions,” consider an expandable/collapsible section to keep the form tidy.
+
+
+Webhook address: https://hook.us1.make.com/onwbnec5advmcbxw242fb1u9cqd0frd2
+
+
+
+Questions:
+General information
+Legal business Name
+Contact name
+Contact phone number
+Contact email address
+Services and products
+Total number of services and products
+Products and services descriptions (This should be a list format, with a button plus sign to as many as 15 services of products, name and description)
+Scale, structure, and capacity
+Total number of employees
+Total number of locations
+Technology used (input field per department, also add a checkmark says “None” and when they click the field disables and fades)
+Payment (POS) - Placeholder: Square, Clover, Stripe
+Accounting - Placeholder: Quickbooks, Sage
+Communications - Placeholder - Pipedrive, Zoho, Salesforce
+Administration - Placeholder: Google sheets, Drive, SQL
+Coordination - Placeholder: Asana, Trello, Monday
+Booking system - Calendly, Booksy, Acuity
+Website Capabilities – Placeholder: “Basic website (e.g., Wix or Squarespace) or advanced website with features like automations, booking systems, or custom integrations.
+Pain points
+What are workflows in your business that you feel can be automated or optimized? (Add a plus button as the services, where they can describe the pain points as many as 10
+Any other business challenges we can help with? Add plus sign for them to continue adding as many as 10
+Do you need help integrating any systems?Add plus sign for them to continue adding as many as 10
+Vision
+What are your top goals for growth or improvement? Placeholder- Increase sales, launch new products, automate processes.
+
+After this question they can go ahead and submit the information. Say a thank you message
+

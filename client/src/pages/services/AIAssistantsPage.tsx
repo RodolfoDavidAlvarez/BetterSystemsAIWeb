@@ -308,7 +308,7 @@ export default function AIAssistantsPage() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button asChild size="lg" className="px-8">
-            <Link href="/get-started">Get Started</Link>
+            <Link href="/get-started">Request Solution</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="px-8">
             <Link href="/contact">Contact Sales</Link>

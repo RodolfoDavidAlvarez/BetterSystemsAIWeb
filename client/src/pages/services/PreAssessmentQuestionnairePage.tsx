@@ -16,13 +16,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Plus, Minus } from "lucide-react";
 
 const TECHNOLOGY_FIELDS = [
-  { key: "payment", label: "Payment (POS)" },
-  { key: "accounting", label: "Accounting" },
-  { key: "communications", label: "Communications" },
-  { key: "administration", label: "Administration" },
-  { key: "coordination", label: "Coordination" },
-  { key: "booking", label: "Booking System" },
-  { key: "website", label: "Website Capabilities" },
+  { key: "payment", label: "Payment (POS)", placeholder: "Square, Clover, Stripe" },
+  { key: "accounting", label: "Accounting", placeholder: "Quickbooks, Sage" },
+  { key: "communications", label: "Communications", placeholder: "Pipedrive, Zoho, Salesforce" },
+  { key: "administration", label: "Administration", placeholder: "Google sheets, Drive, SQL" },
+  { key: "coordination", label: "Coordination", placeholder: "Asana, Trello, Monday" },
+  { key: "booking", label: "Booking System", placeholder: "Calendly, Booksy, Acuity" },
+  { key: "website", label: "Website Capabilities", placeholder: "Basic website (e.g., Wix or Squarespace) or advanced website with features like automations, booking systems, or custom integrations" },
 ] as const;
 
 type TechnologyKey = typeof TECHNOLOGY_FIELDS[number]["key"];
@@ -197,7 +197,7 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Legal Business Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your business name" {...field} />
+                    <Input placeholder="Enter your company's legal business name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -211,7 +211,7 @@ export default function PreAssessmentQuestionnairePage() {
                 <FormItem>
                   <FormLabel>Contact Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter contact name" {...field} />
+                    <Input placeholder="Enter the primary contact person's name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -226,7 +226,7 @@ export default function PreAssessmentQuestionnairePage() {
                   <FormItem>
                     <FormLabel>Contact Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter phone number" {...field} />
+                      <Input placeholder="Enter contact phone number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -240,7 +240,7 @@ export default function PreAssessmentQuestionnairePage() {
                   <FormItem>
                     <FormLabel>Contact Email Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter email address" {...field} />
+                      <Input placeholder="Enter contact email address" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -269,7 +269,7 @@ export default function PreAssessmentQuestionnairePage() {
               </div>
 
               {serviceFields.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
                     <h4 className="text-sm font-medium">Service/Product {index + 1}</h4>
                     <Button
@@ -289,7 +289,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Service/Product name" {...field} />
+                          <Input placeholder="Enter service or product name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -304,7 +304,7 @@ export default function PreAssessmentQuestionnairePage() {
                         <FormLabel>Description</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe this service or product"
+                            placeholder="Provide a detailed description of this service or product"
                             {...field}
                           />
                         </FormControl>
@@ -329,7 +329,7 @@ export default function PreAssessmentQuestionnairePage() {
                   <FormItem>
                     <FormLabel>Total Number of Employees</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Enter number" {...field} />
+                      <Input type="number" placeholder="Enter total number of employees" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -343,7 +343,7 @@ export default function PreAssessmentQuestionnairePage() {
                   <FormItem>
                     <FormLabel>Total Number of Locations</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Enter number" {...field} />
+                      <Input type="number" placeholder="Enter total number of locations" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -352,9 +352,10 @@ export default function PreAssessmentQuestionnairePage() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Technology Stack</h3>
+              <h3 className="text-lg font-semibold">Technology Used</h3>
+              <p className="text-sm text-muted-foreground">Select the tools and technologies used in each department. Check "None" if a particular technology is not used.</p>
 
-              {TECHNOLOGY_FIELDS.map(({ key, label }) => (
+              {TECHNOLOGY_FIELDS.map(({ key, label, placeholder }) => (
                 <div key={key} className="space-y-2">
                   <FormField
                     control={form.control}
@@ -365,7 +366,7 @@ export default function PreAssessmentQuestionnairePage() {
                         <div className="flex gap-4 items-center">
                           <FormControl>
                             <Input
-                              placeholder={`Enter ${label.toLowerCase()} tools`}
+                              placeholder={placeholder}
                               {...field}
                               disabled={form.watch(`technology.${key}.none`)}
                             />
@@ -404,10 +405,10 @@ export default function PreAssessmentQuestionnairePage() {
       case 3:
         return (
           <div className="space-y-6">
-            {/* Workflows */}
+            {/* Workflows to Automate/Optimize */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>Workflows to Automate/Optimize</Label>
+                <Label>What are workflows in your business that you feel can be automated or optimized?</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -421,7 +422,7 @@ export default function PreAssessmentQuestionnairePage() {
               </div>
 
               {workflowFields.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
                     <h4 className="text-sm font-medium">Workflow {index + 1}</h4>
                     <Button
@@ -441,7 +442,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <FormItem>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe the workflow that needs automation"
+                            placeholder="Describe a workflow or process that could be automated"
                             {...field}
                           />
                         </FormControl>
@@ -456,7 +457,7 @@ export default function PreAssessmentQuestionnairePage() {
             {/* Business Challenges */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>Business Challenges</Label>
+                <Label>Any other business challenges we can help with?</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -470,7 +471,7 @@ export default function PreAssessmentQuestionnairePage() {
               </div>
 
               {challengeFields.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
                     <h4 className="text-sm font-medium">Challenge {index + 1}</h4>
                     <Button
@@ -490,7 +491,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <FormItem>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe the business challenge"
+                            placeholder="Describe a business challenge you're facing"
                             {...field}
                           />
                         </FormControl>
@@ -505,7 +506,7 @@ export default function PreAssessmentQuestionnairePage() {
             {/* Integration Needs */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <Label>System Integration Needs</Label>
+                <Label>Do you need help integrating any systems?</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -519,7 +520,7 @@ export default function PreAssessmentQuestionnairePage() {
               </div>
 
               {integrationFields.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
                     <h4 className="text-sm font-medium">Integration {index + 1}</h4>
                     <Button
@@ -539,7 +540,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <FormItem>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe the integration need"
+                            placeholder="Describe which systems need integration"
                             {...field}
                           />
                         </FormControl>
@@ -556,10 +557,10 @@ export default function PreAssessmentQuestionnairePage() {
               name="growthGoals"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Top Goals for Growth or Improvement</FormLabel>
+                  <FormLabel>What are your top goals for growth or improvement?</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="E.g., Increase sales, launch new products, automate processes"
+                      placeholder="Examples: Increase sales, launch new products, automate processes, improve customer service, expand to new markets"
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -601,7 +602,7 @@ export default function PreAssessmentQuestionnairePage() {
         initial="initial"
         animate="animate"
       >
-        <Card className="border-[0.5px] border-opacity-40 bg-background/50 shadow-sm">
+        <Card className="border border-gray-800 bg-background/50 shadow-sm">
           <CardContent className="p-8">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
@@ -617,7 +618,7 @@ export default function PreAssessmentQuestionnairePage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {renderStep()}
 
-                <div className="flex justify-between mt-8 pt-4 border-t">
+                <div className="flex justify-between mt-8 pt-4 border-t border-gray-800">
                   <Button
                     type="button"
                     variant="outline"

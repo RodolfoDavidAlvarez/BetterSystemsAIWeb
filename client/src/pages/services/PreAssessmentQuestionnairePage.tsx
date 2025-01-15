@@ -5,45 +5,66 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Plus, Minus } from "lucide-react";
+
+const TECHNOLOGY_FIELDS = [
+  { key: "payment", label: "Payment (POS)" },
+  { key: "accounting", label: "Accounting" },
+  { key: "communications", label: "Communications" },
+  { key: "administration", label: "Administration" },
+  { key: "coordination", label: "Coordination" },
+  { key: "booking", label: "Booking System" },
+  { key: "website", label: "Website Capabilities" },
+] as const;
+
+type TechnologyKey = typeof TECHNOLOGY_FIELDS[number]["key"];
+
+const technologyFieldSchema = z.object({
+  value: z.string().optional(),
+  none: z.boolean().default(false),
+});
 
 const formSchema = z.object({
-  // Step 1
-  legalBusinessName: z.string().min(2, "Business name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Please enter a valid phone number"),
-  businessSlogan: z.string().optional(),
-  coreValues: z.array(z.string()).optional().default([]),
-  missionStatement: z.string().min(10, "Mission statement should be at least 10 characters"),
-  visionStatement: z.string().min(10, "Vision statement should be at least 10 characters"),
-
-  // Step 2
-  locations: z.string().min(1, "Please enter number of locations"),
-  employeesPerLocation: z.string().min(1, "Please provide employee distribution"),
-  productsServices: z.string().min(10, "Please describe your products/services"),
-  operationalPainPoints: z.string().min(10, "Please describe your pain points"),
-  technology: z.object({
-    accounting: z.string().optional(),
-    administration: z.string().optional(),
-    operations: z.string().optional(),
-    marketing: z.string().optional(),
-  }),
-
-  // Step 3
-  manualTasks: z.string().min(10, "Please describe manual tasks"),
-  efficiencyImprovements: z.string().min(10, "Please describe areas needing improvement"),
-
-  // Step 4
-  preferredContact: z.enum(["Email", "Phone", "Video Call"]),
-  additionalNotes: z.string().optional(),
+  businessName: z.string().min(1, "Business name is required"),
+  contactName: z.string().min(1, "Contact name is required"),
+  phone: z.string().optional(),
+  email: z.string().email("Invalid email format").optional(),
+  services: z.array(z.object({
+    name: z.string().min(1, "Service name is required"),
+    description: z.string().optional(),
+  })),
+  totalEmployees: z.string().min(1, "Number of employees is required"),
+  totalLocations: z.string().min(1, "Number of locations is required"),
+  technology: z.record(z.enum([
+    "payment",
+    "accounting",
+    "communications",
+    "administration",
+    "coordination",
+    "booking",
+    "website"
+  ]), technologyFieldSchema),
+  workflows: z.array(z.object({
+    description: z.string().min(1, "Workflow description is required"),
+  })),
+  challenges: z.array(z.object({
+    description: z.string().min(1, "Challenge description is required"),
+  })),
+  integrationNeeds: z.array(z.object({
+    description: z.string().min(1, "Integration need description is required"),
+  })),
+  growthGoals: z.string().optional(),
+}).refine((data) => data.phone || data.email, {
+  message: "Either phone number or email is required",
+  path: ["email"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -53,15 +74,6 @@ interface FormStep {
   description: string;
 }
 
-const CORE_VALUES = [
-  "Integrity",
-  "Innovation",
-  "Customer Focus",
-  "Excellence",
-  "Teamwork",
-  "Sustainability"
-] as const;
-
 export default function PreAssessmentQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
@@ -69,46 +81,60 @@ export default function PreAssessmentQuestionnairePage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      legalBusinessName: "",
-      email: "",
+      businessName: "",
+      contactName: "",
       phone: "",
-      businessSlogan: "",
-      coreValues: [],
-      missionStatement: "",
-      visionStatement: "",
-      locations: "",
-      employeesPerLocation: "",
-      productsServices: "",
-      operationalPainPoints: "",
-      technology: {
-        accounting: "",
-        administration: "",
-        operations: "",
-        marketing: "",
-      },
-      manualTasks: "",
-      efficiencyImprovements: "",
-      preferredContact: "Email",
-      additionalNotes: "",
-    },
+      email: "",
+      services: [],
+      totalEmployees: "",
+      totalLocations: "",
+      technology: TECHNOLOGY_FIELDS.reduce((acc, { key }) => ({
+        ...acc,
+        [key]: { value: "", none: false }
+      }), {} as Record<TechnologyKey, { value: string; none: boolean }>),
+      workflows: [],
+      challenges: [],
+      integrationNeeds: [],
+      growthGoals: ""
+    }
+  });
+
+  const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
+    control: form.control,
+    name: "services"
+  });
+
+  const { fields: workflowFields, append: appendWorkflow, remove: removeWorkflow } = useFieldArray({
+    control: form.control,
+    name: "workflows"
+  });
+
+  const { fields: challengeFields, append: appendChallenge, remove: removeChallenge } = useFieldArray({
+    control: form.control,
+    name: "challenges"
+  });
+
+  const { fields: integrationFields, append: appendIntegration, remove: removeIntegration } = useFieldArray({
+    control: form.control,
+    name: "integrationNeeds"
   });
 
   const steps: FormStep[] = [
     {
-      title: "Preliminary Business Details",
-      description: "Tell us about your company's foundation and identity"
+      title: "General Information",
+      description: "Let's start with your basic business information"
     },
     {
-      title: "Organizational Structure and Current Operations",
-      description: "Help us understand your company structure and processes"
+      title: "Services & Products",
+      description: "Tell us about what you offer"
     },
     {
-      title: "Automation & Bottlenecks",
-      description: "Identify areas where we can improve efficiency"
+      title: "Scale & Technology",
+      description: "Help us understand your business scale and current technology stack"
     },
     {
-      title: "Preferred Communication & Submission",
-      description: "Let us know how to best reach you for the next steps"
+      title: "Pain Points & Vision",
+      description: "Share your challenges and goals"
     }
   ];
 
@@ -131,16 +157,25 @@ export default function PreAssessmentQuestionnairePage() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // Here you would send the form data to your backend
-      console.log("Form submitted:", values);
+      const response = await fetch("https://hook.us1.make.com/onwbnec5advmcbxw242fb1u9cqd0frd2", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit form");
+      }
 
       toast({
         title: "Success!",
-        description: "Thank you! We'll be in touch soon to discuss your pre-assessment results.",
+        description: "Thank you for completing the pre-assessment questionnaire. We'll be in touch soon!",
       });
 
-      // Redirect to contact page after submission
-      window.location.href = "/contact";
+      form.reset();
+      window.location.href = "/services/efficiency-audit";
     } catch (error) {
       toast({
         title: "Error",
@@ -157,27 +192,41 @@ export default function PreAssessmentQuestionnairePage() {
           <div className="space-y-6">
             <FormField
               control={form.control}
-              name="legalBusinessName"
+              name="businessName"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Legal Business Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="ABC Innovations LLC" {...field} />
+                    <Input placeholder="Enter your business name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="contactName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter contact name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Contact Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="info@abcinnovations.com" {...field} />
+                      <Input placeholder="Enter phone number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,243 +235,85 @@ export default function PreAssessmentQuestionnairePage() {
 
               <FormField
                 control={form.control}
-                name="phone"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Contact Email Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 (555) 123-4567" {...field} />
+                      <Input placeholder="Enter email address" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="businessSlogan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Slogan or Tagline</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Innovating the Future" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="coreValues"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Core Values</FormLabel>
-                  <div className="grid grid-cols-2 gap-4">
-                    {CORE_VALUES.map((value) => (
-                      <FormField
-                        key={value}
-                        control={form.control}
-                        name="coreValues"
-                        render={({ field }) => (
-                          <FormItem
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(value)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, value])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (item) => item !== value
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {value}
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="missionStatement"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mission Statement</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Our mission is to leverage AI solutions..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="visionStatement"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vision Statement</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="To be the global leader in AI-driven operational efficiency..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
         );
 
       case 1:
         return (
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="locations"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Locations</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="3" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="employeesPerLocation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Employees per Location</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Location 1: 10 employees&#10;Location 2: 8 employees&#10;Location 3: 5 employees"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="productsServices"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Products/Services Offered</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Product A: Accounting Platform&#10;Service B: HR Consulting"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="operationalPainPoints"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Biggest Operational Pain Points</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="1. Data entry takes too long&#10;2. Scheduling conflicts in team collaboration"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Departmental Technology Stacks & Tools</h3>
+              <div className="flex justify-between items-center">
+                <Label>Products and Services</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendService({ name: "", description: "" })}
+                  disabled={serviceFields.length >= 15}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Service/Product
+                </Button>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="technology.accounting"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Accounting</FormLabel>
-                    <FormControl>
-                      <Input placeholder="QuickBooks Online, Xero Cloud" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {serviceFields.map((field, index) => (
+                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-medium">Service/Product {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeService(index)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
 
-              <FormField
-                control={form.control}
-                name="technology.administration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Administration/Data Management</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Google Sheets, SQL Database for inventory" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name={`services.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Service/Product name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="technology.operations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Operations (POS/Inventory/Project Management)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Square POS, Zoho Inventory, Asana" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="technology.marketing"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Marketing & Sales Tools</FormLabel>
-                    <FormControl>
-                      <Input placeholder="MailChimp, HubSpot CRM, Hootsuite" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name={`services.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe this service or product"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -430,87 +321,245 @@ export default function PreAssessmentQuestionnairePage() {
       case 2:
         return (
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="manualTasks"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Manual Tasks or Processes to Potentially Automate</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Manual invoice entry&#10;Copy-pasting client emails from spreadsheets"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="totalEmployees"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Number of Employees</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="Enter number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="efficiencyImprovements"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Key Areas Needing Efficiency Improvements</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Inventory restocking notifications&#10;Customer follow-ups"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="totalLocations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Number of Locations</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="Enter number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Technology Stack</h3>
+
+              {TECHNOLOGY_FIELDS.map(({ key, label }) => (
+                <div key={key} className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name={`technology.${key}.value`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{label}</FormLabel>
+                        <div className="flex gap-4 items-center">
+                          <FormControl>
+                            <Input
+                              placeholder={`Enter ${label.toLowerCase()} tools`}
+                              {...field}
+                              disabled={form.watch(`technology.${key}.none`)}
+                            />
+                          </FormControl>
+                          <FormField
+                            control={form.control}
+                            name={`technology.${key}.none`}
+                            render={({ field: checkboxField }) => (
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={checkboxField.value}
+                                    onCheckedChange={(checked) => {
+                                      checkboxField.onChange(checked);
+                                      if (checked) {
+                                        form.setValue(`technology.${key}.value`, "");
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm">None</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         );
 
       case 3:
         return (
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="preferredContact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preferred Contact Method</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
+            {/* Workflows */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Workflows to Automate/Optimize</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendWorkflow({ description: "" })}
+                  disabled={workflowFields.length >= 10}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Workflow
+                </Button>
+              </div>
+
+              {workflowFields.map((field, index) => (
+                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-medium">Workflow {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeWorkflow(index)}
                     >
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="Email" id="email" />
-                        <Label htmlFor="email">Email</Label>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="Phone" id="phone" />
-                        <Label htmlFor="phone">Phone</Label>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <RadioGroupItem value="Video Call" id="video" />
-                        <Label htmlFor="video">Video Call</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name={`workflows.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the workflow that needs automation"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Business Challenges */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>Business Challenges</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendChallenge({ description: "" })}
+                  disabled={challengeFields.length >= 10}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Challenge
+                </Button>
+              </div>
+
+              {challengeFields.map((field, index) => (
+                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-medium">Challenge {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeChallenge(index)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name={`challenges.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the business challenge"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Integration Needs */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label>System Integration Needs</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendIntegration({ description: "" })}
+                  disabled={integrationFields.length >= 10}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Integration
+                </Button>
+              </div>
+
+              {integrationFields.map((field, index) => (
+                <div key={field.id} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-medium">Integration {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeIntegration(index)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name={`integrationNeeds.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the integration need"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
 
             <FormField
               control={form.control}
-              name="additionalNotes"
+              name="growthGoals"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Additional Notes or Special Requests</FormLabel>
+                  <FormLabel>Top Goals for Growth or Improvement</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Please send a calendar invite&#10;I'm usually available afternoons"
+                      placeholder="E.g., Increase sales, launch new products, automate processes"
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -540,9 +589,9 @@ export default function PreAssessmentQuestionnairePage() {
         </Link>
         <h1 className="text-4xl font-bold mb-4">Pre-Assessment Questionnaire</h1>
         <p className="text-lg text-muted-foreground">
-          Thank you for your interest in our Business Efficiency & Savings Assessment!
-          Please take 5–10 minutes to answer the following questions to help us understand
-          your business and identify areas for improvement.
+          Help us understand your business better so we can identify opportunities
+          for improvement and automation. This information will help us prepare a
+          tailored solution for your needs.
         </p>
       </motion.div>
 
@@ -580,7 +629,7 @@ export default function PreAssessmentQuestionnairePage() {
 
                   {currentStep === steps.length - 1 ? (
                     <Button type="submit">
-                      Submit and Contact Us
+                      Submit Assessment
                     </Button>
                   ) : (
                     <Button type="button" onClick={handleNext}>

@@ -350,7 +350,7 @@ export default function HomePage() {
 
         {/* Contact CTA */}
         <section id="contact" className="bg-primary/5 rounded-2xl p-16 text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Business?</h2>
+          <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Business?</h2>
           <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
             Take the first step towards AI-powered efficiency. Contact us today to discuss your unique business needs and how we can help.
           </p>
@@ -359,7 +359,7 @@ export default function HomePage() {
               <Link href="/contact">Contact Us</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="font-semibold">
-              <Link href="/contact">Get Started</Link>
+              <Link href="/contact">Request Solution</Link>
             </Button>
           </div>
         </section>

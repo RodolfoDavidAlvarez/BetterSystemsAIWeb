@@ -130,7 +130,7 @@ export default function BusinessInquiryForm() {
         },
         body: JSON.stringify({
           ...values,
-          formIdentifier: "Get Started Form"
+          formIdentifier: "Request Solution Form"
         }),
       });
 

@@ -359,7 +359,7 @@ export default function HomePage() {
               <Link href="/contact">Contact Us</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="font-semibold">
-              <Link href="/contact">Get Started</Link>
+              <Link href="/contact">Request Solution</Link>
             </Button>
           </div>
         </section>

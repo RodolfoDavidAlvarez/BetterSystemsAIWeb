@@ -20,7 +20,7 @@ export default function Hero() {
             </p>
             <div className="flex gap-4">
               <Button asChild size="lg">
-                <Link href="/get-started">Request Solution</Link>
+                <Link href="/get-started">Get Started</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/contact">Contact Us</Link>

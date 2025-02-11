@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,31 +28,19 @@ const formSchema = z.object({
   phone: z.string().min(10, "Please enter a valid phone number").max(20, "Phone number too long"),
   company: z.string().min(2, "Company name must be at least 2 characters"),
   industry: z.string().min(1, "Please select an industry"),
-  currentChallenges: z.string().min(10, "Please describe your challenges"),
-  whyInterested: z.string().min(10, "Please tell us why you're interested in AI solutions"),
-  interestedServices: z.string().min(1, "Please select a service"),
+  currentChallenges: z.string(),
+  whyInterested: z.string().optional(),
   timeline: z.string().min(1, "Please select a timeline"),
   communicationPreference: z.string().min(1, "Please select your preferred communication method"),
   additionalInfo: z.string().optional(),
 });
 
-const steps = [
-  {
-    id: 'basic',
-    title: 'Basic Information',
-    description: 'Tell us about you and your company',
-  },
-  {
-    id: 'details',
-    title: 'Business Details',
-    description: 'Help us understand your business better',
-  },
-  {
-    id: 'specifics',
-    title: 'Project Specifics',
-    description: 'Details about your project requirements',
-  },
-];
+type FormValues = z.infer<typeof formSchema>;
+
+interface FormStep {
+  title: string;
+  description: string;
+}
 
 export default function BusinessInquiryForm() {
   const [step, setStep] = useState(0);
@@ -60,7 +48,7 @@ export default function BusinessInquiryForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -70,17 +58,26 @@ export default function BusinessInquiryForm() {
       industry: "",
       currentChallenges: "",
       whyInterested: "",
-      interestedServices: "",
       timeline: "",
       additionalInfo: "",
       communicationPreference: "",
     },
   });
 
-  useEffect(() => {
-    console.log('Form state:', form.formState);
-    console.log('Current values:', form.getValues());
-  }, [form.formState]);
+  const steps: FormStep[] = [
+    {
+      title: "Basic Information",
+      description: "Let's start with your basic business information"
+    },
+    {
+      title: "Business Details",
+      description: "Help us understand your business better"
+    },
+    {
+      title: "Project Specifics",
+      description: "Details about your project requirements"
+    },
+  ];
 
   const getFieldsForStep = (stepIndex: number) => {
     switch (stepIndex) {
@@ -89,27 +86,13 @@ export default function BusinessInquiryForm() {
       case 1:
         return ['industry', 'currentChallenges', 'whyInterested'];
       case 2:
-        return ['interestedServices', 'timeline', 'communicationPreference', 'additionalInfo'];
+        return ['timeline', 'communicationPreference', 'additionalInfo'];
       default:
         return [];
     }
   };
 
-  const nextStep = async () => {
-    const fields = getFieldsForStep(step);
-    const results = await Promise.all(
-      fields.map(field => form.trigger(field as any))
-    );
-    if (results.every(Boolean)) {
-      setStep((s) => Math.min(s + 1, steps.length - 1));
-    }
-  };
-
-  const prevStep = () => {
-    setStep((s) => Math.max(s - 1, 0));
-  };
-
-  const handleFormSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     const values = form.getValues();
@@ -138,7 +121,6 @@ export default function BusinessInquiryForm() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      console.log('Form submitted successfully');
       setIsSuccess(true);
       form.reset();
     } catch (error) {
@@ -151,6 +133,20 @@ export default function BusinessInquiryForm() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const nextStep = async () => {
+    const fields = getFieldsForStep(step);
+    const results = await Promise.all(
+      fields.map(field => form.trigger(field as any))
+    );
+    if (results.every(Boolean)) {
+      setStep((s) => Math.min(s + 1, steps.length - 1));
+    }
+  };
+
+  const prevStep = () => {
+    setStep((s) => Math.max(s - 1, 0));
   };
 
   if (isSuccess) {
@@ -197,7 +193,7 @@ export default function BusinessInquiryForm() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {step === 0 && (
             <>
               <FormField
@@ -304,10 +300,10 @@ export default function BusinessInquiryForm() {
                 name="whyInterested"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Why are you interested in AI solutions?</FormLabel>
+                    <FormLabel>What solution are you looking to implement?</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell us why you're looking into AI solutions..."
+                        placeholder="Tell us about the solution you're looking for..."
                         className="min-h-[100px]"
                         {...field}
                       />
@@ -321,29 +317,6 @@ export default function BusinessInquiryForm() {
 
           {step === 2 && (
             <>
-              <FormField
-                control={form.control}
-                name="interestedServices"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Interested Services</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select service" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="ai-assistants">AI Assistants</SelectItem>
-                        <SelectItem value="efficiency-audit">Efficiency Audit</SelectItem>
-                        <SelectItem value="fleet-management">Fleet Management</SelectItem>
-                        <SelectItem value="custom-solutions">Custom Solutions</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="timeline"

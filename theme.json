@@ -2,8 +2,10 @@
   "name": "better-systems",
   "type": "dark",
   "colors": {
-    "primary": "#3b82f6",
-    "primary-foreground": "#ffffff",
+    "primary": {
+      "DEFAULT": "#3b82f6",
+      "foreground": "#ffffff"
+    },
     "secondary": {
       "DEFAULT": "#374151",
       "foreground": "#ffffff"
@@ -32,9 +34,15 @@
       "DEFAULT": "#000000",
       "foreground": "#ffffff"
     },
-    "border": "#1f2937",
-    "input": "#1f2937",
-    "ring": "#3b82f6"
+    "border": {
+      "DEFAULT": "#1f2937"
+    },
+    "input": {
+      "DEFAULT": "#1f2937"
+    },
+    "ring": {
+      "DEFAULT": "#3b82f6"
+    }
   },
   "borderRadius": {
     "lg": "0.5rem",

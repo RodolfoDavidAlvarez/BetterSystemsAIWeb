@@ -140,41 +140,50 @@ export default function PreAssessmentQuestionnairePage() {
     }
   ];
 
-  const findFirstErrorStep = (errors: Record<string, any>) => {
-    const errorFields = Object.keys(errors);
-    if (errorFields.length === 0) return -1;
+  const findFirstErrorField = () => {
+    const errors = form.formState.errors;
+    let firstErrorStep = -1;
+    let firstErrorField = '';
 
-    const stepMapping: Record<string, number> = {
-      businessName: 0,
-      contactName: 0,
-      phone: 0,
-      email: 0,
-      services: 1,
-      totalEmployees: 2,
-      totalLocations: 2,
-      technology: 2,
-      workflows: 3,
-      challenges: 3,
-      integrationNeeds: 3,
-      growthGoals: 3,
-    };
+    // Check all fields across all steps
+    for (let i = 0; i < steps.length; i++) {
+      const fields = getFieldsForStep(i);
+      for (const field of fields) {
+        const fieldParts = field.split('.');
+        let current: any = errors;
+        for (const part of fieldParts) {
+          current = current?.[part];
+          if (!current) break;
+        }
+        if (current) {
+          firstErrorStep = i;
+          firstErrorField = field;
+          break;
+        }
+      }
+      if (firstErrorStep !== -1) break;
+    }
 
-    return Math.min(...errorFields.map(field => stepMapping[field] || 0));
+    return { step: firstErrorStep, field: firstErrorField };
   };
 
-  const scrollToError = () => {
+  const scrollToField = (fieldName: string) => {
     setTimeout(() => {
-      const errorElement = document.querySelector('[data-error="true"]');
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const element = document.querySelector(`[name="${fieldName}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (element instanceof HTMLElement) {
+          element.focus();
+        }
       }
     }, 100);
   };
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
-    const errors = form.formState.errors;
-    const firstErrorStep = findFirstErrorStep(errors);
+
+    // Check for errors and navigate to the first error field
+    const { step: firstErrorStep, field: firstErrorField } = findFirstErrorField();
 
     if (firstErrorStep !== -1) {
       setCurrentStep(firstErrorStep);
@@ -183,7 +192,9 @@ export default function PreAssessmentQuestionnairePage() {
         description: "Some required fields need your attention",
         variant: "destructive",
       });
-      scrollToError();
+
+      // Wait for the step change to complete before scrolling
+      setTimeout(() => scrollToField(firstErrorField), 100);
       setIsSubmitting(false);
       return;
     }
@@ -654,9 +665,28 @@ export default function PreAssessmentQuestionnairePage() {
     const results = await Promise.all(
       fields.map(field => form.trigger(field as any))
     );
+
     if (results.every(Boolean)) {
       setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-      scrollToTop();
+      // Scroll to top after step change
+      setTimeout(() => {
+        const formContainer = document.querySelector('.form-container');
+        if (formContainer) {
+          formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Focus first input in new step
+          const firstInput = formContainer.querySelector('input, textarea, select');
+          if (firstInput instanceof HTMLElement) {
+            firstInput.focus();
+          }
+        }
+      }, 100);
+    } else {
+      // If there are errors, find and scroll to the first error
+      const { step: firstErrorStep, field: firstErrorField } = findFirstErrorField();
+      if (firstErrorStep !== -1) {
+        setCurrentStep(firstErrorStep);
+        scrollToField(firstErrorField);
+      }
     }
   };
 

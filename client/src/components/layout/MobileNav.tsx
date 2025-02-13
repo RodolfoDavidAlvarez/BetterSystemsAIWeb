@@ -34,17 +34,6 @@ export default function MobileNav() {
                   </Link>
                 </div>
               ))}
-              <div className="flex justify-end w-full pt-4 pr-2">
-                <Button 
-                  asChild 
-                  variant="default" 
-                  className="w-[85%] bg-primary hover:bg-primary/90 transition-colors py-6"
-                >
-                  <Link href="/booking" className="flex justify-end">
-                    Book Consultation
-                  </Link>
-                </Button>
-              </div>
             </div>
           </div>
         </DrawerContent>

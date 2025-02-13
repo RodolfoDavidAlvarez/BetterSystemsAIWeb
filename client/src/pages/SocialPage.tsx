@@ -44,12 +44,6 @@ const socialLinks: SocialLink[] = [
     icon: CalendarDays,
     color: "bg-[#006BFF] hover:bg-[#0056CC]",
   },
-  {
-    title: "Book a Consultation",
-    href: "/booking",
-    icon: CalendarDays,
-    color: "bg-primary hover:bg-primary/90",
-  },
 ];
 
 const SocialPage: React.FC = () => {

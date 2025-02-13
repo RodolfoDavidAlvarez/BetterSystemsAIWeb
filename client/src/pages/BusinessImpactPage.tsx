@@ -158,9 +158,6 @@ export default function BusinessImpactPage() {
           <Button size="lg" asChild>
             <a href="/contact">Get Started</a>
           </Button>
-          <Button variant="outline" size="lg" asChild>
-            <a href="/booking">Schedule Consultation</a>
-          </Button>
         </div>
       </section>
     </div>

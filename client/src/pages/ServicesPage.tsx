@@ -66,7 +66,7 @@ export default function ServicesPage() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
             <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
             <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-6">
               {service.benefits.map((benefit, idx) => (
                 <motion.div 
@@ -92,21 +92,19 @@ export default function ServicesPage() {
                 <Link href={service.href}>Explore Service →</Link>
               </Button>
               <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
-                  <Link 
-                    href={
-                      service.title === "Business Efficiency and Profit Maximization Audit" 
-                        ? "/services/pre-assessment"
-                        : service.title === "Request Your Custom Business Solution"
-                        ? "/get-started"
-                        : "/booking"
-                    }
-                  >
-                    {service.title === "Business Efficiency and Profit Maximization Audit"
-                      ? "Start Assessment" 
-                      : "Request Solution"
-                    }
-                  </Link>
-                </Button>
+                <Link 
+                  href={
+                    service.title === "Business Efficiency and Profit Maximization Audit" 
+                      ? "/services/pre-assessment"
+                      : "/get-started"
+                  }
+                >
+                  {service.title === "Business Efficiency and Profit Maximization Audit"
+                    ? "Start Assessment" 
+                    : "Request Solution"
+                  }
+                </Link>
+              </Button>
             </div>
           </motion.section>
         ))}

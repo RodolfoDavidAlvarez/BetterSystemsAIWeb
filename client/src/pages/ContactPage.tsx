@@ -29,16 +29,34 @@ export default function ContactPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log('Question submitted:', values);
+      const webhookUrl = "https://hooks.airtable.com/workflows/v1/genericWebhook/app4VGBeWwLCiPEwX/wflL6SG3tAhYP5pGr/wtrjrFUKT0UPl9u5h";
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          form_name: "Contact us",
+          name: values.name,
+          email: values.email,
+          message: values.question,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
+
       toast({
-        title: "Question Sent!",
+        title: "Message Sent!",
         description: "We'll get back to you as soon as possible.",
       });
       form.reset();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to send question. Please try again.",
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     }
@@ -54,35 +72,9 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-0">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4">Schedule a Consultation</h2>
-              <p className="text-muted-foreground mb-6">
-                Book a free consultation with our experts to discuss your business needs.
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/booking">Book Consultation</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-0">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-4">Connect on Social</h2>
-              <p className="text-muted-foreground mb-6">
-                Follow us on social media for the latest updates and insights.
-              </p>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/founders-social">Social Links</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
         <Card className="shadow-sm border-0 mb-8">
           <CardContent className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Ask Us a Question</h2>
+            <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -126,7 +118,7 @@ export default function ContactPage() {
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <MessageSquare className="h-4 w-4" />
-                        Your Question
+                        Your Message
                       </FormLabel>
                       <FormControl>
                         <Textarea
@@ -141,10 +133,22 @@ export default function ContactPage() {
                 />
 
                 <Button type="submit" className="w-full">
-                  Send Question
+                  Send Message
                 </Button>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-0">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold mb-4">Connect on Social</h2>
+            <p className="text-muted-foreground mb-6">
+              Follow us on social media for the latest updates and insights.
+            </p>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/founders-social">Social Links</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

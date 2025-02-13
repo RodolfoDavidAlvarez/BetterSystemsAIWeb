@@ -245,9 +245,6 @@ export default function FleetManagementPage() {
           <Button asChild size="lg">
             <Link href="/get-started">Request Solution</Link>
           </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/booking">Schedule Demo</Link>
-          </Button>
         </div>
       </div>
     </div>

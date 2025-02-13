@@ -79,6 +79,7 @@ export default function PreAssessmentQuestionnairePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -98,7 +99,8 @@ export default function PreAssessmentQuestionnairePage() {
       challenges: [],
       integrationNeeds: [],
       growthGoals: ""
-    }
+    },
+    mode: "onTouched" // Only validate on first interaction and submit
   });
 
   const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -145,7 +147,6 @@ export default function PreAssessmentQuestionnairePage() {
     let firstErrorStep = -1;
     let firstErrorField = '';
 
-    // Check all fields across all steps
     for (let i = 0; i < steps.length; i++) {
       const fields = getFieldsForStep(i);
       for (const field of fields) {
@@ -168,21 +169,22 @@ export default function PreAssessmentQuestionnairePage() {
   };
 
   const scrollToField = (fieldName: string) => {
-    setTimeout(() => {
-      const element = document.querySelector(`[name="${fieldName}"]`);
-      if (element) {
+    const element = document.querySelector(`[name="${fieldName}"]`);
+    if (element && element instanceof HTMLElement) {
+      // Only change focus if the element isn't already focused
+      if (document.activeElement !== element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (element instanceof HTMLElement) {
+        // Add a small delay before focusing to ensure smooth scrolling
+        setTimeout(() => {
           element.focus();
-        }
+        }, 100);
       }
-    }, 100);
+    }
   };
 
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
 
-    // Check for errors and navigate to the first error field
     const { step: firstErrorStep, field: firstErrorField } = findFirstErrorField();
 
     if (firstErrorStep !== -1) {
@@ -193,7 +195,6 @@ export default function PreAssessmentQuestionnairePage() {
         variant: "destructive",
       });
 
-      // Wait for the step change to complete before scrolling
       setTimeout(() => scrollToField(firstErrorField), 100);
       setIsSubmitting(false);
       return;
@@ -219,6 +220,7 @@ export default function PreAssessmentQuestionnairePage() {
 
       form.reset();
       window.location.href = "/services/efficiency-audit";
+      setIsSuccess(true);
     } catch (error) {
       toast({
         title: "Error",
@@ -662,29 +664,36 @@ export default function PreAssessmentQuestionnairePage() {
 
   const nextStep = async () => {
     const fields = getFieldsForStep(currentStep);
-    const results = await Promise.all(
-      fields.map(field => form.trigger(field as any))
-    );
 
-    if (results.every(Boolean)) {
-      setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
-      // Scroll to top after step change
+    // Validate current step's fields
+    const isValid = await form.trigger(fields as any[]);
+
+    if (isValid) {
+      const nextStepIndex = Math.min(currentStep + 1, steps.length - 1);
+      setCurrentStep(nextStepIndex);
+
+      // Wait for state update before scrolling
       setTimeout(() => {
         const formContainer = document.querySelector('.form-container');
         if (formContainer) {
           formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          // Focus first input in new step
-          const firstInput = formContainer.querySelector('input, textarea, select');
-          if (firstInput instanceof HTMLElement) {
-            firstInput.focus();
-          }
+
+          // Focus first input in new step after scrolling completes
+          setTimeout(() => {
+            const firstInput = formContainer.querySelector('input, textarea, select');
+            if (firstInput instanceof HTMLElement) {
+              firstInput.focus();
+            }
+          }, 100);
         }
-      }, 100);
+      }, 0);
     } else {
-      // If there are errors, find and scroll to the first error
-      const { step: firstErrorStep, field: firstErrorField } = findFirstErrorField();
-      if (firstErrorStep !== -1) {
-        setCurrentStep(firstErrorStep);
+      // Find the first error field in current step only
+      const firstErrorField = fields.find(field => 
+        form.getFieldState(field as any).error
+      );
+
+      if (firstErrorField) {
         scrollToField(firstErrorField);
       }
     }

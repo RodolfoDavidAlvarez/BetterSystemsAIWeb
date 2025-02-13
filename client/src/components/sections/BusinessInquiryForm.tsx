@@ -151,17 +151,30 @@ export default function RequestSolutionForm() {
 
   if (isSuccess) {
     return (
-      <div className="w-full max-w-3xl mx-auto text-center space-y-6">
-        <div className="rounded-full w-16 h-16 bg-green-100 mx-auto flex items-center justify-center">
-          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+      <div className="w-full max-w-3xl mx-auto bg-white p-12 rounded-lg shadow-sm space-y-8">
+        <div className="rounded-full w-24 h-24 bg-green-100 mx-auto flex items-center justify-center">
+          <svg 
+            className="w-12 h-12 text-green-600" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth="2" 
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Thank You for Your Request!</h2>
-        <p className="text-gray-600 max-w-md mx-auto">
-          We've successfully received your solution request. Our team will review your information and get back to you within 1-2 business days through your preferred communication method.
-        </p>
-        <div className="pt-6">
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl font-bold text-gray-900">Thank You for Your Request!</h2>
+          <p className="text-lg text-gray-600 max-w-lg mx-auto">
+            We've successfully received your solution request. Our team will review your information and get back to you within 1-2 business days through your preferred communication method.
+          </p>
+        </div>
+        <div className="pt-8">
           <Button
             onClick={() => {
               setIsSuccess(false);
@@ -169,6 +182,7 @@ export default function RequestSolutionForm() {
               setStep(0);
             }}
             variant="outline"
+            className="mx-auto block min-w-[200px]"
           >
             Submit Another Request
           </Button>

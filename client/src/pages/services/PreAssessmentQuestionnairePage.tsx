@@ -171,15 +171,20 @@ export default function PreAssessmentQuestionnairePage() {
     <FormField
       control={form.control}
       name={fieldName as any}
-      render={({ field, fieldState }) => (
-        <FormItemWithError error={!!fieldState.error}>
+      render={({ field }) => (
+        <FormItemWithError error={!!form.formState.errors[fieldName]}>
           <FormItem>
             <FormLabel>{label}</FormLabel>
             <FormControl>
               <Input
                 placeholder={placeholder}
                 {...field}
-                value={typeof field.value === 'string' ? field.value : ''}
+                value={field.value || ''}
+                onChange={(e) => {
+                  field.onChange(e);
+                  // Prevent focus loss by handling the change directly
+                  e.target.focus();
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -193,15 +198,20 @@ export default function PreAssessmentQuestionnairePage() {
     <FormField
       control={form.control}
       name={fieldName as any}
-      render={({ field, fieldState }) => (
-        <FormItemWithError error={!!fieldState.error}>
+      render={({ field }) => (
+        <FormItemWithError error={!!form.formState.errors[fieldName]}>
           <FormItem>
             {label && <FormLabel>{label}</FormLabel>}
             <FormControl>
               <Textarea
                 placeholder={placeholder}
                 {...field}
-                value={typeof field.value === 'string' ? field.value : ''}
+                value={field.value || ''}
+                onChange={(e) => {
+                  field.onChange(e);
+                  // Prevent focus loss by handling the change directly
+                  e.target.focus();
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -219,8 +229,8 @@ export default function PreAssessmentQuestionnairePage() {
         <FormField
           control={form.control}
           name={`technology.${key}.value` as any}
-          render={({ field, fieldState }) => (
-            <FormItemWithError error={!!fieldState.error}>
+          render={({ field }) => (
+            <FormItemWithError error={!!form.formState.errors.technology?.[key]?.value}>
               <FormItem>
                 <FormLabel>{label}</FormLabel>
                 <div className="flex gap-4 items-center">
@@ -232,6 +242,8 @@ export default function PreAssessmentQuestionnairePage() {
                       onChange={(e) => {
                         field.onChange(e);
                         form.setValue(`technology.${key}.none`, false);
+                        // Prevent focus loss by handling the change directly
+                        e.target.focus();
                       }}
                     />
                   </FormControl>

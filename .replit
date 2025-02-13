@@ -60,7 +60,7 @@ args = "Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Dev Server"
+args = "Start application"
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -92,7 +92,7 @@ args = "cd server && tsx index.ts"
 waitForPort = 3000
 
 [[workflows.workflow]]
-name = "Client Dev Server"
+name = "Start application"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -103,5 +103,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev -- --host 0.0.0.0 --port 5173"
+args = "cd /home/runner/BetterSystemsAIWeb/client && npm run dev"
 waitForPort = 5173

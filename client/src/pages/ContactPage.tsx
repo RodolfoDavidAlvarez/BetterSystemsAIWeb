@@ -29,9 +29,7 @@ export default function ContactPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const webhookUrl = "https://hooks.airtable.com/workflows/v1/genericWebhook/app4VGBeWwLCiPEwX/wflL6SG3tAhYP5pGr/wtrjrFUKT0UPl9u5h";
-
-      const response = await fetch(webhookUrl, {
+      const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,6 +70,7 @@ export default function ContactPage() {
           </p>
         </div>
 
+        {/* Contact Form */}
         <Card className="shadow-sm border-0 mb-8">
           <CardContent className="p-8">
             <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
@@ -140,6 +139,7 @@ export default function ContactPage() {
           </CardContent>
         </Card>
 
+        {/* Social Links Card */}
         <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-0">
           <CardContent className="p-6">
             <h2 className="text-xl font-bold mb-4">Connect on Social</h2>

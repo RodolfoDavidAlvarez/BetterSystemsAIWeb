@@ -2,47 +2,25 @@
   "name": "better-systems",
   "type": "dark",
   "colors": {
-    "primary": {
-      "DEFAULT": "#3b82f6",
-      "foreground": "#ffffff"
-    },
-    "secondary": {
-      "DEFAULT": "#374151",
-      "foreground": "#ffffff"
-    },
-    "background": {
-      "DEFAULT": "#000000",
-      "foreground": "#ffffff"
-    },
-    "destructive": {
-      "DEFAULT": "#991b1b",
-      "foreground": "#ffffff"
-    },
-    "muted": {
-      "DEFAULT": "#1f2937",
-      "foreground": "#9ca3af"
-    },
-    "accent": {
-      "DEFAULT": "#1f2937",
-      "foreground": "#ffffff"
-    },
-    "popover": {
-      "DEFAULT": "#000000",
-      "foreground": "#ffffff"
-    },
-    "card": {
-      "DEFAULT": "#000000",
-      "foreground": "#ffffff"
-    },
-    "border": {
-      "DEFAULT": "#1f2937"
-    },
-    "input": {
-      "DEFAULT": "#1f2937"
-    },
-    "ring": {
-      "DEFAULT": "#3b82f6"
-    }
+    "primary": "#3b82f6",
+    "primary-foreground": "#ffffff",
+    "secondary": "#374151",
+    "secondary-foreground": "#ffffff",
+    "background": "#000000",
+    "background-foreground": "#ffffff",
+    "destructive": "#991b1b",
+    "destructive-foreground": "#ffffff",
+    "muted": "#1f2937",
+    "muted-foreground": "#9ca3af",
+    "accent": "#1f2937",
+    "accent-foreground": "#ffffff",
+    "popover": "#000000",
+    "popover-foreground": "#ffffff",
+    "card": "#000000",
+    "card-foreground": "#ffffff",
+    "border": "#1f2937",
+    "input": "#1f2937",
+    "ring": "#3b82f6"
   },
   "borderRadius": {
     "lg": "0.5rem",

@@ -1,4 +1,4 @@
-import RequestSolutionForm from "@/components/sections/RequestSolutionForm";
+import RequestSolutionForm from "@/components/sections/BusinessInquiryForm";
 
 export default function GetStartedPage() {
   return (

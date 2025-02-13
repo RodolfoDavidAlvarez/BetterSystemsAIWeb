@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
@@ -76,7 +76,9 @@ interface FormStep {
 
 export default function PreAssessmentQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -138,24 +140,54 @@ export default function PreAssessmentQuestionnairePage() {
     }
   ];
 
-  const handleNext = () => {
-    const currentFields = Object.keys(form.formState.errors);
-    if (currentFields.length === 0) {
-      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
-    } else {
-      toast({
-        title: "Please check your inputs",
-        description: "Some fields require your attention",
-        variant: "destructive",
-      });
-    }
+  const findFirstErrorStep = (errors: Record<string, any>) => {
+    const errorFields = Object.keys(errors);
+    if (errorFields.length === 0) return -1;
+
+    const stepMapping: Record<string, number> = {
+      businessName: 0,
+      contactName: 0,
+      phone: 0,
+      email: 0,
+      services: 1,
+      totalEmployees: 2,
+      totalLocations: 2,
+      technology: 2,
+      workflows: 3,
+      challenges: 3,
+      integrationNeeds: 3,
+      growthGoals: 3,
+    };
+
+    return Math.min(...errorFields.map(field => stepMapping[field] || 0));
   };
 
-  const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
+  const scrollToError = () => {
+    setTimeout(() => {
+      const errorElement = document.querySelector('[data-error="true"]');
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   };
 
   const onSubmit = async (values: FormValues) => {
+    setIsSubmitting(true);
+    const errors = form.formState.errors;
+    const firstErrorStep = findFirstErrorStep(errors);
+
+    if (firstErrorStep !== -1) {
+      setCurrentStep(firstErrorStep);
+      toast({
+        title: "Please check your inputs",
+        description: "Some required fields need your attention",
+        variant: "destructive",
+      });
+      scrollToError();
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch("https://hook.us1.make.com/onwbnec5advmcbxw242fb1u9cqd0frd2", {
         method: "POST",
@@ -182,8 +214,16 @@ export default function PreAssessmentQuestionnairePage() {
         description: "Failed to submit the form. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const FormItemWithError = ({ children, error }: { children: React.ReactNode; error?: boolean }) => (
+    <div data-error={error} className="relative">
+      {children}
+    </div>
+  );
 
   const renderStep = () => {
     switch (currentStep) {
@@ -194,62 +234,66 @@ export default function PreAssessmentQuestionnairePage() {
               control={form.control}
               name="businessName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Legal Business Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your company's legal business name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormItemWithError error={!!form.formState.errors.businessName}>
+                  <FormItem>
+                    <FormLabel>Legal Business Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your company's legal business name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormItemWithError>
               )}
             />
-
             <FormField
               control={form.control}
               name="contactName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter the primary contact person's name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormItemWithError error={!!form.formState.errors.contactName}>
+                  <FormItem>
+                    <FormLabel>Contact Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter the primary contact person's name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormItemWithError>
               )}
             />
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter contact phone number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItemWithError error={!!form.formState.errors.phone}>
+                    <FormItem>
+                      <FormLabel>Contact Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter contact phone number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Email Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter contact email address" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItemWithError error={!!form.formState.errors.email}>
+                    <FormItem>
+                      <FormLabel>Contact Email Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter contact email address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
                 )}
               />
             </div>
           </div>
         );
-
       case 1:
         return (
           <div className="space-y-6">
@@ -267,7 +311,6 @@ export default function PreAssessmentQuestionnairePage() {
                   Add Service/Product
                 </Button>
               </div>
-
               {serviceFields.map((field, index) => (
                 <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
@@ -281,35 +324,37 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-
                   <FormField
                     control={form.control}
                     name={`services.${index}.name`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter service or product name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <FormItemWithError error={!!form.formState.errors.services?.[index]?.name}>
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter service or product name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormItemWithError>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name={`services.${index}.description`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Provide a detailed description of this service or product"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <FormItemWithError error={!!form.formState.errors.services?.[index]?.description}>
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Provide a detailed description of this service or product"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormItemWithError>
                     )}
                   />
                 </div>
@@ -317,7 +362,6 @@ export default function PreAssessmentQuestionnairePage() {
             </div>
           </div>
         );
-
       case 2:
         return (
           <div className="space-y-6">
@@ -326,74 +370,77 @@ export default function PreAssessmentQuestionnairePage() {
                 control={form.control}
                 name="totalEmployees"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Number of Employees</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Enter total number of employees" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItemWithError error={!!form.formState.errors.totalEmployees}>
+                    <FormItem>
+                      <FormLabel>Total Number of Employees</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter total number of employees" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="totalLocations"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Number of Locations</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Enter total number of locations" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItemWithError error={!!form.formState.errors.totalLocations}>
+                    <FormItem>
+                      <FormLabel>Total Number of Locations</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter total number of locations" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
                 )}
               />
             </div>
-
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Technology Used</h3>
               <p className="text-sm text-muted-foreground">Select the tools and technologies used in each department. Check "None" if a particular technology is not used.</p>
-
               {TECHNOLOGY_FIELDS.map(({ key, label, placeholder }) => (
                 <div key={key} className="space-y-2">
                   <FormField
                     control={form.control}
                     name={`technology.${key}.value`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{label}</FormLabel>
-                        <div className="flex gap-4 items-center">
-                          <FormControl>
-                            <Input
-                              placeholder={placeholder}
-                              {...field}
-                              disabled={form.watch(`technology.${key}.none`)}
+                      <FormItemWithError error={!!form.formState.errors.technology?.[key]?.value}>
+                        <FormItem>
+                          <FormLabel>{label}</FormLabel>
+                          <div className="flex gap-4 items-center">
+                            <FormControl>
+                              <Input
+                                placeholder={placeholder}
+                                {...field}
+                                disabled={form.watch(`technology.${key}.none`)}
+                              />
+                            </FormControl>
+                            <FormField
+                              control={form.control}
+                              name={`technology.${key}.none`}
+                              render={({ field: checkboxField }) => (
+                                <FormItem className="flex items-center space-x-2">
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={checkboxField.value}
+                                      onCheckedChange={(checked) => {
+                                        checkboxField.onChange(checked);
+                                        if (checked) {
+                                          form.setValue(`technology.${key}.value`, "");
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="text-sm">None</FormLabel>
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormField
-                            control={form.control}
-                            name={`technology.${key}.none`}
-                            render={({ field: checkboxField }) => (
-                              <FormItem className="flex items-center space-x-2">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={checkboxField.value}
-                                    onCheckedChange={(checked) => {
-                                      checkboxField.onChange(checked);
-                                      if (checked) {
-                                        form.setValue(`technology.${key}.value`, "");
-                                      }
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-sm">None</FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      </FormItemWithError>
                     )}
                   />
                 </div>
@@ -401,11 +448,9 @@ export default function PreAssessmentQuestionnairePage() {
             </div>
           </div>
         );
-
       case 3:
         return (
           <div className="space-y-6">
-            {/* Workflows to Automate/Optimize */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>What are workflows in your business that you feel can be automated or optimized?</Label>
@@ -420,7 +465,6 @@ export default function PreAssessmentQuestionnairePage() {
                   Add Workflow
                 </Button>
               </div>
-
               {workflowFields.map((field, index) => (
                 <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
@@ -434,27 +478,26 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-
                   <FormField
                     control={form.control}
                     name={`workflows.${index}.description`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe a workflow or process that could be automated"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <FormItemWithError error={!!form.formState.errors.workflows?.[index]?.description}>
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe a workflow or process that could be automated"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormItemWithError>
                     )}
                   />
                 </div>
               ))}
             </div>
-
-            {/* Business Challenges */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>Any other business challenges we can help with?</Label>
@@ -469,7 +512,6 @@ export default function PreAssessmentQuestionnairePage() {
                   Add Challenge
                 </Button>
               </div>
-
               {challengeFields.map((field, index) => (
                 <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
@@ -483,27 +525,26 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-
                   <FormField
                     control={form.control}
                     name={`challenges.${index}.description`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe a business challenge you're facing"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <FormItemWithError error={!!form.formState.errors.challenges?.[index]?.description}>
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe a business challenge you're facing"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormItemWithError>
                     )}
                   />
                 </div>
               ))}
             </div>
-
-            {/* Integration Needs */}
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label>Do you need help integrating any systems?</Label>
@@ -518,7 +559,6 @@ export default function PreAssessmentQuestionnairePage() {
                   Add Integration
                 </Button>
               </div>
-
               {integrationFields.map((field, index) => (
                 <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
                   <div className="flex justify-between items-center">
@@ -532,49 +572,97 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-
                   <FormField
                     control={form.control}
                     name={`integrationNeeds.${index}.description`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe which systems need integration"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <FormItemWithError error={!!form.formState.errors.integrationNeeds?.[index]?.description}>
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe which systems need integration"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormItemWithError>
                     )}
                   />
                 </div>
               ))}
             </div>
-
             <FormField
               control={form.control}
               name="growthGoals"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What are your top goals for growth or improvement?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Examples: Increase sales, launch new products, automate processes, improve customer service, expand to new markets"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <FormItemWithError error={!!form.formState.errors.growthGoals}>
+                  <FormItem>
+                    <FormLabel>What are your top goals for growth or improvement?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Examples: Increase sales, launch new products, automate processes, improve customer service, expand to new markets"
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                </FormItemWithError>
               )}
             />
           </div>
         );
-
       default:
         return null;
     }
+  };
+
+  const getFieldsForStep = (step: number): string[] => {
+    switch (step) {
+      case 0:
+        return ["businessName", "contactName", "phone", "email"];
+      case 1:
+        return serviceFields.map(field => `services.${field.id}.name`);
+      case 2:
+        return ["totalEmployees", "totalLocations", ...Object.keys(form.getValues("technology")).map(key => `technology.${key}.value`)];
+      case 3:
+        return [...workflowFields.map(field => `workflows.${field.id}.description`),
+          ...challengeFields.map(field => `challenges.${field.id}.description`),
+          ...integrationFields.map(field => `integrationNeeds.${field.id}.description`),
+          "growthGoals"];
+      default:
+        return [];
+    }
+  };
+
+  const scrollToTop = () => {
+    setTimeout(() => {
+      const formContainer = document.querySelector('.form-container');
+      if (formContainer) {
+        formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const firstInput = formContainer.querySelector('input, textarea, select');
+        if (firstInput instanceof HTMLElement) {
+          firstInput.focus();
+        }
+      }
+    }, 100);
+  };
+
+  const nextStep = async () => {
+    const fields = getFieldsForStep(currentStep);
+    const results = await Promise.all(
+      fields.map(field => form.trigger(field as any))
+    );
+    if (results.every(Boolean)) {
+      setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+      scrollToTop();
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep((s) => Math.max(s - 1, 0));
+    scrollToTop();
   };
 
   return (
@@ -595,9 +683,8 @@ export default function PreAssessmentQuestionnairePage() {
           tailored solution for your needs.
         </p>
       </motion.div>
-
       <motion.div
-        className="max-w-3xl mx-auto"
+        className="max-w-3xl mx-auto form-container"
         variants={staggerChildren}
         initial="initial"
         animate="animate"
@@ -613,28 +700,37 @@ export default function PreAssessmentQuestionnairePage() {
               </div>
               <p className="text-muted-foreground">{steps[currentStep].description}</p>
             </div>
-
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {renderStep()}
-
                 <div className="flex justify-between mt-8 pt-4 border-t border-gray-800">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handlePrevious}
+                    onClick={prevStep}
                     disabled={currentStep === 0}
                   >
                     Previous
                   </Button>
 
                   {currentStep === steps.length - 1 ? (
-                    <Button type="submit">
-                      Submit Assessment
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || !form.formState.isValid}
+                      className="min-w-[120px] relative"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Submitting...</span>
+                        </div>
+                      ) : (
+                        "Submit Request"
+                      )}
                     </Button>
                   ) : (
-                    <Button type="button" onClick={handleNext}>
-                      Next Step
+                    <Button type="button" onClick={nextStep}>
+                      Next
                     </Button>
                   )}
                 </div>

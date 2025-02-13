@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
@@ -85,7 +85,7 @@ const scrollToField = (fieldName: string) => {
   setTimeout(() => {
     const element = document.querySelector(`[name="${fieldName}"]`);
     if (element && element instanceof HTMLElement) {
-      const offset = 100; // Add offset to account for fixed header
+      const offset = 100;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
 
@@ -102,8 +102,6 @@ export default function PreAssessmentQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const formRef = useRef<HTMLFormElement>(null);
-  const formContainerRef = useRef<HTMLDivElement>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -124,8 +122,9 @@ export default function PreAssessmentQuestionnairePage() {
       integrationNeeds: [],
       growthGoals: ""
     },
-    mode: "onBlur",
-    shouldFocusError: false,
+    mode: "onSubmit",
+    shouldFocusError: true,
+    criteriaMode: "firstError"
   });
 
   const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -261,8 +260,11 @@ export default function PreAssessmentQuestionnairePage() {
               <Input
                 placeholder={placeholder}
                 {...field}
-                value={typeof field.value === 'string' ? field.value : ''}
-                onBlur={field.onBlur}
+                value={field.value ?? ""}
+                onChange={(e) => {
+                  e.preventDefault();
+                  field.onChange(e.target.value);
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -284,8 +286,11 @@ export default function PreAssessmentQuestionnairePage() {
               <Textarea
                 placeholder={placeholder}
                 {...field}
-                value={typeof field.value === 'string' ? field.value : ''}
-                onBlur={field.onBlur}
+                value={field.value ?? ""}
+                onChange={(e) => {
+                  e.preventDefault();
+                  field.onChange(e.target.value);
+                }}
               />
             </FormControl>
             <FormMessage />
@@ -370,7 +375,10 @@ export default function PreAssessmentQuestionnairePage() {
                                 placeholder={placeholder}
                                 {...field}
                                 disabled={form.watch(`technology.${key}.none`)}
-                                onBlur={field.onBlur}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                  e.stopPropagation();
+                                }}
                               />
                             </FormControl>
                             <FormField

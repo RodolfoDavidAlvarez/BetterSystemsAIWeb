@@ -2,10 +2,8 @@
   "name": "better-systems",
   "type": "dark",
   "colors": {
-    "primary": {
-      "DEFAULT": "#3b82f6",
-      "foreground": "#ffffff"
-    },
+    "primary": "#3b82f6",
+    "primary-foreground": "#ffffff",
     "secondary": {
       "DEFAULT": "#374151",
       "foreground": "#ffffff"

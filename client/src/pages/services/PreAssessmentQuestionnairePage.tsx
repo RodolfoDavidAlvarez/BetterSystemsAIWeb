@@ -75,10 +75,10 @@ interface FormStep {
 }
 
 const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
+  const formContainer = document.querySelector('.form-container');
+  if (formContainer) {
+    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 };
 
 const scrollToField = (fieldName: string) => {
@@ -122,9 +122,10 @@ export default function PreAssessmentQuestionnairePage() {
       integrationNeeds: [],
       growthGoals: ""
     },
-    mode: "onSubmit",
-    shouldFocusError: true,
-    criteriaMode: "firstError"
+    mode: "onBlur",
+    shouldFocusError: false,
+    criteriaMode: "firstError",
+    reValidateMode: "onBlur"
   });
 
   const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -165,6 +166,104 @@ export default function PreAssessmentQuestionnairePage() {
       description: "Share your challenges and goals"
     }
   ];
+
+  const renderFormField = (fieldName: string, label: string, placeholder: string) => (
+    <FormField
+      control={form.control}
+      name={fieldName as any}
+      render={({ field, fieldState }) => (
+        <FormItemWithError error={!!fieldState.error}>
+          <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <FormControl>
+              <Input
+                placeholder={placeholder}
+                {...field}
+                value={typeof field.value === 'string' ? field.value : ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormItemWithError>
+      )}
+    />
+  );
+
+  const renderTextareaField = (fieldName: string, label: string | null, placeholder: string) => (
+    <FormField
+      control={form.control}
+      name={fieldName as any}
+      render={({ field, fieldState }) => (
+        <FormItemWithError error={!!fieldState.error}>
+          <FormItem>
+            {label && <FormLabel>{label}</FormLabel>}
+            <FormControl>
+              <Textarea
+                placeholder={placeholder}
+                {...field}
+                value={typeof field.value === 'string' ? field.value : ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormItemWithError>
+      )}
+    />
+  );
+
+  const renderTechnologyField = (key: TechnologyKey, label: string, placeholder: string) => {
+    const isNoneChecked = form.getValues(`technology.${key}.none`);
+
+    return (
+      <div key={key} className="space-y-2">
+        <FormField
+          control={form.control}
+          name={`technology.${key}.value` as any}
+          render={({ field, fieldState }) => (
+            <FormItemWithError error={!!fieldState.error}>
+              <FormItem>
+                <FormLabel>{label}</FormLabel>
+                <div className="flex gap-4 items-center">
+                  <FormControl>
+                    <Input
+                      placeholder={placeholder}
+                      disabled={isNoneChecked}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        form.setValue(`technology.${key}.none`, false);
+                      }}
+                    />
+                  </FormControl>
+                  <FormField
+                    control={form.control}
+                    name={`technology.${key}.none` as any}
+                    render={({ field: checkboxField }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={checkboxField.value}
+                            onCheckedChange={(checked) => {
+                              checkboxField.onChange(checked);
+                              if (checked) {
+                                form.setValue(`technology.${key}.value`, '');
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm">None</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormMessage />
+              </FormItem>
+            </FormItemWithError>
+          )}
+        />
+      </div>
+    );
+  };
 
   const findFirstErrorField = () => {
     const errors = form.formState.errors;
@@ -248,58 +347,6 @@ export default function PreAssessmentQuestionnairePage() {
   );
 
 
-  const renderFormField = (fieldName: keyof FormValues | `services.${number}.name` | `technology.${TechnologyKey}.value`, label: string, placeholder: string) => (
-    <FormField
-      control={form.control}
-      name={fieldName}
-      render={({ field }) => (
-        <FormItemWithError error={!!form.formState.errors[fieldName]}>
-          <FormItem>
-            <FormLabel>{label}</FormLabel>
-            <FormControl>
-              <Input
-                placeholder={placeholder}
-                {...field}
-                value={field.value ?? ""}
-                onChange={(e) => {
-                  e.preventDefault();
-                  field.onChange(e.target.value);
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </FormItemWithError>
-      )}
-    />
-  );
-
-  const renderTextareaField = (fieldName: keyof FormValues | `services.${number}.description` | `workflows.${number}.description` | `challenges.${number}.description` | `integrationNeeds.${number}.description`, label: string | null, placeholder: string) => (
-    <FormField
-      control={form.control}
-      name={fieldName}
-      render={({ field }) => (
-        <FormItemWithError error={!!form.formState.errors[fieldName]}>
-          <FormItem>
-            {label && <FormLabel>{label}</FormLabel>}
-            <FormControl>
-              <Textarea
-                placeholder={placeholder}
-                {...field}
-                value={field.value ?? ""}
-                onChange={(e) => {
-                  e.preventDefault();
-                  field.onChange(e.target.value);
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </FormItemWithError>
-      )}
-    />
-  );
-
   const renderStep = () => {
     switch (currentStep) {
       case 0:
@@ -361,53 +408,7 @@ export default function PreAssessmentQuestionnairePage() {
               <h3 className="text-lg font-semibold">Technology Used</h3>
               <p className="text-sm text-muted-foreground">Select the tools and technologies used in each department. Check "None" if a particular technology is not used.</p>
               {TECHNOLOGY_FIELDS.map(({ key, label, placeholder }) => (
-                <div key={key} className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name={`technology.${key}.value`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.technology?.[key]?.value}>
-                        <FormItem>
-                          <FormLabel>{label}</FormLabel>
-                          <div className="flex gap-4 items-center">
-                            <FormControl>
-                              <Input
-                                placeholder={placeholder}
-                                {...field}
-                                disabled={form.watch(`technology.${key}.none`)}
-                                onChange={(e) => {
-                                  field.onChange(e.target.value);
-                                  e.stopPropagation();
-                                }}
-                              />
-                            </FormControl>
-                            <FormField
-                              control={form.control}
-                              name={`technology.${key}.none`}
-                              render={({ field: checkboxField }) => (
-                                <FormItem className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={checkboxField.value}
-                                      onCheckedChange={(checked) => {
-                                        checkboxField.onChange(checked);
-                                        if (checked) {
-                                          form.setValue(`technology.${key}.value`, "");
-                                        }
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-sm">None</FormLabel>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
-                </div>
+                renderTechnologyField(key, label, placeholder)
               ))}
             </div>
           </div>
@@ -543,7 +544,7 @@ export default function PreAssessmentQuestionnairePage() {
       scrollToTop();
     } else {
       const firstErrorField = fields.find(field =>
-        form.getFieldState(field as keyof FormValues).error
+        form.getFieldState(field as keyof FormValues)?.error
       );
       if (firstErrorField) {
         scrollToField(firstErrorField);
@@ -575,7 +576,7 @@ export default function PreAssessmentQuestionnairePage() {
       </motion.div>
 
       <motion.div
-        className="max-w-3xl mx-auto"
+        className="max-w-3xl mx-auto form-container"
         variants={staggerChildren}
         initial="initial"
         animate="animate"
@@ -614,7 +615,7 @@ export default function PreAssessmentQuestionnairePage() {
                   {currentStep === steps.length - 1 ? (
                     <Button
                       type="submit"
-                      disabled={isSubmitting || !form.formState.isValid}
+                      disabled={isSubmitting}
                       className="min-w-[120px] relative"
                     >
                       {isSubmitting ? (

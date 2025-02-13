@@ -100,7 +100,8 @@ export default function PreAssessmentQuestionnairePage() {
       integrationNeeds: [],
       growthGoals: ""
     },
-    mode: "onTouched" // Only validate on first interaction and submit
+    mode: "onBlur", 
+    shouldFocusError: false, 
   });
 
   const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -171,10 +172,9 @@ export default function PreAssessmentQuestionnairePage() {
   const scrollToField = (fieldName: string) => {
     const element = document.querySelector(`[name="${fieldName}"]`);
     if (element && element instanceof HTMLElement) {
-      // Only change focus if the element isn't already focused
+      
       if (document.activeElement !== element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a small delay before focusing to ensure smooth scrolling
         setTimeout(() => {
           element.focus();
         }, 100);
@@ -238,72 +238,93 @@ export default function PreAssessmentQuestionnairePage() {
     </div>
   );
 
+  const FormFieldWrapper = ({ children, name }: { children: React.ReactNode; name: string }) => (
+    <div key={`field-${name}`} className="form-field-wrapper">
+      {children}
+    </div>
+  );
+
   const renderStep = () => {
     switch (currentStep) {
       case 0:
         return (
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="businessName"
-              render={({ field }) => (
-                <FormItemWithError error={!!form.formState.errors.businessName}>
-                  <FormItem>
-                    <FormLabel>Legal Business Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your company's legal business name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormItemWithError>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contactName"
-              render={({ field }) => (
-                <FormItemWithError error={!!form.formState.errors.contactName}>
-                  <FormItem>
-                    <FormLabel>Contact Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter the primary contact person's name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormItemWithError>
-              )}
-            />
+            <FormFieldWrapper name="businessName">
+              <FormField
+                control={form.control}
+                name="businessName"
+                render={({ field }) => (
+                  <FormItemWithError error={!!form.formState.errors.businessName}>
+                    <FormItem>
+                      <FormLabel>Legal Business Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your company's legal business name"
+                          {...field}
+                          onBlur={(e) => {
+                            e.preventDefault();
+                            field.onBlur();
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
+                )}
+              />
+            </FormFieldWrapper>
+            <FormFieldWrapper name="contactName">
+              <FormField
+                control={form.control}
+                name="contactName"
+                render={({ field }) => (
+                  <FormItemWithError error={!!form.formState.errors.contactName}>
+                    <FormItem>
+                      <FormLabel>Contact Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter the primary contact person's name" {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
+                )}
+              />
+            </FormFieldWrapper>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItemWithError error={!!form.formState.errors.phone}>
-                    <FormItem>
-                      <FormLabel>Contact Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter contact phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </FormItemWithError>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItemWithError error={!!form.formState.errors.email}>
-                    <FormItem>
-                      <FormLabel>Contact Email Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter contact email address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </FormItemWithError>
-                )}
-              />
+              <FormFieldWrapper name="phone">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItemWithError error={!!form.formState.errors.phone}>
+                      <FormItem>
+                        <FormLabel>Contact Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter contact phone number" {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    </FormItemWithError>
+                  )}
+                />
+              </FormFieldWrapper>
+              <FormFieldWrapper name="email">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItemWithError error={!!form.formState.errors.email}>
+                      <FormItem>
+                        <FormLabel>Contact Email Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter contact email address" {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    </FormItemWithError>
+                  )}
+                />
+              </FormFieldWrapper>
             </div>
           </div>
         );
@@ -337,39 +358,42 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name={`services.${index}.name`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.services?.[index]?.name}>
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter service or product name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`services.${index}.description`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.services?.[index]?.description}>
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Provide a detailed description of this service or product"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
+                  <FormFieldWrapper name={`services.${index}.name`}>
+                    <FormField
+                      control={form.control}
+                      name={`services.${index}.name`}
+                      render={({ field }) => (
+                        <FormItemWithError error={!!form.formState.errors.services?.[index]?.name}>
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter service or product name" {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </FormItemWithError>
+                      )}
+                    />
+                  </FormFieldWrapper>
+                  <FormFieldWrapper name={`services.${index}.description`}>
+                    <FormField
+                      control={form.control}
+                      name={`services.${index}.description`}
+                      render={({ field }) => (
+                        <FormItemWithError error={!!form.formState.errors.services?.[index]?.description}>
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Provide a detailed description of this service or product"
+                                {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </FormItemWithError>
+                      )}
+                    />
+                  </FormFieldWrapper>
                 </div>
               ))}
             </div>
@@ -379,83 +403,90 @@ export default function PreAssessmentQuestionnairePage() {
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="totalEmployees"
-                render={({ field }) => (
-                  <FormItemWithError error={!!form.formState.errors.totalEmployees}>
-                    <FormItem>
-                      <FormLabel>Total Number of Employees</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="Enter total number of employees" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </FormItemWithError>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="totalLocations"
-                render={({ field }) => (
-                  <FormItemWithError error={!!form.formState.errors.totalLocations}>
-                    <FormItem>
-                      <FormLabel>Total Number of Locations</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="Enter total number of locations" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  </FormItemWithError>
-                )}
-              />
+              <FormFieldWrapper name="totalEmployees">
+                <FormField
+                  control={form.control}
+                  name="totalEmployees"
+                  render={({ field }) => (
+                    <FormItemWithError error={!!form.formState.errors.totalEmployees}>
+                      <FormItem>
+                        <FormLabel>Total Number of Employees</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="Enter total number of employees" {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    </FormItemWithError>
+                  )}
+                />
+              </FormFieldWrapper>
+              <FormFieldWrapper name="totalLocations">
+                <FormField
+                  control={form.control}
+                  name="totalLocations"
+                  render={({ field }) => (
+                    <FormItemWithError error={!!form.formState.errors.totalLocations}>
+                      <FormItem>
+                        <FormLabel>Total Number of Locations</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="Enter total number of locations" {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    </FormItemWithError>
+                  )}
+                />
+              </FormFieldWrapper>
             </div>
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Technology Used</h3>
               <p className="text-sm text-muted-foreground">Select the tools and technologies used in each department. Check "None" if a particular technology is not used.</p>
               {TECHNOLOGY_FIELDS.map(({ key, label, placeholder }) => (
                 <div key={key} className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name={`technology.${key}.value`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.technology?.[key]?.value}>
-                        <FormItem>
-                          <FormLabel>{label}</FormLabel>
-                          <div className="flex gap-4 items-center">
-                            <FormControl>
-                              <Input
-                                placeholder={placeholder}
-                                {...field}
-                                disabled={form.watch(`technology.${key}.none`)}
+                  <FormFieldWrapper name={`technology.${key}.value`}>
+                    <FormField
+                      control={form.control}
+                      name={`technology.${key}.value`}
+                      render={({ field }) => (
+                        <FormItemWithError error={!!form.formState.errors.technology?.[key]?.value}>
+                          <FormItem>
+                            <FormLabel>{label}</FormLabel>
+                            <div className="flex gap-4 items-center">
+                              <FormControl>
+                                <Input
+                                  placeholder={placeholder}
+                                  {...field}
+                                  disabled={form.watch(`technology.${key}.none`)}
+                                  onBlur={(e) => {e.preventDefault(); field.onBlur();}}
+                                />
+                              </FormControl>
+                              <FormField
+                                control={form.control}
+                                name={`technology.${key}.none`}
+                                render={({ field: checkboxField }) => (
+                                  <FormItem className="flex items-center space-x-2">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={checkboxField.value}
+                                        onCheckedChange={(checked) => {
+                                          checkboxField.onChange(checked);
+                                          if (checked) {
+                                            form.setValue(`technology.${key}.value`, "");
+                                          }
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-sm">None</FormLabel>
+                                  </FormItem>
+                                )}
                               />
-                            </FormControl>
-                            <FormField
-                              control={form.control}
-                              name={`technology.${key}.none`}
-                              render={({ field: checkboxField }) => (
-                                <FormItem className="flex items-center space-x-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={checkboxField.value}
-                                      onCheckedChange={(checked) => {
-                                        checkboxField.onChange(checked);
-                                        if (checked) {
-                                          form.setValue(`technology.${key}.value`, "");
-                                        }
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-sm">None</FormLabel>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        </FormItemWithError>
+                      )}
+                    />
+                  </FormFieldWrapper>
                 </div>
               ))}
             </div>
@@ -491,23 +522,24 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name={`workflows.${index}.description`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.workflows?.[index]?.description}>
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Describe a workflow or process that could be automated"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
+                  <FormFieldWrapper name={`workflows.${index}.description`}>
+                    <FormField
+                      control={form.control}
+                      name={`workflows.${index}.description`}
+                      render={({ field }) => (
+                        <FormItemWithError error={!!form.formState.errors.workflows?.[index]?.description}>
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe a workflow or process that could be automated"
+                                {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </FormItemWithError>
+                      )}
+                    />
+                  </FormFieldWrapper>
                 </div>
               ))}
             </div>
@@ -538,23 +570,24 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name={`challenges.${index}.description`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.challenges?.[index]?.description}>
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Describe a business challenge you're facing"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
+                  <FormFieldWrapper name={`challenges.${index}.description`}>
+                    <FormField
+                      control={form.control}
+                      name={`challenges.${index}.description`}
+                      render={({ field }) => (
+                        <FormItemWithError error={!!form.formState.errors.challenges?.[index]?.description}>
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe a business challenge you're facing"
+                                {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </FormItemWithError>
+                      )}
+                    />
+                  </FormFieldWrapper>
                 </div>
               ))}
             </div>
@@ -585,45 +618,47 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name={`integrationNeeds.${index}.description`}
-                    render={({ field }) => (
-                      <FormItemWithError error={!!form.formState.errors.integrationNeeds?.[index]?.description}>
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Describe which systems need integration"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      </FormItemWithError>
-                    )}
-                  />
+                  <FormFieldWrapper name={`integrationNeeds.${index}.description`}>
+                    <FormField
+                      control={form.control}
+                      name={`integrationNeeds.${index}.description`}
+                      render={({ field }) => (
+                        <FormItemWithError error={!!form.formState.errors.integrationNeeds?.[index]?.description}>
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe which systems need integration"
+                                {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </FormItemWithError>
+                      )}
+                    />
+                  </FormFieldWrapper>
                 </div>
               ))}
             </div>
-            <FormField
-              control={form.control}
-              name="growthGoals"
-              render={({ field }) => (
-                <FormItemWithError error={!!form.formState.errors.growthGoals}>
-                  <FormItem>
-                    <FormLabel>What are your top goals for growth or improvement?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Examples: Increase sales, launch new products, automate processes, improve customer service, expand to new markets"
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                </FormItemWithError>
-              )}
-            />
+            <FormFieldWrapper name="growthGoals">
+              <FormField
+                control={form.control}
+                name="growthGoals"
+                render={({ field }) => (
+                  <FormItemWithError error={!!form.formState.errors.growthGoals}>
+                    <FormItem>
+                      <FormLabel>What are your top goals for growth or improvement?</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Examples: Increase sales, launch new products, automate processes, improve customer service, expand to new markets"
+                          className="min-h-[100px]"
+                          {...field} onBlur={(e) => {e.preventDefault(); field.onBlur();}}/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormItemWithError>
+                )}
+              />
+            </FormFieldWrapper>
           </div>
         );
       default:
@@ -665,20 +700,17 @@ export default function PreAssessmentQuestionnairePage() {
   const nextStep = async () => {
     const fields = getFieldsForStep(currentStep);
 
-    // Validate current step's fields
     const isValid = await form.trigger(fields as any[]);
 
     if (isValid) {
       const nextStepIndex = Math.min(currentStep + 1, steps.length - 1);
       setCurrentStep(nextStepIndex);
 
-      // Wait for state update before scrolling
       setTimeout(() => {
         const formContainer = document.querySelector('.form-container');
         if (formContainer) {
           formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-          // Focus first input in new step after scrolling completes
           setTimeout(() => {
             const firstInput = formContainer.querySelector('input, textarea, select');
             if (firstInput instanceof HTMLElement) {
@@ -688,8 +720,7 @@ export default function PreAssessmentQuestionnairePage() {
         }
       }, 0);
     } else {
-      // Find the first error field in current step only
-      const firstErrorField = fields.find(field => 
+      const firstErrorField = fields.find(field =>
         form.getFieldState(field as any).error
       );
 

@@ -74,6 +74,30 @@ interface FormStep {
   description: string;
 }
 
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+};
+
+const scrollToField = (fieldName: string) => {
+  setTimeout(() => {
+    const element = document.querySelector(`[name="${fieldName}"]`);
+    if (element && element instanceof HTMLElement) {
+      const offset = 100; // Add offset to account for fixed header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      element.focus();
+    }
+  }, 100);
+};
+
 export default function PreAssessmentQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -169,17 +193,6 @@ export default function PreAssessmentQuestionnairePage() {
     return { step: firstErrorStep, field: firstErrorField };
   };
 
-  const scrollToField = (fieldName: string) => {
-    const element = document.querySelector(`[name="${fieldName}"]`);
-    if (element && element instanceof HTMLElement) {
-      element.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
-      setTimeout(() => element.focus(), 100);
-    }
-  };
-
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
 
@@ -245,11 +258,11 @@ export default function PreAssessmentQuestionnairePage() {
           <FormItem>
             <FormLabel>{label}</FormLabel>
             <FormControl>
-              <Input 
-                placeholder={placeholder} 
-                {...field} 
+              <Input
+                placeholder={placeholder}
+                {...field}
                 value={typeof field.value === 'string' ? field.value : ''}
-                onBlur={field.onBlur} 
+                onBlur={field.onBlur}
               />
             </FormControl>
             <FormMessage />
@@ -268,11 +281,11 @@ export default function PreAssessmentQuestionnairePage() {
           <FormItem>
             {label && <FormLabel>{label}</FormLabel>}
             <FormControl>
-              <Textarea 
-                placeholder={placeholder} 
+              <Textarea
+                placeholder={placeholder}
                 {...field}
                 value={typeof field.value === 'string' ? field.value : ''}
-                onBlur={field.onBlur} 
+                onBlur={field.onBlur}
               />
             </FormControl>
             <FormMessage />
@@ -513,22 +526,12 @@ export default function PreAssessmentQuestionnairePage() {
     }
   };
 
-  const scrollToTop = () => {
-    if (formContainerRef.current) {
-      formContainerRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  };
-
   const nextStep = async () => {
     const fields = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fields as Array<keyof FormValues>);
 
     if (isValid) {
-      const nextStepIndex = Math.min(currentStep + 1, steps.length - 1);
-      setCurrentStep(nextStepIndex);
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
       scrollToTop();
     } else {
       const firstErrorField = fields.find(field =>
@@ -541,19 +544,19 @@ export default function PreAssessmentQuestionnairePage() {
   };
 
   const prevStep = () => {
-    setCurrentStep((s) => Math.max(s - 1, 0));
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
     scrollToTop();
   };
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-16 min-h-screen">
       <motion.div
         className="max-w-3xl mx-auto mb-12"
         initial="initial"
         animate="animate"
         variants={fadeIn}
       >
-        <Link href="/services/efficiency-audit" className="text-primary hover:underline mb-4 inline-block">
+        <Link to="/services/efficiency-audit" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Efficiency Audit
         </Link>
         <h1 className="text-4xl font-bold mb-4">Pre-Assessment Questionnaire</h1>
@@ -564,30 +567,31 @@ export default function PreAssessmentQuestionnairePage() {
       </motion.div>
 
       <motion.div
-        ref={formContainerRef}
-        className="max-w-3xl mx-auto form-container"
+        className="max-w-3xl mx-auto"
         variants={staggerChildren}
         initial="initial"
         animate="animate"
       >
         <Card className="border border-gray-800 bg-background/50 shadow-sm">
           <CardContent className="p-8">
-            <div className="mb-8">
+            <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 pb-4 mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-semibold">{steps[currentStep].title}</h2>
                 <span className="text-sm text-muted-foreground">
                   Step {currentStep + 1} of {steps.length}
                 </span>
               </div>
-              <p className="text-muted-foreground">{steps[currentStep].description}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                />
+              </div>
+              <p className="text-muted-foreground mt-2">{steps[currentStep].description}</p>
             </div>
 
             <Form {...form}>
-              <form 
-                ref={formRef} 
-                onSubmit={form.handleSubmit(onSubmit)} 
-                className="space-y-6"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {renderStep()}
                 <div className="flex justify-between mt-8 pt-4 border-t border-gray-800">
                   <Button

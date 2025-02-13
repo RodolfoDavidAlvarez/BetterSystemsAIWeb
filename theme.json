@@ -3,45 +3,48 @@
   "type": "dark",
   "colors": {
     "primary": {
-      "DEFAULT": "#3b82f6",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(217.2 91.2% 59.8%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "secondary": {
-      "DEFAULT": "#374151",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(215 25% 27%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "background": {
-      "DEFAULT": "#000000",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(0 0% 0%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "destructive": {
-      "DEFAULT": "#991b1b",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(0 84.2% 60.2%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "muted": {
-      "DEFAULT": "#1f2937",
-      "foreground": "#9ca3af"
+      "DEFAULT": "hsl(215 25% 27%)",
+      "foreground": "hsl(215 20% 65%)"
     },
     "accent": {
-      "DEFAULT": "#1f2937",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(215 25% 27%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "popover": {
-      "DEFAULT": "#000000",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(0 0% 0%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "card": {
-      "DEFAULT": "#000000",
-      "foreground": "#ffffff"
+      "DEFAULT": "hsl(0 0% 0%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "border": {
-      "DEFAULT": "#1f2937"
+      "DEFAULT": "hsl(215 25% 27%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "input": {
-      "DEFAULT": "#1f2937"
+      "DEFAULT": "hsl(215 25% 27%)",
+      "foreground": "hsl(0 0% 100%)"
     },
     "ring": {
-      "DEFAULT": "#3b82f6"
+      "DEFAULT": "hsl(217.2 91.2% 59.8%)",
+      "foreground": "hsl(0 0% 100%)"
     }
   },
   "borderRadius": {

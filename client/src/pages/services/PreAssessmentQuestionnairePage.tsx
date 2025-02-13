@@ -79,6 +79,8 @@ export default function PreAssessmentQuestionnairePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -98,8 +100,8 @@ export default function PreAssessmentQuestionnairePage() {
       integrationNeeds: [],
       growthGoals: ""
     },
-    mode: "onChange",
-    shouldFocusError: true,
+    mode: "onBlur", 
+    shouldFocusError: false, 
   });
 
   const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -216,13 +218,9 @@ export default function PreAssessmentQuestionnairePage() {
         description: "Thank you for completing the pre-assessment questionnaire. We'll be in touch soon!",
       });
 
-      toast({
-        title: "Success!",
-        description: "Thank you for completing the pre-assessment questionnaire. Redirecting...",
-      });
-      setTimeout(() => {
-        window.location.href = "/services/efficiency-audit";
-      }, 2000);
+      form.reset();
+      window.location.href = "/services/efficiency-audit";
+      setIsSuccess(true);
     } catch (error) {
       toast({
         title: "Error",
@@ -263,6 +261,10 @@ export default function PreAssessmentQuestionnairePage() {
                         <Input
                           placeholder="Enter your company's legal business name"
                           {...field}
+                          onBlur={(e) => {
+                            e.preventDefault();
+                            field.onBlur();
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

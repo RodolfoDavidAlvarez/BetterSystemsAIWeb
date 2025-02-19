@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -15,10 +15,7 @@ interface FormStep {
 }
 
 const scrollToTop = () => {
-  const formContainer = document.querySelector('.form-container');
-  if (formContainer) {
-    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 export default function SimpleEfficiencyAssessmentForm() {
@@ -33,26 +30,21 @@ export default function SimpleEfficiencyAssessmentForm() {
       email: "",
       phone: "",
       currentChallenges: "",
-      technology: "",
       desiredOutcome: "",
       timeline: "",
-      budget: "",
       additionalInfo: ""
     }
   });
 
+  // Simplified steps
   const steps: FormStep[] = [
     {
-      title: "Basic Information",
-      description: "Tell us about your business"
+      title: "Tell us about you",
+      description: "Basic contact information to get started"
     },
     {
-      title: "Current Situation",
-      description: "Help us understand your needs"
-    },
-    {
-      title: "Goals & Timeline",
-      description: "Share your vision with us"
+      title: "Your Business Needs",
+      description: "Help us understand how we can help you"
     }
   ];
 
@@ -79,16 +71,16 @@ export default function SimpleEfficiencyAssessmentForm() {
       }
 
       toast({
-        title: "Success!",
-        description: "Thank you for completing the assessment. We'll be in touch soon!",
+        title: "Thanks for reaching out!",
+        description: "We'll get back to you shortly to discuss how we can help improve your business efficiency.",
       });
 
       form.reset();
       window.location.href = "/services/efficiency-audit";
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to submit the form. Please try again.",
+        title: "Something went wrong",
+        description: "Please try again or contact us directly.",
         variant: "destructive",
       });
     } finally {
@@ -107,8 +99,11 @@ export default function SimpleEfficiencyAssessmentForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Business Name</FormLabel>
+                  <FormDescription>
+                    The name of your company or organization
+                  </FormDescription>
                   <FormControl>
-                    <Input placeholder="Your company name" {...field} />
+                    <Input placeholder="Enter your business name" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -118,9 +113,12 @@ export default function SimpleEfficiencyAssessmentForm() {
               name="contactName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact Name</FormLabel>
+                  <FormLabel>Your Name</FormLabel>
+                  <FormDescription>
+                    How should we address you?
+                  </FormDescription>
                   <FormControl>
-                    <Input placeholder="Your name" {...field} />
+                    <Input placeholder="Enter your name" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -132,8 +130,11 @@ export default function SimpleEfficiencyAssessmentForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
+                    <FormDescription>
+                      Where we can reach you
+                    </FormDescription>
                     <FormControl>
-                      <Input placeholder="your@email.com" type="email" {...field} />
+                      <Input type="email" placeholder="your@email.com" {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -144,6 +145,9 @@ export default function SimpleEfficiencyAssessmentForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
+                    <FormDescription>
+                      Optional contact number
+                    </FormDescription>
                     <FormControl>
                       <Input placeholder="Your phone number" {...field} />
                     </FormControl>
@@ -161,10 +165,13 @@ export default function SimpleEfficiencyAssessmentForm() {
               name="currentChallenges"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What challenges is your business facing?</FormLabel>
+                  <FormLabel>What challenges would you like help with?</FormLabel>
+                  <FormDescription>
+                    Tell us about any inefficiencies or bottlenecks in your business
+                  </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe any operational inefficiencies, bottlenecks, or areas where you'd like to improve"
+                      placeholder="For example: Manual data entry takes too much time, Having trouble keeping track of inventory, Need to automate customer communications..."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -172,36 +179,18 @@ export default function SimpleEfficiencyAssessmentForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="technology"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What technology or tools do you currently use?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="List any software, tools, or systems you're currently using"
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-      case 2:
-        return (
-          <div className="space-y-6">
             <FormField
               control={form.control}
               name="desiredOutcome"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What improvements would you like to see?</FormLabel>
+                  <FormLabel>What's your ideal outcome?</FormLabel>
+                  <FormDescription>
+                    How would you like your business to improve?
+                  </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe your ideal outcome after implementing efficiency improvements"
+                      placeholder="For example: Save 10 hours per week on administrative tasks, Reduce errors in order processing, Better customer response times..."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -214,21 +203,12 @@ export default function SimpleEfficiencyAssessmentForm() {
               name="timeline"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>When would you like to implement these changes?</FormLabel>
+                  <FormLabel>Preferred Timeline</FormLabel>
+                  <FormDescription>
+                    When would you like to see these improvements?
+                  </FormDescription>
                   <FormControl>
-                    <Input placeholder="e.g., Within 3 months, Next quarter, etc." {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="budget"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Do you have a budget range in mind?</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Optional: Your expected budget range" {...field} />
+                    <Input placeholder="e.g., Next month, Within 3 months, By end of year" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -238,10 +218,13 @@ export default function SimpleEfficiencyAssessmentForm() {
               name="additionalInfo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Anything else you'd like to share?</FormLabel>
+                  <FormLabel>Anything else we should know?</FormLabel>
+                  <FormDescription>
+                    Optional additional context that might help us understand your needs
+                  </FormDescription>
                   <FormControl>
                     <Textarea
-                      placeholder="Any additional information that might help us understand your needs better"
+                      placeholder="Share any other information you think would be helpful..."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -257,20 +240,22 @@ export default function SimpleEfficiencyAssessmentForm() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto form-container">
-      <Card className="border border-gray-800 bg-background/50 shadow-sm">
+    <div className="max-w-3xl mx-auto">
+      <Card className="border border-primary/10 bg-background/50 shadow-sm">
         <CardContent className="p-8">
-          <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 pb-4 mb-8">
+          <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-semibold">{steps[currentStep].title}</h2>
               <span className="text-sm text-muted-foreground">
                 Step {currentStep + 1} of {steps.length}
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
+            <div className="w-full bg-primary/10 rounded-full h-2">
+              <motion.div
                 className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               />
             </div>
             <p className="text-muted-foreground mt-2">{steps[currentStep].description}</p>
@@ -287,7 +272,7 @@ export default function SimpleEfficiencyAssessmentForm() {
                 {renderStep()}
               </motion.div>
 
-              <div className="flex justify-between mt-8 pt-4 border-t border-gray-800">
+              <div className="flex justify-between mt-8 pt-4 border-t border-primary/10">
                 <Button
                   type="button"
                   variant="outline"
@@ -306,10 +291,10 @@ export default function SimpleEfficiencyAssessmentForm() {
                     {isSubmitting ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                        <span>Submitting...</span>
+                        <span>Sending...</span>
                       </div>
                     ) : (
-                      "Submit Assessment"
+                      "Submit"
                     )}
                   </Button>
                 ) : (

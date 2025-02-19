@@ -124,13 +124,13 @@ export default function EfficiencyAuditPage() {
         <p className="text-muted-foreground text-xl leading-relaxed mb-8">
           {service.description}
         </p>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <Button 
             variant="default"
             size="lg"
             asChild
           >
-            <Link to="/services/efficiency-assessment">Quick Assessment Form →</Link>
+            <Link to="/services/simple-assessment">Quick Assessment Form →</Link>
           </Button>
           <Button 
             variant="outline" 
@@ -138,7 +138,7 @@ export default function EfficiencyAuditPage() {
             className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10"
             asChild
           >
-            <Link to="/services/pre-assessment">Detailed Questionnaire →</Link>
+            <Link to="/services/pre-assessment">Detailed Assessment →</Link>
           </Button>
         </div>
       </motion.div>

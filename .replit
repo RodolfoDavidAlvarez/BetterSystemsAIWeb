@@ -103,5 +103,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/BetterSystemsAIWeb/client && npm run dev"
+args = "cd /home/runner/workspace/client && npm run dev"
 waitForPort = 5173

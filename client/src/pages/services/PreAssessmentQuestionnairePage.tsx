@@ -180,7 +180,7 @@ export default function PreAssessmentQuestionnairePage() {
             <Input
               placeholder={placeholder}
               {...field}
-              value={field.value as string || ''}
+              value={typeof field.value === 'string' ? field.value : ''}
               onChange={(e) => {
                 field.onChange(e);
                 e.target.focus();
@@ -193,8 +193,8 @@ export default function PreAssessmentQuestionnairePage() {
     />
   );
 
-  const renderServiceField = (index: number) => (
-    <div key={`service-${index}`} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
+  const renderServiceField = (index: number, field: any) => (
+    <div key={`service-${field.id}`} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
       <div className="flex justify-between items-center">
         <h4 className="text-sm font-medium">Service/Product {index + 1}</h4>
         <Button
@@ -460,7 +460,7 @@ export default function PreAssessmentQuestionnairePage() {
                   Add Service/Product
                 </Button>
               </div>
-              {serviceFields.map((field, index) => renderServiceField(index))}
+              {serviceFields.map((field, index) => renderServiceField(index, field))}
             </div>
           </div>
         );

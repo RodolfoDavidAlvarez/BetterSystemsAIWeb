@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, FieldValues, Path } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Plus, Minus } from "lucide-react";
@@ -62,12 +62,13 @@ const formSchema = z.object({
     description: z.string().min(1, "Integration need description is required"),
   })),
   growthGoals: z.string().optional(),
-}).refine((data) => data.phone || data.email, {
-  message: "Either phone number or email is required",
-  path: ["email"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+type ArrayFieldPath<T extends FieldValues> = {
+  [K in Path<T>]: T[K] extends any[] ? K : never
+}[Path<T>];
 
 interface FormStep {
   title: string;
@@ -122,10 +123,7 @@ export default function PreAssessmentQuestionnairePage() {
       integrationNeeds: [],
       growthGoals: ""
     },
-    mode: "onBlur",
-    shouldFocusError: false,
-    criteriaMode: "firstError",
-    reValidateMode: "onBlur"
+    mode: "onBlur"
   });
 
   const { fields: serviceFields, append: appendService, remove: removeService } = useFieldArray({
@@ -167,110 +165,189 @@ export default function PreAssessmentQuestionnairePage() {
     }
   ];
 
-  const renderFormField = (fieldName: string, label: string, placeholder: string) => (
+  const renderFormField = <T extends keyof FormValues>(
+    fieldName: T,
+    label: string,
+    placeholder: string
+  ) => (
     <FormField
       control={form.control}
-      name={fieldName as any}
+      name={fieldName}
       render={({ field }) => (
-        <FormItemWithError error={!!form.formState.errors[fieldName]}>
-          <FormItem>
-            <FormLabel>{label}</FormLabel>
-            <FormControl>
-              <Input
-                placeholder={placeholder}
-                {...field}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  // Prevent focus loss by handling the change directly
-                  e.target.focus();
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        </FormItemWithError>
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input
+              placeholder={placeholder}
+              {...field}
+              value={field.value as string || ''}
+              onChange={(e) => {
+                field.onChange(e);
+                e.target.focus();
+              }}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       )}
     />
   );
 
-  const renderTextareaField = (fieldName: string, label: string | null, placeholder: string) => (
-    <FormField
-      control={form.control}
-      name={fieldName as any}
-      render={({ field }) => (
-        <FormItemWithError error={!!form.formState.errors[fieldName]}>
+  const renderServiceField = (index: number) => (
+    <div key={`service-${index}`} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
+      <div className="flex justify-between items-center">
+        <h4 className="text-sm font-medium">Service/Product {index + 1}</h4>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => removeService(index)}
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+      </div>
+      <FormField
+        control={form.control}
+        name={`services.${index}.name`}
+        render={({ field }) => (
           <FormItem>
-            {label && <FormLabel>{label}</FormLabel>}
+            <FormLabel>Name</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder={placeholder}
+              <Input
+                placeholder="Enter service or product name"
                 {...field}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  // Prevent focus loss by handling the change directly
-                  e.target.focus();
-                }}
+                value={typeof field.value === 'string' ? field.value : ''}
               />
             </FormControl>
             <FormMessage />
           </FormItem>
-        </FormItemWithError>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name={`services.${index}.description`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Description</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Provide a detailed description of this service or product"
+                {...field}
+                value={typeof field.value === 'string' ? field.value : ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+
+  const renderTextareaField = <T extends keyof FormValues>(
+    fieldName: T,
+    label: string | null,
+    placeholder: string
+  ) => (
+    <FormField
+      control={form.control}
+      name={fieldName}
+      render={({ field }) => (
+        <FormItem>
+          {label && <FormLabel>{label}</FormLabel>}
+          <FormControl>
+            <Textarea
+              placeholder={placeholder}
+              {...field}
+              value={field.value as string || ''}
+              onChange={(e) => {
+                field.onChange(e);
+                e.target.focus();
+              }}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
+  const renderArrayField = <T extends ArrayFieldPath<FormValues>>(
+    fieldName: T,
+    index: number,
+    label: string | null,
+    placeholder: string
+  ) => (
+    <FormField
+      control={form.control}
+      name={`${fieldName}.${index}.description` as Path<FormValues>}
+      render={({ field }) => (
+        <FormItem>
+          {label && <FormLabel>{label}</FormLabel>}
+          <FormControl>
+            <Textarea
+              placeholder={placeholder}
+              {...field}
+              value={field.value || ''}
+              onChange={(e) => {
+                field.onChange(e);
+                e.target.focus();
+              }}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       )}
     />
   );
 
   const renderTechnologyField = (key: TechnologyKey, label: string, placeholder: string) => {
-    const isNoneChecked = form.getValues(`technology.${key}.none`);
+    const isNoneChecked = form.watch(`technology.${key}.none`) as boolean;
 
     return (
       <div key={key} className="space-y-2">
         <FormField
           control={form.control}
-          name={`technology.${key}.value` as any}
+          name={`technology.${key}.value`}
           render={({ field }) => (
-            <FormItemWithError error={!!form.formState.errors.technology?.[key]?.value}>
-              <FormItem>
-                <FormLabel>{label}</FormLabel>
-                <div className="flex gap-4 items-center">
-                  <FormControl>
-                    <Input
-                      placeholder={placeholder}
-                      disabled={isNoneChecked}
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        form.setValue(`technology.${key}.none`, false);
-                        // Prevent focus loss by handling the change directly
-                        e.target.focus();
-                      }}
-                    />
-                  </FormControl>
-                  <FormField
-                    control={form.control}
-                    name={`technology.${key}.none` as any}
-                    render={({ field: checkboxField }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={checkboxField.value}
-                            onCheckedChange={(checked) => {
-                              checkboxField.onChange(checked);
-                              if (checked) {
-                                form.setValue(`technology.${key}.value`, '');
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm">None</FormLabel>
-                      </FormItem>
-                    )}
+            <FormItem>
+              <FormLabel>{label}</FormLabel>
+              <div className="flex gap-4 items-center">
+                <FormControl>
+                  <Input
+                    placeholder={placeholder}
+                    disabled={isNoneChecked}
+                    {...field}
+                    value={typeof field.value === 'string' ? field.value : ''}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      form.setValue(`technology.${key}.none`, false);
+                      e.target.focus();
+                    }}
                   />
-                </div>
-                <FormMessage />
-              </FormItem>
-            </FormItemWithError>
+                </FormControl>
+                <FormField
+                  control={form.control}
+                  name={`technology.${key}.none`}
+                  render={({ field: checkboxField }) => (
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={!!checkboxField.value}
+                          onCheckedChange={(checked) => {
+                            checkboxField.onChange(checked);
+                            if (checked) {
+                              form.setValue(`technology.${key}.value`, '');
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm">None</FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormMessage />
+            </FormItem>
           )}
         />
       </div>
@@ -352,12 +429,6 @@ export default function PreAssessmentQuestionnairePage() {
     }
   };
 
-  const FormItemWithError = ({ children, error }: { children: React.ReactNode; error?: boolean }) => (
-    <div data-error={error} className="relative">
-      {children}
-    </div>
-  );
-
 
   const renderStep = () => {
     switch (currentStep) {
@@ -389,23 +460,7 @@ export default function PreAssessmentQuestionnairePage() {
                   Add Service/Product
                 </Button>
               </div>
-              {serviceFields.map((field, index) => (
-                <div key={field.id} className="space-y-4 p-4 border border-gray-800 rounded-lg bg-background/30">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-sm font-medium">Service/Product {index + 1}</h4>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeService(index)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {renderFormField(`services.${index}.name`, "Name", "Enter service or product name")}
-                  {renderTextareaField(`services.${index}.description`, "Description", "Provide a detailed description of this service or product")}
-                </div>
-              ))}
+              {serviceFields.map((field, index) => renderServiceField(index))}
             </div>
           </div>
         );
@@ -455,7 +510,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  {renderTextareaField(`workflows.${index}.description`, null, "Describe a workflow or process that could be automated")}
+                  {renderArrayField("workflows", index, null, "Describe a workflow or process that could be automated")}
                 </div>
               ))}
             </div>
@@ -486,7 +541,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  {renderTextareaField(`challenges.${index}.description`, null, "Describe a business challenge you're facing")}
+                  {renderArrayField("challenges", index, null, "Describe a business challenge you're facing")}
                 </div>
               ))}
             </div>
@@ -517,7 +572,7 @@ export default function PreAssessmentQuestionnairePage() {
                       <Minus className="h-4 w-4" />
                     </Button>
                   </div>
-                  {renderTextareaField(`integrationNeeds.${index}.description`, null, "Describe which systems need integration")}
+                  {renderArrayField("integrationNeeds", index, null, "Describe which systems need integration")}
                 </div>
               ))}
             </div>

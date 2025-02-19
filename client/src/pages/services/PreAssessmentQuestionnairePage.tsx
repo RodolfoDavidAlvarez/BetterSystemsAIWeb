@@ -41,8 +41,8 @@ const formSchema = z.object({
     name: z.string().min(1, "Service name is required"),
     description: z.string().optional(),
   })),
-  totalEmployees: z.string().min(1, "Number of employees is required"),
-  totalLocations: z.string().min(1, "Number of locations is required"),
+  totalEmployees: z.string().optional(),
+  totalLocations: z.string().optional(),
   technology: z.record(z.enum([
     "payment",
     "accounting",
@@ -287,7 +287,7 @@ export default function PreAssessmentQuestionnairePage() {
             <Textarea
               placeholder={placeholder}
               {...field}
-              value={field.value || ''}
+              value={typeof field.value === 'string' ? field.value : ''}
               onChange={(e) => {
                 field.onChange(e);
                 e.target.focus();
@@ -631,6 +631,9 @@ export default function PreAssessmentQuestionnairePage() {
         initial="initial"
         animate="animate"
         variants={fadeIn}
+        onAnimationComplete={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       >
         <Link to="/services/efficiency-audit" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Efficiency Audit

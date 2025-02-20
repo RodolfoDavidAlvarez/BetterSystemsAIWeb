@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
-import { BadgeCheck, BrainCircuit, Phone, Mail, MessageSquare, Share2, MessageCircle, Gauge, Clock, DollarSign } from "lucide-react";
+import { BadgeCheck, BrainCircuit, Phone, Mail, MessageSquare, Share2, MessageCircle, Gauge, Clock, DollarSign, Globe } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface ServiceMetric {
@@ -160,32 +160,33 @@ export default function AIAssistantsPage() {
         <p className="text-muted-foreground text-xl leading-relaxed mb-12">
           {service.description}
         </p>
-        <div className="inline-flex items-center gap-2 text-lg text-primary mb-8">
-          <BrainCircuit className="h-6 w-6 animate-pulse" />
-          <span className="font-semibold">Powered by Advanced AI Technology</span>
-        </div>
 
-        {/* Metrics Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {service.metrics.map((metric, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="border-0 bg-gradient-to-br from-primary/5 to-primary/10 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                <CardContent className="p-6 text-center relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full transform rotate-45" />
-                  <metric.icon className="h-10 w-10 mx-auto mb-4 text-primary relative z-10" />
-                  <div className="text-4xl font-bold text-primary mb-2 relative z-10">{metric.value}</div>
-                  <div className="font-semibold mb-2 relative z-10">{metric.label}</div>
-                  <p className="text-sm text-muted-foreground relative z-10">{metric.description}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {/* Integration Channels Section */}
+        <motion.section className="mb-16">
+          <h2 className="text-2xl font-semibold mb-6">It integrates with:</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 transition-all duration-300 hover:bg-primary/10">
+              <Mail className="h-8 w-8 text-primary" />
+              <span className="text-sm font-medium">Email</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 transition-all duration-300 hover:bg-primary/10">
+              <Globe className="h-8 w-8 text-primary" />
+              <span className="text-sm font-medium">Websites</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 transition-all duration-300 hover:bg-primary/10">
+              <Phone className="h-8 w-8 text-primary" />
+              <span className="text-sm font-medium">Phone systems</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 transition-all duration-300 hover:bg-primary/10">
+              <MessageSquare className="h-8 w-8 text-primary" />
+              <span className="text-sm font-medium">Text messaging</span>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 transition-all duration-300 hover:bg-primary/10">
+              <Share2 className="h-8 w-8 text-primary" />
+              <span className="text-sm font-medium">Social media</span>
+            </div>
+          </div>
+        </motion.section>
 
         {/* Additional sections showcasing the capabilities */}
         <motion.section className="mb-16">
@@ -218,7 +219,7 @@ export default function AIAssistantsPage() {
           </ul>
         </motion.section>
 
-
+        {/* Integrated Communication Channels */}
         <motion.section className="space-y-12 mb-16">
           <h2 className="text-3xl font-semibold text-center mb-12">Integrated Communication Channels</h2>
           <motion.div

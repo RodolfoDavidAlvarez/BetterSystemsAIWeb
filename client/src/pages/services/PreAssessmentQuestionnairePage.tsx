@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
@@ -76,10 +76,7 @@ interface FormStep {
 }
 
 const scrollToTop = () => {
-  const formContainer = document.querySelector('.form-container');
-  if (formContainer) {
-    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const scrollToField = (fieldName: string) => {
@@ -103,6 +100,16 @@ export default function PreAssessmentQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Initial scroll on mount
+  useEffect(() => {
+    scrollToTop();
+  }, []);
+
+  // Scroll on step change
+  useEffect(() => {
+    scrollToTop();
+  }, [currentStep]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

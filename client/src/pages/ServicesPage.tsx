@@ -43,11 +43,17 @@ export default function ServicesPage() {
       highlight: "Reduce fleet costs by up to 35%"
     },
     {
-      title: "Request Your Custom Business Solution",
-      description: "Face unique business challenges? Our team of AI experts develops tailored solutions that address your specific needs. From automated workflows to intelligent decision support systems, we turn your vision into reality.",
-      benefits: ["Customized Development", "Seamless Integration", "Scalable Solutions", "Ongoing Support"],
+      title: "Personalized Automation Solution",
+      subtitle: "For unique business operations",
+      description: "We understand that most businesses have tasks they repeat every day—whether administrative, operational, or necessary for scaling. These tasks don't directly generate revenue or improve quality but become more demanding as your business grows. That's where automation comes in. Our AI-driven solutions take over these repetitive processes, freeing up your time, cutting costs, and allowing you to focus on what truly matters.",
+      benefits: [
+        "Tailored automation for your business needs",
+        "Seamless integration into your current systems",
+        "Scalable solutions that grow with your business",
+        "Ongoing support to ensure smooth operation"
+      ],
       href: "/services/custom-solutions",
-      highlight: "Achieve 200% ROI on custom solutions"
+      highlight: "Achieve 200%+ ROI with average time saved of 2,500+ hours per automation"
     }
   ];
 

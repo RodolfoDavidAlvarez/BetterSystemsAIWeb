@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { checker } from 'vite-plugin-checker';
 import runtimeErrorModal from '@replit/vite-plugin-runtime-error-modal';
+import themePlugin from '@replit/vite-plugin-shadcn-theme-json';
 import type { Plugin } from 'vite';
 
 export default defineConfig({
@@ -14,7 +15,8 @@ export default defineConfig({
         tsconfigPath: path.resolve(__dirname, 'tsconfig.json')
       }
     }) as Plugin,
-    runtimeErrorModal() as Plugin
+    runtimeErrorModal() as Plugin,
+    themePlugin() as Plugin
   ],
   resolve: {
     alias: {
@@ -23,7 +25,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 5181,
+    port: 5190,
     strictPort: false,
     hmr: {
       clientPort: 443,

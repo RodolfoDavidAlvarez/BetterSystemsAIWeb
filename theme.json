@@ -1,7 +1,7 @@
 {
   "name": "better-systems",
   "type": "dark",
-  "variant": "default",
+  "appearance": "dark",
   "primary": "#3B82F6",
   "primary-foreground": "#FFFFFF",
   "secondary": "#2A3441",

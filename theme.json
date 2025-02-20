@@ -2,6 +2,7 @@
   "name": "better-systems",
   "type": "dark",
   "appearance": "dark",
+  "variant": "slate",
   "primary": "#3B82F6",
   "primary-foreground": "#FFFFFF",
   "secondary": "#2A3441",

@@ -29,7 +29,8 @@ export default function ServicesPage() {
       highlight: "Reduce labor costs by 90% while boosting productivity"
     },
     {
-      title: "Business Efficiency and Profit Maximization Audit",
+      title: "AI Efficiency Assessment",
+      subtitle: "Identify automation opportunities & reduce business costs",
       description: "We conduct a comprehensive analysis of your business's systems, technology, processes, and structure to uncover opportunities for improvement. Our expert team provides a detailed report highlighting inefficiencies and offering actionable recommendations that could significantly reduce costs, enhance productivity, and unlock profit potential.",
       benefits: ["Process Analysis", "Cost Reduction Planning", "AI Implementation Strategy", "ROI Forecasting"],
       href: "/services/efficiency-audit",
@@ -139,12 +140,12 @@ export default function ServicesPage() {
               <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
                 <Link 
                   href={
-                    service.title === "Business Efficiency and Profit Maximization Audit" 
+                    service.title === "AI Efficiency Assessment" 
                       ? "/services/pre-assessment"
                       : "/get-started"
                   }
                 >
-                  {service.title === "Business Efficiency and Profit Maximization Audit"
+                  {service.title === "AI Efficiency Assessment"
                     ? "Start Assessment" 
                     : "Request Solution"
                   }

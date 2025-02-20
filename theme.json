@@ -2,7 +2,7 @@
   "name": "better-systems",
   "type": "dark",
   "appearance": "dark",
-  "style": "default",
+  "variant": "blue",
   "primary": "#3B82F6",
   "primary-foreground": "#FFFFFF",
   "secondary": "#2A3441",
@@ -22,6 +22,5 @@
   "border": "#2A3441",
   "input": "#2A3441",
   "ring": "#3B82F6",
-  "radius": "0.5rem",
-  "spacing": "default"
+  "radius": "0.5rem"
 }

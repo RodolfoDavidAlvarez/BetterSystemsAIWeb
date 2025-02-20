@@ -33,7 +33,7 @@ export default function ServicesPage() {
       subtitle: "Identify automation opportunities & reduce business costs",
       description: "We conduct a comprehensive analysis of your business's systems, technology, processes, and structure to uncover opportunities for improvement. Our expert team provides a detailed report highlighting inefficiencies and offering actionable recommendations that could significantly reduce costs, enhance productivity, and unlock profit potential.",
       benefits: ["Process Analysis", "Cost Reduction Planning", "AI Implementation Strategy", "ROI Forecasting"],
-      href: "/services/efficiency-audit",
+      href: "/services/ai-efficiency-assessment",
       highlight: "Average 40% cost reduction identified"
     },
     {

@@ -12,8 +12,8 @@ export default function SimpleEfficiencyAssessmentPage() {
         animate="animate"
         variants={fadeIn}
       >
-        <Link href="/services/efficiency-audit" className="text-primary hover:underline mb-4 inline-block">
-          ← Back to Efficiency Audit
+        <Link href="/services/ai-efficiency-assessment" className="text-primary hover:underline mb-4 inline-block">
+          ← Back to AI Efficiency Assessment
         </Link>
         <h1 className="text-4xl font-bold mb-4">Quick Efficiency Assessment</h1>
         <p className="text-lg text-muted-foreground">

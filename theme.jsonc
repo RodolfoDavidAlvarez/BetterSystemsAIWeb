@@ -1,3 +1,7 @@
+// IMPORTANT: DO NOT DELETE THESE COMMENTS - Critical configuration information
+// This theme configuration is used by @replit/vite-plugin-shadcn-theme-json
+// Valid variant values are: "default", "rose", "blue", "green", "orange"
+// Using other values will cause the theme plugin to fail with "Expected union value"
 {
   "name": "better-systems",
   "type": "dark",

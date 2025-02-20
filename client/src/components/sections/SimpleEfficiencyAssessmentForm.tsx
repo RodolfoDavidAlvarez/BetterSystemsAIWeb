@@ -76,7 +76,7 @@ export default function SimpleEfficiencyAssessmentForm() {
       });
 
       form.reset();
-      window.location.href = "/services/efficiency-audit";
+      window.location.href = "/services/ai-efficiency-assessment";
     } catch (error) {
       toast({
         title: "Something went wrong",

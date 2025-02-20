@@ -39,8 +39,8 @@ interface ServiceData {
 
 export default function EfficiencyAuditPage() {
   const service: ServiceData = {
-    title: "Business Efficiency & Savings Assessment",
-    description: "Discover how much time, money, and resources your business could save with our expert Business Efficiency & Savings Assessment.",
+    title: "AI Efficiency Assessment",
+    description: "Discover how AI and automation can transform your business operations. Our comprehensive assessment identifies opportunities to reduce costs, enhance productivity, and unlock your business's full potential.",
     includedFeatures: [
       {
         title: "Custom Efficiency Report",
@@ -143,6 +143,43 @@ export default function EfficiencyAuditPage() {
         </div>
       </motion.div>
 
+      {/* How It Works Section - Moved to top */}
+      <motion.section 
+        className="mb-20"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
+        <h2 className="text-3xl font-bold mb-8">How It Works</h2>
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            {service.process.map((step, index) => (
+              <motion.div key={index} variants={fadeIn}>
+                <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
+                  <CardContent className="p-6">
+                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <span className="text-2xl font-bold text-primary">{index + 1}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                    <p className="text-muted-foreground">{step.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10" 
+              asChild
+            >
+              <Link to="/services/pre-assessment">Start Your Assessment →</Link>
+            </Button>
+          </div>
+        </div>
+      </motion.section>
+
       {/* What's Included Section */}
       <motion.section 
         className="mb-20"
@@ -187,43 +224,6 @@ export default function EfficiencyAuditPage() {
               <p className="text-lg">{item}</p>
             </motion.div>
           ))}
-        </div>
-      </motion.section>
-
-      {/* How It Works Section */}
-      <motion.section 
-        className="mb-20"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-8">How It Works</h2>
-        <div className="space-y-6">
-          <div className="grid md:grid-cols-3 gap-8">
-            {service.process.map((step, index) => (
-              <motion.div key={index} variants={fadeIn}>
-                <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                      <span className="text-2xl font-bold text-primary">{index + 1}</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                    <p className="text-muted-foreground">{step.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-          <div className="flex justify-center">
-            <Button 
-              variant="ghost" 
-              size="lg" 
-              className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10" 
-              asChild
-            >
-              <Link to="/services/pre-assessment">Start Your Assessment →</Link>
-            </Button>
-          </div>
         </div>
       </motion.section>
 

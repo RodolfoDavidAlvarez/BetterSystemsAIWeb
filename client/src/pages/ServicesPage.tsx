@@ -2,18 +2,28 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
-import { BrainCircuit } from "lucide-react";
+import { BrainCircuit, Mail, Globe, Phone, MessageSquare, Share2 } from "lucide-react";
 
 export default function ServicesPage() {
   const services = [
     {
       title: "AI Assistants",
+      subtitle: "For any business to implement",
       description: "AI assistants take over repetitive tasks so you don't have to. Each AI assistant is designed to handle a specific job with speed, accuracy, and efficiency—at a fraction of the cost of a human hire.",
       benefits: [
         "Internal business operations",
         "Capturing and managing leads", 
         "Following up with customers",
-        "Billing and project cost estimation"
+        "Billing and project cost estimation",
+        "Educating or redirecting customers",
+        "Automating any repetitive task"
+      ],
+      integrations: [
+        { icon: Mail, label: "Email" },
+        { icon: Globe, label: "Websites" },
+        { icon: Phone, label: "Phone systems" },
+        { icon: MessageSquare, label: "Text messaging" },
+        { icon: Share2, label: "Social media" }
       ],
       href: "/services/ai-assistants",
       highlight: "Reduce labor costs by 90% while boosting productivity"
@@ -69,7 +79,12 @@ export default function ServicesPage() {
             whileHover={{ scale: 1.02 }}
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
+            <div className="mb-4">
+              <h2 className="text-3xl font-bold">{service.title}</h2>
+              {service.subtitle && (
+                <p className="text-lg text-muted-foreground mt-1">{service.subtitle}</p>
+              )}
+            </div>
             <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -86,6 +101,25 @@ export default function ServicesPage() {
                 </motion.div>
               ))}
             </div>
+
+            {service.integrations && (
+              <div className="mb-6">
+                <p className="text-sm font-medium mb-3">It integrates with:</p>
+                <div className="flex gap-4">
+                  {service.integrations.map((integration, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <integration.icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-xs">{integration.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-2 mb-6 text-primary">
               <BrainCircuit className="h-5 w-5" />

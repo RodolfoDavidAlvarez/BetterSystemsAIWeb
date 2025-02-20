@@ -32,7 +32,7 @@ function Router() {
         <Route path="/" component={HomePage} />
         <Route path="/services" component={ServicesPage} />
         <Route path="/services/ai-assistants" component={AIAssistantsPage} />
-        <Route path="/services/efficiency-audit" component={EfficiencyAuditPage} />
+        <Route path="/services/ai-efficiency-assessment" component={EfficiencyAuditPage} />
         <Route path="/services/fleet-management" component={FleetManagementPage} />
         <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
         <Route path="/about" component={AboutPage} />

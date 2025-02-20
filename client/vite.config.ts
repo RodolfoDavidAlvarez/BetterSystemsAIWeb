@@ -26,11 +26,19 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5190,
-    strictPort: false,
+    strictPort: true,
     hmr: {
       clientPort: 443,
       protocol: 'wss',
       host: process.env.REPLIT_SLUG ? `${process.env.REPLIT_SLUG}.replit.dev` : 'localhost'
+    }
+  },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
     }
   }
 });

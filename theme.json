@@ -21,12 +21,5 @@
   "border": "#2A3441",
   "input": "#2A3441",
   "ring": "#3B82F6",
-  "radius": "0.5rem",
-  "fontSize": {
-    "sm": "0.875rem",
-    "base": "1rem",
-    "lg": "1.125rem",
-    "xl": "1.25rem",
-    "2xl": "1.5rem"
-  }
+  "radius": "0.5rem"
 }

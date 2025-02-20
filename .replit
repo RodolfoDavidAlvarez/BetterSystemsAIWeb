@@ -94,6 +94,10 @@ args = "Server"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
 [[workflows.workflow]]
 name = "Server Build"
 author = "agent"

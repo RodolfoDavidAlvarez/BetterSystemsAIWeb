@@ -7,11 +7,16 @@ import { BrainCircuit } from "lucide-react";
 export default function ServicesPage() {
   const services = [
     {
-      title: "AI-Powered Assistant Integrations",
-      description: "Transform your customer experience with intelligent virtual assistants that operate 24/7 across all channels. Our AI assistants leverage cutting-edge natural language processing to understand context, emotions, and intent, delivering personalized interactions that boost efficiency by up to 70% while maintaining a human touch.",
-      benefits: ["24/7 Multi-channel Support", "Natural Language Understanding", "Seamless System Integration", "70% Efficiency Boost"],
+      title: "AI Assistants",
+      description: "AI assistants take over repetitive tasks so you don't have to. Each AI assistant is designed to handle a specific job with speed, accuracy, and efficiency—at a fraction of the cost of a human hire.",
+      benefits: [
+        "Internal business operations",
+        "Capturing and managing leads", 
+        "Following up with customers",
+        "Billing and project cost estimation"
+      ],
       href: "/services/ai-assistants",
-      highlight: "Reduce response times by 90% while improving satisfaction"
+      highlight: "Reduce labor costs by 90% while boosting productivity"
     },
     {
       title: "Business Efficiency and Profit Maximization Audit",

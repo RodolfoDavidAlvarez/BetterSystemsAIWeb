@@ -610,7 +610,9 @@ export default function PreAssessmentQuestionnairePage() {
   };
 
   const nextStep = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // Prevent form submission
+    e.preventDefault();
+    e.stopPropagation();
+
     const fields = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fields as Array<keyof FormValues>);
 
@@ -628,7 +630,9 @@ export default function PreAssessmentQuestionnairePage() {
   };
 
   const prevStep = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // Prevent form submission
+    e.preventDefault();
+    e.stopPropagation();
+
     setCurrentStep((prev) => Math.max(prev - 1, 0));
     scrollToTop();
   };
@@ -679,13 +683,27 @@ export default function PreAssessmentQuestionnairePage() {
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={(e) => {
+                  // Only allow form submission on the last step and when clicking the submit button
+                  if (currentStep !== steps.length - 1) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                  }
+                  form.handleSubmit(onSubmit)(e);
+                }}
+                className="space-y-6"
+              >
                 {renderStep()}
                 <div className="flex justify-between mt-8 pt-4 border-t border-gray-800">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={prevStep}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      prevStep(e);
+                    }}
                     disabled={currentStep === 0}
                   >
                     Previous
@@ -709,7 +727,10 @@ export default function PreAssessmentQuestionnairePage() {
                   ) : (
                     <Button
                       type="button"
-                      onClick={(e) => nextStep(e)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        nextStep(e);
+                      }}
                     >
                       Next
                     </Button>

@@ -75,7 +75,7 @@ localPort = 5183
 externalPort = 9000
 
 [workflows]
-runButton = "Development"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -87,16 +87,16 @@ task = "workflow.run"
 args = "Server Build"
 
 [[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
+args = "Client"
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -111,6 +111,14 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
+
+[[workflows.workflow]]
+name = "Development"
+author = 38057015
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
 
 [[workflows.workflow]]
 name = "Server"
@@ -128,7 +136,7 @@ args = "cd server && tsx index.ts"
 waitForPort = 3000
 
 [[workflows.workflow]]
-name = "Start application"
+name = "Client"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -141,11 +149,3 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd client && npm run dev -- --host 0.0.0.0 --port 5190"
 waitForPort = 5190
-
-[[workflows.workflow]]
-name = "Development"
-author = 38057015
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"

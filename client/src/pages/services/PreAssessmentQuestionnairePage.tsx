@@ -609,7 +609,8 @@ export default function PreAssessmentQuestionnairePage() {
     }
   };
 
-  const nextStep = async () => {
+  const nextStep = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent form submission
     const fields = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fields as Array<keyof FormValues>);
 
@@ -626,7 +627,8 @@ export default function PreAssessmentQuestionnairePage() {
     }
   };
 
-  const prevStep = () => {
+  const prevStep = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent form submission
     setCurrentStep((prev) => Math.max(prev - 1, 0));
     scrollToTop();
   };
@@ -705,7 +707,10 @@ export default function PreAssessmentQuestionnairePage() {
                       )}
                     </Button>
                   ) : (
-                    <Button type="button" onClick={nextStep}>
+                    <Button
+                      type="button"
+                      onClick={(e) => nextStep(e)}
+                    >
                       Next
                     </Button>
                   )}

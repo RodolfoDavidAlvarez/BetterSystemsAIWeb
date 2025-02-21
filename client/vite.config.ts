@@ -6,7 +6,9 @@ import themePlugin from "@replit/vite-plugin-shadcn-theme-json"
 export default defineConfig({
   plugins: [
     react(),
-    themePlugin(),
+    themePlugin({
+      path: path.resolve(__dirname, 'theme.json')
+    })
   ],
   resolve: {
     alias: {
@@ -19,7 +21,7 @@ export default defineConfig({
     strictPort: true,
     hmr: {
       clientPort: 443,
-      host: '0.0.0.0',
+      protocol: 'wss',
     }
   },
   preview: {
@@ -27,5 +29,4 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-  logLevel: 'info',
 })

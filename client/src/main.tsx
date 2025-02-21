@@ -44,15 +44,18 @@ function Router() {
         <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
         <Route>404 Page Not Found</Route>
       </Switch>
+      <Toaster />
     </RootLayout>
   );
 }
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Failed to find the root element");
+
+createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <Router />
-      <Toaster />
     </QueryClientProvider>
   </StrictMode>,
 );

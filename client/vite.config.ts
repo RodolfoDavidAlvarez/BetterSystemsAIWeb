@@ -1,14 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import themePlugin from "@replit/vite-plugin-shadcn-theme-json"
 
 export default defineConfig({
   plugins: [
-    react(),
-    themePlugin({
-      path: path.resolve(__dirname, 'theme.json')
-    })
+    react()
   ],
   resolve: {
     alias: {
@@ -21,7 +17,7 @@ export default defineConfig({
     strictPort: true,
     hmr: {
       clientPort: 443,
-      protocol: 'wss',
+      protocol: 'wss'
     }
   },
   preview: {
@@ -29,4 +25,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
+  build: {
+    outDir: '../dist/public',
+    emptyOutDir: true,
+    sourcemap: true
+  }
 })

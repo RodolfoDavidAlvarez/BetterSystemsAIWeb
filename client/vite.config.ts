@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -24,18 +23,10 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: `http://localhost:${serverPort}`,
+        target: `http://0.0.0.0:${serverPort}`,
         changeOrigin: true,
         secure: false,
-        ws: true,
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Proxying:', req.method, req.url, 'to', proxyReq.path);
-          });
-        }
+        ws: true
       }
     }
   },

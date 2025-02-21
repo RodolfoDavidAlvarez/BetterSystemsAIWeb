@@ -1,260 +1,98 @@
 import express from "express";
-import type { Request, Response } from "express";
-import { registerRoutes } from "./routes.js";
-import { setupVite } from "./vite.js";
 import { createServer } from "http";
-import path from "path";
-import { fileURLToPath } from 'url';
-import fs from "fs";
 import cors from "cors";
-
-function log(message: string) {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [express] ${message}`);
-}
-
-// Initial startup log
-log("Starting server initialization...");
-
-// ES Module compatible dirname and filename
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-log(`Server directory: ${__dirname}`);
-
-// Set working directory to project root
-process.chdir(path.resolve(__dirname, ".."));
-log(`Working directory set to: ${process.cwd()}`);
+import net from "net";
 
 const app = express();
+const DEFAULT_PORT = 8080;
 
-// Basic security headers
-app.use((_req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  next();
-});
+// Enhanced error logging
+function logError(error: any) {
+  console.error('Detailed error information:');
+  console.error('Message:', error.message);
+  console.error('Code:', error.code);
+  console.error('Stack:', error.stack);
+  if (error.syscall) {
+    console.error('System call:', error.syscall);
+  }
+  if (error.address) {
+    console.error('Address:', error.address);
+  }
+  if (error.port) {
+    console.error('Port:', error.port);
+  }
+}
+
+// Check if a port is available
+function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => {
+      resolve(false);
+    });
+    server.once('listening', () => {
+      server.close();
+      resolve(true);
+    });
+    server.listen(port, '0.0.0.0');
+  });
+}
+
+// Find next available port
+async function findAvailablePort(startPort: number): Promise<number> {
+  let port = startPort;
+  while (!(await isPortAvailable(port))) {
+    console.log(`Port ${port} is in use, trying next port...`);
+    port++;
+    if (port > startPort + 100) { // Don't search indefinitely
+      throw new Error('No available ports found in range');
+    }
+  }
+  return port;
+}
+
+// Basic middleware
+app.use(cors());
+app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
+  console.log('Health check received');
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'development' ? true : process.env.ALLOWED_ORIGINS?.split(',') || false,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+// Create HTTP server
+const server = createServer(app);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
-});
-
-(async () => {
+// Start server with enhanced error handling
+async function startServer() {
   try {
-    log("Initializing server components...");
-    let activeConnections = new Set<any>();
+    const port = await findAvailablePort(DEFAULT_PORT);
+    console.log(`Found available port: ${port}`);
 
-    // Register API routes first
-    log("Registering API routes...");
-    registerRoutes(app);
-    const server = createServer(app);
-
-    // Track active connections for graceful shutdown
-    server.on('connection', connection => {
-      activeConnections.add(connection);
-      connection.on('close', () => {
-        activeConnections.delete(connection);
-      });
+    server.listen(port, '0.0.0.0', () => {
+      console.log(`Server running on port ${port}`);
+    }).on('error', (error: any) => {
+      logError(error);
+      process.exit(1);
     });
 
-    // Setup static file serving or development server
-    if (app.get("env") === "development") {
-      log("Setting up Vite development server...");
-      await setupVite(app, server);
-    } else {
-      try {
-        const publicPath = path.resolve(process.cwd(), 'client', 'dist');
-        log(`Checking for build directory at: ${publicPath}`);
-
-        if (!fs.existsSync(publicPath)) {
-          log(`Error: Build directory not found at ${publicPath}`);
-          throw new Error(`Build directory not found. Please ensure the application is built before starting the server.`);
-        }
-
-        log(`Serving static files from: ${publicPath}`);
-
-        // Serve static files with optimized caching
-        app.use(express.static(publicPath, {
-          maxAge: '1d',
-          etag: true,
-          index: false,
-          setHeaders: (res, filepath) => {
-            if (filepath.includes('/assets/')) {
-              res.setHeader('Cache-Control', 'public, max-age=31536000');
-            }
-            if (filepath.endsWith('.js')) {
-              res.setHeader('Content-Type', 'application/javascript');
-            } else if (filepath.endsWith('.css')) {
-              res.setHeader('Content-Type', 'text/css');
-            }
-          }
-        }));
-
-        // Handle all routes for SPA
-        app.get('*', (req, res, next) => {
-          // Skip API routes
-          if (req.path.startsWith('/api')) {
-            return next();
-          }
-
-          // Skip actual files
-          if (path.extname(req.path)) {
-            return next();
-          }
-
-          const indexPath = path.join(publicPath, 'index.html');
-
-          try {
-            if (fs.existsSync(indexPath)) {
-              res.sendFile(indexPath);
-            } else {
-              log(`Error: index.html not found at ${indexPath}`);
-              res.status(404).json({
-                error: 'Application not ready',
-                message: 'The application is still building. Please try again in a moment.',
-                path: publicPath
-              });
-            }
-          } catch (error) {
-            console.error('Error serving index.html:', error);
-            next(error);
-          }
-        });
-
-      } catch (error) {
-        console.error('Error setting up static file serving:', error);
-        throw error;
-      }
-    }
-
-    // Improved error handling middleware
-    app.use((error: any, _req: Request, res: Response, next: Function) => {
-      console.error('Server error:', error);
-
-      if (res.headersSent) {
-        return next(error);
-      }
-
-      const status = error.status || error.statusCode || 500;
-      const message = error.message || "Internal Server Error";
-
-      // Don't expose stack traces in production
-      const errorResponse = {
-        error: true,
-        message: message,
-        ...(process.env.NODE_ENV === 'development' ? {
-          stack: error.stack,
-          details: error.details || undefined
-        } : {})
-      };
-
-      try {
-        res.status(status).json(errorResponse);
-      } catch (err) {
-        console.error('Error in error handler:', err);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-
-    const port = parseInt(process.env.PORT || '3000', 10);
-
-    // Improved cleanup function with timeout
-    const cleanup = (signal: string) => {
-      log(`Received ${signal}. Starting graceful shutdown...`);
-
-      // Set a timeout for the graceful shutdown
-      const forcedShutdownTimeout = setTimeout(() => {
-        log('Forced shutdown after timeout');
-        process.exit(1);
-      }, 10000);
-
+    // Cleanup on process termination
+    const cleanup = () => {
+      console.log('Cleanup: Closing server...');
       server.close(() => {
-        clearTimeout(forcedShutdownTimeout);
-        log('Server closed successfully');
-
-        // Close all remaining connections
-        activeConnections.forEach(conn => {
-          conn.destroy();
-        });
-
+        console.log('Server closed');
         process.exit(0);
-      });
-
-      // Stop accepting new connections
-      activeConnections.forEach(conn => {
-        conn.end();
       });
     };
 
-    process.on('SIGTERM', () => cleanup('SIGTERM'));
-    process.on('SIGINT', () => cleanup('SIGINT'));
+    process.on('SIGTERM', cleanup);
+    process.on('SIGINT', cleanup);
 
-    log(`Attempting to start server on port ${port}...`);
-    try {
-      server.listen(port, '0.0.0.0', () => {
-        log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${port}`);
-        if (process.env.REPLIT_SLUG) {
-          log(`Replit deployment URL: https://${process.env.REPLIT_SLUG}.replit.dev`);
-        }
-      }).on('error', (error: any) => {
-        log(`Server error: ${error.message}`);
-        process.exit(1);
-      });
-    } catch (error) {
-      log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      process.exit(1);
-    }
   } catch (error) {
-    log(`Fatal error during server initialization: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logError(error);
     process.exit(1);
   }
-})();
+}
+
+startServer();

@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -17,9 +18,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
+      host: process.env.REPL_SLUG + "." + process.env.REPL_OWNER + ".repl.co",
       clientPort: 443,
-      protocol: 'wss',
-      timeout: 60000
+      protocol: 'wss'
     },
     proxy: {
       '/api': {

@@ -1,9 +1,12 @@
 {
   "name": "better-systems",
   "type": "dark",
-  "appearance": "dark",
-  "variant": "rose",
-  "primary": "#3B82F6",
-  "primaryForeground": "#FFFFFF",
-  "radius": 8
+  "colors": {
+    "background": "hsl(var(--background))",
+    "foreground": "hsl(var(--foreground))",
+    "primary": {
+      "DEFAULT": "hsl(var(--primary))",
+      "foreground": "hsl(var(--primary-foreground))"
+    }
+  }
 }

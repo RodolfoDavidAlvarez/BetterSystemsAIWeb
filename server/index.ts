@@ -1,58 +1,50 @@
 import express from "express";
-import { createServer } from "http";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import cors from "cors";
-import { registerRoutes } from "./routes";
-import path from "path";
+import { createServer } from 'http';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT || 3000;
 
 // Basic middleware
 app.use(cors());
 app.use(express.json());
 
-// Debug logging middleware
+// Debug logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// Verify static directory exists
-const staticDir = path.resolve("./dist/public");
-console.log(`Static directory path: ${staticDir}`);
-console.log(`Static directory exists: ${require('fs').existsSync(staticDir)}`);
-
-// Serve static files
+// Static file serving
+const staticDir = join(dirname(__dirname), 'dist', 'public');
+console.log(`Serving static files from: ${staticDir}`);
 app.use(express.static(staticDir));
 
-// Register all routes
-registerRoutes(app);
-
-// Health check endpoint
+// Health check
 app.get('/api/health', (_req, res) => {
-  console.log('Health check received');
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  res.json({ status: 'healthy', time: new Date().toISOString() });
 });
 
-// Fallback route for SPA
-app.get('*', (req, res) => {
-  console.log(`Fallback route hit: ${req.url}`);
-  res.sendFile(path.join(staticDir, 'index.html'));
+// SPA fallback
+app.get('*', (_req, res) => {
+  res.sendFile(join(staticDir, 'index.html'));
 });
 
-// Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Error:', err);
+// Error handling
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Create HTTP server
+// Create and start server
 const server = createServer(app);
-
-// Start server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server started successfully on port ${PORT}`);
-  console.log(`Server bound to all interfaces (0.0.0.0)`);
+  console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
 });
 

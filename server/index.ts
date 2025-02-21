@@ -3,8 +3,7 @@ import { createServer } from "http";
 import cors from "cors";
 
 const app = express();
-const PORT_START = 50000;
-const PORT_RANGE = 20; // Try ports 50000-50019
+const PORT = 5000;
 
 // Enhanced error logging
 function logError(error: any) {
@@ -40,35 +39,18 @@ let currentPort: number | null = null;
 
 // Try ports sequentially
 async function startServer() {
-  for (let portOffset = 0; portOffset < PORT_RANGE; portOffset++) {
-    const port = PORT_START + portOffset;
-    try {
-      const success = await new Promise<boolean>((resolve) => {
-        const onError = (error: any) => {
-          console.log(`Port ${port} is not available:`, error.message);
-          server.removeAllListeners();
-          resolve(false);
-        };
+  return new Promise((resolve, reject) => {
+    server.listen(PORT, '0.0.0.0', () => {
+      currentPort = PORT;
+      console.log(`Server started successfully on port ${PORT}`);
+      resolve(PORT);
+    });
 
-        server.once('error', onError);
-
-        server.listen(port, '0.0.0.0', () => {
-          server.removeListener('error', onError);
-          currentPort = port;
-          console.log(`Server started successfully on port ${port}`);
-          resolve(true);
-        });
-      });
-
-      if (success) {
-        return port;
-      }
-    } catch (error) {
+    server.once('error', (error) => {
       logError(error);
-    }
-  }
-
-  throw new Error('No available ports found in range');
+      reject(error);
+    });
+  });
 }
 
 // Clean shutdown handling

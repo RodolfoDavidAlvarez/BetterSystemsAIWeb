@@ -3,28 +3,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
-import { ContinuousGallery } from "@/components/ui/continuous-gallery";
-import { Gauge, CheckCircle2, TrendingUp, Timer } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-interface CaseStudy {
-  title: string;
-  company: string;
-  description: string;
-  challenge: string;
-  solution: string;
-  results: string[];
-  metrics: {
-    value: string;
-    label: string;
-    icon: LucideIcon;
-  }[];
-  images?: {
-    src: string;
-    title: string;
-    alt: string;
-  }[];
-}
+import { ArrowRight } from "lucide-react";
 
 export default function CustomSolutionsPage() {
   const service = {
@@ -39,58 +18,17 @@ export default function CustomSolutionsPage() {
     ]
   };
 
-  const caseStudy: CaseStudy = {
-    title: "Fleet Management System 2.0",
-    company: "Agave Environmental Contract, Inc",
-    description: "One of Arizona's largest landscape companies transformed their fleet operations with our custom AI solution.",
-    challenge: "Managing a large fleet of vehicles was becoming increasingly complex and time-consuming. The company needed a solution to streamline maintenance tracking, reduce downtime, and improve communication between drivers and maintenance teams.",
-    solution: "We developed a comprehensive Fleet Management System that automates problem classification, streamlines maintenance scheduling, and provides real-time insights into fleet operations.",
-    results: [
-      "35% reduction in fleet operational costs",
-      "60% decrease in maintenance response time",
-      "90% improvement in communication efficiency",
-      "Significant reduction in vehicle downtime"
-    ],
-    metrics: [
-      {
-        value: "35%",
-        label: "Cost Reduction",
-        icon: TrendingUp
-      },
-      {
-        value: "60%",
-        label: "Faster Response",
-        icon: Timer
-      },
-      {
-        value: "90%",
-        label: "Efficiency Gain",
-        icon: Gauge
-      }
-    ],
-    images: [
-      {
-        src: "/images/ai-classification-gallery.png",
-        title: "AI Classification Gallery",
-        alt: "AI Classification system showcase"
-      },
-      {
-        src: "/images/cost-analysis-reporting.png",
-        title: "Cost Analysis and Incident Reporting",
-        alt: "Cost analysis and incident reporting interface"
-      },
-      {
-        src: "/images/driver-management.png",
-        title: "Driver Management",
-        alt: "Driver management interface"
-      },
-      {
-        src: "/images/vehicle-management-detail.png",
-        title: "Vehicle Management Detail",
-        alt: "Vehicle management detailed view"
-      }
-    ]
-  };
+  const caseStudies = [
+    {
+      title: "Fleet Management System 2.0",
+      company: "Agave Environmental Contract, Inc",
+      description: "One of Arizona's largest landscape companies transformed their fleet operations with our custom AI solution, achieving 35% cost reduction and 90% efficiency improvement.",
+      metric: "35%",
+      metricLabel: "Cost Reduction",
+      link: "/services/fleet-management"
+    }
+    // Add more case studies here as needed
+  ];
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -129,58 +67,42 @@ export default function CustomSolutionsPage() {
           ))}
         </ul>
 
-        {/* Case Study Section */}
-        <div className="bg-muted/30 rounded-2xl p-8 mb-16">
-          <h2 className="text-3xl font-bold mb-8">Success Story: {caseStudy.company}</h2>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
-            <div>
-              <h3 className="text-2xl font-semibold mb-4">{caseStudy.title}</h3>
-              <p className="text-lg text-muted-foreground mb-6">{caseStudy.description}</p>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold mb-2">The Challenge:</h4>
-                  <p className="text-muted-foreground">{caseStudy.challenge}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Our Solution:</h4>
-                  <p className="text-muted-foreground">{caseStudy.solution}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {caseStudy.metrics.map((metric, index) => (
-                <Card key={index} className="bg-background/50">
-                  <CardContent className="p-6">
-                    <metric.icon className="h-8 w-8 text-primary mb-4" />
-                    <div className="text-2xl font-bold mb-2">{metric.value}</div>
-                    <div className="text-sm text-muted-foreground">{metric.label}</div>
+        {/* Success Stories Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold mb-8">Success Stories</h2>
+          <div className="grid gap-8">
+            {caseStudies.map((study, index) => (
+              <motion.div
+                key={index}
+                variants={fadeIn}
+                className="group"
+              >
+                <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0">
+                  <CardContent className="p-8">
+                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                      <div>
+                        <h3 className="text-2xl font-semibold mb-2">{study.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-4">{study.company}</p>
+                        <p className="text-muted-foreground mb-6">{study.description}</p>
+                        <Button asChild variant="ghost" className="group-hover:translate-x-1 transition-transform">
+                          <Link href={study.link}>
+                            View Full Case Study
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-4xl font-bold text-primary mb-2">{study.metric}</div>
+                          <div className="text-sm text-muted-foreground">{study.metricLabel}</div>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              </motion.div>
+            ))}
           </div>
-
-          <div className="mb-12">
-            <h4 className="font-semibold mb-4">Key Results:</h4>
-            <ul className="grid md:grid-cols-2 gap-4">
-              {caseStudy.results.map((result, index) => (
-                <li key={index} className="flex items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
-                  <span>{result}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {caseStudy.images && (
-            <div className="mt-8">
-              <h4 className="font-semibold mb-6">System Overview</h4>
-              <ContinuousGallery images={caseStudy.images} />
-            </div>
-          )}
         </div>
       </motion.section>
 

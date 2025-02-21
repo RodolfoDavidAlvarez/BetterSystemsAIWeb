@@ -14,27 +14,10 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      host: process.env.REPL_SLUG + "." + process.env.REPL_OWNER + ".repl.co",
       clientPort: 443,
       protocol: 'wss',
-      timeout: 30000,
-      overlay: false
-    },
-    proxy: {
-      '/api': {
-        target: 'http://0.0.0.0:50005',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.log('Proxy error:', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Proxying:', req.method, req.url);
-          });
-        }
-      }
+      path: "/@vite/client",
+      timeout: 120000
     }
   },
   build: {

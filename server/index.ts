@@ -4,6 +4,8 @@ import cors from "cors";
 
 const app = express();
 const PORT = 5000;
+const PORT_START = 5000;
+const PORT_RANGE = 100;
 
 // Enhanced error logging
 function logError(error: any) {

@@ -1,10 +1,10 @@
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
-import net from "net";
 
 const app = express();
-const DEFAULT_PORT = 8080;
+const PORT_START = 50000;
+const PORT_RANGE = 20; // Try ports 50000-50019
 
 // Enhanced error logging
 function logError(error: any) {
@@ -23,34 +23,6 @@ function logError(error: any) {
   }
 }
 
-// Check if a port is available
-function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.once('error', () => {
-      resolve(false);
-    });
-    server.once('listening', () => {
-      server.close();
-      resolve(true);
-    });
-    server.listen(port, '0.0.0.0');
-  });
-}
-
-// Find next available port
-async function findAvailablePort(startPort: number): Promise<number> {
-  let port = startPort;
-  while (!(await isPortAvailable(port))) {
-    console.log(`Port ${port} is in use, trying next port...`);
-    port++;
-    if (port > startPort + 100) { // Don't search indefinitely
-      throw new Error('No available ports found in range');
-    }
-  }
-  return port;
-}
-
 // Basic middleware
 app.use(cors());
 app.use(express.json());
@@ -64,35 +36,63 @@ app.get('/api/health', (_req, res) => {
 // Create HTTP server
 const server = createServer(app);
 
-// Start server with enhanced error handling
+let currentPort: number | null = null;
+
+// Try ports sequentially
 async function startServer() {
-  try {
-    const port = await findAvailablePort(DEFAULT_PORT);
-    console.log(`Found available port: ${port}`);
+  for (let portOffset = 0; portOffset < PORT_RANGE; portOffset++) {
+    const port = PORT_START + portOffset;
+    try {
+      const success = await new Promise<boolean>((resolve) => {
+        const onError = (error: any) => {
+          console.log(`Port ${port} is not available:`, error.message);
+          server.removeAllListeners();
+          resolve(false);
+        };
 
-    server.listen(port, '0.0.0.0', () => {
-      console.log(`Server running on port ${port}`);
-    }).on('error', (error: any) => {
-      logError(error);
-      process.exit(1);
-    });
+        server.once('error', onError);
 
-    // Cleanup on process termination
-    const cleanup = () => {
-      console.log('Cleanup: Closing server...');
-      server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
+        server.listen(port, '0.0.0.0', () => {
+          server.removeListener('error', onError);
+          currentPort = port;
+          console.log(`Server started successfully on port ${port}`);
+          resolve(true);
+        });
       });
-    };
 
-    process.on('SIGTERM', cleanup);
-    process.on('SIGINT', cleanup);
-
-  } catch (error) {
-    logError(error);
-    process.exit(1);
+      if (success) {
+        return port;
+      }
+    } catch (error) {
+      logError(error);
+    }
   }
+
+  throw new Error('No available ports found in range');
 }
 
-startServer();
+// Clean shutdown handling
+const cleanup = () => {
+  console.log('Shutting down server...');
+  if (currentPort) {
+    console.log(`Closing server on port ${currentPort}`);
+  }
+  server.close(() => {
+    console.log('Server closed successfully');
+    process.exit(0);
+  });
+};
+
+process.on('SIGTERM', cleanup);
+process.on('SIGINT', cleanup);
+
+// Start the server
+console.log(`Attempting to start server in port range ${PORT_START}-${PORT_START + PORT_RANGE - 1}`);
+startServer()
+  .then(port => {
+    console.log(`Server is running on port ${port}`);
+  })
+  .catch(error => {
+    logError(error);
+    process.exit(1);
+  });

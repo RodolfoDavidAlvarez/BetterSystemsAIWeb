@@ -2,9 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-// Read server port from environment or default to 8080
-const serverPort = process.env.SERVER_PORT || '8080';
-
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -19,14 +16,24 @@ export default defineConfig({
     hmr: {
       host: process.env.REPL_SLUG + "." + process.env.REPL_OWNER + ".repl.co",
       clientPort: 443,
-      protocol: 'wss'
+      protocol: 'wss',
+      timeout: 30000,
+      overlay: false
     },
     proxy: {
       '/api': {
-        target: `http://0.0.0.0:8082`,
+        target: 'http://0.0.0.0:50005',
         changeOrigin: true,
         secure: false,
-        ws: true
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Proxying:', req.method, req.url);
+          });
+        }
       }
     }
   },

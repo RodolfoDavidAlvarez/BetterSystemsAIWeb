@@ -28,7 +28,7 @@ interface CaseStudy {
 
 export default function CustomSolutionsPage() {
   const service = {
-    title: "Custom AI Solutions",
+    title: "Personalized Automation Solution",
     description: "We develop tailored AI applications to meet your specific business needs, automating complex processes and enhancing operational efficiency.",
     features: [
       "Inventory management systems",

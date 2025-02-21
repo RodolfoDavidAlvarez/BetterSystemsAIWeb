@@ -37,13 +37,6 @@ export default function ServicesPage() {
       highlight: "Average 40% cost reduction identified"
     },
     {
-      title: "Fleet Management System 2.0",
-      description: "Revolutionary AI-enhanced fleet management that transforms how you monitor, maintain, and optimize your vehicle operations. From predictive maintenance to real-time route optimization, take control of your fleet like never before.",
-      benefits: ["Real-time Monitoring", "Predictive Maintenance", "Route Optimization", "Cost Analytics"],
-      href: "/services/fleet-management",
-      highlight: "Reduce fleet costs by up to 35%"
-    },
-    {
       title: "Personalized Automation Solution",
       subtitle: "For unique business operations",
       description: "We understand that most businesses have tasks they repeat every day—whether administrative, operational, or necessary for scaling. These tasks don't directly generate revenue or improve quality but become more demanding as your business grows. That's where automation comes in. Our AI-driven solutions take over these repetitive processes, freeing up your time, cutting costs, and allowing you to focus on what truly matters.",

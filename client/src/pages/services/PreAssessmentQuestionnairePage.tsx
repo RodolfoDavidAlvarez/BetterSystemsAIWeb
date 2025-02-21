@@ -411,7 +411,10 @@ export default function PreAssessmentQuestionnairePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          formIdentifier: "Pre-Assessment Questionnaire"
+        }),
       });
 
       if (!response.ok) {
@@ -423,8 +426,9 @@ export default function PreAssessmentQuestionnairePage() {
         description: "Thank you for completing the pre-assessment questionnaire. We'll be in touch soon!",
       });
 
+      // Reset form and redirect to the correct URL
       form.reset();
-      window.location.href = "/services/efficiency-audit";
+      window.location.href = "https://bettersystems.ai/services/ai-efficiency-assessment";
     } catch (error) {
       toast({
         title: "Error",

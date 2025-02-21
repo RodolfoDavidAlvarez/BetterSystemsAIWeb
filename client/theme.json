@@ -1,0 +1,30 @@
+{
+  "name": "default",
+  "type": "light",
+  "colors": {
+    "background": "#ffffff",
+    "foreground": "#000000",
+    "primary": "#000000",
+    "primary-foreground": "#ffffff",
+    "secondary": "#f4f4f5",
+    "secondary-foreground": "#000000",
+    "muted": "#f4f4f5",
+    "muted-foreground": "#71717a",
+    "accent": "#f4f4f5",
+    "accent-foreground": "#000000",
+    "destructive": "#ef4444",
+    "destructive-foreground": "#ffffff",
+    "card": "#ffffff",
+    "card-foreground": "#000000",
+    "popover": "#ffffff",
+    "popover-foreground": "#000000",
+    "border": "#e4e4e7",
+    "input": "#e4e4e7",
+    "ring": "#000000"
+  },
+  "borderRadius": {
+    "lg": "0.5rem",
+    "md": "0.4rem",
+    "sm": "0.2rem"
+  }
+}

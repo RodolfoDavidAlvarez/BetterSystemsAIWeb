@@ -91,14 +91,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Client Dev"
+waitForPort = 5176
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -115,14 +108,6 @@ task = "shell.exec"
 args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
 
 [[workflows.workflow]]
-name = "Development"
-author = 38057015
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
 name = "Dev"
 author = 38057015
 
@@ -137,33 +122,3 @@ author = 38057015
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm run dev"
-
-[[workflows.workflow]]
-name = "Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd server && PORT=3001 tsx watch --clear-screen=false index.ts"
-waitForPort = 3001
-
-[[workflows.workflow]]
-name = "Client Dev"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd client && vite --host"
-waitForPort = 5174

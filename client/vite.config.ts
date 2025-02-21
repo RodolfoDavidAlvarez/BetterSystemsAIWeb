@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import checker from "vite-plugin-checker"
 
 export default defineConfig({
   plugins: [
-    react()
+    react(),
+    checker({ typescript: true, overlay: false }),
   ],
   resolve: {
     alias: {
@@ -19,11 +21,6 @@ export default defineConfig({
       clientPort: 443,
       protocol: 'wss'
     }
-  },
-  preview: {
-    host: '0.0.0.0',
-    port: 5173,
-    strictPort: true,
   },
   build: {
     outDir: '../dist/public',

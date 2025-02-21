@@ -1,30 +1,12 @@
 // IMPORTANT: DO NOT DELETE THESE COMMENTS - Critical configuration information
 // This theme configuration is used by @replit/vite-plugin-shadcn-theme-json
-// Valid variant values are: "default", "rose", "blue", "green", "orange"
-// Using other values will cause the theme plugin to fail with "Expected union value"
+// Valid variant values are: "rose", "blue", "green", "orange"
 {
   "name": "better-systems",
   "type": "dark",
   "appearance": "dark",
-  "variant": "blue",
+  "variant": "rose",
   "primary": "#3B82F6",
-  "primary-foreground": "#FFFFFF",
-  "secondary": "#2A3441",
-  "secondary-foreground": "#FFFFFF",
-  "background": "#000000",
-  "foreground": "#FFFFFF",
-  "destructive": "#EF4444",
-  "destructive-foreground": "#FFFFFF",
-  "muted": "#2A3441",
-  "muted-foreground": "#94A3B8",
-  "accent": "#2A3441",
-  "accent-foreground": "#FFFFFF",
-  "popover": "#000000",
-  "popover-foreground": "#FFFFFF",
-  "card": "#000000",
-  "card-foreground": "#FFFFFF",
-  "border": "#2A3441",
-  "input": "#2A3441",
-  "ring": "#3B82F6",
-  "radius": "0.5rem"
+  "primaryForeground": "#FFFFFF",
+  "radius": 8
 }

@@ -3,9 +3,7 @@ import { createServer } from "http";
 import cors from "cors";
 
 const app = express();
-const PORT = 5000;
-const PORT_START = 5000;
-const PORT_RANGE = 100;
+const PORT = process.env.PORT || 3000;
 
 // Enhanced error logging
 function logError(error: any) {
@@ -37,13 +35,10 @@ app.get('/api/health', (_req, res) => {
 // Create HTTP server
 const server = createServer(app);
 
-let currentPort: number | null = null;
-
-// Try ports sequentially
+// Start server
 async function startServer() {
   return new Promise((resolve, reject) => {
     server.listen(PORT, '0.0.0.0', () => {
-      currentPort = PORT;
       console.log(`Server started successfully on port ${PORT}`);
       resolve(PORT);
     });
@@ -58,9 +53,6 @@ async function startServer() {
 // Clean shutdown handling
 const cleanup = () => {
   console.log('Shutting down server...');
-  if (currentPort) {
-    console.log(`Closing server on port ${currentPort}`);
-  }
   server.close(() => {
     console.log('Server closed successfully');
     process.exit(0);
@@ -71,7 +63,7 @@ process.on('SIGTERM', cleanup);
 process.on('SIGINT', cleanup);
 
 // Start the server
-console.log(`Attempting to start server in port range ${PORT_START}-${PORT_START + PORT_RANGE - 1}`);
+console.log(`Starting server on port ${PORT}`);
 startServer()
   .then(port => {
     console.log(`Server is running on port ${port}`);

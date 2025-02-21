@@ -3,250 +3,204 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
-
 import { ContinuousGallery } from "@/components/ui/continuous-gallery";
-
-import { useState } from "react";
+import { Gauge, CheckCircle2, TrendingUp, Timer, ArrowLeft } from "lucide-react";
 
 export default function FleetManagementPage() {
-  const [hasPlayed, setHasPlayed] = useState(false);
-  const service = {
+  const caseStudy = {
     title: "Fleet Management System 2.0",
-    description: "Managing a fleet can be complex and time-consuming. Our Fleet Management System simplifies every aspect of vehicle oversight, from repair tracking to operational insights. Powered by advanced automation and AI, this system streamlines workflows, reduces downtime, and enhances communication—saving you time and money.",
-    keyFeatures: [
+    company: "Agave Environmental Contract, Inc",
+    description: "One of Arizona's largest landscape companies transformed their fleet operations with our custom AI solution.",
+    challenge: "Managing a large fleet of vehicles was becoming increasingly complex and time-consuming. The company needed a solution to streamline maintenance tracking, reduce downtime, and improve communication between drivers and maintenance teams.",
+    solution: "We developed a comprehensive Fleet Management System that automates problem classification, streamlines maintenance scheduling, and provides real-time insights into fleet operations.",
+    features: [
       {
         title: "AI-Powered Problem Classification",
         description: "Issues reported by drivers are automatically categorized for faster resolution, ensuring repairs are assigned to the right team instantly.",
         examples: ["Oil changes", "Battery issues", "Cooling system problems", "Structural damage"]
       },
       {
+        title: "Real-Time Communication",
+        description: "Instant notifications and updates keep all stakeholders informed about vehicle status and maintenance progress.",
+        examples: ["Status updates", "Maintenance alerts", "Completion notifications", "Driver feedback"]
+      },
+      {
         title: "Comprehensive Dashboard",
         description: "Stay on top of your fleet's needs with actionable insights.",
-        features: [
-          "Cost Analysis",
-          "Monthly Trends",
-          "Historical Data Access"
-        ]
+        examples: ["Cost Analysis", "Monthly Trends", "Historical Data", "Performance Metrics"]
       }
     ],
-    benefits: [
-      "Automation & Efficiency: Save time by reducing manual processes",
-      "Enhanced Communication: Keep everyone informed with real-time updates",
-      "Data-Driven Insights: Make smarter decisions with detailed analytics",
-      "Streamlined Workflows: Minimize downtime with simplified operations"
+    results: [
+      {
+        metric: "35%",
+        label: "Cost Reduction",
+        description: "Significant decrease in operational costs through efficient maintenance scheduling and reduced downtime",
+        icon: TrendingUp
+      },
+      {
+        metric: "60%",
+        label: "Faster Response",
+        description: "Dramatic improvement in maintenance response times through automated issue classification",
+        icon: Timer
+      },
+      {
+        metric: "90%",
+        label: "Efficiency Gain",
+        description: "Enhanced communication and streamlined workflows lead to significant operational efficiency",
+        icon: Gauge
+      }
     ],
-    additionalFeatures: [
+    testimonial: {
+      quote: "Better Systems AI's Fleet Management System has revolutionized how we handle our vehicle maintenance. The automation and real-time insights have been game-changing for our operations.",
+      author: "Operations Director, Agave Environmental Contract, Inc"
+    },
+    gallery: [
       {
-        title: "Advanced Time and Cost Metrics",
-        points: ["Repair Tracking", "Cost Validation"]
+        src: "/images/ai-classification-gallery.png",
+        title: "AI Classification Gallery",
+        alt: "AI Classification system showcase"
       },
       {
-        title: "Simplified Appointment Scheduling",
-        points: ["Consolidated Booking System", "Priority Status", "QR Code Integration"]
+        src: "/images/cost-analysis-reporting.png",
+        title: "Cost Analysis and Incident Reporting",
+        alt: "Cost analysis and incident reporting interface"
       },
       {
-        title: "Vehicle Data Integration",
-        points: ["Comprehensive Vehicle Records", "Supervisor Access"]
+        src: "/images/driver-management.png",
+        title: "Driver Management",
+        alt: "Driver management interface"
       },
       {
-        title: "Real-Time Driver Notifications",
-        points: ["Status Updates", "Driver Notes"]
+        src: "/images/vehicle-management-detail.png",
+        title: "Vehicle Management Detail",
+        alt: "Vehicle management detailed view"
       }
     ]
   };
 
   return (
     <div className="container mx-auto px-4 py-16">
-      {/* Header Section */}
-      <motion.div 
-        className="max-w-3xl mx-auto mb-12"
+      <motion.div
+        className="max-w-4xl mx-auto"
         initial="initial"
         animate="animate"
         variants={fadeIn}
       >
-        <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
-          ← Back to Services
-        </Link>
-        <h1 className="text-4xl font-bold mb-6">{service.title}</h1>
-        <p className="text-muted-foreground text-lg leading-relaxed">
-          {service.description}
-        </p>
-      </motion.div>
+        {/* Navigation */}
+        <div className="mb-8">
+          <Link href="/services/custom-solutions" className="inline-flex items-center text-primary hover:underline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Custom Solutions
+          </Link>
+        </div>
 
-      {/* Fleet Management Carousel */}
-      <motion.section 
-        className="mb-16"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        <ContinuousGallery
-          images={[
-            {
-              src: "/images/ai-classification-gallery.png",
-              title: "AI Classification Gallery",
-              alt: "AI Classification system showcase"
-            },
-            {
-              src: "/images/cost-analysis-reporting.png",
-              title: "Cost Analysis and Incident Reporting",
-              alt: "Cost analysis and incident reporting interface"
-            },
-            {
-              src: "/images/driver-management.png",
-              title: "Driver Management",
-              alt: "Driver management interface"
-            },
-            {
-              src: "/images/vehicle-management-detail.png",
-              title: "Vehicle Management Detail",
-              alt: "Vehicle management detailed view"
-            },
-            {
-              src: "/images/vehicle-management-detail-2.png",
-              title: "Vehicle Management Detail 2",
-              alt: "Additional vehicle management interface"
-            }
-          ]}
-        />
-      </motion.section>
+        {/* Header Section */}
+        <div className="mb-16">
+          <h1 className="text-4xl font-bold mb-4">{caseStudy.title}</h1>
+          <p className="text-xl text-muted-foreground mb-4">{caseStudy.company}</p>
+          <p className="text-lg text-muted-foreground">{caseStudy.description}</p>
+        </div>
 
-      {/* Key Features Section */}
-      <motion.section 
-        className="mb-16"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-8">Key Features</h2>
-        <motion.div 
-          className="grid md:grid-cols-2 gap-8"
-          variants={staggerChildren}
-        >
-          {service.keyFeatures.map((feature, index) => (
-            <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full">
-                <CardContent className="p-6 space-y-4">
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground mb-4">{feature.description}</p>
-                  {feature.examples && (
-                    <div>
-                      <h4 className="font-medium mb-2">Examples:</h4>
-                      <ul className="list-disc list-inside text-muted-foreground">
-                        {feature.examples.map((example, i) => (
-                          <li key={i}>{example}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {feature.features && (
+        {/* Challenge & Solution Section */}
+        <motion.section className="mb-16" variants={staggerChildren}>
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="bg-muted/30">
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-semibold mb-4">The Challenge</h2>
+                <p className="text-muted-foreground">{caseStudy.challenge}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-muted/30">
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-semibold mb-4">Our Solution</h2>
+                <p className="text-muted-foreground">{caseStudy.solution}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.section>
+
+        {/* Features Section */}
+        <motion.section className="mb-16" variants={staggerChildren}>
+          <h2 className="text-3xl font-bold mb-8">Key Features</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {caseStudy.features.map((feature, index) => (
+              <motion.div key={index} variants={fadeIn}>
+                <Card className="h-full">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
+                    <p className="text-muted-foreground mb-4">{feature.description}</p>
                     <ul className="space-y-2">
-                      {feature.features.map((item, i) => (
+                      {feature.examples.map((example, i) => (
                         <li key={i} className="flex items-center gap-2">
-                          <span className="size-1.5 rounded-full bg-primary" />
-                          {item}
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                          <span className="text-sm">{example}</span>
                         </li>
                       ))}
                     </ul>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.section>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
 
-      {/* Benefits Section */}
-      <section className="mb-16 bg-primary/5 rounded-2xl p-8">
-        <h2 className="text-3xl font-bold mb-8">Benefits at a Glance</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {service.benefits.map((benefit, index) => (
-            <div key={index} className="flex items-start gap-4">
-              <span className="size-2 rounded-full bg-primary mt-2" />
-              <p className="text-lg">{benefit}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        {/* Visual Gallery */}
+        <motion.section className="mb-16" variants={fadeIn}>
+          <h2 className="text-3xl font-bold mb-8">System Overview</h2>
+          <ContinuousGallery images={caseStudy.gallery} />
+        </motion.section>
 
-      {/* Video Tutorial Section */}
-      <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-4">Video Tutorials</h2>
-        <p className="text-lg text-muted-foreground mb-6">
-          As part of our comprehensive Fleet Management System, we provide detailed video tutorials to ensure your team gets the most out of our solution. Our tutorial library walks you through every feature, helping your staff master the system quickly and efficiently. Watch below for an overview of our key features and best practices.
-        </p>
-        <div 
-          className="relative w-full aspect-video rounded-lg overflow-hidden"
-          ref={(element) => {
-            if (!element || hasPlayed) return;
-            
-            const observer = new IntersectionObserver(
-              ([entry]) => {
-                if (entry.isIntersecting) {
-                  // When the video enters the viewport for the first time, replace the src to trigger autoplay
-                  const iframe = element.querySelector('iframe');
-                  if (iframe) {
-                    iframe.src = "https://www.youtube.com/embed/xzkGsKIGNfA?autoplay=1&enablejsapi=1&playsinline=1";
-                    setHasPlayed(true); // Mark as played
-                  }
-                  observer.disconnect(); // Stop observing once video starts playing
-                }
-              },
-              { threshold: 0.5 } // Trigger when 50% of the element is visible
-            );
+        {/* Results Section */}
+        <motion.section className="mb-16" variants={staggerChildren}>
+          <h2 className="text-3xl font-bold mb-8">Results & Impact</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {caseStudy.results.map((result, index) => (
+              <motion.div key={index} variants={fadeIn}>
+                <Card className="h-full">
+                  <CardContent className="p-6">
+                    <result.icon className="h-8 w-8 text-primary mb-4" />
+                    <div className="text-3xl font-bold mb-2">{result.metric}</div>
+                    <div className="font-semibold mb-2">{result.label}</div>
+                    <p className="text-sm text-muted-foreground">{result.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
 
-            observer.observe(element);
-            
-            // Cleanup observer on unmount
-            return () => observer.disconnect();
-          }}
+        {/* Testimonial Section */}
+        <motion.section
+          className="mb-16 bg-primary/5 rounded-2xl p-8 relative overflow-hidden"
+          variants={fadeIn}
         >
-          <iframe
-            src="https://www.youtube.com/embed/xzkGsKIGNfA?enablejsapi=1"
-            title="Fleet Management System Tutorial"
-            className="absolute inset-0 w-full h-full rounded-lg"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            loading="lazy"
-          />
-        </div>
-      </section>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+          <div className="relative z-10">
+            <div className="text-4xl text-primary mb-4">❝</div>
+            <p className="text-xl italic mb-4">{caseStudy.testimonial.quote}</p>
+            <p className="text-muted-foreground">— {caseStudy.testimonial.author}</p>
+          </div>
+        </motion.section>
 
-      {/* Additional Features Grid */}
-      <section className="mb-16">
-        <h2 className="text-3xl font-bold mb-8">Additional Features</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {service.additionalFeatures.map((feature, index) => (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
-                <ul className="space-y-2">
-                  {feature.points.map((point, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span className="size-1.5 rounded-full bg-primary" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <div className="text-center bg-primary/5 rounded-2xl p-12">
-        <h2 className="text-3xl font-bold mb-4">Take Control of Your Fleet Today</h2>
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Ready to transform your fleet operations? Our Fleet Management System delivers everything 
-          you need to stay ahead—whether you're managing a handful of vehicles or a large-scale operation.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Button asChild size="lg">
-            <Link href="/get-started">Request Solution</Link>
-          </Button>
-        </div>
-      </div>
+        {/* CTA Section */}
+        <motion.section
+          className="text-center bg-primary/5 rounded-2xl p-12"
+          variants={fadeIn}
+        >
+          <h2 className="text-3xl font-bold mb-4">Transform Your Fleet Operations</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Ready to revolutionize your fleet management? Let us help you achieve similar results with a custom solution tailored to your needs.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button asChild size="lg">
+              <Link href="/get-started">Request Demo</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/contact">Contact Sales</Link>
+            </Button>
+          </div>
+        </motion.section>
+      </motion.div>
     </div>
   );
 }

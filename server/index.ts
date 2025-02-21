@@ -3,24 +3,7 @@ import { createServer } from "http";
 import cors from "cors";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Enhanced error logging
-function logError(error: any) {
-  console.error('Detailed error information:');
-  console.error('Message:', error.message);
-  console.error('Code:', error.code);
-  console.error('Stack:', error.stack);
-  if (error.syscall) {
-    console.error('System call:', error.syscall);
-  }
-  if (error.address) {
-    console.error('Address:', error.address);
-  }
-  if (error.port) {
-    console.error('Port:', error.port);
-  }
-}
+const PORT = Number(process.env.PORT) || 3000;
 
 // Basic middleware
 app.use(cors());
@@ -36,19 +19,9 @@ app.get('/api/health', (_req, res) => {
 const server = createServer(app);
 
 // Start server
-async function startServer() {
-  return new Promise((resolve, reject) => {
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server started successfully on port ${PORT}`);
-      resolve(PORT);
-    });
-
-    server.once('error', (error) => {
-      logError(error);
-      reject(error);
-    });
-  });
-}
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server started successfully on port ${PORT}`);
+});
 
 // Clean shutdown handling
 const cleanup = () => {
@@ -61,14 +34,3 @@ const cleanup = () => {
 
 process.on('SIGTERM', cleanup);
 process.on('SIGINT', cleanup);
-
-// Start the server
-console.log(`Starting server on port ${PORT}`);
-startServer()
-  .then(port => {
-    console.log(`Server is running on port ${port}`);
-  })
-  .catch(error => {
-    logError(error);
-    process.exit(1);
-  });

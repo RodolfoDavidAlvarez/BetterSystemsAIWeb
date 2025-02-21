@@ -25,7 +25,14 @@ export default function CustomSolutionsPage() {
       description: "One of Arizona's largest landscape companies transformed their fleet operations with our custom AI solution, achieving 35% cost reduction and 90% efficiency improvement.",
       metric: "35%",
       metricLabel: "Cost Reduction",
-      link: "/services/fleet-management"
+      image: "/images/fleet-management-preview.png",
+      link: "/services/fleet-management",
+      highlights: [
+        "AI-powered problem classification",
+        "Real-time communication system",
+        "Comprehensive analytics dashboard",
+        "Automated maintenance scheduling"
+      ]
     }
     // Add more case studies here as needed
   ];
@@ -84,6 +91,14 @@ export default function CustomSolutionsPage() {
                         <h3 className="text-2xl font-semibold mb-2">{study.title}</h3>
                         <p className="text-sm text-muted-foreground mb-4">{study.company}</p>
                         <p className="text-muted-foreground mb-6">{study.description}</p>
+                        <ul className="space-y-2 mb-6">
+                          {study.highlights.map((highlight, idx) => (
+                            <li key={idx} className="flex items-center gap-2 text-sm">
+                              <span className="size-1.5 rounded-full bg-primary/60" />
+                              {highlight}
+                            </li>
+                          ))}
+                        </ul>
                         <Button asChild variant="ghost" className="group-hover:translate-x-1 transition-transform">
                           <Link href={study.link}>
                             View Full Case Study
@@ -91,7 +106,7 @@ export default function CustomSolutionsPage() {
                           </Link>
                         </Button>
                       </div>
-                      <div className="flex items-center justify-center">
+                      <div className="flex flex-col items-center justify-center gap-4">
                         <div className="text-center">
                           <div className="text-4xl font-bold text-primary mb-2">{study.metric}</div>
                           <div className="text-sm text-muted-foreground">{study.metricLabel}</div>

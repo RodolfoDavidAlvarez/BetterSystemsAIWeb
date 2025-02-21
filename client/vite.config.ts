@@ -23,7 +23,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: `http://0.0.0.0:${serverPort}`,
+        target: `http://0.0.0.0:8081`,
         changeOrigin: true,
         secure: false,
         ws: true

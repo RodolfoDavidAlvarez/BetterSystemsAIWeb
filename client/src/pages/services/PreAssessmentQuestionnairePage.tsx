@@ -424,7 +424,7 @@ export default function PreAssessmentQuestionnairePage() {
       });
 
       form.reset();
-      window.location.href = "/services/efficiency-audit";
+      window.location.href = "https://bettersystems.ai/services/ai-efficiency-assessment";
     } catch (error) {
       toast({
         title: "Error",

@@ -1,31 +1,25 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
+
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    exclude: ['@radix-ui/react-icons', '@radix-ui/react-tooltip']
+  },
   server: {
-    host: "0.0.0.0",
-    port: 5175,
-    strictPort: true,
+    host: '0.0.0.0',
+    port: 5173,
     hmr: {
       clientPort: 443,
-      protocol: 'wss',
-      path: "/@vite/client",
-      timeout: 120000
-    }
-  },
-  build: {
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
+      protocol: 'wss'
     }
   }
-});
+})

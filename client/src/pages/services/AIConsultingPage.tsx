@@ -3,7 +3,7 @@ import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowRight, Brain, Lightbulb, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, Lightbulb } from "lucide-react";
 
 export default function AIConsultingPage() {
   return (

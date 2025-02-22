@@ -84,17 +84,10 @@ export default function AIEfficiencyAssessmentPage() {
           <Button 
             variant="default"
             size="lg"
-            asChild
-          >
-            <Link to="/services/simple-assessment">Quick Assessment Form →</Link>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg"
             className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10"
             asChild
           >
-            <Link to="/services/pre-assessment">Detailed Assessment →</Link>
+            <Link to="/services/pre-assessment">Start Assessment →</Link>
           </Button>
         </div>
       </motion.div>

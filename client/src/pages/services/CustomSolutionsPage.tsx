@@ -82,15 +82,25 @@ export default function CustomSolutionsPage() {
               <motion.div
                 key={index}
                 variants={fadeIn}
-                className="group"
+                className="group relative"
               >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/40 bg-gradient-to-b from-muted/50 to-transparent">
                   <CardContent className="p-8 relative">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
-                      <div>
+                      <div className="relative">
+                        <div className="absolute -left-3 top-0 w-1 h-full bg-primary/30 rounded" />
                         <h3 className="text-2xl font-semibold mb-2">{study.title}</h3>
                         <p className="text-sm text-muted-foreground mb-4">{study.company}</p>
                         <p className="text-muted-foreground mb-6">{study.description}</p>
+                        <div className="flex gap-6 mb-6">
+                          {study.metrics?.map((metric, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="text-2xl font-bold text-primary">{metric.value}</div>
+                              <div className="text-sm text-muted-foreground">{metric.label}</div>
+                            </div>
+                          ))}
+                        </div>
                         <ul className="space-y-2 mb-6">
                           {study.highlights.map((highlight, idx) => (
                             <li key={idx} className="flex items-center gap-2 text-sm">

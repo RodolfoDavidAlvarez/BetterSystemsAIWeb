@@ -7,6 +7,28 @@ import { BrainCircuit, Mail, Globe, Phone, MessageSquare, Share2 } from "lucide-
 export default function ServicesPage() {
   const services = [
     {
+      title: "Business AI Consulting",
+      subtitle: "Strategic AI implementation guidance",
+      description: "Get expert guidance on integrating AI into your business operations. Our consultants help identify opportunities, develop implementation strategies, and ensure successful AI adoption across your organization.",
+      benefits: [
+        "AI readiness assessment",
+        "Strategic implementation planning",
+        "Technology stack recommendations",
+        "ROI analysis and projections",
+        "Change management support",
+        "Training and enablement"
+      ],
+      integrations: [
+        { icon: BrainCircuit, label: "Strategy" },
+        { icon: LineChart, label: "Analytics" },
+        { icon: Users, label: "Training" },
+        { icon: Cog, label: "Implementation" },
+        { icon: BadgeCheck, label: "Compliance" }
+      ],
+      href: "/services/ai-consulting",
+      highlight: "Transform your business with expert AI guidance"
+    },
+    {
       title: "AI Assistants",
       subtitle: "For any business to implement",
       description: "AI assistants take over repetitive tasks so you don't have to. Each AI assistant is designed to handle a specific job with speed, accuracy, and efficiency—at a fraction of the cost of a human hire.",

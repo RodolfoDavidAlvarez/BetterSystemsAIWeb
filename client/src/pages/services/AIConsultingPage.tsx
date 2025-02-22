@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { fadeIn, staggerChildren } from '@/lib/animations';
-import { BrainCircuit, BadgeCheck, LineChart, Users, Workflow, Sparkles, Zap } from 'lucide-react';
+import { BrainCircuit, Clock, Cog, DollarSign, Gauge, LineChart, Users, Cog as CogIcon, BadgeCheck, Gauge as GaugeIcon, Clock as ClockIcon, DollarSign as DollarSignIcon, Workflow, Sparkles, Zap } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface ServiceMetric {

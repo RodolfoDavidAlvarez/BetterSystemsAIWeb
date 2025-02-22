@@ -1,0 +1,48 @@
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://172.31.128.44:5173/
+  ➜  press h + enter to show help
+
+ ERROR(TypeScript)  'Clock' is declared but its value is never read.
+ FILE  /home/runner/workspace/client/src/pages/services/AIConsultingPage.tsx:4:24
+
+    2 | import { motion } from 'framer-motion';
+    3 | import { fadeIn, staggerChildren } from '@/lib/animations';
+  > 4 | import { BrainCircuit, Clock, Cog, DollarSign, Gauge, LineChart, Users, Cog as CogIcon, BadgeCheck, Gauge as GaugeIcon, Clock as ClockIcon, DollarSign as DollarSignIcon, Workflow, Sparkles, Zap } from 'lucide-react';
+      |                        ^^^^^
+    5 | import type { LucideIcon } from 'lucide-react';
+    6 |
+    7 | interface ServiceMetric {
+
+ ERROR(TypeScript)  'Cog' is declared but its value is never read.
+ FILE  /home/runner/workspace/client/src/pages/services/AIConsultingPage.tsx:4:31
+
+    2 | import { motion } from 'framer-motion';
+    3 | import { fadeIn, staggerChildren } from '@/lib/animations';
+  > 4 | import { BrainCircuit, Clock, Cog, DollarSign, Gauge, LineChart, Users, Cog as CogIcon, BadgeCheck, Gauge as GaugeIcon, Clock as ClockIcon, DollarSign as DollarSignIcon, Workflow, Sparkles, Zap } from 'lucide-react';
+      |                               ^^^
+    5 | import type { LucideIcon } from 'lucide-react';
+    6 |
+    7 | interface ServiceMetric {
+
+ ERROR(TypeScript)  'DollarSign' is declared but its value is never read.
+ FILE  /home/runner/workspace/client/src/pages/services/AIConsultingPage.tsx:4:36
+
+    2 | import { motion } from 'framer-motion';
+    3 | import { fadeIn, staggerChildren } from '@/lib/animations';
+  > 4 | import { BrainCircuit, Clock, Cog, DollarSign, Gauge, LineChart, Users, Cog as CogIcon, BadgeCheck, Gauge as GaugeIcon, Clock as ClockIcon, DollarSign as DollarSignIcon, Workflow, Sparkles, Zap } from 'lucide-react';
+      |                                    ^^^^^^^^^^
+    5 | import type { LucideIcon } from 'lucide-react';
+    6 |
+    7 | interface ServiceMetric {
+
+ ERROR(TypeScript)  'Gauge' is declared but its value is never read.
+ FILE  /home/runner/workspace/client/src/pages/services/AIConsultingPage.tsx:4:48
+
+    2 | import { motion } from 'framer-motion';
+    3 | import { fadeIn, staggerChildren } from '@/lib/animations';
+  > 4 | import { BrainCircuit, Clock, Cog, DollarSign, Gauge, LineChart, Users, Cog as CogIcon, BadgeCheck, Gauge as GaugeIcon, Clock as ClockIcon, DollarSign as DollarSignIcon, Workflow, Sparkles, Zap } from 'lucide-react';
+      |                                                ^^^^^
+    5 | import type { LucideIcon } from 'lucide-react';
+    6 |
+    7 | interface ServiceMetric {

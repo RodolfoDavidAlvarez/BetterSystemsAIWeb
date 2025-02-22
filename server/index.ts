@@ -35,23 +35,10 @@ const staticDir = join(dirname(__dirname), 'dist/public');
 console.log(`[Static Files] Serving from: ${staticDir}`);
 console.log(`[Static Files] Directory exists: ${existsSync(staticDir)}`);
 
-// List files in static directory for debugging
-if (process.env.NODE_ENV === 'development') {
-  try {
-    const { readdirSync } = await import('fs');
-    console.log('[Static Files] Directory contents:', readdirSync(staticDir));
-  } catch (error) {
-    console.error('[Static Files] Error reading directory:', error);
-  }
-}
+app.use(express.static(staticDir));
 
-app.use(express.static(staticDir, {
-  setHeaders: (_res, path) => {
-    console.log(`[Static Files] Serving: ${path}`);
-  }
-}));
 
-// Health check with detailed response
+// Health check endpoint with detailed response
 app.get('/api/health', (_req, res) => {
   const health = {
     status: 'healthy',
@@ -69,13 +56,7 @@ app.get('/api/health', (_req, res) => {
 // SPA fallback with logging
 app.get('*', (req, res) => {
   console.log(`[SPA Fallback] Serving index.html for: ${req.url}`);
-  const indexPath = join(staticDir, 'index.html');
-  if (existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    console.error(`[SPA Fallback] index.html not found at: ${indexPath}`);
-    res.status(404).send('Not found');
-  }
+  res.sendFile(join(staticDir, 'index.html'));
 });
 
 // Enhanced error handling
@@ -97,7 +78,6 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
 // Create and start server with explicit host binding
 const server = createServer(app);
 
-// Start server with enhanced error handling
 try {
   server.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`[Server] Running on http://0.0.0.0:${PORT}`);
@@ -109,17 +89,22 @@ try {
   process.exit(1);
 }
 
-// Clean shutdown handling with logging
-const cleanup = () => {
-  console.log('[Server] Initiating graceful shutdown...');
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('[Server] Received SIGTERM signal. Starting graceful shutdown...');
   server.close(() => {
-    console.log('[Server] Closed successfully');
+    console.log('[Server] Server closed successfully');
     process.exit(0);
   });
-};
+});
 
-process.on('SIGTERM', cleanup);
-process.on('SIGINT', cleanup);
+process.on('SIGINT', () => {
+  console.log('[Server] Received SIGINT signal. Starting graceful shutdown...');
+  server.close(() => {
+    console.log('[Server] Server closed successfully');
+    process.exit(0);
+  });
+});
 
 // Unhandled error logging
 process.on('uncaughtException', (error) => {

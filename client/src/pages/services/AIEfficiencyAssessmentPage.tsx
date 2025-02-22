@@ -1,23 +1,28 @@
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Clock, ClipboardCheck, TrendingUp } from "lucide-react";
+import { ClipboardCheck, Clock, FileText, TrendingUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-type ServiceData = {
+interface ServiceFeature {
   title: string;
   description: string;
-  includedFeatures: {
-    title: string;
-    description: string;
-    icon: any;
-  }[];
-  process: {
-    title: string;
-    description: string;
-  }[];
-};
+  icon: LucideIcon;
+}
+
+interface ProcessStep {
+  title: string;
+  description: string;
+}
+
+interface ServiceData {
+  title: string;
+  description: string;
+  includedFeatures: ServiceFeature[];
+  process: ProcessStep[];
+}
 
 export default function AIEfficiencyAssessmentPage() {
   const service: ServiceData = {
@@ -47,12 +52,16 @@ export default function AIEfficiencyAssessmentPage() {
     ],
     process: [
       {
-        title: "Complete a Pre-Assessment Questionnaire",
-        description: "Help us understand your business with a detailed questionnaire."
+        title: "Complete a Quick Pre-Questionnaire",
+        description: "Help us understand your business with a few simple questions."
       },
       {
         title: "Schedule Your Free Consultation",
         description: "Book a 30-minute call to review your operations with our experts."
+      },
+      {
+        title: "Receive Your Custom Report",
+        description: "Get a detailed, actionable breakdown of your savings and productivity potential."
       }
     ]
   };
@@ -70,20 +79,62 @@ export default function AIEfficiencyAssessmentPage() {
           ← Back to Services
         </Link>
         <h1 className="text-4xl font-bold mb-4">{service.title}</h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          {service.description}
-        </p>
+        <p className="text-lg text-muted-foreground mb-8">{service.description}</p>
         <div className="flex gap-4 flex-wrap">
           <Button 
             variant="default"
             size="lg"
+            asChild
+          >
+            <Link to="/services/simple-assessment">Quick Assessment Form →</Link>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg"
             className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10"
             asChild
           >
-            <Link to="/services/pre-assessment">Start Assessment →</Link>
+            <Link to="/services/pre-assessment">Detailed Assessment →</Link>
           </Button>
         </div>
       </motion.div>
+
+      {/* How It Works Section - Moved to top */}
+      <motion.section 
+        className="mb-20"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
+        <h2 className="text-3xl font-bold mb-8">How It Works</h2>
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-8">
+            {service.process.map((step, index) => (
+              <motion.div key={index} variants={fadeIn}>
+                <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
+                  <CardContent className="p-6">
+                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <span className="text-2xl font-bold text-primary">{index + 1}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                    <p className="text-muted-foreground">{step.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="text-muted-foreground hover:text-foreground hover:bg-primary/5 transition-all border border-primary/10" 
+              asChild
+            >
+              <Link to="/services/pre-assessment">Start Your Assessment →</Link>
+            </Button>
+          </div>
+        </div>
+      </motion.section>
 
       {/* What's Included Section */}
       <motion.section 
@@ -110,29 +161,24 @@ export default function AIEfficiencyAssessmentPage() {
         </div>
       </motion.section>
 
-      {/* Process Section */}
-      <motion.section
-        variants={staggerChildren}
+      {/* CTA Section */}
+      <motion.section 
+        className="text-center bg-primary/5 rounded-2xl p-12"
+        variants={fadeIn}
         initial="initial"
         animate="animate"
       >
-        <h2 className="text-3xl font-bold mb-8">How It Works</h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          {service.process.map((step, index) => (
-            <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full border-0 bg-background/40 hover:bg-background/60 transition-colors shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                      {index + 1}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.description}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+        <h2 className="text-3xl font-bold mb-4">Start Optimizing Your Business Today</h2>
+        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Don't wait—every minute wasted is money left on the table. Let us help you identify opportunities for efficiency and cost savings.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button asChild size="lg">
+            <Link to="/services/pre-assessment">Start Your Free Assessment</Link>
+          </Button>
+          <Button variant="outline" size="lg" asChild>
+            <Link to="/contact">Contact Us</Link>
+          </Button>
         </div>
       </motion.section>
     </div>

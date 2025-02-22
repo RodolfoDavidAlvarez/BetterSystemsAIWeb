@@ -1,3 +1,8 @@
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
+import { motion } from "framer-motion";
+import { fadeIn, staggerChildren } from "@/lib/animations";
+import { BrainCircuit, Mail, Globe, Phone, MessageSquare, Share2, LineChart, Users, Cog, BadgeCheck } from "lucide-react";
 
 export default function ServicesPage() {
   const services = [
@@ -24,140 +29,152 @@ export default function ServicesPage() {
       highlight: "Transform your business with expert AI guidance"
     },
     {
-      title: "Process Automation",
-      subtitle: "Streamline your operations",
-      description: "Automate repetitive tasks and workflows with AI-powered solutions. Our automation services help reduce manual effort, minimize errors, and increase operational efficiency.",
-      benefits: [
-        "Workflow analysis and optimization",
-        "Custom automation solutions",
-        "Integration with existing systems",
-        "Performance monitoring",
-        "Scalable architecture",
-        "24/7 automated operations"
-      ],
-      integrations: [
-        { icon: Workflow, label: "Workflows" },
-        { icon: Bot, label: "Automation" },
-        { icon: Database, label: "Integration" },
-        { icon: Activity, label: "Monitoring" }
-      ],
-      href: "/services/process-automation",
-      highlight: "Boost efficiency with intelligent automation"
-    },
-    {
       title: "AI Assistants",
-      subtitle: "Intelligent virtual workforce",
-      description: "Deploy AI assistants that handle customer service, data processing, and internal operations. Our virtual assistants work 24/7 to support your team and improve customer satisfaction.",
+      subtitle: "For any business to implement",
+      description: "AI assistants take over repetitive tasks so you don't have to. Each AI assistant is designed to handle a specific job with speed, accuracy, and efficiency—at a fraction of the cost of a human hire.",
       benefits: [
-        "Custom AI assistant development",
-        "Natural language processing",
-        "Multi-channel integration",
-        "Continuous learning capabilities",
-        "Analytics and reporting",
-        "Seamless scalability"
+        "Internal business operations",
+        "Capturing and managing leads", 
+        "Following up with customers",
+        "Billing and project cost estimation",
+        "Educating or redirecting customers",
+        "Automating any repetitive task"
       ],
       integrations: [
-        { icon: MessageSquare, label: "Chat" },
-        { icon: Brain, label: "AI" },
-        { icon: BarChart, label: "Analytics" },
-        { icon: Share2, label: "Integration" }
+        { icon: Mail, label: "Email" },
+        { icon: Globe, label: "Websites" },
+        { icon: Phone, label: "Phone systems" },
+        { icon: MessageSquare, label: "Text messaging" },
+        { icon: Share2, label: "Social media" }
       ],
       href: "/services/ai-assistants",
-      highlight: "Enhanced support with AI assistants"
+      highlight: "Reduce labor costs by 90% while boosting productivity"
     },
     {
-      title: "Data Analytics & Insights",
-      subtitle: "Transform data into decisions",
-      description: "Unlock the power of your data with advanced analytics and AI-driven insights. We help you collect, analyze, and visualize data to make informed business decisions.",
-      benefits: [
-        "Data strategy development",
-        "Advanced analytics implementation",
-        "Predictive modeling",
-        "Real-time dashboards",
-        "Custom reporting solutions",
-        "Data-driven recommendations"
-      ],
-      integrations: [
-        { icon: Database, label: "Data" },
-        { icon: LineChart, label: "Analytics" },
-        { icon: PieChart, label: "Visualization" },
-        { icon: Lightbulb, label: "Insights" }
-      ],
-      href: "/services/data-analytics",
-      highlight: "Data-driven decision making"
+      title: "AI Efficiency Assessment",
+      subtitle: "Identify automation opportunities & reduce business costs",
+      description: "We conduct a comprehensive analysis of your business's systems, technology, processes, and structure to uncover opportunities for improvement. Our expert team provides a detailed report highlighting inefficiencies and offering actionable recommendations that could significantly reduce costs, enhance productivity, and unlock profit potential.",
+      benefits: ["Process Analysis", "Cost Reduction Planning", "AI Implementation Strategy", "ROI Forecasting"],
+      href: "/services/ai-efficiency-assessment",
+      highlight: "Average 40% cost reduction identified"
     },
     {
-      title: "AI Security & Compliance",
-      subtitle: "Secure AI implementation",
-      description: "Ensure your AI systems are secure, compliant, and ethically sound. Our security services help protect your AI investments while maintaining regulatory compliance.",
+      title: "Personalized Automation Solution",
+      subtitle: "For unique business operations",
+      description: "We understand that most businesses have tasks they repeat every day—whether administrative, operational, or necessary for scaling. These tasks don't directly generate revenue or improve quality but become more demanding as your business grows. That's where automation comes in. Our AI-driven solutions take over these repetitive processes, freeing up your time, cutting costs, and allowing you to focus on what truly matters.",
       benefits: [
-        "Security assessment",
-        "Compliance monitoring",
-        "Ethical AI guidelines",
-        "Risk management",
-        "Regular security audits",
-        "Incident response planning"
+        "Tailored automation for your business needs",
+        "Seamless integration into your current systems",
+        "Scalable solutions that grow with your business",
+        "Ongoing support to ensure smooth operation"
       ],
-      integrations: [
-        { icon: Shield, label: "Security" },
-        { icon: Lock, label: "Protection" },
-        { icon: FileCheck, label: "Compliance" },
-        { icon: AlertTriangle, label: "Risk" }
-      ],
-      href: "/services/ai-security",
-      highlight: "Secure and compliant AI systems"
+      href: "/services/custom-solutions",
+      highlight: "Achieve 200%+ ROI with average time saved of 2,500+ hours per automation"
     }
   ];
 
   return (
     <div className="container mx-auto px-4 py-16">
-      <div className="text-center mb-16">
+      <motion.div 
+        className="max-w-3xl mx-auto mb-12 text-center"
+        initial="initial"
+        animate="animate"
+        variants={fadeIn}
+      >
         <h1 className="text-4xl font-bold mb-4">Our Services</h1>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Comprehensive AI solutions to transform your business operations and drive growth
+        <p className="text-muted-foreground">
+          Transform your business operations with our comprehensive suite of AI-powered solutions.
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-12">
+      <motion.div 
+        className="grid gap-8"
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+      >
         {services.map((service, index) => (
-          <div key={index} className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold mb-2">{service.title}</h2>
-                <p className="text-xl text-muted-foreground">{service.subtitle}</p>
-              </div>
-              <p className="text-lg">{service.description}</p>
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Key Benefits</h3>
-                <ul className="grid grid-cols-2 gap-3">
-                  {service.benefits.map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-primary mt-1" />
-                      <span>{benefit}</span>
-                    </li>
+          <motion.section 
+            key={index} 
+            className="group relative overflow-hidden rounded-xl p-8 transition-all duration-300 hover:bg-primary/5 hover:shadow-lg"
+            variants={fadeIn}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="mb-4">
+              <h2 className="text-3xl font-bold">{service.title}</h2>
+              {service.subtitle && (
+                <p className="text-lg text-muted-foreground mt-1">{service.subtitle}</p>
+              )}
+            </div>
+            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {service.benefits.map((benefit, idx) => (
+                <motion.div 
+                  key={idx}
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <div className="size-1.5 rounded-full bg-primary" />
+                  <span className="text-sm font-medium">{benefit}</span>
+                </motion.div>
+              ))}
+            </div>
+
+            {service.integrations && (
+              <div className="mb-6">
+                <p className="text-sm font-medium mb-3">It integrates with:</p>
+                <div className="flex gap-4">
+                  {service.integrations.map((integration, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <integration.icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-xs">{integration.label}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
-              <div className="flex gap-4">
-                {service.integrations.map((integration, i) => (
-                  <div key={i} className="text-center">
-                    <integration.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                    <span className="text-sm">{integration.label}</span>
-                  </div>
-                ))}
-              </div>
-              <Button asChild size="lg">
-                <Link href={service.href}>Learn More</Link>
+            )}
+
+            <div className="flex items-center gap-2 mb-6 text-primary">
+              <BrainCircuit className="h-5 w-5" />
+              <p className="font-semibold">{service.highlight}</p>
+            </div>
+
+            <div className="flex gap-4">
+              <Button asChild className="group-hover:translate-x-1 transition-transform">
+                <Link href={service.href}>Explore Service →</Link>
+              </Button>
+              <Button asChild variant="outline" className="group-hover:translate-x-1 transition-transform">
+                <Link 
+                  href={
+                    service.title === "AI Efficiency Assessment" 
+                      ? "/services/pre-assessment"
+                      : "/get-started"
+                  }
+                >
+                  {service.title === "AI Efficiency Assessment"
+                    ? "Start Assessment" 
+                    : "Request Solution"
+                  }
+                </Link>
               </Button>
             </div>
-            <div className="relative">
-              <div className="aspect-square rounded-lg bg-muted/50 flex items-center justify-center">
-                <service.integrations[0].icon className="h-32 w-32 text-primary/20" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-lg" />
-            </div>
-          </div>
+          </motion.section>
         ))}
+      </motion.div>
+
+      <div className="mt-16 text-center">
+        <Button asChild size="lg">
+          <Link href="/contact">Get Started</Link>
+        </Button>
       </div>
     </div>
   );

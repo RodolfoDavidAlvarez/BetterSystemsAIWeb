@@ -1,8 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Router, Route, Switch } from "wouter"; // Import Router from wouter
+import { Router, Route, Switch } from "wouter"; // Ensure Router is imported
 import "./index.css";
-// Force CSS injection
 import "tailwindcss/tailwind.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -24,7 +23,7 @@ import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuesti
 import AIConsultingPage from "./pages/services/AIConsultingPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
-function App() { //Renamed to App for clarity
+function App() {
   useScrollToTop();
 
   return (
@@ -56,10 +55,10 @@ function App() { //Renamed to App for clarity
 }
 
 const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Failed to find the root element");
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <App /> {/* Render the App component */}
-  </StrictMode>,
-);
+if (rootElement) {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}

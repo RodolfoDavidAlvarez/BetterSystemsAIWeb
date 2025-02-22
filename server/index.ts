@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cors from "cors";
 import { createServer } from 'http';
+import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,49 +11,90 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Basic middleware
-app.use(cors());
-app.use(express.json());
-
-// Debug logging
-app.use((req, res, next) => {
+// Enhanced debug logging middleware
+const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Query:', JSON.stringify(req.query, null, 2));
+  console.log('Body:', JSON.stringify(req.body, null, 2));
   next();
-});
+};
 
-// Static file serving
+// Basic middleware
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+app.use(express.json());
+app.use(requestLogger);
+
+// Static file serving with enhanced logging
 const staticDir = join(dirname(__dirname), 'dist/public');
-console.log(`Serving static files from: ${staticDir}`);
-app.use(express.static(staticDir));
+console.log(`[Static Files] Serving from: ${staticDir}`);
+console.log(`[Static Files] Directory exists: ${existsSync(staticDir)}`);
+app.use(express.static(staticDir, {
+  setHeaders: (_res, path) => {
+    console.log(`[Static Files] Serving: ${path}`);
+  }
+}));
 
-// Health check
+// Health check with detailed response
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'healthy', time: new Date().toISOString() });
+  const health = {
+    status: 'healthy',
+    time: new Date().toISOString(),
+    env: process.env.NODE_ENV,
+    port: PORT,
+    staticDir,
+    nodeVersion: process.version
+  };
+  console.log('[Health Check] Response:', health);
+  res.json(health);
 });
 
-// SPA fallback
-app.get('*', (_req, res) => {
+// SPA fallback with logging
+app.get('*', (req, res) => {
+  console.log(`[SPA Fallback] Serving index.html for: ${req.url}`);
   res.sendFile(join(staticDir, 'index.html'));
 });
 
-// Error handling
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+// Enhanced error handling
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[Server Error]', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: err.message,
+    path: req.path
+  });
 });
 
-// Create and start server
+// Create and start server with explicit host binding
 const server = createServer(app);
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-});
 
-// Clean shutdown handling
+try {
+  await new Promise<void>((resolve) => {
+    server.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`[Server] Running on http://0.0.0.0:${PORT}`);
+      console.log(`[Server] Environment: ${process.env.NODE_ENV}`);
+      console.log(`[Server] Process ID: ${process.pid}`);
+      resolve();
+    });
+  });
+} catch (error) {
+  console.error('[Server] Failed to start:', error);
+  process.exit(1);
+}
+
+// Clean shutdown handling with logging
 const cleanup = () => {
-  console.log('Shutting down server...');
+  console.log('[Server] Initiating graceful shutdown...');
   server.close(() => {
-    console.log('Server closed successfully');
+    console.log('[Server] Closed successfully');
     process.exit(0);
   });
 };

@@ -2,9 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
-import { BrainCircuit, Mail, Globe, Phone, MessageSquare, Share2 } from "lucide-react";
-
-import { BrainCircuit, LineChart, Users, Cog, BadgeCheck } from "lucide-react";
+import { BrainCircuit, Mail, Globe, Phone, MessageSquare, Share2, LineChart, Users, Cog, BadgeCheck } from "lucide-react";
 
 export default function ServicesPage() {
   const services = [

@@ -1,11 +1,8 @@
-
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowRight, Brain, Lightbulb, Target, TrendingUp } from "lucide-react";
-import Booking from "@/components/sections/Booking";
+import { ArrowRight } from "lucide-react";
 
 export default function AIConsultingPage() {
   return (
@@ -26,69 +23,58 @@ export default function AIConsultingPage() {
               Stay Ahead with AI-Driven Innovation
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Future-Proof Your Business with Cutting-Edge AI Strategies
+              Future-Proof Your Business with Cutting-Edge AI Strategies. AI is evolving fast—will your business keep up? Our AI Consulting & Future-Proofing service ensures you stay ahead of the curve with continuous guidance, industry insights, and proactive AI strategies tailored to your business needs.
             </p>
           </motion.div>
 
-          {/* Main Value Proposition */}
-          <motion.div variants={fadeIn} className="bg-card rounded-xl p-8 shadow-lg mb-12 border border-border/50">
-            <p className="text-lg leading-relaxed">
-              AI is evolving fast—will your business keep up? Our AI Consulting & Future-Proofing service ensures you stay ahead of the curve with continuous guidance, industry insights, and proactive AI strategies tailored to your business needs.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <div className="flex items-center gap-3 text-primary">
-                <TrendingUp className="h-5 w-5" />
-                <span>Predict & Adapt to AI Trends</span>
-              </div>
-              <div className="flex items-center gap-3 text-primary">
-                <Brain className="h-5 w-5" />
-                <span>Optimize Business Operations</span>
-              </div>
-              <div className="flex items-center gap-3 text-primary">
-                <Target className="h-5 w-5" />
-                <span>Gain Competitive Edge</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Why Choose Us Section */}
+          {/* Features Section */}
           <motion.div variants={fadeIn} className="mb-12">
-            <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-              <Lightbulb className="h-6 w-6 text-primary" />
-              Why Choose AI Consulting & Future-Proofing?
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                "Ongoing AI Guidance – Get continuous access to AI experts who analyze trends and recommend strategic improvements.",
-                "Proactive AI Updates – Be the first to know about new AI tools, breakthroughs, and automation advancements relevant to your industry.",
-                "Customized AI Strategies – Tailored AI roadmaps designed to enhance your operations, efficiency, and scalability.",
-                "Long-Term Competitive Advantage – AI isn't just about keeping up—it's about leading. Stay ahead with future-proof AI implementation."
-              ].map((item, index) => (
-                <Card key={index} className="border-primary/10 hover:border-primary/30 transition-colors">
-                  <CardContent className="p-6">
-                    <p className="text-foreground/90">{item}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <h3 className="text-2xl font-semibold mb-6">Key Features</h3>
+            <div className="grid gap-4">
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Predict & Adapt to AI Trends</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Optimize Business Operations with AI</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Gain a Competitive Edge in Your Industry</p>
+              </div>
             </div>
           </motion.div>
 
-          {/* What's Included Section */}
+          {/* Benefits Section */}
+          <motion.div variants={fadeIn} className="mb-12">
+            <h3 className="text-2xl font-semibold mb-6">Why Choose AI Consulting & Future-Proofing?</h3>
+            <div className="grid gap-4">
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Ongoing AI Guidance – Get continuous access to AI experts who analyze trends and recommend strategic improvements.</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Proactive AI Updates – Be the first to know about new AI tools, breakthroughs, and automation advancements relevant to your industry.</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Customized AI Strategies – Tailored AI roadmaps designed to enhance your operations, efficiency, and scalability.</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Long-Term Competitive Advantage – AI isn't just about keeping up—it's about leading. Stay ahead with future-proof AI implementation.</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Services Section */}
           <motion.div variants={fadeIn} className="mb-12">
             <h3 className="text-2xl font-semibold mb-6">What's Included?</h3>
-            <div className="space-y-4">
-              {[
-                "AI Strategy Assessment – We evaluate your current AI adoption and identify opportunities for improvement.",
-                "Quarterly Optimization Reviews – Regular evaluations of your AI solutions to ensure maximum efficiency.",
-                "Industry Trends & Alerts – Curated reports on the latest AI advancements and how they impact your business.",
-                "Exclusive AI Consultation – Priority access to expert strategists for personalized AI advice.",
-                "Implementation Roadmap – Step-by-step guidance on integrating AI into your workflow for sustainable growth."
-              ].map((item, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-card rounded-lg border border-border/50 hover:border-primary/30 transition-all">
-                  <div className="text-primary">📌</div>
-                  <p className="text-foreground/90">{item}</p>
-                </div>
-              ))}
+            <div className="grid gap-4">
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">AI Strategy Assessment – We evaluate your current AI adoption and identify opportunities for improvement.</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Quarterly Optimization Reviews – Regular evaluations of your AI solutions to ensure maximum efficiency.</p>
+              </div>
+              <div className="p-6 bg-card rounded-lg border border-border/50">
+                <p className="text-foreground/90">Industry Trends & Alerts – Curated reports on the latest AI advancements and how they impact your business.</p>
+              </div>
             </div>
           </motion.div>
 
@@ -102,7 +88,6 @@ export default function AIConsultingPage() {
                 "Organizations in need of custom AI strategies without the guesswork."
               ].map((item, index) => (
                 <div key={index} className="p-6 bg-card rounded-lg border border-border/50 hover:border-primary/30 transition-all">
-                  <div className="text-primary mb-3">🚀</div>
                   <p className="text-foreground/90">{item}</p>
                 </div>
               ))}
@@ -120,9 +105,6 @@ export default function AIConsultingPage() {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Booking Section */}
-      <Booking />
     </div>
   );
 }

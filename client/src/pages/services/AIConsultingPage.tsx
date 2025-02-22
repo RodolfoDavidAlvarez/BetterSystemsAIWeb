@@ -1,10 +1,17 @@
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
-import { BrainCircuit, LineChart, Users, Cog } from "lucide-react";
+import { BrainCircuit, LineChart, Users, Cog, BadgeCheck, Gauge, Clock, DollarSign, Workflow, Sparkles, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+interface ServiceMetric {
+  value: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+}
 
 interface ServiceFeature {
   title: string;
@@ -17,69 +24,114 @@ interface Benefit {
   description: string;
 }
 
+interface Highlight {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}
+
 export default function AIConsultingPage() {
+  const metrics: ServiceMetric[] = [
+    {
+      value: "90%",
+      label: "Cost Reduction",
+      description: "Through AI-driven process optimization",
+      icon: DollarSign
+    },
+    {
+      value: "24/7",
+      label: "AI Operations",
+      description: "Continuous monitoring and optimization",
+      icon: Clock
+    },
+    {
+      value: "40%",
+      label: "Efficiency Boost",
+      description: "Average productivity increase with AI",
+      icon: Gauge
+    }
+  ];
+
   const features: ServiceFeature[] = [
     {
-      title: "Predict & Adapt to AI Trends",
-      description: "Stay ahead of the curve with continuous guidance, industry insights, and proactive AI strategies.",
+      title: "Strategic AI Implementation",
+      description: "Custom roadmaps for integrating AI into your business operations, ensuring maximum ROI and minimal disruption.",
       icon: BrainCircuit
     },
     {
-      title: "Optimize Business Operations",
-      description: "Transform your operations with AI-driven solutions that enhance efficiency and scalability.",
+      title: "Performance Analytics",
+      description: "Real-time monitoring and optimization of AI systems to ensure peak performance and continuous improvement.",
       icon: LineChart
     },
     {
-      title: "Long-Term Strategy Development",
-      description: "Get expert guidance on AI implementation and future-proofing your business.",
+      title: "Team Enablement",
+      description: "Comprehensive training and support to ensure your team can effectively leverage AI tools and systems.",
       icon: Users
     },
     {
-      title: "Technical Implementation",
-      description: "Seamless integration of AI solutions with step-by-step guidance for sustainable growth.",
+      title: "Technical Excellence",
+      description: "Expert guidance on AI architecture, security, and scalability to future-proof your systems.",
       icon: Cog
     }
   ];
 
   const benefits: Benefit[] = [
     {
-      title: "Ongoing AI Guidance",
-      description: "Get continuous access to AI experts who analyze trends and recommend strategic improvements."
+      title: "Competitive Edge",
+      description: "Stay ahead with cutting-edge AI solutions that give your business a significant market advantage."
     },
     {
-      title: "Proactive AI Updates",
-      description: "Be the first to know about new AI tools, breakthroughs, and automation advancements relevant to your industry."
+      title: "Risk Mitigation",
+      description: "Minimize implementation risks with expert guidance and proven methodologies."
     },
     {
-      title: "Customized AI Strategies",
-      description: "Tailored AI roadmaps designed to enhance your operations, efficiency, and scalability."
+      title: "Scalable Growth",
+      description: "Build AI systems that grow with your business, ensuring long-term sustainability and success."
     },
     {
-      title: "Long-Term Competitive Advantage",
-      description: "AI isn't just about keeping up—it's about leading. Stay ahead with future-proof AI implementation."
+      title: "ROI Optimization",
+      description: "Maximize return on AI investments through strategic planning and efficient implementation."
     }
   ];
 
   const includedServices = [
     {
-      title: "AI Strategy Assessment",
-      description: "We evaluate your current AI adoption and identify opportunities for improvement."
+      title: "AI Readiness Assessment",
+      description: "Comprehensive evaluation of your current systems and processes for AI integration."
     },
     {
-      title: "Quarterly Optimization Reviews",
-      description: "Regular evaluations of your AI solutions to ensure maximum efficiency."
+      title: "Strategic Planning",
+      description: "Detailed roadmap development for AI implementation aligned with business goals."
     },
     {
-      title: "Industry Trends & Alerts",
-      description: "Curated reports on the latest AI advancements and how they impact your business."
+      title: "Implementation Support",
+      description: "Expert guidance throughout the AI integration process."
     },
     {
-      title: "Exclusive AI Consultation",
-      description: "Priority access to expert strategists for personalized AI advice."
+      title: "Performance Monitoring",
+      description: "Continuous oversight and optimization of AI systems."
     },
     {
-      title: "Implementation Roadmap",
-      description: "Step-by-step guidance on integrating AI into your workflow for sustainable growth."
+      title: "Training & Support",
+      description: "Comprehensive team training and ongoing technical support."
+    }
+  ];
+
+  const highlights: Highlight[] = [
+    {
+      icon: Workflow,
+      title: "Streamlined Process",
+      description: "Clear, step-by-step implementation with measurable milestones"
+    },
+    {
+      icon: Sparkles,
+      title: "Innovation Focus",
+      description: "Stay ahead with cutting-edge AI advancements"
+    },
+    {
+      icon: Zap,
+      title: "Rapid Results",
+      description: "Quick wins and long-term transformation"
     }
   ];
 
@@ -92,7 +144,7 @@ export default function AIConsultingPage() {
   return (
     <div className="container mx-auto px-4 py-16">
       <motion.div 
-        className="max-w-3xl mx-auto mb-16"
+        className="max-w-4xl mx-auto mb-16"
         initial="initial"
         animate="animate"
         variants={fadeIn}
@@ -100,114 +152,121 @@ export default function AIConsultingPage() {
         <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
-        <h1 className="text-4xl font-bold mb-4">AI Consulting & Future-Proofing</h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          AI is evolving fast—will your business keep up? Our AI Consulting & Future-Proofing service ensures you stay ahead of the curve with continuous guidance, industry insights, and proactive AI strategies tailored to your business needs.
+        <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+          AI Consulting & Future-Proofing
+        </h1>
+        <p className="text-xl text-muted-foreground mb-8">
+          Transform your business with expert AI guidance. Our consulting services help you navigate the AI landscape,
+          ensuring your organization stays ahead of the curve and maximizes the benefits of AI technology.
         </p>
-        <div className="flex gap-4 flex-wrap">
-          <Button size="lg" asChild>
-            <Link href="/get-started">Get Started</Link>
-          </Button>
-          <Button variant="outline" size="lg" asChild>
-            <Link href="/contact">Schedule Consultation</Link>
-          </Button>
+
+        {/* Highlights Section */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {highlights.map((highlight, index) => (
+            <motion.div
+              key={index}
+              variants={fadeIn}
+              className="p-6 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors"
+            >
+              <highlight.icon className="h-8 w-8 text-primary mb-4" />
+              <h3 className="text-lg font-semibold mb-2">{highlight.title}</h3>
+              <p className="text-muted-foreground">{highlight.description}</p>
+            </motion.div>
+          ))}
         </div>
+
+        {/* Metrics Section */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {metrics.map((metric, index) => (
+            <Card key={index} className="border-0 hover:bg-accent/5 transition-all duration-300">
+              <CardContent className="p-6">
+                <metric.icon className="h-8 w-8 text-primary mb-4" />
+                <div className="text-3xl font-bold text-primary mb-2">{metric.value}</div>
+                <div className="font-semibold mb-2">{metric.label}</div>
+                <p className="text-muted-foreground">{metric.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <motion.div 
+          className="grid md:grid-cols-2 gap-8 mb-16"
+          variants={staggerChildren}
+          initial="initial"
+          animate="animate"
+        >
+          {features.map((feature, index) => (
+            <motion.div key={index} variants={fadeIn}>
+              <Card className="h-full border-0 hover:bg-accent/5 transition-all duration-300">
+                <CardContent className="p-6">
+                  <feature.icon className="h-12 w-12 text-primary mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.section 
+          className="mb-16"
+          variants={fadeIn}
+          initial="initial"
+          animate="animate"
+        >
+          <h2 className="text-3xl font-bold mb-8">Why Choose Our AI Consulting?</h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            {benefits.map((benefit, index) => (
+              <Card key={index} className="border-0 hover:bg-accent/5 transition-all duration-300">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
+                  <p className="text-muted-foreground">{benefit.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="mb-16"
+          variants={fadeIn}
+          initial="initial"
+          animate="animate"
+        >
+          <h2 className="text-3xl font-bold mb-8">What's Included?</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {includedServices.map((service, index) => (
+              <div key={index} className="flex items-start gap-3 group">
+                <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0 mt-1 transition-transform group-hover:scale-110" />
+                <div>
+                  <h3 className="font-semibold mb-1">{service.title}</h3>
+                  <p className="text-sm text-muted-foreground">{service.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="text-center bg-primary/5 rounded-2xl p-12"
+          variants={fadeIn}
+          initial="initial"
+          animate="animate"
+        >
+          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Business?</h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Let's work together to build an AI strategy that drives your business forward. Our expert team is ready to guide you through every step of the journey.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button asChild size="lg">
+              <Link href="/get-started">Get Started Now</Link>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/contact">Schedule a Call</Link>
+            </Button>
+          </div>
+        </motion.section>
       </motion.div>
-
-      <motion.div 
-        className="grid md:grid-cols-2 gap-8 mb-16"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        {features.map((feature, index) => (
-          <motion.div key={index} variants={fadeIn}>
-            <Card className="h-full">
-              <CardContent className="p-6">
-                <feature.icon className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      <motion.section 
-        className="mb-16"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-8">Why Choose AI Consulting & Future-Proofing?</h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          {benefits.map((benefit, index) => (
-            <Card key={index} className="h-full">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                <p className="text-muted-foreground">{benefit.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="mb-16"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-8">What's Included?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {includedServices.map((service, index) => (
-            <Card key={index} className="h-full">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                <p className="text-muted-foreground">{service.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="mb-16"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-8">Who Is This For?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {targetAudience.map((audience, index) => (
-            <Card key={index} className="h-full">
-              <CardContent className="p-6">
-                <p className="text-lg">{audience}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="text-center bg-primary/5 rounded-2xl p-12"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-4">Transform Your Business with AI Expertise</h2>
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          AI is reshaping the business world—don't get left behind. With Better Systems AI, you have a dedicated AI partner that ensures your business is always a step ahead.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Button asChild size="lg">
-            <Link href="/get-started">Get Started Now</Link>
-          </Button>
-          <Button variant="outline" size="lg" asChild>
-            <Link href="/contact">Schedule a Call</Link>
-          </Button>
-        </div>
-      </motion.section>
     </div>
   );
 }

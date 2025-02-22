@@ -29,7 +29,7 @@ function Router() {
 
   return (
     <RootLayout>
-      <Switch>
+      <Switch base="/">
         <Route path="/" component={HomePage} />
         <Route path="/services" component={ServicesPage} />
         <Route path="/services/ai-assistants" component={AIAssistantsPage} />

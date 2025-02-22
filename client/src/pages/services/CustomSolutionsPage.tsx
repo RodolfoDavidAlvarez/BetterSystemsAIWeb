@@ -94,12 +94,10 @@ export default function CustomSolutionsPage() {
                         <p className="text-sm text-muted-foreground mb-4">{study.company}</p>
                         <p className="text-muted-foreground mb-6">{study.description}</p>
                         <div className="flex gap-6 mb-6">
-                          {study.metrics?.map((metric, idx) => (
-                            <div key={idx} className="space-y-1">
-                              <div className="text-2xl font-bold text-primary">{metric.value}</div>
-                              <div className="text-sm text-muted-foreground">{metric.label}</div>
-                            </div>
-                          ))}
+                          <div className="space-y-1">
+                            <div className="text-2xl font-bold text-primary">{study.metric}</div>
+                            <div className="text-sm text-muted-foreground">{study.metricLabel}</div>
+                          </div>
                         </div>
                         <ul className="space-y-2 mb-6">
                           {study.highlights.map((highlight, idx) => (

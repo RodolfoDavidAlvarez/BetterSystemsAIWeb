@@ -92,9 +92,27 @@ export default function ContactPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-8">
             Ready to transform your business with AI? Get in touch with us today.
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => window.location.href = 'tel:9285501649'}
+            >
+              <Phone className="h-4 w-4" />
+              Call Us: (928) 550-1649
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => window.location.href = 'mailto:ralvarez@bettersystems.ai'}
+            >
+              <Mail className="h-4 w-4" />
+              Email Us: ralvarez@bettersystems.ai
+            </Button>
+          </div>
         </div>
 
         {/* Quick Contact Options */}

@@ -84,8 +84,8 @@ export default function CustomSolutionsPage() {
                 variants={fadeIn}
                 className="group"
               >
-                <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-0">
-                  <CardContent className="p-8">
+                <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/40 bg-gradient-to-b from-muted/50 to-transparent">
+                  <CardContent className="p-8 relative">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
                       <div>
                         <h3 className="text-2xl font-semibold mb-2">{study.title}</h3>

@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Enhanced debug logging middleware
 const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {

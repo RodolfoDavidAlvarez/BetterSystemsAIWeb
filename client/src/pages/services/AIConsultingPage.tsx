@@ -1,10 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { fadeIn, staggerChildren } from "@/lib/animations";
-import { Card, CardContent } from "@/components/ui/card";
-import { BrainCircuit, LineChart, Users, Cog, BadgeCheck, Gauge, Clock, DollarSign, Workflow, Sparkles, Zap } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { fadeIn, staggerChildren } from '@/lib/animations';
+import { BrainCircuit, Clock, Cog, DollarSign, Gauge, LineChart, Users, Cog as CogIcon, BadgeCheck, Gauge as GaugeIcon, Clock as ClockIcon, DollarSign as DollarSignIcon, Workflow, Sparkles, Zap } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface ServiceMetric {
   value: string;
@@ -19,13 +17,13 @@ interface ServiceFeature {
   icon: LucideIcon;
 }
 
-interface Benefit {
+interface Highlight {
+  icon: LucideIcon;
   title: string;
   description: string;
 }
 
-interface Highlight {
-  icon: LucideIcon;
+interface Benefit {
   title: string;
   description: string;
 }
@@ -36,19 +34,19 @@ export default function AIConsultingPage() {
       value: "90%",
       label: "Cost Reduction",
       description: "Through AI-driven process optimization",
-      icon: DollarSign
+      icon: DollarSignIcon
     },
     {
       value: "24/7",
       label: "AI Operations",
       description: "Continuous monitoring and optimization",
-      icon: Clock
+      icon: ClockIcon
     },
     {
       value: "40%",
       label: "Efficiency Boost",
       description: "Average productivity increase with AI",
-      icon: Gauge
+      icon: GaugeIcon
     }
   ];
 
@@ -71,7 +69,7 @@ export default function AIConsultingPage() {
     {
       title: "Technical Excellence",
       description: "Expert guidance on AI architecture, security, and scalability to future-proof your systems.",
-      icon: Cog
+      icon: CogIcon
     }
   ];
 
@@ -143,7 +141,7 @@ export default function AIConsultingPage() {
         animate="animate"
         variants={fadeIn}
       >
-        <Link href="/services" className="text-primary hover:underline mb-4 inline-block">
+        <Link to="/services" className="text-primary hover:underline mb-4 inline-block">
           ← Back to Services
         </Link>
         <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
@@ -172,14 +170,12 @@ export default function AIConsultingPage() {
         {/* Metrics Section */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           {metrics.map((metric, index) => (
-            <Card key={index} className="border-0 hover:bg-accent/5 transition-all duration-300">
-              <CardContent className="p-6">
-                <metric.icon className="h-8 w-8 text-primary mb-4" />
-                <div className="text-3xl font-bold text-primary mb-2">{metric.value}</div>
-                <div className="font-semibold mb-2">{metric.label}</div>
-                <p className="text-muted-foreground">{metric.description}</p>
-              </CardContent>
-            </Card>
+            <motion.div key={index} variants={fadeIn} className="border-0 hover:bg-accent/5 transition-all duration-300 p-6 rounded-xl">
+              <metric.icon className="h-8 w-8 text-primary mb-4" />
+              <div className="text-3xl font-bold text-primary mb-2">{metric.value}</div>
+              <div className="font-semibold mb-2">{metric.label}</div>
+              <p className="text-muted-foreground">{metric.description}</p>
+            </motion.div>
           ))}
         </div>
 
@@ -191,13 +187,11 @@ export default function AIConsultingPage() {
         >
           {features.map((feature, index) => (
             <motion.div key={index} variants={fadeIn}>
-              <Card className="h-full border-0 hover:bg-accent/5 transition-all duration-300">
-                <CardContent className="p-6">
-                  <feature.icon className="h-12 w-12 text-primary mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <motion.div className="h-full border-0 hover:bg-accent/5 transition-all duration-300 p-6 rounded-xl" variants={fadeIn}>
+                <feature.icon className="h-12 w-12 text-primary mb-4" />
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </motion.div>
             </motion.div>
           ))}
         </motion.div>
@@ -211,12 +205,10 @@ export default function AIConsultingPage() {
           <h2 className="text-3xl font-semibold text-center mb-12">Why Choose Our AI Consulting?</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="border-0 hover:bg-accent/5 transition-all duration-300">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                  <p className="text-muted-foreground">{benefit.description}</p>
-                </CardContent>
-              </Card>
+              <motion.div key={index} className="border-0 hover:bg-accent/5 transition-all duration-300 p-6 rounded-xl" variants={fadeIn}>
+                <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
+                <p className="text-muted-foreground">{benefit.description}</p>
+              </motion.div>
             ))}
           </div>
         </motion.section>
@@ -252,12 +244,8 @@ export default function AIConsultingPage() {
             Let's work together to build an AI strategy that drives your business forward. Our expert team is ready to guide you through every step of the journey.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button asChild size="lg">
-              <Link href="/get-started">Get Started Now</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/contact">Schedule a Call</Link>
-            </Button>
+            <Link to="/get-started"><button className="px-6 py-3 bg-blue-500 text-white rounded">Get Started Now</button></Link>
+            <Link to="/contact"><button className="px-6 py-3 border border-blue-500 text-blue-500 rounded">Schedule a Call</button></Link>
           </div>
         </motion.section>
       </motion.div>

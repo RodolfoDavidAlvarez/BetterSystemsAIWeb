@@ -2,20 +2,19 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, MessageSquare, User, Phone } from "lucide-react";
+import { Phone, Mail } from "lucide-react";
 import { Link } from "wouter";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  question: z.string().min(10, "Question must be at least 10 characters"),
+  question: z.string().min(10, "Message must be at least 10 characters"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -60,7 +59,6 @@ export default function ContactPage() {
       });
       form.reset();
 
-      // Simple timeout for redirect
       setTimeout(() => {
         setLocation('/');
       }, 2000);
@@ -88,7 +86,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container py-16">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
@@ -115,94 +113,52 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Contact Form */}
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => window.location.href = 'tel:9285501649'}
-          >
-            <Phone className="h-4 w-4" />
-            Call Us: (928) 550-1649
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => window.location.href = 'mailto:ralvarez@bettersystems.ai'}
-          >
-            <Mail className="h-4 w-4" />
-            Email Us: ralvarez@bettersystems.ai
-          </Button>
-        </div>
-
-        {/* Contact Form */}
-        <Card className="shadow-sm border-0 mb-8">
-          <CardContent className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+        <Card className="border-0">
+          <CardContent className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div>
+                <Input
+                  placeholder="Your name"
+                  {...form.register("name")}
                 />
+                {form.formState.errors.name && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        Email
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="your@email.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div>
+                <Input
+                  placeholder="Your email"
+                  type="email"
+                  {...form.register("email")}
                 />
+                {form.formState.errors.email && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="question"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4" />
-                        Your Message
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="What would you like to know?"
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+              <div>
+                <Textarea
+                  placeholder="How can we help?"
+                  {...form.register("question")}
                 />
+                {form.formState.errors.question && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {form.formState.errors.question.message}
+                  </p>
+                )}
+              </div>
 
-                <Button type="submit" className="w-full">
-                  Send Message
-                </Button>
-              </form>
-            </Form>
+              <Button type="submit" className="w-full">
+                Send Message
+              </Button>
+            </form>
           </CardContent>
         </Card>
-
         {/* Social Links Card */}
         <Card className="shadow-sm hover:shadow-md transition-shadow duration-200 border-0">
           <CardContent className="p-6">

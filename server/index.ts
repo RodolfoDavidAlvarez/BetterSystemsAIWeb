@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 });
 
 // Static file serving
-const staticDir = join(dirname(__dirname), 'dist', 'public');
+const staticDir = join(dirname(__dirname), 'dist/public');
 console.log(`Serving static files from: ${staticDir}`);
 app.use(express.static(staticDir));
 

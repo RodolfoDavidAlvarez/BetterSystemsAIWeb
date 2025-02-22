@@ -115,8 +115,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Quick Contact Options */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Contact Form */}
           <Button 
             variant="outline" 
             className="flex items-center gap-2"

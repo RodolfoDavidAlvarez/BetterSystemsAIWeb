@@ -135,12 +135,6 @@ export default function AIConsultingPage() {
     }
   ];
 
-  const targetAudience = [
-    "Business leaders looking to leverage AI for operational efficiency",
-    "Companies that want to stay competitive in an AI-driven market",
-    "Organizations in need of custom AI strategies without the guesswork"
-  ];
-
   return (
     <div className="container mx-auto px-4 py-16">
       <motion.div 
@@ -214,7 +208,7 @@ export default function AIConsultingPage() {
           initial="initial"
           animate="animate"
         >
-          <h2 className="text-3xl font-bold mb-8">Why Choose Our AI Consulting?</h2>
+          <h2 className="text-3xl font-semibold text-center mb-12">Why Choose Our AI Consulting?</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {benefits.map((benefit, index) => (
               <Card key={index} className="border-0 hover:bg-accent/5 transition-all duration-300">
@@ -233,7 +227,7 @@ export default function AIConsultingPage() {
           initial="initial"
           animate="animate"
         >
-          <h2 className="text-3xl font-bold mb-8">What's Included?</h2>
+          <h2 className="text-3xl font-semibold text-center mb-12">What's Included?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {includedServices.map((service, index) => (
               <div key={index} className="flex items-start gap-3 group">

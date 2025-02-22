@@ -25,7 +25,7 @@ export default function ServicesPage() {
         { icon: Cog, label: "Implementation" },
         { icon: BadgeCheck, label: "Compliance" }
       ],
-      href: "/services/ai-consulting",
+      href: "/services/AIConsulting",
       highlight: "Transform your business with expert AI guidance"
     },
     {

@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Switch, Route } from "wouter";
+import { Router, Route, Switch } from "wouter"; // Import Router from wouter
 import "./index.css";
 // Force CSS injection
 import "tailwindcss/tailwind.css";
@@ -24,30 +24,34 @@ import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuesti
 import AIConsultingPage from "./pages/services/AIConsultingPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
-function Router() {
+function App() { //Renamed to App for clarity
   useScrollToTop();
 
   return (
-    <RootLayout>
-      <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/services" component={ServicesPage} />
-        <Route path="/services/ai-assistants" component={AIAssistantsPage} />
-        <Route path="/services/ai-efficiency-assessment" component={EfficiencyAuditPage} />
-        <Route path="/services/fleet-management" component={FleetManagementPage} />
-        <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
-        <Route path="/about" component={AboutPage} />
-        <Route path="/partners" component={PartnersPage} />
-        <Route path="/contact" component={ContactPage} />
-        <Route path="/founders-social" component={SocialPage} />
-        <Route path="/get-started" component={GetStartedPage} />
-        <Route path="/business-impact" component={BusinessImpactPage} />
-        <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
-        <Route path="/services/ai-consulting" component={AIConsultingPage} />
-        <Route>404 Page Not Found</Route>
-      </Switch>
-      <Toaster />
-    </RootLayout>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <RootLayout>
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/services" component={ServicesPage} />
+            <Route path="/services/ai-assistants" component={AIAssistantsPage} />
+            <Route path="/services/ai-efficiency-assessment" component={EfficiencyAuditPage} />
+            <Route path="/services/fleet-management" component={FleetManagementPage} />
+            <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
+            <Route path="/about" component={AboutPage} />
+            <Route path="/partners" component={PartnersPage} />
+            <Route path="/contact" component={ContactPage} />
+            <Route path="/founders-social" component={SocialPage} />
+            <Route path="/get-started" component={GetStartedPage} />
+            <Route path="/business-impact" component={BusinessImpactPage} />
+            <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
+            <Route path="/services/ai-consulting" component={AIConsultingPage} />
+            <Route>404 Page Not Found</Route>
+          </Switch>
+          <Toaster />
+        </RootLayout>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
@@ -56,8 +60,6 @@ if (!rootElement) throw new Error("Failed to find the root element");
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Router />
-    </QueryClientProvider>
+    <App /> {/* Render the App component */}
   </StrictMode>,
 );

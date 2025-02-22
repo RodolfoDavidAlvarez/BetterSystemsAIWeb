@@ -100,6 +100,10 @@ args = "Server"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server Build"
+
 [[workflows.workflow]]
 name = "Server Build"
 author = "agent"
@@ -143,6 +147,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts"
+waitForPort = 3001
 
 [[workflows.workflow]]
 name = "Start application"
@@ -156,5 +161,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && VITE_SERVER_URL=http://0.0.0.0:3001 npm run dev"
+args = "cd client && VITE_SERVER_URL=http://0.0.0.0:3001 NODE_ENV=development npm run dev"
 waitForPort = 5173

@@ -29,9 +29,9 @@ function Router() {
 
   return (
     <RootLayout>
-      <Switch base="/">
-        <Route path="/" component={HomePage} />
-        <Route path="/services" component={ServicesPage} />
+      <Switch>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/services" element={<ServicesPage />} />
         <Route path="/services/ai-assistants" component={AIAssistantsPage} />
         <Route path="/services/ai-efficiency-assessment" component={EfficiencyAuditPage} />
         <Route path="/services/fleet-management" component={FleetManagementPage} />

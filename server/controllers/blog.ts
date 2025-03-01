@@ -36,7 +36,7 @@ export const createBlogPost = async (req: Request, res: Response) => {
     }
     
     // Insert blog post
-    const newPost = await db.insert(blogPosts).values(parsedInput).returning();
+    const newPost = await db.insert(blogPosts).values([parsedInput]).returning();
     
     res.status(201).json({
       success: true,

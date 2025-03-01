@@ -6,6 +6,8 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { ArrowLeft, Calendar, Clock, Tag, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface BlogPost {
   id: number;
@@ -116,11 +118,16 @@ export default function BlogPostPage() {
           </Button>
           
           {post.coverImage && (
-            <div className="aspect-video mb-6 overflow-hidden rounded-lg">
+            <div className="mb-6 overflow-hidden rounded-lg">
               <img
                 src={post.coverImage}
                 alt={post.title}
-                className="w-full h-full object-cover"
+                className="w-full max-h-[400px] object-cover rounded-lg shadow-md"
+                onError={(e) => {
+                  // If image fails to load, set a default placeholder
+                  e.currentTarget.src = 'https://placehold.co/800x400/1f2937/ffffff?text=Better+Systems+AI';
+                  e.currentTarget.alt = 'Image placeholder';
+                }}
               />
             </div>
           )}
@@ -161,10 +168,72 @@ export default function BlogPostPage() {
         <Card>
           <CardContent className="p-6 sm:p-8">
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              {/* Display post content */}
-              {post.content.split('\n').map((paragraph, index) => (
-                paragraph.trim() ? <p key={index}>{paragraph}</p> : <br key={index} />
-              ))}
+              {/* Display markdown content */}
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  img: ({ src, alt, ...props }) => (
+                    <div className="my-6 flex justify-center">
+                      <img 
+                        src={src} 
+                        alt={alt || 'Blog image'} 
+                        className="rounded-md max-w-full h-auto shadow-md object-cover" 
+                        onError={(e) => {
+                          // If image fails to load, set a default placeholder
+                          e.currentTarget.src = 'https://placehold.co/800x400/1f2937/ffffff?text=Better+Systems+AI';
+                          e.currentTarget.alt = 'Image placeholder';
+                        }}
+                        {...props} 
+                      />
+                    </div>
+                  ),
+                  a: (props) => (
+                    <a className="text-primary hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
+                  ),
+                  h1: (props) => (
+                    <h1 className="text-3xl font-bold my-4" {...props} />
+                  ),
+                  h2: (props) => (
+                    <h2 className="text-2xl font-bold my-3" {...props} />
+                  ),
+                  h3: (props) => (
+                    <h3 className="text-xl font-bold my-2" {...props} />
+                  ),
+                  p: (props) => (
+                    <p className="my-4 leading-relaxed" {...props} />
+                  ),
+                  ul: (props) => (
+                    <ul className="list-disc pl-6 my-4" {...props} />
+                  ),
+                  ol: (props) => (
+                    <ol className="list-decimal pl-6 my-4" {...props} />
+                  ),
+                  li: (props) => (
+                    <li className="my-1" {...props} />
+                  ),
+                  blockquote: (props) => (
+                    <blockquote className="border-l-4 border-primary pl-4 italic my-4" {...props} />
+                  ),
+                  code: ({ className, children, ...props }) => {
+                    // Check if this code is inside a pre block (part of a code block)
+                    const isInlineCode = className === undefined;
+                    return isInlineCode ? (
+                      <code className="bg-muted px-1 py-0.5 rounded text-sm my-0" {...props}>
+                        {children}
+                      </code>
+                    ) : (
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    );
+                  },
+                  pre: (props) => (
+                    <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm my-4" {...props} />
+                  ),
+                }}
+              >
+                {post.content}
+              </ReactMarkdown>
             </div>
           </CardContent>
         </Card>

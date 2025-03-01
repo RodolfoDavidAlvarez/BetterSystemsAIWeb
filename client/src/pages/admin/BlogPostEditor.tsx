@@ -12,8 +12,11 @@ import { Textarea } from '../../components/ui/textarea';
 import { Switch } from '../../components/ui/switch';
 import { Badge } from '../../components/ui/badge';
 import { Separator } from '../../components/ui/separator';
-import { X, Save, ArrowLeft, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { X, Save, ArrowLeft, Loader2, Eye, PenLine } from 'lucide-react';
 import { useScrollToTop } from '../../hooks/useScrollToTop';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Form validation schema
 const blogPostSchema = z.object({

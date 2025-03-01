@@ -14,10 +14,12 @@ export default function ProtectedRoute({ children, requiredRole = 'admin' }: Pro
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      // Check both token storage locations for backward compatibility
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
       const userDataStr = localStorage.getItem('user');
       
       if (!token || !userDataStr) {
+        console.log('No authentication token or user data found');
         setIsAuthenticated(false);
         return;
       }
@@ -28,29 +30,62 @@ export default function ProtectedRoute({ children, requiredRole = 'admin' }: Pro
         
         // If role is required and user doesn't have the role, redirect
         if (requiredRole && userData.role !== requiredRole) {
-          throw new Error('Insufficient permissions');
+          console.warn(`User does not have required role: ${requiredRole}`);
+          throw new Error(`You need ${requiredRole} permissions to access this page`);
         }
         
         // Verify token with the server
         const response = await fetch('/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          credentials: 'include'
         });
         
         if (!response.ok) {
-          throw new Error('Authentication failed');
+          if (response.status === 401) {
+            throw new Error('Your session has expired. Please log in again.');
+          } else {
+            throw new Error(`Authentication failed: ${response.statusText}`);
+          }
+        }
+        
+        // Verify the response data
+        const data = await response.json();
+        if (!data.user || !data.user.id) {
+          throw new Error('Invalid user data received from server');
+        }
+        
+        // Update the local user data if needed
+        if (data.user.username && data.user.role) {
+          const currentUser = {
+            id: data.user.id,
+            username: data.user.username,
+            name: data.user.name || data.user.username,
+            role: data.user.role,
+            lastVerified: new Date().toISOString()
+          };
+          localStorage.setItem('user', JSON.stringify(currentUser));
         }
         
         // Successfully authenticated
         setIsAuthenticated(true);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
         console.error('Auth validation error:', error);
         setIsAuthenticated(false);
         
         // Clear invalid auth data
+        localStorage.removeItem('authToken');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        
+        // Display a more helpful error message
+        toast({
+          title: 'Authentication failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       }
     };
     

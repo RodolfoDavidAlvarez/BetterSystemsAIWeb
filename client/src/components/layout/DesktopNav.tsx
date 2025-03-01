@@ -5,7 +5,8 @@ const navItems = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
   { label: "About", href: "/about" },
-  { label: "Partners", href: "/partners" }
+  { label: "Partners", href: "/partners" },
+  { label: "Blog", href: "/blog" }
 ];
 
 export default function DesktopNav() {

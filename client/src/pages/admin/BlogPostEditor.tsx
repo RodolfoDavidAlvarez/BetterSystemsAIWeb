@@ -406,16 +406,81 @@ export default function BlogPostEditor() {
                 control={form.control}
                 name="content"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-2">
                     <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Post content..."
-                        className="min-h-[300px]"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
+                    <Tabs defaultValue="write">
+                      <TabsList className="mb-2">
+                        <TabsTrigger value="write" className="flex items-center gap-1">
+                          <PenLine className="h-4 w-4" />
+                          Write
+                        </TabsTrigger>
+                        <TabsTrigger value="preview" className="flex items-center gap-1">
+                          <Eye className="h-4 w-4" />
+                          Preview
+                        </TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="write">
+                        <FormControl>
+                          <Textarea
+                            placeholder="Content supports markdown formatting..."
+                            className="min-h-[300px]"
+                            {...field}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                      </TabsContent>
+                      <TabsContent value="preview" className="border rounded-md p-4 min-h-[300px]">
+                        {field.value ? (
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                img: ({ src, alt, ...props }) => (
+                                  <div className="my-3 flex justify-center">
+                                    <img 
+                                      src={src} 
+                                      alt={alt || 'Blog image'} 
+                                      className="rounded-md max-w-full h-auto shadow-sm object-cover" 
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'https://placehold.co/800x400/1f2937/ffffff?text=Better+Systems+AI';
+                                        e.currentTarget.alt = 'Image placeholder';
+                                      }}
+                                      {...props} 
+                                    />
+                                  </div>
+                                ),
+                                code: ({ className, children, ...props }) => {
+                                  // Check if this code is inside a pre block (part of a code block)
+                                  const isInlineCode = className === undefined;
+                                  return isInlineCode ? (
+                                    <code className="bg-muted px-1 py-0.5 rounded text-xs my-0" {...props}>
+                                      {children}
+                                    </code>
+                                  ) : (
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                },
+                                pre: (props) => (
+                                  <pre className="bg-muted p-3 rounded-md overflow-x-auto text-xs my-3" {...props} />
+                                ),
+                              }}
+                            >
+                              {field.value}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div className="text-center text-muted-foreground py-12">
+                            <p>No content to preview</p>
+                            <p className="text-sm">Add some content in the Write tab to see a preview</p>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                    <FormDescription>
+                      Content supports markdown formatting including headings, links, images, code blocks, and more.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

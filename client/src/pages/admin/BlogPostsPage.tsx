@@ -82,16 +82,13 @@ export default function BlogPostsPage() {
         queryParams.append('published', publishedFilter);
       }
       
-      // Handle server URL differently in Replit environment 
-      // Use the direct localhost address to ensure connection to the Express server
-      const serverUrl = 'http://localhost:3001';
-      console.log('Using server URL for blog posts:', serverUrl);
+      // Use relative URL for API calls - relies on the Vite proxy
+      console.log('Fetching blog posts with relative URL');
       
-      const response = await fetch(`${serverUrl}/api/admin/blog?${queryParams.toString()}`, {
+      const response = await fetch(`/api/admin/blog?${queryParams.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
       });
       
       if (!response.ok) {

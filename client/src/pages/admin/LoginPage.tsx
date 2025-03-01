@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -26,6 +26,27 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      try {
+        // Parse the user data to check role
+        const userData = JSON.parse(user);
+        if (userData && userData.role === 'admin') {
+          // User is already logged in, redirect to dashboard
+          navigate('/admin/dashboard');
+        }
+      } catch (error) {
+        // If there's an error, clear the invalid data
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate]);
+  
   // Initialize form
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -45,13 +66,8 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      // In Replit's environment, we need to handle backend communication differently
-      // Since the server is inaccessible directly from the browser, we'll use relative URLs
-      // This relies on vite's proxy configuration to forward requests to the Express server
-      const serverUrl = '';  // Use relative URL - no hostname
-      console.log('Using relative server URL');
-      
-      const response = await fetch(`${serverUrl}/api/auth/login`, {
+      // Use relative URL for API calls - relies on the Vite proxy
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,25 +76,12 @@ export default function LoginPage() {
         credentials: 'include', // Include cookies for cross-origin requests
       });
       
-      console.log('Login response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: [...response.headers].map(h => `${h[0]}: ${h[1]}`).join(', ')
-      });
-    
       // Handle non-JSON responses
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
-        console.error('Non-JSON response received:', {
-          status: response.status,
-          contentType,
-          statusText: response.statusText
-        });
-        
         const text = await response.text();
-        console.log('Response text:', text.substring(0, 200) + (text.length > 200 ? '...' : ''));
-        
-        throw new Error(`Server returned non-JSON response (${response.status}: ${response.statusText})`);
+        console.error('Non-JSON response:', text.substring(0, 200));
+        throw new Error(`Server returned non-JSON response (${response.status})`);
       }
       
       const data = await response.json();
@@ -88,6 +91,10 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
       
+      if (!data.token) {
+        throw new Error('No authentication token received');
+      }
+      
       // Store token in localStorage
       localStorage.setItem('token', data.token);
       
@@ -95,7 +102,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify({
         id: data.user.id,
         username: data.user.username,
-        name: data.user.name,
+        name: data.user.name || data.user.username,
         role: data.user.role,
       }));
       
@@ -104,8 +111,11 @@ export default function LoginPage() {
         description: 'You have been logged in successfully.',
       });
       
-      // Redirect to admin dashboard
-      navigate('/admin/dashboard');
+      // Wait a short time to ensure toasts are visible
+      setTimeout(() => {
+        // Redirect to admin dashboard
+        navigate('/admin/dashboard');
+      }, 500);
     } catch (error) {
       let errorMessage = 'Something went wrong during login';
       

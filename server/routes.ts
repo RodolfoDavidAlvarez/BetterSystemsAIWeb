@@ -32,6 +32,17 @@ export function registerRoutes(app: Express) {
   app.post("/api/auth/register", register);
   app.get("/api/auth/me", authenticate, getCurrentUser);
   
+  // Emergency test endpoint for debugging auth issues
+  app.get("/api/auth/test", (req, res) => {
+    console.log('Auth test endpoint accessed');
+    res.json({
+      success: true,
+      message: 'Auth API is accessible',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    });
+  });
+  
   // Public blog routes
   app.get("/api/blog", getAllBlogPosts);
   app.get("/api/blog/:slug", getBlogPostBySlug);

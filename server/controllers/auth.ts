@@ -1,13 +1,11 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { db } from '../../db/index';
 import { users, insertUserSchema } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { AuthenticatedRequest, createAuthToken, setAuthCookie } from '../middleware/auth';
 
-// Using a fixed JWT Secret for development to ensure consistency between server restarts
-// In production, this should be in an environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'bettersystems-blog-secret-key-dev';
+// Constants
 const SALT_ROUNDS = 10;
 
 // Register a new admin user
@@ -40,12 +38,15 @@ export const register = async (req: Request, res: Response) => {
     // Insert new user
     const newUser = await db.insert(users).values(parsedInput).returning();
     
-    // Create JWT token
-    const token = jwt.sign(
-      { id: newUser[0].id, username: newUser[0].username, role: 'admin' },
-      JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    // Create JWT token with longer expiration for admin users
+    const token = createAuthToken({
+      id: newUser[0].id, 
+      username: newUser[0].username, 
+      role: 'admin'
+    });
+    
+    // Set token in cookie
+    setAuthCookie(res, token);
     
     res.status(201).json({
       success: true,
@@ -121,11 +122,14 @@ export const login = async (req: Request, res: Response) => {
     
     // Create JWT token
     console.log('Creating JWT token');
-    const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = createAuthToken({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+    
+    // Set token in cookie for better security
+    setAuthCookie(res, token);
     
     console.log('Login successful, sending response');
     res.json({

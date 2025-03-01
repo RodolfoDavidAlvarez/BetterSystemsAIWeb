@@ -67,8 +67,15 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      // Use relative URL for API calls - relies on the Vite proxy
-      const response = await fetch('/api/auth/login', {
+      // Get the API base URL from environment if available
+      const baseUrl = import.meta.env.VITE_SERVER_URL 
+        ? `${import.meta.env.VITE_SERVER_URL}/api` 
+        : '/api';
+      
+      console.log(`Using API base URL: ${baseUrl}`);
+      
+      // Use the appropriate URL for API calls
+      const response = await fetch(`${baseUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

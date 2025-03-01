@@ -21,6 +21,12 @@ import GetStartedPage from "./pages/GetStartedPage";
 import BusinessImpactPage from "./pages/BusinessImpactPage";
 import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
 import AIConsultingPage from "./pages/services/AIConsultingPage";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import LoginPage from "./pages/admin/LoginPage";
+import DashboardPage from "./pages/admin/DashboardPage";
+import BlogPostsPage from "./pages/admin/BlogPostsPage";
+import BlogPostEditor from "./pages/admin/BlogPostEditor";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 function App() {
@@ -45,6 +51,13 @@ function App() {
             <Route path="/business-impact" component={BusinessImpactPage} />
             <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
             <Route path="/services/ai-consulting" component={AIConsultingPage} />
+            <Route path="/blog" component={BlogPage} />
+            <Route path="/blog/:slug" component={BlogPostPage} />
+            <Route path="/admin/login" component={LoginPage} />
+            <Route path="/admin/dashboard" component={DashboardPage} />
+            <Route path="/admin/blog" component={BlogPostsPage} />
+            <Route path="/admin/blog/new" component={BlogPostEditor} />
+            <Route path="/admin/blog/:id/edit" component={BlogPostEditor} />
             <Route>404 Page Not Found</Route>
           </Switch>
           <Toaster />

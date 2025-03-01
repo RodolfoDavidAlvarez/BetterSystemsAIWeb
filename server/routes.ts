@@ -1,8 +1,18 @@
 import type { Express } from "express";
-import path from "path";
+import { login, register, getCurrentUser } from './controllers/auth';
+import { 
+  createBlogPost, 
+  getAllBlogPosts, 
+  getAllBlogPostsAdmin, 
+  getBlogPostBySlug, 
+  getBlogPostById, 
+  updateBlogPost, 
+  deleteBlogPost 
+} from './controllers/blog';
+import { authenticate, isAdmin } from './middleware/auth';
 
 export function registerRoutes(app: Express) {
-  // API routes
+  // Public API routes
   app.post("/api/contact", async (req, res) => {
     console.log('Contact API endpoint hit');
     try {
@@ -16,4 +26,20 @@ export function registerRoutes(app: Express) {
       });
     }
   });
+  
+  // Auth routes
+  app.post("/api/auth/login", login);
+  app.post("/api/auth/register", register);
+  app.get("/api/auth/me", authenticate, getCurrentUser);
+  
+  // Public blog routes
+  app.get("/api/blog", getAllBlogPosts);
+  app.get("/api/blog/:slug", getBlogPostBySlug);
+  
+  // Protected admin blog routes
+  app.post("/api/admin/blog", authenticate, isAdmin, createBlogPost);
+  app.get("/api/admin/blog", authenticate, isAdmin, getAllBlogPostsAdmin);
+  app.get("/api/admin/blog/:id", authenticate, isAdmin, getBlogPostById);
+  app.put("/api/admin/blog/:id", authenticate, isAdmin, updateBlogPost);
+  app.delete("/api/admin/blog/:id", authenticate, isAdmin, deleteBlogPost);
 }

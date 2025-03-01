@@ -35,8 +35,14 @@ export const createBlogPost = async (req: Request, res: Response) => {
       });
     }
     
+    // Ensure tags is an array before inserting
+    const tagsArray = Array.isArray(parsedInput.tags) ? parsedInput.tags : [];
+    
     // Insert blog post
-    const newPost = await db.insert(blogPosts).values([parsedInput]).returning();
+    const newPost = await db.insert(blogPosts).values({
+      ...parsedInput,
+      tags: tagsArray
+    }).returning();
     
     res.status(201).json({
       success: true,
@@ -61,27 +67,20 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
     const limitNumber = parseInt(limit as string, 10);
     const offset = (pageNumber - 1) * limitNumber;
     
-    let query = db.select({
-      post: blogPosts,
-      authorName: users.name
-    })
-      .from(blogPosts)
-      .innerJoin(users, eq(blogPosts.authorId, users.id))
-      .where(eq(blogPosts.published, true))
-      .orderBy(desc(blogPosts.createdAt));
+    // Build conditions array based on filters
+    const conditions = [eq(blogPosts.published, true)];
     
-    // Apply filters if provided
     if (category) {
-      query = query.where(eq(blogPosts.category, category as string));
+      conditions.push(eq(blogPosts.category, category as string));
     }
     
     if (tag) {
-      query = query.where(sql`${blogPosts.tags} @> ARRAY[${tag as string}]::text[]`);
+      conditions.push(sql`${blogPosts.tags} @> ARRAY[${tag as string}]::text[]`);
     }
     
     if (search) {
       const searchTerm = `%${search as string}%`;
-      query = query.where(
+      conditions.push(
         or(
           ilike(blogPosts.title, searchTerm),
           ilike(blogPosts.content, searchTerm),
@@ -89,6 +88,16 @@ export const getAllBlogPosts = async (req: Request, res: Response) => {
         )
       );
     }
+    
+    // Apply all conditions at once
+    const query = db.select({
+      post: blogPosts,
+      authorName: users.name
+    })
+      .from(blogPosts)
+      .innerJoin(users, eq(blogPosts.authorId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(blogPosts.createdAt));
     
     // Get total count for pagination
     const countResult = await db.select({ count: sql<number>`count(*)` })
@@ -133,6 +142,16 @@ export const getAllBlogPostsAdmin = async (req: Request, res: Response) => {
     const limitNumber = parseInt(limit as string, 10);
     const offset = (pageNumber - 1) * limitNumber;
     
+    // Build conditions array based on filters
+    const conditions: any[] = [];
+    
+    // Filter by published status if provided
+    if (published !== undefined) {
+      const isPublished = published === 'true';
+      conditions.push(eq(blogPosts.published, isPublished));
+    }
+    
+    // Apply all conditions at once
     let query = db.select({
       post: blogPosts,
       authorName: users.name
@@ -140,11 +159,10 @@ export const getAllBlogPostsAdmin = async (req: Request, res: Response) => {
       .from(blogPosts)
       .innerJoin(users, eq(blogPosts.authorId, users.id))
       .orderBy(desc(blogPosts.createdAt));
-    
-    // Filter by published status if provided
-    if (published !== undefined) {
-      const isPublished = published === 'true';
-      query = query.where(eq(blogPosts.published, isPublished));
+      
+    // Apply filter conditions if any exist
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
     }
     
     // Get total count for pagination
@@ -318,9 +336,13 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     if (excerpt !== undefined) updatedFields.excerpt = excerpt;
     if (coverImage !== undefined) updatedFields.coverImage = coverImage;
     if (published !== undefined) updatedFields.published = published;
-    if (tags !== undefined) updatedFields.tags = tags;
     if (category !== undefined) updatedFields.category = category;
     if (slug !== undefined) updatedFields.slug = slug;
+    
+    // Handle tags separately to ensure it's an array
+    if (tags !== undefined) {
+      updatedFields.tags = Array.isArray(tags) ? tags : [];
+    }
     
     // Always update the updatedAt timestamp
     updatedFields.updatedAt = new Date();

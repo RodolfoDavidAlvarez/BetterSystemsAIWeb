@@ -9,7 +9,8 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").unique().notNull(),
   role: text("role").default("admin").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export const blogPosts = pgTable("blog_posts", {
@@ -18,11 +19,11 @@ export const blogPosts = pgTable("blog_posts", {
   slug: text("slug").unique().notNull(),
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
-  coverImage: text("cover_image"),
-  authorId: integer("author_id").references(() => users.id).notNull(),
+  coverImage: text("coverImage"),
+  authorId: integer("authorId").references(() => users.id).notNull(),
   published: boolean("published").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   tags: text("tags").array(),
   category: text("category").notNull(),
 });

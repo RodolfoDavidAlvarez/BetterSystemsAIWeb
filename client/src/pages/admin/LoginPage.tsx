@@ -79,28 +79,55 @@ export default function LoginPage() {
       console.log(`Using API base URL: ${baseUrl}`);
       
       // Make the login request
-      const response = await fetch(`${baseUrl}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-        credentials: 'include', // Include cookies for cross-origin requests
-      });
-      
-      // Handle non-JSON responses
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Non-JSON response:', text.substring(0, 200));
-        throw new Error(`Server returned non-JSON response (${response.status})`);
-      }
-      
-      const data = await response.json();
-      console.log('Login response status:', response.status, response.ok);
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      try {
+        console.log(`Attempting to connect to ${baseUrl}/auth/login`);
+        const response = await fetch(`${baseUrl}/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+          credentials: 'include', // Include cookies for cross-origin requests
+        });
+        
+        console.log('Login response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries([...response.headers.entries()]),
+        });
+        
+        // Handle non-JSON responses
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('Non-JSON response:', text.substring(0, 500));
+          throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
+        }
+        
+        const data = await response.json();
+        console.log('Login response parsed JSON data:', {
+          success: data.success,
+          message: data.message,
+          hasToken: !!data.token,
+          tokenLength: data.token ? data.token.length : 0,
+          userData: data.user ? {id: data.user.id, username: data.user.username, role: data.user.role} : null,
+        });
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed');
+        }
+      } catch (fetchError) {
+        console.error('Fetch error during login:', fetchError);
+        if (fetchError instanceof Error) {
+          if (fetchError.message.includes('NetworkError') || 
+              fetchError.message.includes('Failed to fetch') || 
+              fetchError.message.includes('Network request failed')) {
+            throw new Error(`Network error: Cannot connect to server at ${baseUrl}. Please check your connection and try again.`);
+          }
+          throw fetchError;
+        }
+        throw new Error('Unknown error during login request');
       }
       
       if (!data.token) {

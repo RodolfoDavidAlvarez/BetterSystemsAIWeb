@@ -82,10 +82,15 @@ export default function BlogPostsPage() {
         queryParams.append('published', publishedFilter);
       }
       
-      const response = await fetch(`/api/admin/blog?${queryParams.toString()}`, {
+      // Get the server URL from environment variables, default to current origin if not available
+      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+      console.log('Using server URL for blog posts:', serverUrl);
+      
+      const response = await fetch(`${serverUrl}/api/admin/blog?${queryParams.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -132,11 +137,15 @@ export default function BlogPostsPage() {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/blog/${postToDelete.id}`, {
+      // Get the server URL from environment variables, default to current origin if not available
+      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+      
+      const response = await fetch(`${serverUrl}/api/admin/blog/${postToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -166,12 +175,16 @@ export default function BlogPostsPage() {
   const handleTogglePublish = async (post: BlogPost) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/blog/${post.id}`, {
+      // Get the server URL from environment variables, default to current origin if not available
+      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+      
+      const response = await fetch(`${serverUrl}/api/admin/blog/${post.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           published: !post.published,
         }),

@@ -68,8 +68,8 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      // Determine the API URL - HARDCODED for maximum reliability
-      const baseUrl = 'http://0.0.0.0:3000/api';
+      // Use the API base URL from our utility function
+      const baseUrl = getApiBaseUrl();
       console.log(`Using API base URL: ${baseUrl}`);
       
       // Make the login request

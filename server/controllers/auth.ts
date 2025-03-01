@@ -75,7 +75,11 @@ export const login = async (req: Request, res: Response) => {
   try {
     console.log('Login attempt received:', { 
       body: req.body,
-      contentType: req.headers['content-type']
+      contentType: req.headers['content-type'],
+      cookies: req.cookies,
+      method: req.method,
+      path: req.path,
+      url: req.url
     });
     
     const { username, password } = req.body;
@@ -96,7 +100,17 @@ export const login = async (req: Request, res: Response) => {
       .where(eq(users.username, username))
       .limit(1);
     
-    console.log('User lookup result:', { found: foundUsers.length > 0 });
+    console.log('User lookup result:', { 
+      found: foundUsers.length > 0,
+      userCount: foundUsers.length,
+      userData: foundUsers.length > 0 ? {
+        id: foundUsers[0].id,
+        username: foundUsers[0].username,
+        name: foundUsers[0].name,
+        role: foundUsers[0].role,
+        passwdLen: foundUsers[0].password.length
+      } : null
+    });
     
     if (foundUsers.length === 0) {
       return res.status(401).json({
@@ -109,7 +123,16 @@ export const login = async (req: Request, res: Response) => {
     
     // Compare passwords
     console.log('Comparing passwords');
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const passwordToCompare = password || '';
+    const storedPassword = user.password || '';
+    console.log('Password details:', { 
+      inputLength: passwordToCompare.length,
+      storedLength: storedPassword.length,
+      inputStart: passwordToCompare.substring(0, 3) + '...',
+      storedStart: storedPassword.substring(0, 10) + '...'
+    });
+    
+    const isPasswordValid = await bcrypt.compare(passwordToCompare, storedPassword);
     
     console.log('Password validation result:', { isValid: isPasswordValid });
     
@@ -121,7 +144,7 @@ export const login = async (req: Request, res: Response) => {
     }
     
     // Create JWT token
-    console.log('Creating JWT token');
+    console.log('Creating JWT token with secret:', JWT_SECRET.substring(0, 5) + '...');
     const token = createAuthToken({
       id: user.id,
       username: user.username,
@@ -131,7 +154,7 @@ export const login = async (req: Request, res: Response) => {
     // Set token in cookie for better security
     setAuthCookie(res, token);
     
-    console.log('Login successful, sending response');
+    console.log('Login successful, sending response with token of length:', token.length);
     res.json({
       success: true,
       message: 'Login successful',

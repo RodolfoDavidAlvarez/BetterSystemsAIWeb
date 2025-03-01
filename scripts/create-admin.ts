@@ -17,7 +17,7 @@ async function createAdminUser() {
     }
 
     // Create admin user with default password
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('123456', 10);
     
     await db.insert(users).values({
       username: 'admin',
@@ -29,7 +29,7 @@ async function createAdminUser() {
     
     console.log('Admin user created successfully');
     console.log('Username: admin');
-    console.log('Password: admin123');
+    console.log('Password: 123456');
   } catch (error) {
     console.error('Error creating admin user:', error);
   } finally {

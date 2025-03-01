@@ -9,16 +9,28 @@ export const getApiBaseUrl = () => {
   return '/api';
 };
 
+// Get authentication token with support for multiple storage locations
+export const getAuthToken = () => {
+  // Try the new location first, then fall back to the old one
+  return localStorage.getItem('authToken') || localStorage.getItem('token');
+};
+
+// The actual logout function is defined after queryClient to avoid circular dependencies
+
 // Enhanced fetch function with better error handling and retry capabilities
 const enhancedFetch = async (url: string, options: RequestInit = {}) => {
   const isApiCall = url.startsWith('/api');
   
   // Add authorization token to headers if available
-  const token = localStorage.getItem('authToken');
+  const token = getAuthToken();
   const headers = {
     ...(options.headers || {}),
     ...(token && isApiCall ? { Authorization: `Bearer ${token}` } : {})
   };
+  
+  // Track the request for debugging
+  const requestStartTime = Date.now();
+  console.debug(`API Request: ${options.method || 'GET'} ${url}`);
   
   try {
     const res = await fetch(url, {
@@ -26,16 +38,29 @@ const enhancedFetch = async (url: string, options: RequestInit = {}) => {
       headers,
       credentials: "include",
     });
+    
+    const requestDuration = Date.now() - requestStartTime;
+    console.debug(`API Response: ${options.method || 'GET'} ${url} - ${res.status} (${requestDuration}ms)`);
 
     if (!res.ok) {
       // Handle specific error codes
-      if (res.status === 401) {
-        // Clear auth token on unauthorized
+      if (res.status === 401 || res.status === 403) {
+        // Authentication or authorization error
+        console.warn(`Auth error (${res.status}) for ${url}`);
+        
+        // Clear auth tokens on unauthorized/forbidden
         if (isApiCall && token) {
           localStorage.removeItem('authToken');
-          // Optionally redirect to login
-          if (window.location.pathname.includes('/admin/')) {
-            window.location.href = '/admin/login';
+          localStorage.removeItem('token');
+          
+          // Only redirect to login for admin pages, not for public facing pages
+          if (window.location.pathname.includes('/admin/') && 
+              !window.location.pathname.includes('/admin/login')) {
+            console.warn('Authentication required, redirecting to login');
+            // Use a small timeout to allow other code to finish
+            setTimeout(() => {
+              window.location.href = '/admin/login';
+            }, 100);
           }
         }
       }
@@ -43,19 +68,22 @@ const enhancedFetch = async (url: string, options: RequestInit = {}) => {
       // Handle server errors
       if (res.status >= 500) {
         console.error(`Server error: ${res.status} ${res.statusText}`);
-        throw new Error(`Server error (${res.status}): ${res.statusText}`);
+        throw new Error(`Server error (${res.status}): ${res.statusText || 'Unknown server error'}`);
       }
 
       // Handle other client errors
       const errorBody = await res.text();
-      let errorMessage = `Error ${res.status}: ${res.statusText}`;
+      let errorMessage = `Error ${res.status}: ${res.statusText || 'Unknown error'}`;
       
       try {
         // Try to parse as JSON
-        const errorJson = JSON.parse(errorBody);
-        errorMessage = errorJson.message || errorJson.error || errorMessage;
-      } catch {
+        if (errorBody && errorBody.trim().startsWith('{')) {
+          const errorJson = JSON.parse(errorBody);
+          errorMessage = errorJson.message || errorJson.error || errorMessage;
+        }
+      } catch (parseError) {
         // If not JSON, use text
+        console.warn('Error parsing error response:', parseError);
         errorMessage = errorBody || errorMessage;
       }
       
@@ -90,24 +118,62 @@ export const queryClient = new QueryClient({
         return enhancedFetch(resolvedUrl);
       },
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: 60000, // 1 minute (reduced from Infinity for better UX)
+      refetchOnWindowFocus: import.meta.env.PROD, // Only refetch on window focus in production
+      staleTime: 60000, // 1 minute
       retry: (failureCount, error) => {
-        // Don't retry on 4xx client errors
+        // Don't retry on auth errors (401/403)
+        if (error instanceof Error && 
+            (error.message.includes('Error 401') || 
+             error.message.includes('Error 403'))) {
+          return false;
+        }
+        
+        // Don't retry on other client errors (4xx)
         if (error instanceof Error && error.message.includes('Error 4')) {
           return false;
         }
-        return failureCount < 2; // Retry twice for other errors
+        
+        // Retry network and server errors, but limit to 2 attempts
+        return failureCount < 2;
       },
+      // Note: Global error handlers would go here in newer versions of React Query
     },
     mutations: {
       // Add retry for mutations on network errors
       retry: (failureCount, error) => {
         // Only retry on network errors, not on API errors
         const isNetworkError = error instanceof Error && 
-          (error.message.includes('Failed to fetch') || error.message.includes('Network request failed'));
+          (error.message.includes('Failed to fetch') || 
+           error.message.includes('Network request failed') ||
+           error.message.includes('network') ||
+           error.message.includes('Network'));
         return isNetworkError && failureCount < 2;
       },
+      // Note: Global error handlers would go here in newer versions of React Query
     }
   },
 });
+
+// Now that queryClient is defined, we can implement and export the logout function
+export const logout = (redirectUrl = '/admin/login') => {
+  // Clear all auth-related data
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  
+  // Clear any session cookies if needed
+  document.cookie.split(';').forEach(cookie => {
+    const [name] = cookie.trim().split('=');
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  });
+  
+  // Clear query cache to ensure no stale data remains
+  queryClient.clear();
+  
+  // Redirect if requested
+  if (redirectUrl) {
+    window.location.href = redirectUrl;
+  }
+  
+  console.log('User logged out successfully');
+};

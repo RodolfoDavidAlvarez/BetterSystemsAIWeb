@@ -6,11 +6,12 @@ import { eq } from 'drizzle-orm';
 async function createAdminUser() {
   try {
     // Check if admin user already exists
-    const existingAdmin = await db.query.users.findFirst({
-      where: eq(users.username, 'admin')
-    });
+    const existingAdmin = await db.select()
+      .from(users)
+      .where(eq(users.username, 'admin'))
+      .limit(1);
 
-    if (existingAdmin) {
+    if (existingAdmin.length > 0) {
       console.log('Admin user already exists');
       return;
     }

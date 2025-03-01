@@ -17,7 +17,7 @@ export const createBlogPost = async (req: Request, res: Response) => {
       coverImage,
       authorId: user.id,
       published: published || false,
-      tags: tags || [],
+      tags: Array.isArray(tags) ? tags : [],
       category,
       slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
     });

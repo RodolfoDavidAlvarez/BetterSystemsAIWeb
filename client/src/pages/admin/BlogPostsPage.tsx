@@ -242,8 +242,8 @@ export default function BlogPostsPage() {
               
               <div className="w-full sm:w-48">
                 <Select
-                  value={publishedFilter === null ? '' : publishedFilter}
-                  onValueChange={(value) => setPublishedFilter(value === '' ? null : value)}
+                  value={publishedFilter === null ? 'all' : publishedFilter}
+                  onValueChange={(value) => setPublishedFilter(value === 'all' ? null : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Filter by status" />

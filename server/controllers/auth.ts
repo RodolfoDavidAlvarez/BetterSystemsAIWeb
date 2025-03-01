@@ -7,6 +7,7 @@ import { AuthenticatedRequest, createAuthToken, setAuthCookie } from '../middlew
 
 // Constants
 const SALT_ROUNDS = 10;
+const JWT_SECRET = process.env.JWT_SECRET || 'bettersystems-blog-secret-key-dev';
 
 // Register a new admin user
 export const register = async (req: Request, res: Response) => {

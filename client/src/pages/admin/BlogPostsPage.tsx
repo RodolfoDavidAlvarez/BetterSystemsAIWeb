@@ -53,20 +53,9 @@ export default function BlogPostsPage() {
   const [postToDelete, setPostToDelete] = useState<BlogPost | null>(null);
   
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please log in to access the admin dashboard',
-        variant: 'destructive',
-      });
-      navigate('/admin/login');
-      return;
-    }
-    
+    // Authentication is now handled by the ProtectedRoute component
     fetchPosts();
-  }, [navigate, toast, pagination.page, publishedFilter]);
+  }, [pagination.page, publishedFilter]);
   
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -260,7 +249,7 @@ export default function BlogPostsPage() {
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Posts</SelectItem>
+                    <SelectItem value="all">All Posts</SelectItem>
                     <SelectItem value="true">Published</SelectItem>
                     <SelectItem value="false">Drafts</SelectItem>
                   </SelectContent>

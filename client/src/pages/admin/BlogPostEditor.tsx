@@ -56,6 +56,7 @@ export default function BlogPostEditor() {
   
   // Check if editing existing post or creating new one
   useEffect(() => {
+    // Authentication is now handled by ProtectedRoute component
     const postId = params.id;
     if (postId && postId !== 'new') {
       setIsNew(false);
@@ -67,16 +68,8 @@ export default function BlogPostEditor() {
   const fetchBlogPost = async (postId: string) => {
     setIsFetching(true);
     try {
+      // Authentication is now handled by ProtectedRoute component
       const token = localStorage.getItem('token');
-      if (!token) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in to access the admin dashboard',
-          variant: 'destructive',
-        });
-        navigate('/admin/login');
-        return;
-      }
       
       const response = await fetch(`/api/admin/blog/${postId}`, {
         headers: {
@@ -127,16 +120,8 @@ export default function BlogPostEditor() {
   const onSubmit = async (values: BlogPostFormValues) => {
     setIsLoading(true);
     try {
+      // Authentication is now handled by ProtectedRoute component
       const token = localStorage.getItem('token');
-      if (!token) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in to continue',
-          variant: 'destructive',
-        });
-        navigate('/admin/login');
-        return;
-      }
       
       // Process tags
       const tagsArray = values.tags ? 

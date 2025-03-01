@@ -2,6 +2,7 @@ import express from "express";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { createServer } from 'http';
 import { existsSync } from 'fs';
 import { registerRoutes } from './routes';
@@ -44,6 +45,9 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
+
+// Parse cookies
+app.use(cookieParser());
 
 // Parse JSON body before logging
 app.use(express.json({

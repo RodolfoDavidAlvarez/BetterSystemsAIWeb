@@ -155,10 +155,10 @@ export const login = async (req: Request, res: Response) => {
 };
 
 // Get current user
-export const getCurrentUser = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     // User is already authenticated by middleware
-    const user = (req as any).user;
+    const user = req.user;
     
     if (!user) {
       return res.status(401).json({

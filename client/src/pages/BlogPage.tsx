@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
-import { Calendar, Clock, Search, Tag } from 'lucide-react';
+import { Calendar, Search } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../components/ui/pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 

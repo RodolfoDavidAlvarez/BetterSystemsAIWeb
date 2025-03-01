@@ -19,77 +19,22 @@ export default function DashboardPage() {
   } | null>(null);
   
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    // Load user data from localStorage
+    const userDataStr = localStorage.getItem('user');
     
-    if (!token || !user) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please log in to access the admin dashboard',
-        variant: 'destructive',
-      });
-      navigate('/admin/login');
-      return;
+    if (userDataStr) {
+      try {
+        const userData = JSON.parse(userDataStr);
+        setUserData(userData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        setIsLoading(false);
+      }
+    } else {
+      setIsLoading(false);
     }
-    
-    try {
-      const userData = JSON.parse(user);
-      setUserData(userData);
-      
-      // Verify token validity with the server
-      const verifyToken = async () => {
-        try {
-          // Use relative URL for API calls - relies on the Vite proxy
-          const response = await fetch('/api/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            console.error('Token verification failed:', data.message || 'No error message available');
-            throw new Error(data.message || 'Authentication failed');
-          }
-          
-          // Successfully verified
-          const data = await response.json();
-          console.log('Token verified successfully');
-          
-          // Update user data with fresh data from server
-          if (data.user) {
-            setUserData(data.user);
-            localStorage.setItem('user', JSON.stringify(data.user));
-          }
-          
-          setIsLoading(false);
-        } catch (error) {
-          console.error('Token verification error:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          toast({
-            title: 'Session expired',
-            description: 'Please log in again',
-            variant: 'destructive',
-          });
-          navigate('/admin/login');
-        }
-      };
-      
-      verifyToken();
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      toast({
-        title: 'Authentication error',
-        description: 'Please log in again',
-        variant: 'destructive',
-      });
-      navigate('/admin/login');
-    }
-  }, [navigate, toast]);
+  }, []);
   
   const handleLogout = () => {
     localStorage.removeItem('token');

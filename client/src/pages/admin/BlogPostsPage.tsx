@@ -135,16 +135,12 @@ export default function BlogPostsPage() {
     
     try {
       const token = localStorage.getItem('token');
-      // Handle server URL differently in Replit environment 
-      // Use the direct localhost address to ensure connection to the Express server
-      const serverUrl = 'http://localhost:3001';
-      
-      const response = await fetch(`${serverUrl}/api/admin/blog/${postToDelete.id}`, {
+      // Use relative URL for API calls - relies on the Vite proxy
+      const response = await fetch(`/api/admin/blog/${postToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -174,17 +170,13 @@ export default function BlogPostsPage() {
   const handleTogglePublish = async (post: BlogPost) => {
     try {
       const token = localStorage.getItem('token');
-      // Handle server URL differently in Replit environment 
-      // Use the direct localhost address to ensure connection to the Express server
-      const serverUrl = 'http://localhost:3001';
-      
-      const response = await fetch(`${serverUrl}/api/admin/blog/${post.id}`, {
+      // Use relative URL for API calls - relies on the Vite proxy
+      const response = await fetch(`/api/admin/blog/${post.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({
           published: !post.published,
         }),

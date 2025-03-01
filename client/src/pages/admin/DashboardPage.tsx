@@ -40,10 +40,15 @@ export default function DashboardPage() {
       // Verify token validity with the server
       const verifyToken = async () => {
         try {
-          const response = await fetch('/api/auth/me', {
+          // Get the server URL from environment variables, default to current origin if not available
+          const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+          console.log('Using server URL for verification:', serverUrl);
+          
+          const response = await fetch(`${serverUrl}/api/auth/me`, {
             headers: {
               'Authorization': `Bearer ${token}`
-            }
+            },
+            credentials: 'include'
           });
           
           if (!response.ok) {

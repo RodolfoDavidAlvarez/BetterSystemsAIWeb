@@ -45,8 +45,9 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      // Get the server URL from environment variables or use default
-      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      // Get the server URL from environment variables, default to current origin if not available
+      // For Replit, we need to ensure it works in the unique deployment environment
+      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
       console.log('Using server URL:', serverUrl);
       
       const response = await fetch(`${serverUrl}/api/auth/login`, {
@@ -58,6 +59,12 @@ export default function LoginPage() {
         credentials: 'include', // Include cookies for cross-origin requests
       });
       
+      console.log('Login response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: [...response.headers].map(h => `${h[0]}: ${h[1]}`).join(', ')
+      });
+    
       // Handle non-JSON responses
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {

@@ -4,6 +4,14 @@ import { dirname, join } from 'path';
 import cors from "cors";
 import { createServer } from 'http';
 import { existsSync } from 'fs';
+import { registerRoutes } from './routes';
+import { randomBytes } from 'crypto';
+
+// Set JWT_SECRET if not provided in environment
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = randomBytes(32).toString('hex');
+  console.log('[Security] Generated random JWT_SECRET for development');
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -53,8 +61,15 @@ app.get('/api/health', (_req, res) => {
   res.json(health);
 });
 
-// SPA fallback with logging
-app.get('*', (req, res) => {
+// Register API routes
+registerRoutes(app);
+
+// SPA fallback with logging - exclude API routes
+app.get('*', (req, res, next) => {
+  // Skip API routes to avoid conflicts
+  if (req.url.startsWith('/api/')) {
+    return next();
+  }
   console.log(`[SPA Fallback] Serving index.html for: ${req.url}`);
   res.sendFile(join(staticDir, 'index.html'));
 });

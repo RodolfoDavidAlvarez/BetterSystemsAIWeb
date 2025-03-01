@@ -191,6 +191,11 @@ export default function BlogPage() {
                       src={post.coverImage}
                       alt={post.title}
                       className="w-full h-full object-cover transition-transform hover:scale-105"
+                      onError={(e) => {
+                        // If image fails to load, set a default placeholder
+                        e.currentTarget.src = 'https://placehold.co/800x400/1f2937/ffffff?text=Better+Systems+AI';
+                        e.currentTarget.alt = 'Image placeholder';
+                      }}
                     />
                   </div>
                 )}

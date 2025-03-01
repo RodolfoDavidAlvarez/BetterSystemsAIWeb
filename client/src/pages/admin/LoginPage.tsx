@@ -40,6 +40,11 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
+      console.log('Sending login request with credentials:', {
+        username: values.username,
+        passwordLength: values.password.length
+      });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -48,7 +53,23 @@ export default function LoginPage() {
         body: JSON.stringify(values),
       });
       
+      // Handle non-JSON responses
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', {
+          status: response.status,
+          contentType,
+          statusText: response.statusText
+        });
+        
+        const text = await response.text();
+        console.log('Response text:', text.substring(0, 200) + (text.length > 200 ? '...' : ''));
+        
+        throw new Error(`Server returned non-JSON response (${response.status}: ${response.statusText})`);
+      }
+      
       const data = await response.json();
+      console.log('Login response status:', response.status, response.ok);
       
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
@@ -73,9 +94,20 @@ export default function LoginPage() {
       // Redirect to admin dashboard
       navigate('/admin/dashboard');
     } catch (error) {
+      let errorMessage = 'Something went wrong during login';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Special case for JSON parse errors
+        if (error.message.includes('JSON')) {
+          errorMessage = 'Unable to process server response. Please try again.';
+        }
+      }
+      
       toast({
         title: 'Login failed',
-        description: error instanceof Error ? error.message : 'Something went wrong',
+        description: errorMessage,
         variant: 'destructive',
       });
       console.error('Login error:', error);

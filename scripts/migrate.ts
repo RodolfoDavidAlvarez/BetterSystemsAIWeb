@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+import { eq } from 'drizzle-orm';
 import { blogPosts, users } from '../db/schema';
 import bcrypt from 'bcrypt';
 
@@ -23,7 +24,7 @@ async function runMigrations() {
     
     // Check if there are any admin users already
     console.log('Checking for admin users...');
-    const adminUsers = await db.select().from(users).where(users.role.equals('admin'));
+    const adminUsers = await db.select().from(users).where(eq(users.role, 'admin'));
     
     if (adminUsers.length === 0) {
       console.log('No admin users found. Creating default admin user...');

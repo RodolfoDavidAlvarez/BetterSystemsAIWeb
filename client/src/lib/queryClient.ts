@@ -2,15 +2,15 @@ import { QueryClient } from "@tanstack/react-query";
 
 // Helper to get the API base URL with better environment handling
 export const getApiBaseUrl = () => {
-  // Check if we're in a production environment and if VITE_SERVER_URL is set
+  // Check if VITE_SERVER_URL is set, regardless of environment
   const serverUrl = import.meta.env.VITE_SERVER_URL;
   
-  if (serverUrl && import.meta.env.PROD) {
+  if (serverUrl) {
     console.log(`Using configured server URL: ${serverUrl}/api`);
     return `${serverUrl}/api`;
   }
   
-  // Use relative URL for development or when VITE_SERVER_URL isn't set
+  // Use relative URL when VITE_SERVER_URL isn't set
   console.log("Using relative API URL");
   return '/api';
 };

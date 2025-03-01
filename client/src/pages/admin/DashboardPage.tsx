@@ -40,19 +40,27 @@ export default function DashboardPage() {
       // Verify token validity with the server
       const verifyToken = async () => {
         try {
-          // Get the server URL from environment variables, default to current origin if not available
-          const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
-          console.log('Using server URL for verification:', serverUrl);
-          
-          const response = await fetch(`${serverUrl}/api/auth/me`, {
+          // Use relative URL for API calls - relies on the Vite proxy
+          const response = await fetch('/api/auth/me', {
             headers: {
               'Authorization': `Bearer ${token}`
-            },
-            credentials: 'include'
+            }
           });
           
           if (!response.ok) {
-            throw new Error('Invalid or expired token');
+            const data = await response.json().catch(() => ({}));
+            console.error('Token verification failed:', data.message || 'No error message available');
+            throw new Error(data.message || 'Authentication failed');
+          }
+          
+          // Successfully verified
+          const data = await response.json();
+          console.log('Token verified successfully');
+          
+          // Update user data with fresh data from server
+          if (data.user) {
+            setUserData(data.user);
+            localStorage.setItem('user', JSON.stringify(data.user));
           }
           
           setIsLoading(false);

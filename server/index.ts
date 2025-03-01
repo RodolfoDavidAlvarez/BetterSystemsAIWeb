@@ -40,10 +40,15 @@ const requestLogger = (req: express.Request, _res: express.Response, next: expre
   next();
 };
 
-// Basic middleware
+// Enhanced CORS configuration for better cross-domain compatibility
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow any origin for maximum compatibility
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Parse cookies

@@ -116,7 +116,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
+args = "cd server && npx esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
 
 [[workflows.workflow]]
 name = "Dev"
@@ -146,8 +146,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export NODE_ENV=production && export PORT=3000 && export JWT_SECRET=bettersystems-blog-secret-key-dev && export COOKIE_SECRET=bettersystems-cookie-secret-key && export SESSION_SECRET=bettersystems-session-secret-key && cd server && tsx watch --clear-screen=false index.ts"
-waitForPort = 3000
+args = "export NODE_ENV=production && export PORT=3000 && export JWT_SECRET=bettersystems-blog-secret-key-dev && export COOKIE_SECRET=bettersystems-cookie-secret-key && export SESSION_SECRET=bettersystems-session-secret-key && node --experimental-specifier-resolution=node dist/index.js"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -162,4 +161,3 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export NODE_ENV=production && export VITE_SERVER_URL=http://0.0.0.0:3000 && cd client && npm run dev -- --host=0.0.0.0 --port=5000"
-waitForPort = 5000

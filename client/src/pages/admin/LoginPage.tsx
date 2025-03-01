@@ -67,15 +67,18 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      // Get the API base URL from environment if available
-      const baseUrl = import.meta.env.VITE_SERVER_URL 
-        ? `${import.meta.env.VITE_SERVER_URL}/api` 
-        : '/api';
+      // Determine the API URL based on environment and host
+      let baseUrl = '/api';
+      
+      if (import.meta.env.VITE_SERVER_URL) {
+        baseUrl = `${import.meta.env.VITE_SERVER_URL}/api`;
+      } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        baseUrl = 'http://0.0.0.0:3000/api';
+      }
       
       console.log(`Using API base URL: ${baseUrl}`);
-      console.log(`Environment: ${import.meta.env.MODE}, Production: ${import.meta.env.PROD}`);
       
-      // Use the appropriate URL for API calls
+      // Make the login request
       const response = await fetch(`${baseUrl}/auth/login`, {
         method: 'POST',
         headers: {
@@ -104,7 +107,7 @@ export default function LoginPage() {
         throw new Error('No authentication token received');
       }
       
-      // Store token in localStorage (using both keys for backward compatibility)
+      // Store token in localStorage
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('token', data.token);
       

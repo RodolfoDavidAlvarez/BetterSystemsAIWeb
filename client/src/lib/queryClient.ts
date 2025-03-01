@@ -6,11 +6,17 @@ export const getApiBaseUrl = () => {
   const serverUrl = import.meta.env.VITE_SERVER_URL;
   
   if (serverUrl) {
-    console.log(`Using configured server URL: ${serverUrl}/api`);
+    console.log(`Using API base URL: ${serverUrl}/api`);
     return `${serverUrl}/api`;
   }
   
   // Use relative URL when VITE_SERVER_URL isn't set
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log("Using API URL: http://0.0.0.0:3000/api");
+    return 'http://0.0.0.0:3000/api';
+  }
+  
+  // For production deployment
   console.log("Using relative API URL");
   return '/api';
 };

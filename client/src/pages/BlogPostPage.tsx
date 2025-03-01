@@ -166,8 +166,8 @@ export default function BlogPostPage() {
         </div>
         
         <Card>
-          <CardContent className="p-6 sm:p-8">
-            <div className="prose prose-lg dark:prose-invert max-w-none">
+          <CardContent className="p-6 sm:p-8 bg-card">
+            <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-white prose-p:text-gray-200 prose-strong:text-white prose-em:text-gray-300 prose-li:text-gray-200">
               {/* Display markdown content */}
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
@@ -188,47 +188,47 @@ export default function BlogPostPage() {
                     </div>
                   ),
                   a: (props) => (
-                    <a className="text-primary hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
+                    <a className="text-blue-400 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
                   ),
                   h1: (props) => (
-                    <h1 className="text-3xl font-bold my-4" {...props} />
+                    <h1 className="text-3xl font-bold my-6 text-white border-b border-gray-700 pb-2" {...props} />
                   ),
                   h2: (props) => (
-                    <h2 className="text-2xl font-bold my-3" {...props} />
+                    <h2 className="text-2xl font-bold my-5 text-white border-b border-gray-800 pb-1" {...props} />
                   ),
                   h3: (props) => (
-                    <h3 className="text-xl font-bold my-2" {...props} />
+                    <h3 className="text-xl font-bold my-4 text-white" {...props} />
                   ),
                   p: (props) => (
-                    <p className="my-4 leading-relaxed" {...props} />
+                    <p className="my-4 leading-relaxed text-gray-200" {...props} />
                   ),
                   ul: (props) => (
-                    <ul className="list-disc pl-6 my-4" {...props} />
+                    <ul className="list-disc pl-6 my-4 text-gray-200" {...props} />
                   ),
                   ol: (props) => (
-                    <ol className="list-decimal pl-6 my-4" {...props} />
+                    <ol className="list-decimal pl-6 my-4 text-gray-200" {...props} />
                   ),
                   li: (props) => (
-                    <li className="my-1" {...props} />
+                    <li className="my-2 text-gray-200" {...props} />
                   ),
                   blockquote: (props) => (
-                    <blockquote className="border-l-4 border-primary pl-4 italic my-4" {...props} />
+                    <blockquote className="border-l-4 border-primary pl-4 italic my-4 py-2 bg-gray-800/50 text-gray-300" {...props} />
                   ),
                   code: ({ className, children, ...props }) => {
                     // Check if this code is inside a pre block (part of a code block)
                     const isInlineCode = className === undefined;
                     return isInlineCode ? (
-                      <code className="bg-muted px-1 py-0.5 rounded text-sm my-0" {...props}>
+                      <code className="bg-gray-800 text-gray-100 px-1 py-0.5 rounded text-sm my-0" {...props}>
                         {children}
                       </code>
                     ) : (
-                      <code className={className} {...props}>
+                      <code className={`${className} text-gray-100`} {...props}>
                         {children}
                       </code>
                     );
                   },
                   pre: (props) => (
-                    <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm my-4" {...props} />
+                    <pre className="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto text-sm my-4 border border-gray-700" {...props} />
                   ),
                 }}
               >

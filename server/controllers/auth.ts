@@ -72,13 +72,30 @@ export const register = async (req: Request, res: Response) => {
 // Login user
 export const login = async (req: Request, res: Response) => {
   try {
+    console.log('Login attempt received:', { 
+      body: req.body,
+      contentType: req.headers['content-type']
+    });
+    
     const { username, password } = req.body;
+    
+    if (!username || !password) {
+      console.log('Missing credentials:', { username: !!username, password: !!password });
+      return res.status(400).json({
+        success: false,
+        message: 'Username and password are required'
+      });
+    }
+    
+    console.log('Looking up user:', username);
     
     // Find user by username
     const foundUsers = await db.select()
       .from(users)
       .where(eq(users.username, username))
       .limit(1);
+    
+    console.log('User lookup result:', { found: foundUsers.length > 0 });
     
     if (foundUsers.length === 0) {
       return res.status(401).json({
@@ -90,7 +107,10 @@ export const login = async (req: Request, res: Response) => {
     const user = foundUsers[0];
     
     // Compare passwords
+    console.log('Comparing passwords');
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    console.log('Password validation result:', { isValid: isPasswordValid });
     
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -100,12 +120,14 @@ export const login = async (req: Request, res: Response) => {
     }
     
     // Create JWT token
+    console.log('Creating JWT token');
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: '1d' }
     );
     
+    console.log('Login successful, sending response');
     res.json({
       success: true,
       message: 'Login successful',

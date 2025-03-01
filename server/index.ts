@@ -5,12 +5,11 @@ import cors from "cors";
 import { createServer } from 'http';
 import { existsSync } from 'fs';
 import { registerRoutes } from './routes';
-import { randomBytes } from 'crypto';
 
-// Set JWT_SECRET if not provided in environment
+// Use a constant JWT_SECRET for development to ensure consistency between server restarts
 if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = randomBytes(32).toString('hex');
-  console.log('[Security] Generated random JWT_SECRET for development');
+  process.env.JWT_SECRET = 'bettersystems-blog-secret-key-dev';
+  console.log('[Security] Using fixed JWT_SECRET for development');
 }
 
 const __filename = fileURLToPath(import.meta.url);

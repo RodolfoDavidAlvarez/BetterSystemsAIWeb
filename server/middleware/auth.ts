@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-// JWT Secret - in production should be in an environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+// Using a fixed JWT Secret for development to ensure consistency between server restarts
+// In production, this should be in an environment variable
+const JWT_SECRET = process.env.JWT_SECRET || 'bettersystems-blog-secret-key-dev';
 
 // JWT payload interface
 interface JwtPayload {

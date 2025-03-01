@@ -151,19 +151,18 @@ export const getAllBlogPostsAdmin = async (req: Request, res: Response) => {
       conditions.push(eq(blogPosts.published, isPublished));
     }
     
-    // Apply all conditions at once
-    let query = db.select({
+    // Prepare base query
+    let baseQuery = db.select({
       post: blogPosts,
       authorName: users.name
     })
       .from(blogPosts)
-      .innerJoin(users, eq(blogPosts.authorId, users.id))
-      .orderBy(desc(blogPosts.createdAt));
+      .innerJoin(users, eq(blogPosts.authorId, users.id));
       
     // Apply filter conditions if any exist
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const query = conditions.length > 0
+      ? baseQuery.where(and(...conditions)).orderBy(desc(blogPosts.createdAt))
+      : baseQuery.orderBy(desc(blogPosts.createdAt));
     
     // Get total count for pagination
     const countResult = await db.select({ count: sql<number>`count(*)` })

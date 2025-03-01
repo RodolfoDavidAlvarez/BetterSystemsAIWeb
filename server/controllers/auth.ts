@@ -5,8 +5,9 @@ import { db } from '../../db/index';
 import { users, insertUserSchema } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
-// JWT Secret - in production this should be in an environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+// Using a fixed JWT Secret for development to ensure consistency between server restarts
+// In production, this should be in an environment variable
+const JWT_SECRET = process.env.JWT_SECRET || 'bettersystems-blog-secret-key-dev';
 const SALT_ROUNDS = 10;
 
 // Register a new admin user

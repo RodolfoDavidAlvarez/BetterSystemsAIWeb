@@ -82,8 +82,9 @@ export default function BlogPostsPage() {
         queryParams.append('published', publishedFilter);
       }
       
-      // Get the server URL from environment variables, default to current origin if not available
-      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+      // Handle server URL differently in Replit environment 
+      // Use the direct localhost address to ensure connection to the Express server
+      const serverUrl = 'http://localhost:3001';
       console.log('Using server URL for blog posts:', serverUrl);
       
       const response = await fetch(`${serverUrl}/api/admin/blog?${queryParams.toString()}`, {
@@ -137,8 +138,9 @@ export default function BlogPostsPage() {
     
     try {
       const token = localStorage.getItem('token');
-      // Get the server URL from environment variables, default to current origin if not available
-      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+      // Handle server URL differently in Replit environment 
+      // Use the direct localhost address to ensure connection to the Express server
+      const serverUrl = 'http://localhost:3001';
       
       const response = await fetch(`${serverUrl}/api/admin/blog/${postToDelete.id}`, {
         method: 'DELETE',
@@ -175,8 +177,9 @@ export default function BlogPostsPage() {
   const handleTogglePublish = async (post: BlogPost) => {
     try {
       const token = localStorage.getItem('token');
-      // Get the server URL from environment variables, default to current origin if not available
-      const serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin.replace(':5000', ':3001');
+      // Handle server URL differently in Replit environment 
+      // Use the direct localhost address to ensure connection to the Express server
+      const serverUrl = 'http://localhost:3001';
       
       const response = await fetch(`${serverUrl}/api/admin/blog/${post.id}`, {
         method: 'PUT',

@@ -6,10 +6,20 @@ import { createServer } from 'http';
 import { existsSync } from 'fs';
 import { registerRoutes } from './routes';
 
-// Use a constant JWT_SECRET for development to ensure consistency between server restarts
+// JWT Secret Configuration with better production handling
 if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'bettersystems-blog-secret-key-dev';
-  console.log('[Security] Using fixed JWT_SECRET for development');
+  // Generate a more secure random secret for production
+  if (process.env.NODE_ENV === 'production') {
+    // In production, generate a random secret
+    const crypto = require('crypto');
+    process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
+    console.log('[Security] Generated random JWT_SECRET for production');
+    console.warn('[Security] Note: JWT tokens will be invalidated on server restart due to dynamic secret');
+  } else {
+    // Use a constant for development to ensure consistency between server restarts
+    process.env.JWT_SECRET = 'bettersystems-blog-secret-key-dev';
+    console.log('[Security] Using fixed JWT_SECRET for development');
+  }
 }
 
 const __filename = fileURLToPath(import.meta.url);

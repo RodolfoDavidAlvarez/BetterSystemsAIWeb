@@ -28,7 +28,7 @@ export default function LoginPage() {
   
   // Check if user is already logged in
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
     if (token && user) {
@@ -41,6 +41,7 @@ export default function LoginPage() {
         }
       } catch (error) {
         // If there's an error, clear the invalid data
+        localStorage.removeItem('authToken');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
@@ -95,7 +96,8 @@ export default function LoginPage() {
         throw new Error('No authentication token received');
       }
       
-      // Store token in localStorage
+      // Store token in localStorage (using both keys for backward compatibility)
+      localStorage.setItem('authToken', data.token);
       localStorage.setItem('token', data.token);
       
       // Store user data
@@ -104,6 +106,7 @@ export default function LoginPage() {
         username: data.user.username,
         name: data.user.name || data.user.username,
         role: data.user.role,
+        lastLogin: new Date().toISOString()
       }));
       
       toast({

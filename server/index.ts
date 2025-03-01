@@ -34,7 +34,36 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
-app.use(express.json());
+
+// Parse JSON body before logging
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => {
+    // Store the raw body for debugging if needed
+    (req as any).rawBody = buf.toString();
+  }
+}));
+
+// Add middleware to handle JSON parsing errors
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    console.error('[JSON Parse Error]', {
+      error: err.message,
+      path: req.path,
+      method: req.method,
+      contentType: req.headers['content-type'],
+      time: new Date().toISOString()
+    });
+    return res.status(400).json({ 
+      success: false,
+      error: 'Invalid JSON',
+      message: 'The request body contains invalid JSON'
+    });
+  }
+  next(err);
+});
+
+// Apply request logger after body parsing
 app.use(requestLogger);
 
 // Static file serving with enhanced logging

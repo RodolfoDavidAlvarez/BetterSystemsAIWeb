@@ -45,12 +45,17 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      const response = await fetch('/api/auth/login', {
+      // Get the server URL from environment variables or use default
+      const serverUrl = import.meta.env.VITE_SERVER_URL || '';
+      console.log('Using server URL:', serverUrl);
+      
+      const response = await fetch(`${serverUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(values),
+        credentials: 'include', // Include cookies for cross-origin requests
       });
       
       // Handle non-JSON responses

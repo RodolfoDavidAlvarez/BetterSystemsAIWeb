@@ -73,6 +73,7 @@ export default function LoginPage() {
         : '/api';
       
       console.log(`Using API base URL: ${baseUrl}`);
+      console.log(`Environment: ${import.meta.env.MODE}, Production: ${import.meta.env.PROD}`);
       
       // Use the appropriate URL for API calls
       const response = await fetch(`${baseUrl}/auth/login`, {

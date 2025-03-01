@@ -146,7 +146,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && NODE_ENV=production tsx watch --clear-screen=false index.ts"
+args = "export NODE_ENV=production && export PORT=3000 && export JWT_SECRET=bettersystems-blog-secret-key-dev && export COOKIE_SECRET=bettersystems-cookie-secret-key && export SESSION_SECRET=bettersystems-session-secret-key && cd server && tsx watch --clear-screen=false index.ts"
 waitForPort = 3000
 
 [[workflows.workflow]]
@@ -161,5 +161,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && VITE_SERVER_URL=http://0.0.0.0:3000 NODE_ENV=production npm run dev -- --host=0.0.0.0 --port=5000"
+args = "export NODE_ENV=production && export VITE_SERVER_URL=http://0.0.0.0:3000 && cd client && npm run dev -- --host=0.0.0.0 --port=5000"
 waitForPort = 5000

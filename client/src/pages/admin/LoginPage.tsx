@@ -45,11 +45,11 @@ export default function LoginPage() {
         passwordLength: values.password.length
       });
       
-      // Handle server URL differently in Replit environment
-      // For Replit, we need to use the local network address - not window.location.origin which points to the vite dev server
-      // This ensures the request goes to the Express server running on port 3001
-      const serverUrl = 'http://localhost:3001';
-      console.log('Using server URL:', serverUrl);
+      // In Replit's environment, we need to handle backend communication differently
+      // Since the server is inaccessible directly from the browser, we'll use relative URLs
+      // This relies on vite's proxy configuration to forward requests to the Express server
+      const serverUrl = '';  // Use relative URL - no hostname
+      console.log('Using relative server URL');
       
       const response = await fetch(`${serverUrl}/api/auth/login`, {
         method: 'POST',

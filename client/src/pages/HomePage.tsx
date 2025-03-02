@@ -30,7 +30,7 @@ export default function HomePage() {
       href: "/services/ai-assistants"
     },
     {
-      title: "Custom Automation Solutions",
+      title: "Personalized Automation Solutions",
       description: "Fully customized AI solutions built to address specific business challenges",
       href: "/services/custom-solutions"
     },
@@ -38,6 +38,11 @@ export default function HomePage() {
       title: "AI Efficiency Assessment",
       description: "Comprehensive evaluation to identify inefficiencies and recommend optimizations",
       href: "/services/ai-efficiency-assessment"
+    },
+    {
+      title: "AI Consulting",
+      description: "Annual membership providing ongoing AI guidance, company check-ups and alerts on relevant industry breakthroughs",
+      href: "/services/ai-consulting"
     }
   ];
 
@@ -108,138 +113,72 @@ export default function HomePage() {
             <CarouselContent>
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="flex flex-col justify-between p-8">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Customer Experience Enhancement</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="text-4xl font-bold text-primary">40% Faster</div>
-                          <p className="text-lg mt-2">Response Times</p>
-                        </div>
-                        <div>
-                          <p className="text-lg mt-2">AI chatbots and automation streamline customer support, reducing wait times.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                      <p className="text-lg">Improved customer experiences drive loyalty, repeat business, and long-term growth.</p>
-                    </div>
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-bold mb-4">Customer Experience</h3>
+                    <div className="text-4xl font-bold text-primary mb-4">40% Faster Response</div>
+                    <p className="text-lg">
+                      AI chatbots and automation streamline customer support, reducing wait times and improving satisfaction.
+                    </p>
                   </CardContent>
                 </Card>
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="flex flex-col justify-between p-8">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Market Leadership Opportunity</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="text-4xl font-bold text-primary">$19.9 Trillion</div>
-                          <p className="text-lg mt-2">Economic Contribution: AI is projected to add trillions to the global economy by 2030.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                      <p className="text-lg">Adopting AI now positions your business as a leader in a rapidly growing market.</p>
-                    </div>
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-bold mb-4">Operational Reliability</h3>
+                    <div className="text-4xl font-bold text-primary mb-4">30% Less Downtime</div>
+                    <p className="text-lg">
+                      AI systems optimize processes, preventing costly disruptions and ensuring smoother workflows.
+                    </p>
                   </CardContent>
                 </Card>
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="flex flex-col justify-between p-8">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Operational Reliability</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="text-4xl font-bold text-primary">30% Reduction</div>
-                          <p className="text-lg mt-2">in Downtime: AI systems optimize processes, preventing costly disruptions.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                      <p className="text-lg">Reliable operations mean smoother workflows, fewer delays, and better customer satisfaction.</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-
-              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <motion.div
-                  initial={{ y: 50, opacity: 0, scale: 0.95 }}
-                  whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
-                >
-                  <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-md hover:shadow-lg">
-                    <CardContent className="flex flex-col justify-between p-8">
-                      <div>
-                        <h3 className="text-2xl font-bold mb-6">Revenue & Profit Growth</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <div className="text-4xl font-bold text-primary">20%+ Revenue Growth</div>
-                            <p className="text-lg mt-2">Companies using AI report revenue increases of 20% or more.</p>
-                          </div>
-                          <div>
-                            <div className="text-4xl font-bold text-primary">$4.60 ROI per $1</div>
-                            <p className="text-lg mt-2">Every dollar spent on AI delivers massive returns.</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-8">
-                        <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                        <p className="text-lg">AI creates new revenue streams and improves decision-making, giving you a clear edge over competitors.</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </CarouselItem>
-
-              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
-                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="flex flex-col justify-between p-8">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Cost Savings</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="text-4xl font-bold text-primary">Up to 40% Reduction</div>
-                          <p className="text-lg mt-2">in Costs: AI-powered automation slashes operational expenses.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                      <p className="text-lg">Lower costs mean more profit to reinvest in growing your business.</p>
-                    </div>
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-bold mb-4">Revenue Growth</h3>
+                    <div className="text-4xl font-bold text-primary mb-4">20%+ Increase</div>
+                    <p className="text-lg">
+                      Companies using AI report significant revenue increases through new opportunities and optimized operations.
+                    </p>
                   </CardContent>
                 </Card>
               </CarouselItem>
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="flex flex-col justify-between p-8">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Productivity & Decision-Making</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="text-4xl font-bold text-primary">40% Productivity Boost</div>
-                          <p className="text-lg mt-2">AI accelerates workflows and reduces wasted time.</p>
-                        </div>
-                        <div>
-                          <div className="text-4xl font-bold text-primary">25% Faster</div>
-                          <p className="text-lg mt-2">Business Insights: Make smarter decisions, faster, with AI analytics and reporting.</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-8">
-                      <p className="text-lg font-semibold text-primary">Why It Matters:</p>
-                      <p className="text-lg">Enhanced productivity frees up time to focus on innovation and strategy.</p>
-                    </div>
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-bold mb-4">ROI Impact</h3>
+                    <div className="text-4xl font-bold text-primary mb-4">$4.60 per $1 Spent</div>
+                    <p className="text-lg">
+                      AI investments deliver substantial returns by automating processes and unlocking new revenue streams.
+                    </p>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-bold mb-4">Cost Reduction</h3>
+                    <div className="text-4xl font-bold text-primary mb-4">Up to 40% Savings</div>
+                    <p className="text-lg">
+                      AI-powered automation slashes operational expenses while maintaining or improving service quality.
+                    </p>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
+                  <CardContent className="p-8">
+                    <h3 className="text-2xl font-bold mb-4">Productivity Boost</h3>
+                    <div className="text-4xl font-bold text-primary mb-4">40% More Output</div>
+                    <p className="text-lg">
+                      AI accelerates workflows and reduces wasted time, allowing teams to focus on high-value strategic work.
+                    </p>
                   </CardContent>
                 </Card>
               </CarouselItem>
@@ -248,8 +187,8 @@ export default function HomePage() {
             <CarouselNext className="hidden md:flex -right-4 lg:-right-8 xl:-right-12" />
           </Carousel>
 
-          <div className="text-center max-w-3xl mx-auto">
-            <p className="text-lg text-muted-foreground mb-8">
+          <div className="text-center max-w-3xl mx-auto mt-16">
+            <p className="text-lg text-muted-foreground">
               Act Now: AI adoption is rapidly transforming industries, making it essential to stay ahead of the curve and remain competitive.
             </p>
           </div>
@@ -268,10 +207,28 @@ export default function HomePage() {
               that enhances efficiency, drives profits and growth, and fosters long-term competitive sustainability.
             </p>
             <h2 className="text-4xl font-bold mb-6">Our Vision</h2>
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-xl text-muted-foreground leading-relaxed mb-12">
               To be the trusted partner that empowers businesses with the most updated emerging technology, 
               ensuring they remain competitive in a rapidly evolving digital world.
             </p>
+            
+            <h2 className="text-4xl font-bold mb-8">Core Beliefs</h2>
+            <div className="grid md:grid-cols-2 gap-8 text-left">
+              <div className="bg-card p-8 rounded-lg shadow-sm">
+                <h3 className="text-2xl font-semibold mb-4">Technology Accessibility</h3>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  We believe emerging technologies should be available to every business regardless of expertise, 
+                  business size, or industry.
+                </p>
+              </div>
+              <div className="bg-card p-8 rounded-lg shadow-sm">
+                <h3 className="text-2xl font-semibold mb-4">Personalized Solutions</h3>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Every business has unique services, processes, and necessities to be the most optimal 
+                  in their specific business field.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

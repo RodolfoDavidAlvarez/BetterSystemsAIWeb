@@ -5,22 +5,22 @@ const benefits = [
   {
     icon: Clock,
     title: "Save Time",
-    description: "Automate repetitive tasks and streamline workflows to reclaim valuable hours"
+    description: "Allocate valuable employee time to productive tasks while AI handles repetitive work"
   },
   {
     icon: DollarSign,
     title: "Reduce Costs",
-    description: "Optimize operations and minimize overhead through intelligent automation"
+    description: "Lower operational costs through significant automation of manual and redundant processes"
   },
   {
     icon: LineChart,
     title: "Improve Efficiency",
-    description: "Make data-driven decisions with real-time insights and analytics"
+    description: "Streamline operations to increase productivity and deliver better quality of service"
   },
   {
     icon: TrendingUp,
     title: "Drive Growth",
-    description: "Scale your business with AI-powered solutions that adapt to your needs"
+    description: "Leverage cost reductions and productivity gains to create exponential business growth"
   }
 ];
 
@@ -35,9 +35,15 @@ export default function WhatWeDo() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <h2 className="text-4xl font-bold mb-6">What We Do</h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground mb-4">
             We help businesses harness the power of AI to transform their operations,
             boost productivity, and achieve sustainable growth through innovative solutions.
+          </p>
+          <p className="text-lg text-muted-foreground">
+            Our approach combines personalized solutions with holistic assessment of your unique business needs,
+            identifying inefficiencies and integrating seamless technology that requires minimal learning curves.
+            We become your dedicated technology partner, continuously looking out for your business and keeping 
+            you ahead of technological advancements.
           </p>
         </motion.div>
 

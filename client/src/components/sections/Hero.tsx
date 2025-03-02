@@ -4,22 +4,22 @@ import { Link } from "wouter";
 
 export default function Hero() {
   return (
-    <section className="pt-12 pb-16 md:pt-40 md:pb-24">
+    <section className="pt-24 pb-32 md:pt-48 md:pb-48"> {/* Increased padding */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center"> {/* Increased gap */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-8"> {/* Added more margin */}
               Your Business, One Step Ahead
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-muted-foreground mb-10"> {/* Added more margin */}
               Empowering small and medium-sized businesses with innovative AI and automation solutions that 
               drive efficiency, growth, and long-term competitive advantage.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-6"> {/* Increased gap */}
               <Button asChild size="lg">
                 <Link href="/get-started">Request Solution</Link>
               </Button>
@@ -47,7 +47,7 @@ export default function Hero() {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 w-2/3 max-w-[300px] z-10"
+              className="absolute -bottom-8 -right-8 md:-bottom-12 md:-right-12 w-2/3 max-w-[300px] z-10" {/* Increased margin */}
             >
               <div className="relative">
                 <img

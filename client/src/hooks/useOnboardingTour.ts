@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react';
 import Shepherd from 'shepherd.js';
 import 'shepherd.js/dist/css/shepherd.css';
 
-interface TourOptions {
-  defaultStepOptions?: Shepherd.Step.StepOptions;
-  useModalOverlay?: boolean;
-  exitOnEsc?: boolean;
-  confirmCancel?: boolean;
-}
-
+// Define types for tour step and options
 interface TourStep {
   id: string;
   attachTo: {
@@ -20,14 +14,14 @@ interface TourStep {
   cancelIcon?: {
     enabled: boolean;
   };
-  buttons?: Shepherd.Step.StepOptionsButton[];
+  buttons?: any[];
   classes?: string;
   highlightClass?: string;
   scrollTo?: boolean;
   modalOverlayOpeningPadding?: number;
 }
 
-const defaultTourOptions: TourOptions = {
+const defaultTourOptions = {
   defaultStepOptions: {
     cancelIcon: {
       enabled: true
@@ -42,10 +36,10 @@ const defaultTourOptions: TourOptions = {
 
 export function useOnboardingTour(
   steps: TourStep[],
-  options: TourOptions = defaultTourOptions,
+  options: any = defaultTourOptions,
   tourName: string = 'site-tour'
 ) {
-  const [tour, setTour] = useState<Shepherd.Tour | null>(null);
+  const [tour, setTour] = useState<any>(null);
   const [isActive, setIsActive] = useState(false);
   const [hasSeenTour, setHasSeenTour] = useState(false);
 

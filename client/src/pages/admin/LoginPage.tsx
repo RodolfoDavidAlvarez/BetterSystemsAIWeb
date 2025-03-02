@@ -62,6 +62,10 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     
+    // Create an AbortController for the fetch request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     try {
       console.log('Sending login request with credentials:', {
         username: values.username,
@@ -72,8 +76,9 @@ export default function LoginPage() {
       const baseUrl = getApiBaseUrl();
       console.log(`Using API base URL: ${baseUrl}`);
       
-      // Make the login request
+      // Make the login request with timeout
       console.log(`Attempting to connect to ${baseUrl}/auth/login`);
+      
       const response = await fetch(`${baseUrl}/auth/login`, {
         method: 'POST',
         headers: {
@@ -81,8 +86,12 @@ export default function LoginPage() {
         },
         body: JSON.stringify(values),
         credentials: 'include', // Include cookies for cross-origin requests
+        signal: controller.signal, // Add abort signal to allow timeout
       });
       
+      // Clear timeout as request completed
+      clearTimeout(timeoutId);
+    
       console.log('Login response received:', {
         status: response.status,
         statusText: response.statusText,
@@ -137,15 +146,21 @@ export default function LoginPage() {
         // Redirect to admin dashboard
         navigate('/admin/dashboard');
       }, 500);
+      
     } catch (error) {
       let errorMessage = 'Something went wrong during login';
       
+      // Clear timeout if not already cleared
+      clearTimeout(timeoutId);
+      
       if (error instanceof Error) {
-        errorMessage = error.message;
-        
-        // Special case for JSON parse errors
-        if (error.message.includes('JSON')) {
+        // Handle specific error types
+        if (error.name === 'AbortError') {
+          errorMessage = 'Login request timed out. Please check your connection and try again.';
+        } else if (error.message.includes('JSON')) {
           errorMessage = 'Unable to process server response. Please try again.';
+        } else {
+          errorMessage = error.message;
         }
       }
       

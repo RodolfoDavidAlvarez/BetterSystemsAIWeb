@@ -21,6 +21,7 @@ import GetStartedPage from "./pages/GetStartedPage";
 import BusinessImpactPage from "./pages/BusinessImpactPage";
 import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
 import AIConsultingPage from "./pages/services/AIConsultingPage";
+import AIPersonalAssistantTutorialPage from "./pages/services/AIPersonalAssistantTutorialPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Route path="/business-impact" component={BusinessImpactPage} />
             <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
             <Route path="/services/ai-consulting" component={AIConsultingPage} />
+            <Route path="/services/ai-assistants/personal-assistant-tutorial" component={AIPersonalAssistantTutorialPage} />
             
             {/* 404 Route */}
             <Route>404 Page Not Found</Route>

@@ -156,8 +156,8 @@ export default function AIAssistantsPage() {
         <h1 className="text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
           {service.title}
         </h1>
-        <p className="text-xl text-muted-foreground mb-6">{service.subtitle}</p>
-        <p className="text-muted-foreground text-xl leading-relaxed mb-12">
+        <p className="text-xl text-foreground/80 mb-6">{service.subtitle}</p>
+        <p className="text-foreground/80 text-xl leading-relaxed mb-12">
           {service.description}
         </p>
 
@@ -172,7 +172,7 @@ export default function AIAssistantsPage() {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2" />
           <div className="max-w-3xl mx-auto text-center relative z-10">
             <h2 className="text-3xl font-semibold mb-6">How AI-Powered Personal Assistants Save You Time and Increase Your Reach</h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-foreground/80 mb-8">
               Watch how AI personal assistants can handle emails, follow up with leads, and maintain consistent professional communication in seconds.
             </p>
             <div className="aspect-video w-full mb-6 transform transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl">

@@ -86,7 +86,7 @@ export default function AIPersonalAssistantTutorialPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
                 <h3 className="text-xl font-medium mb-2">Consistent messaging</h3>
-                <p className="text-muted-foreground flex-grow">
+                <p className="text-foreground/80 flex-grow">
                   Ensure professional, accurate, and cohesive communication across your company.
                 </p>
               </CardContent>
@@ -98,7 +98,7 @@ export default function AIPersonalAssistantTutorialPage() {
               <CardContent className="p-6 flex flex-col h-full">
                 <Clock className="h-8 w-8 text-primary mb-4" />
                 <h3 className="text-xl font-medium mb-2">Time-saving automation</h3>
-                <p className="text-muted-foreground flex-grow">
+                <p className="text-foreground/80 flex-grow">
                   Reduce hours spent on repetitive tasks while increasing productivity.
                 </p>
               </CardContent>
@@ -143,7 +143,7 @@ export default function AIPersonalAssistantTutorialPage() {
             <Badge className="mt-1 bg-primary text-primary-foreground">Efficiency</Badge>
             <div>
               <strong className="block mb-1">Manually drafting emails is inefficient</strong>
-              <p className="text-muted-foreground">
+              <p className="text-foreground/80">
                 AI allows you to focus on high-impact work instead.
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function AIPersonalAssistantTutorialPage() {
             <Badge className="mt-1 bg-primary text-primary-foreground">Outreach</Badge>
             <div>
               <strong className="block mb-1">Finding and contacting leads is time-consuming</strong>
-              <p className="text-muted-foreground">
+              <p className="text-foreground/80">
                 AI speeds up the process, increasing outreach and conversions.
               </p>
             </div>
@@ -163,7 +163,7 @@ export default function AIPersonalAssistantTutorialPage() {
             <Badge className="mt-1 bg-primary text-primary-foreground">Consistency</Badge>
             <div>
               <strong className="block mb-1">Keeping messaging aligned is a challenge</strong>
-              <p className="text-muted-foreground">
+              <p className="text-foreground/80">
                 AI ensures every communication stays professional and consistent.
               </p>
             </div>

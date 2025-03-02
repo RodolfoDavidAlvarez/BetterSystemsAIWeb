@@ -210,7 +210,7 @@ export default function HomePage() {
               To be the trusted partner that empowers businesses with the most updated emerging technology, 
               ensuring they remain competitive in a rapidly evolving digital world.
             </p>
-
+            
             <h2 className="text-4xl font-bold mb-8">Core Beliefs</h2>
             <div className="grid md:grid-cols-2 gap-8 text-left">
               <div className="bg-card p-8 rounded-lg shadow-sm">

@@ -16,7 +16,8 @@ export default function Hero() {
               Your Business, One Step Ahead
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              We make it easy for businesses to use AI to save time, cut costs, and grow.
+              Empowering small and medium-sized businesses with innovative AI and automation solutions that 
+              drive efficiency, growth, and long-term competitive advantage.
             </p>
             <div className="flex gap-4">
               <Button asChild size="lg">

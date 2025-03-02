@@ -1,15 +1,6 @@
 import type { Express } from "express";
 import { login, register, getCurrentUser } from './controllers/auth';
-import { 
-  createBlogPost, 
-  getAllBlogPosts, 
-  getAllBlogPostsAdmin, 
-  getBlogPostBySlug, 
-  getBlogPostById, 
-  updateBlogPost, 
-  deleteBlogPost 
-} from './controllers/blog';
-import { authenticate, isAdmin } from './middleware/auth';
+import { authenticate } from './middleware/auth';
 
 export function registerRoutes(app: Express) {
   // Public API routes

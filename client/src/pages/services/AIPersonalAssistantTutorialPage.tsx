@@ -54,7 +54,7 @@ export default function AIPersonalAssistantTutorialPage() {
               <CardContent className="p-6 flex flex-col h-full">
                 <Mail className="h-8 w-8 text-primary mb-4" />
                 <h3 className="text-xl font-medium mb-2">Instant email drafting</h3>
-                <p className="text-muted-foreground flex-grow">
+                <p className="text-foreground/80 flex-grow">
                   Send high-quality, personalized emails in under a minute.
                 </p>
               </CardContent>
@@ -66,7 +66,7 @@ export default function AIPersonalAssistantTutorialPage() {
               <CardContent className="p-6 flex flex-col h-full">
                 <DollarSign className="h-8 w-8 text-primary mb-4" />
                 <h3 className="text-xl font-medium mb-2">Automated lead generation</h3>
-                <p className="text-muted-foreground flex-grow">
+                <p className="text-foreground/80 flex-grow">
                   Find and reach out to potential customers effortlessly.
                 </p>
               </CardContent>

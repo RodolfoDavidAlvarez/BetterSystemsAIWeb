@@ -161,6 +161,37 @@ export default function AIAssistantsPage() {
           {service.description}
         </p>
 
+        {/* AI Personal Assistant Video Section */}
+        <motion.section
+          className="mb-16 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8 relative overflow-hidden"
+          variants={fadeIn}
+          initial="initial"
+          animate="animate"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2" />
+          <div className="max-w-3xl mx-auto text-center relative z-10">
+            <h2 className="text-3xl font-semibold mb-6">How AI-Powered Personal Assistants Save You Time and Increase Your Reach</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Watch how AI personal assistants can handle emails, follow up with leads, and maintain consistent professional communication in seconds.
+            </p>
+            <div className="aspect-video w-full mb-6 transform transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl">
+              <iframe
+                className="w-full h-full rounded-xl shadow-lg"
+                src="https://www.youtube.com/embed/POSCaVwm6VQ"
+                title="AI Personal Assistant Tutorial"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+            <Button asChild>
+              <Link href="/services/ai-assistants/personal-assistant-tutorial">
+                Learn More
+              </Link>
+            </Button>
+          </div>
+        </motion.section>
+
         {/* Integration Channels Section */}
         <motion.section className="mb-16">
           <h2 className="text-2xl font-semibold mb-6">It integrates with:</h2>
@@ -298,88 +329,6 @@ export default function AIAssistantsPage() {
           </div>
         </motion.section>
         
-        {/* AI Personal Assistant Tutorial Section */}
-        <motion.section
-          className="mb-20"
-          variants={staggerChildren}
-          initial="initial"
-          animate="animate"
-        >
-          <h2 className="text-3xl font-semibold text-center mb-8">Learn How to Use AI Assistants</h2>
-          <div className="grid md:grid-cols-1 gap-8">
-            <motion.div variants={fadeIn}>
-              <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-0">
-                  <div className="grid md:grid-cols-2">
-                    <div className="aspect-video w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-4">
-                      <div className="relative w-full h-full">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="size-16 rounded-full bg-white shadow-lg flex items-center justify-center">
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              className="h-8 w-8 text-primary" 
-                              fill="none" 
-                              viewBox="0 0 24 24" 
-                              stroke="currentColor"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth={2} 
-                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" 
-                              />
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth={2} 
-                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <img 
-                          src="/images/ai-personal-assistant-thumbnail.jpg" 
-                          alt="AI Personal Assistant Tutorial" 
-                          className="absolute inset-0 w-full h-full object-cover opacity-80"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className="p-8">
-                      <h3 className="text-2xl font-semibold mb-4">AI-Powered Personal Assistants Tutorial</h3>
-                      <p className="text-muted-foreground mb-6">
-                        Learn how AI-powered personal assistants can save you time and increase your business reach through automated communication and lead management.
-                      </p>
-                      <ul className="space-y-2 mb-6">
-                        <li className="flex items-center gap-2">
-                          <BadgeCheck className="h-5 w-5 text-primary" />
-                          <span>Instant email drafting</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <BadgeCheck className="h-5 w-5 text-primary" />
-                          <span>Automated lead generation</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <BadgeCheck className="h-5 w-5 text-primary" />
-                          <span>Consistent professional messaging</span>
-                        </li>
-                      </ul>
-                      <Button asChild>
-                        <Link href="/services/ai-assistants/personal-assistant-tutorial">
-                          Watch Tutorial
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-        </motion.section>
-
         {/* Benefits Section */}
         <motion.section
           className="mb-20"

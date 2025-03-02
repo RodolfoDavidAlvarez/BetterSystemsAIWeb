@@ -9,20 +9,27 @@ const founder = {
 
 const values = [
   {
+    title: "Client-Centricity",
+    description: "We assess unique business needs comprehensively, identifying inefficiencies and recommending tailored solutions."
+  },
+  {
     title: "Innovation",
-    description: "Embracing the latest technologies to provide state-of-the-art solutions."
+    description: "Driving business growth by pioneering AI and automation solutions that enhance efficiency, productivity, and competitive advantage."
   },
   {
-    title: "Simplicity",
-    description: "Making complex technologies easy to understand and use."
+    title: "Continuous Research",
+    description: "Staying ahead of industry trends by consistently exploring and integrating the latest advancements in AI technology."
+  }
+];
+
+const beliefs = [
+  {
+    title: "Technology Accessibility",
+    description: "We believe emerging technologies should be available to every business regardless of expertise, business size, or industry."
   },
   {
-    title: "Customer-Centric",
-    description: "Your success is our priority. We tailor solutions to meet your specific needs."
-  },
-  {
-    title: "Integrity",
-    description: "Upholding the highest standards of integrity in all our actions."
+    title: "Personalized Solutions",
+    description: "Every business has unique services, processes, and necessities to be the most optimal in their specific business field."
   }
 ];
 
@@ -37,29 +44,40 @@ export default function AboutPage() {
           <section>
             <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
             <p className="text-muted-foreground">
-              At Better Systems AI, our mission is to empower businesses to transition seamlessly 
-              into the modern era of AI and automation. By leveraging cutting-edge AI technologies, 
-              we enable companies to maximize productivity, reduce costs, and significantly 
-              increase revenue.
+              To make the most updated automation and AI technologies available to small-medium size businesses 
+              that enhances efficiency, drives profits and growth, and fosters long-term competitive sustainability.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
             <p className="text-muted-foreground">
-              We aim to be the leading provider of AI and automation solutions for small to 
-              medium-sized businesses. Recognized for our innovation, efficiency, and 
-              customer-centric approach, we transform traditional business operations and set 
-              new standards for productivity and growth in the digital age.
+              To be the trusted partner that empowers businesses with the most updated emerging technology, 
+              ensuring they remain competitive in a rapidly evolving digital world.
             </p>
           </section>
         </div>
       </div>
 
+      {/* Core Beliefs */}
+      <section className="mb-16">
+        <h2 className="text-2xl font-bold mb-8 text-center">Core Beliefs</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {beliefs.map((belief, index) => (
+            <Card key={index} className="border-border/40 hover:border-border/60 transition-colors duration-300">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold mb-2">{belief.title}</h3>
+                <p className="text-muted-foreground">{belief.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       {/* Values */}
       <section className="mb-16">
-        <h2 className="text-2xl font-bold mb-8 text-center">Our Values</h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <h2 className="text-2xl font-bold mb-8 text-center">Core Values</h2>
+        <div className="grid md:grid-cols-3 gap-6">
           {values.map((value, index) => (
             <Card key={index} className="border-border/40 hover:border-border/60 transition-colors duration-300">
               <CardContent className="p-6">

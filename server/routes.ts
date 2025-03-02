@@ -43,14 +43,16 @@ export function registerRoutes(app: Express) {
     });
   });
   
-  // Public blog routes
-  app.get("/api/blog", getAllBlogPosts);
-  app.get("/api/blog/:slug", getBlogPostBySlug);
+  // Blog and admin endpoints have been removed
   
-  // Protected admin blog routes
-  app.post("/api/admin/blog", authenticate, isAdmin, createBlogPost);
-  app.get("/api/admin/blog", authenticate, isAdmin, getAllBlogPostsAdmin);
-  app.get("/api/admin/blog/:id", authenticate, isAdmin, getBlogPostById);
-  app.put("/api/admin/blog/:id", authenticate, isAdmin, updateBlogPost);
-  app.delete("/api/admin/blog/:id", authenticate, isAdmin, deleteBlogPost);
+  // Public blog routes - DISABLED
+  // app.get("/api/blog", getAllBlogPosts);
+  // app.get("/api/blog/:slug", getBlogPostBySlug);
+  
+  // Protected admin blog routes - DISABLED
+  // app.post("/api/admin/blog", authenticate, isAdmin, createBlogPost);
+  // app.get("/api/admin/blog", authenticate, isAdmin, getAllBlogPostsAdmin);
+  // app.get("/api/admin/blog/:id", authenticate, isAdmin, getBlogPostById);
+  // app.put("/api/admin/blog/:id", authenticate, isAdmin, updateBlogPost);
+  // app.delete("/api/admin/blog/:id", authenticate, isAdmin, deleteBlogPost);
 }

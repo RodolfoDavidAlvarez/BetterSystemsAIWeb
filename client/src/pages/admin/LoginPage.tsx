@@ -78,29 +78,44 @@ export default function LoginPage() {
       
       // Get the current hostname and determine server URL dynamically
       const hostname = window.location.hostname;
-      const port = hostname.includes('.repl.co') ? '3000' : '3000';
+      const isReplitEnvironment = hostname.includes('.repl.co') || hostname.includes('.replit.dev');
       const protocol = window.location.protocol;
       
       // Log environment information for debugging
       console.log('Login environment:', {
         hostname,
         protocol,
-        serverPort: port,
+        isReplitEnvironment,
         envViteServerUrl: import.meta.env.VITE_SERVER_URL,
-        baseApiUrl: baseUrl
+        baseApiUrl: baseUrl,
+        fullApiUrl: `${baseUrl}/auth/login`
       });
       
       // Make the login request with timeout
-      console.log(`Attempting to connect to ${baseUrl}/auth/login`);
+      const loginUrl = `${baseUrl}/auth/login`;
+      console.log(`Attempting to connect to ${loginUrl}`);
       
-      const response = await fetch(`${baseUrl}/auth/login`, {
+      // For Replit environment, add special handling to make direct connection
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add extra logging for debugging
+      console.log('Request details:', {
+        url: loginUrl,
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers,
+        bodyLength: JSON.stringify(values).length
+      });
+      
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers,
         body: JSON.stringify(values),
         credentials: 'include', // Include cookies for cross-origin requests
         signal: controller.signal, // Add abort signal to allow timeout
+        mode: 'cors', // Explicitly request CORS mode
       });
       
       // Clear timeout as request completed

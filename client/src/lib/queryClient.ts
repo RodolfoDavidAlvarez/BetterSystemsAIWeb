@@ -10,13 +10,35 @@ export const getApiBaseUrl = () => {
     return `${serverUrl}/api`;
   }
   
-  // Use direct IP when in development or running within Replit
-  if (window.location.hostname === 'localhost' || 
-      window.location.hostname === '127.0.0.1' ||
-      window.location.hostname.includes('.repl.co')) {
-    const port = window.location.hostname.includes('.repl.co') ? '3000' : '3000';
-    console.log(`Using direct API URL with port ${port}`);
-    return `http://${window.location.hostname}:${port}/api`;
+  // Special handling for Replit environments
+  if (window.location.hostname.includes('.repl.co') || 
+      window.location.hostname.includes('.replit.dev')) {
+    // For Replit deployments, we need to handle port 3000 specially
+    const protocol = window.location.protocol;
+    
+    // Extract the base domain  
+    let apiUrl = '';
+    
+    if (window.location.hostname.includes('worf.replit.dev')) {
+      // For the Replit webview, we need to use a different hostname formatting
+      const projectId = window.location.hostname.split('-')[0];
+      // Use direct hostname access for the server
+      apiUrl = `${protocol}//${projectId}-00-30fh2v6ia1lbk.worf.replit.dev:3000/api`;
+    } else {
+      // Regular Replit domain
+      const hostParts = window.location.hostname.split('.');
+      const domain = hostParts[0]; 
+      apiUrl = `${protocol}//${domain}.${hostParts.slice(1).join('.')}:3000/api`;
+    }
+    
+    console.log(`Using Replit-specific API URL: ${apiUrl}`);
+    return apiUrl;
+  }
+  
+  // Use direct IP when in local development
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log(`Using local development API URL on port 3000`);
+    return `http://${window.location.hostname}:3000/api`;
   }
   
   // For production deployment

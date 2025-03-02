@@ -80,10 +80,20 @@ export const login = async (req: Request, res: Response) => {
       cookies: req.cookies,
       method: req.method,
       path: req.path,
-      url: req.url
+      url: req.url,
+      headers: req.headers
     });
     
     const { username, password } = req.body;
+    
+    console.log('Environment info:', {
+      nodeEnv: process.env.NODE_ENV,
+      jwtSecretLength: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
+      jwtSecretStart: process.env.JWT_SECRET ? process.env.JWT_SECRET.substring(0, 5) + '...' : null,
+      cookieSecretExists: !!process.env.COOKIE_SECRET,
+      sessionSecretExists: !!process.env.SESSION_SECRET,
+      databaseUrlExists: !!process.env.DATABASE_URL
+    });
     
     if (!username || !password) {
       console.log('Missing credentials:', { username: !!username, password: !!password });
@@ -145,7 +155,8 @@ export const login = async (req: Request, res: Response) => {
     }
     
     // Create JWT token
-    console.log('Creating JWT token with secret:', JWT_SECRET.substring(0, 5) + '...');
+    console.log('Creating JWT token with secret length:', JWT_SECRET.length);
+    console.log('JWT_SECRET first 5 chars:', JWT_SECRET.substring(0, 5) + '...');
     const token = createAuthToken({
       id: user.id,
       username: user.username,
@@ -156,6 +167,8 @@ export const login = async (req: Request, res: Response) => {
     setAuthCookie(res, token);
     
     console.log('Login successful, sending response with token of length:', token.length);
+    console.log('Response headers that will be sent:', res.getHeaders());
+    
     res.json({
       success: true,
       message: 'Login successful',
@@ -170,6 +183,7 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,
       message: 'Failed to login',

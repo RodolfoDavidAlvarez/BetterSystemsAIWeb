@@ -25,19 +25,19 @@ interface Service {
 export default function HomePage() {
   const services: Service[] = [
     {
-      title: "AI-Powered Assistants",
-      description: "Transform customer service with intelligent virtual assistants",
+      title: "AI Assistants",
+      description: "Pre-built, subscription-based automation tools for everyday business tasks",
       href: "/services/ai-assistants"
     },
     {
-      title: "Efficiency Audit",
-      description: "Discover optimization opportunities in your business processes",
-      href: "/services/efficiency-audit"
+      title: "Custom Automation Solutions",
+      description: "Fully customized AI solutions built to address specific business challenges",
+      href: "/services/custom-solutions"
     },
     {
-      title: "Fleet Management",
-      description: "Streamline your fleet operations with AI-enhanced tools",
-      href: "/services/fleet-management"
+      title: "AI Efficiency Assessment",
+      description: "Comprehensive evaluation to identify inefficiencies and recommend optimizations",
+      href: "/services/ai-efficiency-assessment"
     }
   ];
 
@@ -252,24 +252,25 @@ export default function HomePage() {
             <p className="text-lg text-muted-foreground mb-8">
               Act Now: AI adoption is rapidly transforming industries, making it essential to stay ahead of the curve and remain competitive.
             </p>
-            <Button asChild variant="default" size="lg" className="font-semibold">
-              <Link href="/business-impact">Learn more about AI transforming businesses today →</Link>
-            </Button>
           </div>
         </div>
       </section>
 
       <WhatWeDo />
 
-      {/* Mission Statement */}
+      {/* Mission & Vision Statement */}
       <section id="about" className="bg-primary/5 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
+            <p className="text-xl text-muted-foreground leading-relaxed mb-8">
+              To make the most updated automation and AI technologies available to small-medium size businesses 
+              that enhances efficiency, drives profits and growth, and fosters long-term competitive sustainability.
+            </p>
+            <h2 className="text-4xl font-bold mb-6">Our Vision</h2>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Your Business, One Step Ahead: Empowering businesses through innovative AI solutions, we transform
-              traditional operations into efficient, automated systems that drive
-              growth and success in today's digital landscape.
+              To be the trusted partner that empowers businesses with the most updated emerging technology, 
+              ensuring they remain competitive in a rapidly evolving digital world.
             </p>
           </div>
         </div>
@@ -282,8 +283,8 @@ export default function HomePage() {
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-4xl font-bold mb-6">Our Services</h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Transform your business with our cutting-edge AI solutions. From virtual assistants to
-              custom AI applications, we provide comprehensive solutions that drive innovation and growth.
+              We deliver practical, ROI-focused AI solutions that reduce labor costs, boost operational efficiency, 
+              and ensure your business remains at the forefront of innovation in your industry.
             </p>
           </div>
 
@@ -313,11 +314,17 @@ export default function HomePage() {
           <div className="space-y-8">
             <h2 className="text-4xl font-bold">About Better Systems AI</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              At Better Systems AI, we're dedicated to helping businesses embrace the future
-              of work through innovative AI solutions and expert guidance. Our team brings together
-              decades of experience in AI, business transformation, and technology implementation
-              to deliver results that matter.
+              Better Systems AI is a dedicated consulting firm, and technology integrator and partner, 
+              ensuring long-term success of small to medium-size businesses through innovative AI and automation. 
+              We believe technology should be accessible to every business regardless of expertise, business size or industry.
             </p>
+            <div className="pt-4">
+              <h3 className="text-2xl font-semibold mb-4">What Makes Us Different</h3>
+              <p className="text-lg text-muted-foreground leading-relaxed mb-4">
+                We are not a software subscription service where users only utilize 20-40% of the software's capacity. 
+                We build a partner relationship, treating your business as if it were our own.
+              </p>
+            </div>
             <Button asChild variant="outline" size="lg" className="font-semibold">
               <Link href="/about">Learn More About Us</Link>
             </Button>

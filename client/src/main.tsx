@@ -18,7 +18,7 @@ import PartnersPage from "./pages/PartnersPage";
 import ContactPage from "./pages/ContactPage";
 import SocialPage from "./pages/SocialPage";
 import GetStartedPage from "./pages/GetStartedPage";
-import BusinessImpactPage from "./pages/BusinessImpactPage";
+
 import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
 import AIConsultingPage from "./pages/services/AIConsultingPage";
 import AIPersonalAssistantTutorialPage from "./pages/services/AIPersonalAssistantTutorialPage";
@@ -44,7 +44,7 @@ function App() {
             <Route path="/contact" component={ContactPage} />
             <Route path="/founders-social" component={SocialPage} />
             <Route path="/get-started" component={GetStartedPage} />
-            <Route path="/business-impact" component={BusinessImpactPage} />
+
             <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
             <Route path="/services/ai-consulting" component={AIConsultingPage} />
             <Route path="/services/ai-assistants/personal-assistant-tutorial" component={AIPersonalAssistantTutorialPage} />

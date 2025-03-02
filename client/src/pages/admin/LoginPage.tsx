@@ -76,6 +76,20 @@ export default function LoginPage() {
       const baseUrl = getApiBaseUrl();
       console.log(`Using API base URL: ${baseUrl}`);
       
+      // Get the current hostname and determine server URL dynamically
+      const hostname = window.location.hostname;
+      const port = hostname.includes('.repl.co') ? '3000' : '3000';
+      const protocol = window.location.protocol;
+      
+      // Log environment information for debugging
+      console.log('Login environment:', {
+        hostname,
+        protocol,
+        serverPort: port,
+        envViteServerUrl: import.meta.env.VITE_SERVER_URL,
+        baseApiUrl: baseUrl
+      });
+      
       // Make the login request with timeout
       console.log(`Attempting to connect to ${baseUrl}/auth/login`);
       
@@ -95,7 +109,11 @@ export default function LoginPage() {
       console.log('Login response received:', {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
+        headers: {
+          contentType: response.headers.get('content-type'),
+          setCookie: response.headers.get('set-cookie'),
+        }
       });
       
       // Handle non-JSON responses

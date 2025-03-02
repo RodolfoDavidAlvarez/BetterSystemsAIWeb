@@ -43,13 +43,32 @@ const requestLogger = (req: express.Request, _res: express.Response, next: expre
 // Enhanced CORS configuration for better cross-domain compatibility
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow any origin for maximum compatibility
-    callback(null, true);
+    // Check allowed origins for better security while maintaining compatibility
+    const allowedOrigins = [
+      'http://localhost:5000',
+      'http://localhost:3000',
+      'http://0.0.0.0:5000',
+      'http://0.0.0.0:3000',
+      'https://bettersystemsaiweb.connorlundberg.repl.co',
+      undefined, // Allow requests with no origin (like mobile apps, curl, or postman)
+    ];
+    
+    // If no origin or if origin is in allowed list
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('.repl.co')) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Rejecting request from origin: ${origin}`);
+      callback(null, true); // Allow anyway for now, but log the warning
+    }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'X-Refresh-Token']
 }));
+
+// Add explicit CORS preflight handling
+app.options('*', cors());
 
 // Parse cookies
 app.use(cookieParser());

@@ -7,7 +7,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import RootLayout from "./components/layout/RootLayout";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import ServicesPage from "./pages/ServicesPage";
 import AIAssistantsPage from "./pages/services/AIAssistantsPage";
@@ -22,12 +21,6 @@ import GetStartedPage from "./pages/GetStartedPage";
 import BusinessImpactPage from "./pages/BusinessImpactPage";
 import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
 import AIConsultingPage from "./pages/services/AIConsultingPage";
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import LoginPage from "./pages/admin/LoginPage";
-import DashboardPage from "./pages/admin/DashboardPage";
-import BlogPostsPage from "./pages/admin/BlogPostsPage";
-import BlogPostEditor from "./pages/admin/BlogPostEditor";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 function App() {
@@ -53,35 +46,6 @@ function App() {
             <Route path="/business-impact" component={BusinessImpactPage} />
             <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
             <Route path="/services/ai-consulting" component={AIConsultingPage} />
-            <Route path="/blog" component={BlogPage} />
-            <Route path="/blog/:slug" component={BlogPostPage} />
-            
-            {/* Authentication Route */}
-            <Route path="/admin/login" component={LoginPage} />
-            
-            {/* Protected Admin Routes */}
-            <Route path="/admin/dashboard">
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/admin/blog">
-              <ProtectedRoute>
-                <BlogPostsPage />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/admin/blog/new">
-              <ProtectedRoute>
-                <BlogPostEditor />
-              </ProtectedRoute>
-            </Route>
-            <Route path="/admin/blog/:id/edit">
-              {(params) => (
-                <ProtectedRoute>
-                  <BlogPostEditor key={params.id} />
-                </ProtectedRoute>
-              )}
-            </Route>
             
             {/* 404 Route */}
             <Route>404 Page Not Found</Route>

@@ -6,14 +6,17 @@ export const getApiBaseUrl = () => {
   const serverUrl = import.meta.env.VITE_SERVER_URL;
   
   if (serverUrl) {
-    console.log(`Using API base URL: ${serverUrl}/api`);
+    console.log(`Using API base URL from env: ${serverUrl}/api`);
     return `${serverUrl}/api`;
   }
   
-  // Use relative URL when VITE_SERVER_URL isn't set
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log("Using API URL: http://0.0.0.0:3000/api");
-    return 'http://0.0.0.0:3000/api';
+  // Use direct IP when in development or running within Replit
+  if (window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.includes('.repl.co')) {
+    const port = window.location.hostname.includes('.repl.co') ? '3000' : '3000';
+    console.log(`Using direct API URL with port ${port}`);
+    return `http://${window.location.hostname}:${port}/api`;
   }
   
   // For production deployment

@@ -93,6 +93,30 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <Hero />
 
+      {/* Welcome Video */}
+      <section className="py-20 bg-accent/5">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <h2 className="text-4xl font-bold mb-6">Welcome to Better Systems AI</h2>
+            <p className="text-lg text-muted-foreground">
+              Learn about our mission to make advanced AI technology accessible to businesses of all sizes.
+            </p>
+          </div>
+          <div className="aspect-video max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/S6ADa0Xu0zY"
+              title="Welcome to Better Systems AI"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
       {/* Key AI Benefits */}
       <section id="services" className="py-20">
         <div className="container mx-auto px-4">

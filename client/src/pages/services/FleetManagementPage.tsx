@@ -657,6 +657,91 @@ export default function FleetManagementPage() {
         </div>
       </motion.section>
 
+      {/* Mechanic Dashboard Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20 overflow-hidden bg-slate-900 text-white py-16"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Mechanic Dashboard</h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Our mechanic dashboard presents all repair information in an intuitive format, including AI-classified descriptions, 
+              priority status indicators, and detailed repair tracking.
+            </p>
+          </div>
+
+          {/* Main Display with Image Carousel */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col lg:flex-row justify-center items-center gap-8 lg:gap-16 mb-16"
+          >
+            {/* Main Image Display */}
+            <div className="flex-1 max-w-xl">
+              <div className="relative rounded-xl border-2 border-gray-700 shadow-2xl overflow-hidden">
+                <img 
+                  src={mechanicDashboardImages[activeMechanicImage].src} 
+                  alt={mechanicDashboardImages[activeMechanicImage].alt} 
+                  className="w-full object-cover"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-center mt-6 mb-2">
+                {mechanicDashboardImages[activeMechanicImage].title}
+              </h3>
+            </div>
+            
+            {/* Dashboard Features */}
+            <div className="flex-1 max-w-md">
+              <div className="grid grid-cols-1 gap-4 mb-8">
+                {mechanicDashboardImages.map((image, idx) => (
+                  <button 
+                    key={idx}
+                    className={`bg-slate-800 rounded-xl overflow-hidden p-4 border-2 transition-all duration-200 ${
+                      activeMechanicImage === idx 
+                        ? 'border-blue-500 shadow-md shadow-blue-900/30' 
+                        : 'border-transparent hover:border-blue-500/50'
+                    }`}
+                    onClick={() => setActiveMechanicImage(idx)}
+                    aria-label={`View ${image.title}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 flex-shrink-0 bg-slate-700 rounded-lg overflow-hidden">
+                        <img src={image.src} alt={image.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-medium mb-1">{image.title}</h4>
+                        <p className="text-sm text-gray-400">
+                          {idx === 0 ? "AI-classified repairs with priority indicators" : "Complete time tracking for repair lifecycle"}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-800/30">
+                <h4 className="font-bold text-blue-300 mb-2">Dashboard Benefits:</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span>Emergency repair prioritization with visual indicators</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span>Complete timeline tracking for maintenance efficiency</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span>Advanced analytics on service times and patterns</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
       {/* CTA Section */}
       <motion.div 
         className="text-center bg-primary/5 rounded-2xl p-8 md:p-12"

@@ -19,7 +19,6 @@ import { fadeIn, staggerChildren } from '../../lib/animations';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogClose, DialogTrigger } from "../../components/ui/dialog";
-import { PhoneFrame } from "../../components/ui/phone-frame";
 
 export default function FleetManagementPage() {
   // State for image zoom
@@ -387,122 +386,119 @@ export default function FleetManagementPage() {
         variants={staggerChildren}
         initial="initial"
         animate="animate"
-        className="mb-20 overflow-hidden bg-black text-white py-16 rounded-xl"
+        className="mb-20 overflow-hidden bg-black text-white py-16"
       >
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">Mobile Repair Request System</h2>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Our mobile-friendly repair request form makes it easy for drivers to report issues 
-            and upload photos directly from their phones.
-          </p>
-        </div>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Mobile Repair Request System</h2>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+              Our mobile-friendly repair request form makes it easy for drivers to report issues 
+              and upload photos directly from their phones.
+            </p>
+          </div>
 
-        {/* First Row - Multilingual and Photo Upload */}
-        <motion.div
-          variants={fadeIn}
-          className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-32 mb-16"
-        >
-          {/* Multilingual Support */}
-          <div className="flex flex-col items-center text-center">
-            <div className="w-[360px] h-[180px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
-              <img 
-                src="/images/repair-form-demo/mobile-main.png" 
-                alt="Mobile repair form interface with language toggle" 
-                className="w-auto h-[120px] object-cover"
-              />
-            </div>
-            <h3 className="text-xl font-semibold mb-1">Multilingual Support</h3>
-            <p className="text-gray-400 max-w-xs">
-              Toggle between English and Spanish to support diverse workforces
-            </p>
-          </div>
-          
-          {/* Photo Upload */}
-          <div className="flex flex-col items-center text-center">
-            <div className="w-[360px] h-[180px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
-              <img 
-                src="/images/repair-form-demo/mobile-upload.png" 
-                alt="Mobile form interface for photo uploads" 
-                className="w-auto h-[120px] object-cover"
-              />
-            </div>
-            <h3 className="text-xl font-semibold mb-1">Photo Documentation</h3>
-            <p className="text-gray-400 max-w-xs">
-              Upload multiple photos to document vehicle issues
-            </p>
-          </div>
-        </motion.div>
-        
-        {/* Second Row - Mobile Optimization and Real-time Validation */}
-        <motion.div
-          variants={fadeIn}
-          className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-32 mb-16"
-        >
-          {/* Mobile Optimization */}
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-5 text-center">
-              <div className="inline-flex items-center gap-3 mb-1">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                  <CheckCircle className="h-4 w-4 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold">Mobile Optimization</h3>
+          {/* First Row - Multilingual and Photo Upload */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col md:flex-row justify-center items-start gap-8 md:gap-24 mb-20"
+          >
+            {/* Multilingual Support */}
+            <div className="flex flex-col items-center text-center max-w-xs">
+              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/images/repair-form-exact/mobile-main.png" 
+                  alt="Mobile repair form interface with language toggle" 
+                  className="w-full max-w-[280px] h-auto object-contain"
+                />
               </div>
-              <p className="text-gray-400 max-w-xs">
-                Works perfectly on phones and tablets
+              <h3 className="text-xl font-semibold mb-1">Multilingual Support</h3>
+              <p className="text-gray-400">
+                Toggle between English and Spanish to support diverse workforces
               </p>
             </div>
             
-            <div className="w-[360px] h-[180px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
-              <img 
-                src="/images/repair-form-demo/loading.jpeg" 
-                alt="Mobile form loading state" 
-                className="w-auto h-[120px] object-cover"
-              />
+            {/* Photo Upload */}
+            <div className="flex flex-col items-center text-center max-w-xs">
+              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/images/repair-form-exact/mobile-upload.png" 
+                  alt="Mobile form interface for photo uploads" 
+                  className="w-full max-w-[280px] h-auto object-contain"
+                />
+              </div>
+              <h3 className="text-xl font-semibold mb-1">Photo Documentation</h3>
+              <p className="text-gray-400">
+                Upload multiple photos to document vehicle issues
+              </p>
             </div>
-            <p className="text-blue-400 text-sm mb-1 font-medium">Loading State</p>
-            <p className="text-gray-400 max-w-xs text-sm">
-              Visual feedback while the form initializes with animated loading indicators
-            </p>
-          </div>
+          </motion.div>
           
-          {/* Real-time Validation */}
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-5 text-center">
-              <div className="inline-flex items-center gap-3 mb-1">
+          {/* Second Row - Mobile Optimization and Real-time Validation */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col md:flex-row justify-center gap-8 md:gap-24 mb-16"
+          >
+            <div className="flex flex-col max-w-xs">
+              {/* Mobile Optimization Header */}
+              <div className="flex items-center gap-3 mb-4">
                 <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
                   <CheckCircle className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold">Real-time Validation</h3>
+                <div>
+                  <h3 className="text-xl font-semibold">Mobile Optimization</h3>
+                  <p className="text-gray-400 text-sm">
+                    Works perfectly on phones and tablets
+                  </p>
+                </div>
               </div>
-              <p className="text-gray-400 max-w-xs">
-                Ensures all required information is provided
-              </p>
+              
+              {/* Loading State Device */}
+              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/images/repair-form-exact/loading.jpeg" 
+                  alt="Mobile form loading state" 
+                  className="w-full max-w-[280px] h-auto object-contain"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-blue-400 text-sm mt-2 mb-1 font-medium">Loading State</p>
+                <p className="text-gray-400 text-sm">
+                  Visual feedback while the form initializes with animated loading indicators
+                </p>
+              </div>
             </div>
             
-            <div className="w-[360px] h-[180px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
-              <img 
-                src="/images/repair-form-demo/submitted.jpeg" 
-                alt="Mobile form submission confirmation" 
-                className="w-auto h-[120px] object-cover"
-              />
+            <div className="flex flex-col max-w-xs">
+              {/* Real-time Validation Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Real-time Validation</h3>
+                  <p className="text-gray-400 text-sm">
+                    Ensures all required information is provided
+                  </p>
+                </div>
+              </div>
+              
+              {/* Confirmation State Device */}
+              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/images/repair-form-exact/submitted.jpeg" 
+                  alt="Mobile form submission confirmation" 
+                  className="w-full max-w-[280px] h-auto object-contain"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-green-400 text-sm mt-2 mb-1 font-medium">Confirmation</p>
+                <p className="text-gray-400 text-sm">
+                  Clear confirmation lets operators know their repair request was successfully submitted
+                </p>
+              </div>
             </div>
-            <p className="text-green-400 text-sm mb-1 font-medium">Confirmation</p>
-            <p className="text-gray-400 max-w-xs text-sm">
-              Clear confirmation lets operators know their repair request was successfully submitted
-            </p>
-          </div>
-        </motion.div>
-        
-        {/* CTA */}
-        <motion.div 
-          variants={fadeIn}
-          className="text-center mt-12 px-4"
-        >
-          <h2 className="text-3xl font-bold mb-4">Ready to make fleet management effortless?</h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Streamline your fleet operations, reduce costs, and enjoy more time to focus on growing your business.
-          </p>
-        </motion.div>
+          </motion.div>
+        </div>
       </motion.section>
 
       {/* CTA Section */}

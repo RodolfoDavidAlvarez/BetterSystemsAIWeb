@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import {
@@ -11,14 +10,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import {
-  Gauge,
   Timer,
   ArrowLeft,
   BellRing,
   Database,
   FileText,
   Truck,
-  CheckCircle2,
   Calendar,
   Clock,
   ClipboardCheck,
@@ -28,15 +25,45 @@ import {
   Smartphone,
   MessageSquare,
   Settings,
+  Maximize2,
+  X,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import AutoplayPlugin from "embla-carousel-autoplay";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function FleetManagementPage() {
+  // State for image gallery modal
+  const [selectedImage, setSelectedImage] = useState<{ src: string; title: string; alt: string } | null>(null);
+  
   // Reference for animating elements
   const bellRef = React.useRef<HTMLDivElement>(null);
   const phoneRef = React.useRef<HTMLDivElement>(null);
   const trucksRef = React.useRef<HTMLDivElement>(null);
+  
+  // Gallery images from the original page
+  const galleryImages = [
+    {
+      src: "/images/ai-classification-gallery.png",
+      title: "AI Classification Gallery",
+      alt: "AI Classification system showcase"
+    },
+    {
+      src: "/images/cost-analysis-reporting.png",
+      title: "Cost Analysis and Incident Reporting",
+      alt: "Cost analysis and incident reporting interface"
+    },
+    {
+      src: "/images/driver-management.png",
+      title: "Driver Management",
+      alt: "Driver management interface"
+    },
+    {
+      src: "/images/vehicle-management-detail.png",
+      title: "Vehicle Management Detail",
+      alt: "Vehicle management detailed view"
+    }
+  ];
   
   // Animation effect
   React.useEffect(() => {
@@ -367,6 +394,46 @@ export default function FleetManagementPage() {
         </div>
       </motion.section>
 
+      {/* Interactive System Gallery */}
+      <motion.section
+        className="mb-16"
+        variants={fadeIn}
+        initial="initial"
+        animate="animate"
+      >
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">System Overview</h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            View our intuitive fleet management interface in action
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {galleryImages.map((image, index) => (
+            <motion.div 
+              key={index}
+              whileHover={{ scale: 1.03 }}
+              className="rounded-xl overflow-hidden shadow-md bg-background cursor-pointer relative group"
+              onClick={() => setSelectedImage(image)}
+            >
+              <div className="aspect-video relative">
+                <img 
+                  src={image.src} 
+                  alt={image.alt} 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <Maximize2 className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-medium text-sm truncate">{image.title}</h3>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
       {/* CTA Section */}
       <motion.section
         className="text-center bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 md:p-12"
@@ -390,6 +457,34 @@ export default function FleetManagementPage() {
           </Button>
         </div>
       </motion.section>
+      
+      {/* Image Modal */}
+      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background/95 backdrop-blur-sm">
+          <div className="relative">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-2 right-2 z-10 rounded-full bg-background/80 p-2 text-foreground hover:bg-background/90 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            {selectedImage && (
+              <div className="overflow-auto max-h-[80vh]">
+                <img 
+                  src={selectedImage.src} 
+                  alt={selectedImage.alt} 
+                  className="w-full h-auto object-contain"
+                />
+                <div className="p-4 bg-background">
+                  <h3 className="text-xl font-semibold mb-2">{selectedImage.title}</h3>
+                  <p className="text-muted-foreground">{selectedImage.alt}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

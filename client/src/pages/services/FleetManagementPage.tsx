@@ -24,9 +24,24 @@ export default function FleetManagementPage() {
   // State for image zoom
   const [zoomLevels, setZoomLevels] = useState<Record<number, number>>({});
   
-  // State for the active repair form image and agave image
+  // State for the active images in different sections
   const [activeRepairImage, setActiveRepairImage] = useState<number>(0);
   const [activeAgaveImage, setActiveAgaveImage] = useState<number>(0);
+  const [activeMechanicImage, setActiveMechanicImage] = useState<number>(0);
+  
+  // Mechanic dashboard images
+  const mechanicDashboardImages = [
+    {
+      src: "/images/mechanic-dashboard/dashboard-main.png",
+      alt: "Mechanic dashboard showing vehicle information, AI description, and emergency status",
+      title: "Vehicle Information Dashboard"
+    },
+    {
+      src: "/images/mechanic-dashboard/timestamp-tracking.png",
+      alt: "Timestamp tracking for repair tickets showing status updates and timeline",
+      title: "Repair Ticket Tracking"
+    }
+  ];
   
   // Repair form gallery images
   const repairFormImages = [

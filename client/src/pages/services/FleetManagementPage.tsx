@@ -443,39 +443,29 @@ export default function FleetManagementPage() {
           
           <motion.div 
             variants={fadeIn}
-            className="relative h-[550px] flex items-center justify-center"
+            className="relative"
           >
-            <div className="relative mx-auto">
-              {/* Phone mockups */}
-              <div className="absolute left-0 top-10 z-10 transform rotate-[-5deg]">
-                <div className="relative">
-                  {/* Phone frame */}
-                  <div className="w-[240px] h-[480px] bg-[#1e3a4a] rounded-[36px] p-3 shadow-xl">
-                    {/* Screen */}
-                    <div className="w-full h-full bg-white rounded-[28px] overflow-hidden">
-                      <img 
-                        src="/images/repair-request-form/form-main.png" 
-                        alt="Mobile view of vehicle repair request form with personal information fields and language selector" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+            <div className="flex justify-center items-center">
+              <div className="max-w-[600px] relative">
+                {/* Main Phone */}
+                <div className="relative inline-block">
+                  <div className="w-[280px] border-[12px] border-[#1e3a4a] bg-white rounded-[35px] shadow-xl overflow-hidden">
+                    <img 
+                      src="/images/repair-request-form/form-main.png" 
+                      alt="Mobile view of vehicle repair request form with language toggle and personal information fields" 
+                      className="w-full h-auto"
+                    />
                   </div>
                 </div>
-              </div>
-              
-              {/* Second Image */}
-              <div className="absolute right-0 top-[200px] z-20 transform rotate-[5deg]">
-                <div className="relative">
-                  {/* Phone frame */}
-                  <div className="w-[240px] h-[480px] bg-[#1e3a4a] rounded-[36px] p-3 shadow-xl">
-                    {/* Screen */}
-                    <div className="w-full h-full bg-white rounded-[28px] overflow-hidden">
-                      <img 
-                        src="/images/repair-request-form/form-upload.png" 
-                        alt="Mobile view showing photo upload functionality for vehicle repairs" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                
+                {/* Second Phone - positioned to overlap */}
+                <div className="inline-block absolute -bottom-10 -right-10 z-10">
+                  <div className="w-[220px] border-[12px] border-[#1e3a4a] bg-white rounded-[35px] shadow-xl overflow-hidden transform -rotate-6">
+                    <img 
+                      src="/images/repair-request-form/form-upload.png" 
+                      alt="Mobile view showing photo upload functionality for vehicle repairs" 
+                      className="w-full h-auto"
+                    />
                   </div>
                 </div>
               </div>
@@ -488,37 +478,41 @@ export default function FleetManagementPage() {
           variants={fadeIn}
           className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8"
         >
-          <div className="rounded-lg overflow-hidden shadow-lg border border-muted">
-            <div className="bg-primary-foreground text-primary p-3 font-medium">
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                <span>Loading State</span>
+          <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-muted">
+            <div className="bg-primary/10 p-3 font-medium flex items-center gap-2">
+              <div className="bg-white rounded-full p-1.5">
+                <Clock className="h-5 w-5 text-primary" />
               </div>
+              <span>Loading State</span>
             </div>
-            <div className="p-3 bg-muted/20">
-              <img 
-                src="/images/repair-request-form/loading.jpeg" 
-                alt="Loading state of the repair request form" 
-                className="w-full h-auto rounded-md shadow"
-              />
-              <p className="text-sm text-muted-foreground mt-3">The loading state provides visual feedback while form elements are being prepared</p>
+            <div className="p-6">
+              <div className="border-8 border-[#1e3a4a] rounded-2xl overflow-hidden shadow-lg mb-3">
+                <img 
+                  src="/images/repair-request-form/loading.jpeg" 
+                  alt="Loading state of the repair request form" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">The loading state provides visual feedback while form elements are being prepared</p>
             </div>
           </div>
           
-          <div className="rounded-lg overflow-hidden shadow-lg border border-muted">
-            <div className="bg-primary-foreground text-primary p-3 font-medium">
-              <div className="flex items-center gap-2">
+          <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-muted">
+            <div className="bg-primary/10 p-3 font-medium flex items-center gap-2">
+              <div className="bg-white rounded-full p-1.5">
                 <CheckCircle className="h-5 w-5 text-primary" />
-                <span>Submission Confirmation</span>
               </div>
+              <span>Submission Confirmation</span>
             </div>
-            <div className="p-3 bg-muted/20">
-              <img 
-                src="/images/repair-request-form/submitted.jpeg" 
-                alt="Submission confirmation screen after repair request is sent" 
-                className="w-full h-auto rounded-md shadow"
-              />
-              <p className="text-sm text-muted-foreground mt-3">Clear confirmation helps drivers know their request was successfully submitted</p>
+            <div className="p-6">
+              <div className="border-8 border-[#1e3a4a] rounded-2xl overflow-hidden shadow-lg mb-3">
+                <img 
+                  src="/images/repair-request-form/submitted.jpeg" 
+                  alt="Submission confirmation screen after repair request is sent" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">Clear confirmation helps drivers know their request was successfully submitted</p>
             </div>
           </div>
         </motion.div>

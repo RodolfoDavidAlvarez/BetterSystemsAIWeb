@@ -742,6 +742,75 @@ export default function FleetManagementPage() {
         </div>
       </motion.section>
 
+      {/* Service Records Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20 overflow-hidden bg-gradient-to-r from-slate-100 to-slate-200 py-16"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Complete Service Tracking</h2>
+            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+              Track individual service costs, repair descriptions, and cumulative fleet expenses with detailed service records.
+            </p>
+          </div>
+
+          {/* Main Service Records Display */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col lg:flex-row justify-center items-center gap-12"
+          >
+            {/* Main Image Display */}
+            <div className="flex-1 max-w-4xl">
+              <div className="relative rounded-xl border border-slate-300 shadow-lg overflow-hidden">
+                <img 
+                  src="/images/service-records/service-costs.png" 
+                  alt="Service records showing repair costs, mechanic assignments, and service details" 
+                  className="w-full object-cover"
+                />
+              </div>
+            </div>
+            
+            {/* Service Records Features */}
+            <div className="flex-1 max-w-md">
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg p-5 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <BarChart3 className="h-6 w-6 text-primary" /> 
+                    Cost Tracking
+                  </h3>
+                  <p className="text-slate-600">
+                    Monitor both individual repair expenses and total fleet maintenance costs to optimize your budget and identify trends.
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg p-5 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <Clock className="h-6 w-6 text-primary" /> 
+                    Service History
+                  </h3>
+                  <p className="text-slate-600">
+                    Access complete service history with timestamps, mechanic assignments, and detailed repair descriptions for each vehicle.
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg p-5 border border-slate-200 shadow-sm">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <FileSpreadsheet className="h-6 w-6 text-primary" /> 
+                    Actionable Reports
+                  </h3>
+                  <p className="text-slate-600">
+                    Generate custom reports to identify patterns, forecast maintenance costs, and make data-driven decisions for your fleet.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
       {/* CTA Section */}
       <motion.div 
         className="text-center bg-primary/5 rounded-2xl p-8 md:p-12"

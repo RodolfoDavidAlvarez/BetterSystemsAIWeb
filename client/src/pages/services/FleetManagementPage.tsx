@@ -12,7 +12,12 @@ import {
   Truck,
   BarChart3,
   Clock4,
-  Bell
+  Bell,
+  Globe,
+  Upload,
+  Smartphone,
+  CheckSquare,
+  Languages
 } from 'lucide-react';
 
 import { fadeIn, staggerChildren } from '../../lib/animations';

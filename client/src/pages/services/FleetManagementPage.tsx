@@ -19,6 +19,7 @@ import { fadeIn, staggerChildren } from '../../lib/animations';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogClose, DialogTrigger } from "../../components/ui/dialog";
+import { PhoneFrame } from "../../components/ui/phone-frame";
 
 export default function FleetManagementPage() {
   // State for image zoom
@@ -386,134 +387,124 @@ export default function FleetManagementPage() {
         variants={staggerChildren}
         initial="initial"
         animate="animate"
-        className="mb-20"
+        className="mb-20 overflow-hidden"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2">Digital Repair Request System</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our mobile-friendly repair request form makes it easy for drivers to report vehicle issues instantly and upload supporting photos directly from their phones.
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Mobile Repair Request System</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Our mobile-friendly repair request form makes it easy for drivers to report issues and upload photos directly from their phones.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <motion.div 
-            variants={fadeIn}
-            className="flex flex-col justify-center"
-          >
-            <h3 className="text-2xl font-semibold mb-4">Streamlined Repair Workflow</h3>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Multilingual Support</p>
-                  <p className="text-muted-foreground">Toggle between English and Spanish to support diverse workforces</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Photo Documentation</p>
-                  <p className="text-muted-foreground">Upload multiple photos directly from mobile devices to document issues</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Priority Flagging</p>
-                  <p className="text-muted-foreground">Easily mark urgent repairs for immediate attention</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
-                  <CheckCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium">Instant Notifications</p>
-                  <p className="text-muted-foreground">Automatically alerts mechanics and managers when new requests are submitted</p>
-                </div>
-              </li>
-            </ul>
-          </motion.div>
-          
-          <motion.div 
-            variants={fadeIn}
-            className="relative"
-          >
-            <div className="flex justify-center items-center">
-              <div className="max-w-[600px] relative">
-                {/* Main Phone */}
-                <div className="relative inline-block">
-                  <div className="w-[280px] border-[12px] border-[#1e3a4a] bg-white rounded-[35px] shadow-xl overflow-hidden">
-                    <img 
-                      src="/images/repair-request-form/form-main.png" 
-                      alt="Mobile view of vehicle repair request form with language toggle and personal information fields" 
-                      className="w-full h-auto"
-                    />
-                  </div>
-                </div>
-                
-                {/* Second Phone - positioned to overlap */}
-                <div className="inline-block absolute -bottom-10 -right-10 z-10">
-                  <div className="w-[220px] border-[12px] border-[#1e3a4a] bg-white rounded-[35px] shadow-xl overflow-hidden transform -rotate-6">
-                    <img 
-                      src="/images/repair-request-form/form-upload.png" 
-                      alt="Mobile view showing photo upload functionality for vehicle repairs" 
-                      className="w-full h-auto"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Additional Screenshots - Loading and Submitted States */}
-        <motion.div 
+        {/* Phone Display Section */}
+        <motion.div
           variants={fadeIn}
-          className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8"
+          className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16 mb-16"
         >
-          <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-muted">
-            <div className="bg-primary/10 p-3 font-medium flex items-center gap-2">
-              <div className="bg-white rounded-full p-1.5">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <span>Loading State</span>
-            </div>
-            <div className="p-6">
-              <div className="border-8 border-[#1e3a4a] rounded-2xl overflow-hidden shadow-lg mb-3">
-                <img 
-                  src="/images/repair-request-form/loading.jpeg" 
-                  alt="Loading state of the repair request form" 
-                  className="w-full h-auto"
-                />
-              </div>
-              <p className="text-sm text-muted-foreground">The loading state provides visual feedback while form elements are being prepared</p>
-            </div>
+          {/* Main Form with Language Toggle */}
+          <div className="relative z-10">
+            <PhoneFrame
+              imageUrl="/images/repair-form-demo/mobile-main.png"
+              altText="Mobile repair form with English and Spanish language toggle"
+              title="Multilingual Support"
+              description="Toggle between English and Spanish to support diverse workforces"
+            />
           </div>
           
-          <div className="bg-card rounded-lg overflow-hidden shadow-lg border border-muted">
-            <div className="bg-primary/10 p-3 font-medium flex items-center gap-2">
-              <div className="bg-white rounded-full p-1.5">
+          {/* Photo Upload View */}
+          <div className="relative z-10 md:-mt-8">
+            <PhoneFrame
+              imageUrl="/images/repair-form-demo/mobile-upload.png"
+              altText="Form interface for uploading repair photos"
+              title="Photo Documentation"
+              description="Upload multiple photos to document vehicle issues"
+              rotate={5}
+            />
+          </div>
+        </motion.div>
+        
+        {/* Key Features List */}
+        <motion.div 
+          variants={fadeIn}
+          className="bg-card border border-border/40 rounded-xl p-6 md:p-8 mb-16 max-w-3xl mx-auto"
+        >
+          <h3 className="text-2xl font-semibold mb-6 text-center">Key Features</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex gap-3">
+              <div className="bg-primary/10 rounded-full p-2 h-fit mt-0.5">
                 <CheckCircle className="h-5 w-5 text-primary" />
               </div>
-              <span>Submission Confirmation</span>
-            </div>
-            <div className="p-6">
-              <div className="border-8 border-[#1e3a4a] rounded-2xl overflow-hidden shadow-lg mb-3">
-                <img 
-                  src="/images/repair-request-form/submitted.jpeg" 
-                  alt="Submission confirmation screen after repair request is sent" 
-                  className="w-full h-auto"
-                />
+              <div>
+                <p className="font-medium">Multilingual Support</p>
+                <p className="text-sm text-muted-foreground">English/Spanish toggle for diverse workforces</p>
               </div>
-              <p className="text-sm text-muted-foreground">Clear confirmation helps drivers know their request was successfully submitted</p>
             </div>
+            
+            <div className="flex gap-3">
+              <div className="bg-primary/10 rounded-full p-2 h-fit mt-0.5">
+                <CheckCircle className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Photo Documentation</p>
+                <p className="text-sm text-muted-foreground">Upload photos directly from mobile devices</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <div className="bg-primary/10 rounded-full p-2 h-fit mt-0.5">
+                <CheckCircle className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Mobile Optimization</p>
+                <p className="text-sm text-muted-foreground">Works perfectly on phones and tablets</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <div className="bg-primary/10 rounded-full p-2 h-fit mt-0.5">
+                <CheckCircle className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Real-time Validation</p>
+                <p className="text-sm text-muted-foreground">Ensures all required information is provided</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Form States - Loading and Submitted */}
+        <motion.div 
+          variants={fadeIn}
+          className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto"
+        >
+          {/* Loading State */}
+          <div className="flex flex-col items-center">
+            <div className="mb-4">
+              <PhoneFrame
+                imageUrl="/images/repair-form-demo/loading.jpeg"
+                altText="Repair form loading state interface"
+                width={260}
+              />
+            </div>
+            <Badge className="mb-2 bg-blue-500/10 text-blue-500 border-blue-500/20">Loading State</Badge>
+            <p className="text-sm text-center max-w-xs text-muted-foreground">
+              Visual feedback while the form initializes with animated loading indicators
+            </p>
+          </div>
+          
+          {/* Confirmation State */}
+          <div className="flex flex-col items-center">
+            <div className="mb-4">
+              <PhoneFrame
+                imageUrl="/images/repair-form-demo/submitted.jpeg"
+                altText="Repair form confirmation screen after submission"
+                width={260}
+              />
+            </div>
+            <Badge className="mb-2 bg-green-500/10 text-green-500 border-green-500/20">Confirmation</Badge>
+            <p className="text-sm text-center max-w-xs text-muted-foreground">
+              Clear confirmation lets operators know their repair request was successfully submitted
+            </p>
           </div>
         </motion.div>
       </motion.section>

@@ -406,9 +406,9 @@ export default function FleetManagementPage() {
             <div className="flex flex-col items-center text-center max-w-xs">
               <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
                 <img 
-                  src="/images/repair-form-exact/mobile-main.png" 
+                  src="/images/repair-form/mobile-main.png" 
                   alt="Mobile repair form interface with language toggle" 
-                  className="w-full max-w-[280px] h-auto object-contain"
+                  className="w-full h-auto object-contain max-h-[90%]"
                 />
               </div>
               <h3 className="text-xl font-semibold mb-1">Multilingual Support</h3>
@@ -421,9 +421,9 @@ export default function FleetManagementPage() {
             <div className="flex flex-col items-center text-center max-w-xs">
               <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
                 <img 
-                  src="/images/repair-form-exact/mobile-upload.png" 
+                  src="/images/repair-form/mobile-upload.png" 
                   alt="Mobile form interface for photo uploads" 
-                  className="w-full max-w-[280px] h-auto object-contain"
+                  className="w-full h-auto object-contain max-h-[90%]"
                 />
               </div>
               <h3 className="text-xl font-semibold mb-1">Photo Documentation</h3>
@@ -455,9 +455,9 @@ export default function FleetManagementPage() {
               {/* Loading State Device */}
               <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
                 <img 
-                  src="/images/repair-form-exact/loading.jpeg" 
+                  src="/images/repair-form/loading.jpeg" 
                   alt="Mobile form loading state" 
-                  className="w-full max-w-[280px] h-auto object-contain"
+                  className="w-full h-auto object-contain max-h-[90%]"
                 />
               </div>
               <div className="text-center">
@@ -485,9 +485,9 @@ export default function FleetManagementPage() {
               {/* Confirmation State Device */}
               <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
                 <img 
-                  src="/images/repair-form-exact/submitted.jpeg" 
+                  src="/images/repair-form/submitted.jpeg" 
                   alt="Mobile form submission confirmation" 
-                  className="w-full max-w-[280px] h-auto object-contain"
+                  className="w-full h-auto object-contain max-h-[90%]"
                 />
               </div>
               <div className="text-center">

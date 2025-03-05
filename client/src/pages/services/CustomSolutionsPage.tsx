@@ -3,7 +3,13 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { 
+  ArrowRight, 
+  Clock, 
+  Truck, 
+  Timer, 
+  ExternalLink 
+} from "lucide-react";
 
 export default function CustomSolutionsPage() {
   const service = {
@@ -21,17 +27,45 @@ export default function CustomSolutionsPage() {
   const caseStudies = [
     {
       title: "Fleet Management System 2.0",
-      company: "Agave Environmental Contract, Inc",
-      description: "One of Arizona's largest landscape companies transformed their fleet operations with our custom AI solution, achieving 35% cost reduction and 90% efficiency improvement.",
-      metric: "35%",
-      metricLabel: "Cost Reduction",
+      company: "Agave Environmental Contracting, Inc.",
+      description: "Arizona's largest landscaping company transformed their fleet operations with our custom AI solution. By automating maintenance scheduling, improving communication, and implementing real-time tracking, we helped save 2,500+ labor hours annually while managing 300+ vehicles.",
+      metrics: [
+        {
+          value: "2,500+",
+          label: "Hours Saved Annually",
+          description: "Labor hours saved managing driver, vehicle, and incident information.",
+          icon: Clock
+        },
+        {
+          value: "300+",
+          label: "Vehicles Managed",
+          description: "Fleet size successfully managed with our system.",
+          icon: Truck
+        },
+        {
+          value: "60%",
+          label: "Faster Responses",
+          description: "Improvement in maintenance response times.",
+          icon: Timer
+        }
+      ],
+      logo: "/images/agave-logo.png",
+      clientUrl: "https://www.agave-inc.com/",
       image: "/images/fleet-management-preview.png",
       link: "/services/fleet-management",
+      galleryImages: [
+        "/images/ai-classification-gallery.png",
+        "/images/cost-analysis-reporting.png",
+        "/images/driver-management.png",
+        "/images/vehicle-management-detail.png"
+      ],
       highlights: [
         "AI-powered problem classification",
-        "Real-time communication system",
+        "Real-time SMS notification system",
         "Comprehensive analytics dashboard",
-        "Automated maintenance scheduling"
+        "Automated maintenance scheduling",
+        "Driver information management",
+        "Cost reduction reporting"
       ]
     }
     // Add more case studies here as needed
@@ -87,38 +121,110 @@ export default function CustomSolutionsPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/40 bg-gradient-to-b from-muted/50 to-transparent">
                   <CardContent className="p-8 relative">
-                    <div className="grid md:grid-cols-2 gap-8 items-center">
-                      <div className="relative">
+                    <div className="grid md:grid-cols-5 gap-8 items-start">
+                      <div className="relative md:col-span-3">
                         <div className="absolute -left-3 top-0 w-1 h-full bg-primary/30 rounded" />
-                        <h3 className="text-2xl font-semibold mb-2">{study.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-4">{study.company}</p>
-                        <p className="text-muted-foreground mb-6">{study.description}</p>
-                        <div className="flex gap-6 mb-6">
-                          <div className="space-y-1">
-                            <div className="text-2xl font-bold text-primary">{study.metric}</div>
-                            <div className="text-sm text-muted-foreground">{study.metricLabel}</div>
+                        
+                        {/* Title and Client Info */}
+                        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                          <div>
+                            <h3 className="text-2xl font-semibold mb-1">{study.title}</h3>
+                            <p className="text-sm text-muted-foreground">{study.company}</p>
+                          </div>
+                          <div className="flex items-center ml-auto">
+                            {study.logo && (
+                              <a 
+                                href={study.clientUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center hover:opacity-80 transition-opacity"
+                              >
+                                <img 
+                                  src={study.logo} 
+                                  alt={`${study.company} logo`} 
+                                  className="h-12 object-contain" 
+                                />
+                                <ExternalLink className="ml-2 h-4 w-4 text-muted-foreground" />
+                              </a>
+                            )}
                           </div>
                         </div>
-                        <ul className="space-y-2 mb-6">
-                          {study.highlights.map((highlight, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-sm">
-                              <span className="size-1.5 rounded-full bg-primary/60" />
-                              {highlight}
-                            </li>
-                          ))}
-                        </ul>
-                        <Button asChild variant="ghost" className="group-hover:translate-x-1 transition-transform">
+                        
+                        {/* Description */}
+                        <div className="bg-card/50 rounded-lg p-4 mb-6 border border-border/30">
+                          <p className="text-muted-foreground">
+                            <span className="font-medium text-foreground">Success Story: </span>
+                            {study.description}
+                          </p>
+                        </div>
+                        
+                        {/* Key Metrics */}
+                        {study.metrics && (
+                          <div className="grid grid-cols-3 gap-4 mb-6">
+                            {study.metrics.map((metric, idx) => (
+                              <div 
+                                key={idx} 
+                                className="bg-primary/5 rounded-lg p-4 text-center relative overflow-hidden hover:bg-primary/10 transition-all duration-300"
+                              >
+                                <div className="mx-auto mb-2 p-2 rounded-full bg-primary/10 inline-block">
+                                  <metric.icon className="h-5 w-5 text-primary" />
+                                </div>
+                                <div className="text-2xl font-bold mb-1 text-foreground">{metric.value}</div>
+                                <div className="text-xs font-medium text-primary">{metric.label}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Features/Highlights */}
+                        <div className="mb-6">
+                          <h4 className="text-sm font-medium text-muted-foreground mb-3">Key Features:</h4>
+                          <ul className="grid grid-cols-2 gap-2 mb-6">
+                            {study.highlights.map((highlight, idx) => (
+                              <li key={idx} className="flex items-center gap-2 text-sm">
+                                <span className="size-1.5 rounded-full bg-primary/60" />
+                                {highlight}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        {/* CTA Button */}
+                        <Button asChild className="group">
                           <Link href={study.link}>
                             View Full Case Study
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                           </Link>
                         </Button>
                       </div>
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <div className="text-center">
-                          <div className="text-4xl font-bold text-primary mb-2">{study.metric}</div>
-                          <div className="text-sm text-muted-foreground">{study.metricLabel}</div>
-                        </div>
+                      
+                      {/* Gallery Preview */}
+                      <div className="md:col-span-2 space-y-4">
+                        {study.galleryImages && study.galleryImages.length > 0 && (
+                          <div className="space-y-4">
+                            <div className="aspect-video bg-muted rounded-lg overflow-hidden border border-border">
+                              <img 
+                                src={study.galleryImages[0]} 
+                                alt="System screenshot" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              {study.galleryImages.slice(1, 4).map((img, idx) => (
+                                <div key={idx} className="aspect-square bg-muted rounded-lg overflow-hidden border border-border">
+                                  <img 
+                                    src={img} 
+                                    alt={`System screenshot ${idx + 2}`} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-center text-xs text-muted-foreground">
+                              Click "View Full Case Study" to see more screenshots
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>

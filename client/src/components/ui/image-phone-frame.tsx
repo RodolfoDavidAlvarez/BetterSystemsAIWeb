@@ -1,4 +1,4 @@
-import React from 'react';
+// No need to import React in newer React versions
 
 interface ImagePhoneFrameProps {
   imageUrl: string;

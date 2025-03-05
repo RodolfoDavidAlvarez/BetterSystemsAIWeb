@@ -9,7 +9,6 @@ import {
   ZoomIn,
   ZoomOut,
   CheckCircle,
-  CheckCircle2,
   Truck,
   BarChart3,
   Clock4,
@@ -444,25 +443,41 @@ export default function FleetManagementPage() {
           
           <motion.div 
             variants={fadeIn}
-            className="relative h-[500px] flex items-center justify-center"
+            className="relative h-[550px] flex items-center justify-center"
           >
-            <div className="relative mx-auto w-[300px]">
-              {/* Main Image */}
-              <div className="absolute left-0 top-0 w-[230px] bg-white rounded-[36px] overflow-hidden shadow-lg border-8 border-[#1e3a4a] z-10">
-                <img 
-                  src="/images/repair-request-form/form-main.png" 
-                  alt="Mobile view of vehicle repair request form with personal information fields and language selector" 
-                  className="w-full h-auto"
-                />
+            <div className="relative mx-auto">
+              {/* Phone mockups */}
+              <div className="absolute left-0 top-10 z-10 transform rotate-[-5deg]">
+                <div className="relative">
+                  {/* Phone frame */}
+                  <div className="w-[240px] h-[480px] bg-[#1e3a4a] rounded-[36px] p-3 shadow-xl">
+                    {/* Screen */}
+                    <div className="w-full h-full bg-white rounded-[28px] overflow-hidden">
+                      <img 
+                        src="/images/repair-request-form/form-main.png" 
+                        alt="Mobile view of vehicle repair request form with personal information fields and language selector" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               
               {/* Second Image */}
-              <div className="absolute right-0 top-[180px] w-[220px] bg-white rounded-[36px] overflow-hidden shadow-lg border-8 border-[#1e3a4a] z-20">
-                <img 
-                  src="/images/repair-request-form/form-upload.png" 
-                  alt="Mobile view showing photo upload functionality for vehicle repairs" 
-                  className="w-full h-auto"
-                />
+              <div className="absolute right-0 top-[200px] z-20 transform rotate-[5deg]">
+                <div className="relative">
+                  {/* Phone frame */}
+                  <div className="w-[240px] h-[480px] bg-[#1e3a4a] rounded-[36px] p-3 shadow-xl">
+                    {/* Screen */}
+                    <div className="w-full h-full bg-white rounded-[28px] overflow-hidden">
+                      <img 
+                        src="/images/repair-request-form/form-upload.png" 
+                        alt="Mobile view showing photo upload functionality for vehicle repairs" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -493,7 +508,7 @@ export default function FleetManagementPage() {
           <div className="rounded-lg overflow-hidden shadow-lg border border-muted">
             <div className="bg-primary-foreground text-primary p-3 font-medium">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5" />
+                <CheckCircle className="h-5 w-5 text-primary" />
                 <span>Submission Confirmation</span>
               </div>
             </div>

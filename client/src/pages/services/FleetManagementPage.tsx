@@ -12,12 +12,7 @@ import {
   Truck,
   BarChart3,
   Clock4,
-  Bell,
-  Globe,
-  Upload,
-  Smartphone,
-  CheckSquare,
-  Languages
+  Bell
 } from 'lucide-react';
 
 import { fadeIn, staggerChildren } from '../../lib/animations';
@@ -396,7 +391,7 @@ export default function FleetManagementPage() {
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2">Digital Repair Request System</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our mobile-friendly repair request form makes it easy for drivers to report vehicle issues instantly
+            Our mobile-friendly repair request form makes it easy for drivers to report vehicle issues instantly and upload supporting photos directly from their phones.
           </p>
         </div>
 

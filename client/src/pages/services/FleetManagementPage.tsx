@@ -381,6 +381,104 @@ export default function FleetManagementPage() {
         </div>
       </motion.section>
 
+      {/* Repair Request Form Showcase */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20"
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2">Digital Repair Request System</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our mobile-friendly repair request form makes it easy for drivers to report vehicle issues instantly
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <motion.div 
+            variants={fadeIn}
+            className="flex flex-col justify-center"
+          >
+            <h3 className="text-2xl font-semibold mb-4">Streamlined Repair Workflow</h3>
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Multilingual Support</p>
+                  <p className="text-muted-foreground">Toggle between English and Spanish to support diverse workforces</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Photo Documentation</p>
+                  <p className="text-muted-foreground">Upload multiple photos directly from mobile devices to document issues</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Priority Flagging</p>
+                  <p className="text-muted-foreground">Easily mark urgent repairs for immediate attention</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="bg-primary/10 rounded-full p-2 mt-0.5">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">Instant Notifications</p>
+                  <p className="text-muted-foreground">Automatically alerts mechanics and managers when new requests are submitted</p>
+                </div>
+              </li>
+            </ul>
+          </motion.div>
+          
+          <motion.div 
+            variants={fadeIn}
+            className="relative"
+          >
+            <div className="relative mx-auto w-[280px] md:w-[320px]">
+              {/* Phone Frame */}
+              <div className="absolute inset-0 bg-[#1e394a] rounded-[40px] shadow-xl transform rotate-2 scale-[1.01] z-0"></div>
+              
+              {/* Main Image */}
+              <div className="relative bg-white rounded-[36px] overflow-hidden shadow-lg z-10">
+                <img 
+                  src="/images/repair-request-form-1.png" 
+                  alt="Mobile view of vehicle repair request form with personal and vehicle information fields" 
+                  className="w-full"
+                  onError={(e) => {
+                    console.error(`Failed to load repair form image`);
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+              
+              {/* Second Image (Smaller & Offset) */}
+              <div className="absolute -bottom-16 -right-8 w-[65%] bg-white rounded-[24px] overflow-hidden shadow-lg transform -rotate-3 z-20 border-4 border-white">
+                <img 
+                  src="/images/repair-request-form-2.png" 
+                  alt="Mobile view of the problem description and photo upload section of the repair form" 
+                  className="w-full"
+                  onError={(e) => {
+                    console.error(`Failed to load repair form detail image`);
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
       {/* CTA Section */}
       <motion.div 
         className="text-center bg-primary/5 rounded-2xl p-8 md:p-12"

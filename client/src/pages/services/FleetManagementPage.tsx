@@ -24,6 +24,34 @@ export default function FleetManagementPage() {
   // State for image zoom
   const [zoomLevels, setZoomLevels] = useState<Record<number, number>>({});
   
+  // State for the active repair form image and agave image
+  const [activeRepairImage, setActiveRepairImage] = useState<number>(0);
+  const [activeAgaveImage, setActiveAgaveImage] = useState<number>(0);
+  
+  // Repair form gallery images
+  const repairFormImages = [
+    {
+      src: "/images/repair-form/mobile-main.png",
+      alt: "Mobile repair form interface with language toggle",
+      title: "Multilingual Interface"
+    },
+    {
+      src: "/images/repair-form/mobile-upload.png",
+      alt: "Mobile form interface for photo uploads",
+      title: "Photo Upload Interface"
+    },
+    {
+      src: "/images/repair-form/loading.jpeg",
+      alt: "Mobile form loading state",
+      title: "Loading State"
+    },
+    {
+      src: "/images/repair-form/submitted.jpeg",
+      alt: "Mobile form submission confirmation",
+      title: "Confirmation Screen"
+    }
+  ];
+  
   // Function to handle zooming in/out
   const handleZoom = (idx: number, action: 'in' | 'out') => {
     setZoomLevels(prev => {
@@ -40,6 +68,25 @@ export default function FleetManagementPage() {
     setZoomLevels(prev => ({ ...prev, [idx]: 1 }));
   };
 
+  // Agave branding gallery images
+  const agaveImages = [
+    {
+      src: "/images/repair-form/agave-1.jpeg",
+      alt: "Agave Environmental Contracting branded repair form",
+      title: "Branded Interface"
+    },
+    {
+      src: "/images/repair-form/agave-2.jpeg",
+      alt: "Agave Environmental Contracting form fields",
+      title: "Custom Form Fields"
+    },
+    {
+      src: "/images/repair-form/agave-3.jpeg",
+      alt: "Agave Environmental Contracting options",
+      title: "Company-Specific Options"
+    }
+  ];
+  
   // Gallery Images
   const galleryImages = [
     {
@@ -391,110 +438,204 @@ export default function FleetManagementPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">Mobile Repair Request System</h2>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
               Our mobile-friendly repair request form makes it easy for drivers to report issues 
-              and upload photos directly from their phones.
+              and upload photos directly from their phones, with multilingual support for diverse workforces.
             </p>
           </div>
 
-          {/* First Row - Multilingual and Photo Upload */}
+          {/* Main Display with Image Carousel */}
           <motion.div
             variants={fadeIn}
-            className="flex flex-col md:flex-row justify-center items-start gap-8 md:gap-24 mb-20"
+            className="flex flex-col lg:flex-row justify-center items-center gap-8 lg:gap-16 mb-16"
           >
-            {/* Multilingual Support */}
-            <div className="flex flex-col items-center text-center max-w-xs">
-              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
-                <img 
-                  src="/images/repair-form/mobile-main.png" 
-                  alt="Mobile repair form interface with language toggle" 
-                  className="w-full h-auto object-contain max-h-[90%]"
-                />
+            {/* Main Image Display - Large Phone Display */}
+            <div className="flex-1 max-w-md">
+              <div className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-[40px] p-3 border-[14px] border-gray-800 shadow-2xl mx-auto max-w-[320px]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-6 bg-gray-800 rounded-b-xl"></div>
+                <div className="w-full rounded-3xl overflow-hidden aspect-[9/19] bg-[#1e3a4a]">
+                  <img 
+                    src={repairFormImages[activeRepairImage].src} 
+                    alt={repairFormImages[activeRepairImage].alt} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-16 h-1 bg-gray-600 rounded-full"></div>
               </div>
-              <h3 className="text-xl font-semibold mb-1">Multilingual Support</h3>
-              <p className="text-gray-400">
-                Toggle between English and Spanish to support diverse workforces
-              </p>
+              <h3 className="text-xl font-bold text-center mt-6 mb-2">
+                {repairFormImages[activeRepairImage].title}
+              </h3>
             </div>
             
-            {/* Photo Upload */}
-            <div className="flex flex-col items-center text-center max-w-xs">
-              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-4 overflow-hidden flex items-center justify-center">
-                <img 
-                  src="/images/repair-form/mobile-upload.png" 
-                  alt="Mobile form interface for photo uploads" 
-                  className="w-full h-auto object-contain max-h-[90%]"
-                />
+            {/* Thumbnail Gallery with Features */}
+            <div className="flex-1 max-w-md">
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {repairFormImages.map((image, idx) => (
+                  <button 
+                    key={idx}
+                    className={`bg-[#1e3a4a] rounded-xl overflow-hidden p-2 border-2 transition-all duration-200 aspect-square flex items-center justify-center ${
+                      activeRepairImage === idx 
+                        ? 'border-blue-500 shadow-md shadow-blue-900/20' 
+                        : 'border-transparent hover:border-blue-500/50'
+                    }`}
+                    onClick={() => setActiveRepairImage(idx)}
+                    aria-label={`View ${image.title}`}
+                  >
+                    <img 
+                      src={image.src} 
+                      alt={image.alt} 
+                      className="h-full w-auto object-contain max-h-[90%]"
+                    />
+                  </button>
+                ))}
               </div>
-              <h3 className="text-xl font-semibold mb-1">Photo Documentation</h3>
-              <p className="text-gray-400">
-                Upload multiple photos to document vehicle issues
-              </p>
+              
+              {/* Key Features List */}
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Multilingual Support</h3>
+                    <p className="text-gray-400 text-sm">
+                      Toggle between English and Spanish to meet the needs of all your drivers
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Photo Documentation</h3>
+                    <p className="text-gray-400 text-sm">
+                      Upload multiple photos to document issues with visual evidence
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Smooth User Experience</h3>
+                    <p className="text-gray-400 text-sm">
+                      From loading states to confirmation screens, users always know what's happening
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
-          
-          {/* Second Row - Mobile Optimization and Real-time Validation */}
+        </div>
+      </motion.section>
+      
+      {/* Private Label Customization Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20 overflow-hidden bg-gradient-to-r from-emerald-950 to-emerald-900 text-white py-16"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Custom-Branded For Your Business</h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Your fleet management system can be fully customized with your company's branding, 
+              creating a seamless, professional experience for your team.
+            </p>
+          </div>
+
+          {/* Agave Examples */}
           <motion.div
             variants={fadeIn}
-            className="flex flex-col md:flex-row justify-center gap-8 md:gap-24 mb-16"
+            className="flex flex-col lg:flex-row justify-center items-center gap-8 lg:gap-16"
           >
-            <div className="flex flex-col max-w-xs">
-              {/* Mobile Optimization Header */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                  <CheckCircle className="h-4 w-4 text-white" />
+            {/* Main Branded Example */}
+            <div className="flex-1 max-w-xl">
+              <div className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-[40px] p-3 border-[14px] border-gray-800 shadow-2xl mx-auto max-w-[340px]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-6 bg-gray-800 rounded-b-xl"></div>
+                <div className="w-full rounded-3xl overflow-hidden aspect-[9/19] bg-[#1e3a4a]">
+                  <img 
+                    src={agaveImages[activeAgaveImage].src} 
+                    alt={agaveImages[activeAgaveImage].alt} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Mobile Optimization</h3>
-                  <p className="text-gray-400 text-sm">
-                    Works perfectly on phones and tablets
-                  </p>
-                </div>
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-16 h-1 bg-gray-600 rounded-full"></div>
               </div>
+              <h3 className="text-xl font-bold text-center mt-6 mb-2">
+                {agaveImages[activeAgaveImage].title}
+              </h3>
               
-              {/* Loading State Device */}
-              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
-                <img 
-                  src="/images/repair-form/loading.jpeg" 
-                  alt="Mobile form loading state" 
-                  className="w-full h-auto object-contain max-h-[90%]"
-                />
-              </div>
-              <div className="text-center">
-                <p className="text-blue-400 text-sm mt-2 mb-1 font-medium">Loading State</p>
-                <p className="text-gray-400 text-sm">
-                  Visual feedback while the form initializes with animated loading indicators
-                </p>
+              {/* Image Selection Dots */}
+              <div className="flex justify-center space-x-2 mt-4">
+                {agaveImages.map((_, idx) => (
+                  <button 
+                    key={idx}
+                    className={`h-3 w-3 rounded-full transition-colors duration-200 ${
+                      activeAgaveImage === idx ? 'bg-emerald-400' : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                    onClick={() => setActiveAgaveImage(idx)}
+                    aria-label={`View image ${idx + 1}`}
+                  />
+                ))}
               </div>
             </div>
             
-            <div className="flex flex-col max-w-xs">
-              {/* Real-time Validation Header */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                  <CheckCircle className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Real-time Validation</h3>
-                  <p className="text-gray-400 text-sm">
-                    Ensures all required information is provided
-                  </p>
+            {/* Branding Description */}
+            <div className="flex-1 max-w-xl">
+              <h3 className="text-2xl font-bold mb-6">
+                Custom-Branded For Your Business
+              </h3>
+              
+              <div className="space-y-6 mb-8">
+                <p className="text-gray-300">
+                  See how Agave Environmental Contracting has their own branded repair request system, 
+                  complete with their logo, colors, and specific fields tailored to their business needs.
+                </p>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  {agaveImages.map((image, idx) => (
+                    <button 
+                      key={idx}
+                      className={`bg-black/30 rounded-xl overflow-hidden p-2 border-2 transition-all duration-200 aspect-square flex items-center justify-center ${
+                        activeAgaveImage === idx 
+                          ? 'border-emerald-400 shadow-md shadow-emerald-900/30' 
+                          : 'border-transparent hover:border-emerald-400/50'
+                      }`}
+                      onClick={() => setActiveAgaveImage(idx)}
+                      aria-label={`View ${image.title}`}
+                    >
+                      <img 
+                        src={image.src} 
+                        alt={image.alt} 
+                        className="h-full w-auto object-contain max-h-[90%]"
+                      />
+                    </button>
+                  ))}
                 </div>
               </div>
               
-              {/* Confirmation State Device */}
-              <div className="w-full max-w-sm h-[240px] bg-[#1e3a4a] rounded-3xl mb-2 overflow-hidden flex items-center justify-center">
-                <img 
-                  src="/images/repair-form/submitted.jpeg" 
-                  alt="Mobile form submission confirmation" 
-                  className="w-full h-auto object-contain max-h-[90%]"
-                />
-              </div>
-              <div className="text-center">
-                <p className="text-green-400 text-sm mt-2 mb-1 font-medium">Confirmation</p>
-                <p className="text-gray-400 text-sm">
-                  Clear confirmation lets operators know their repair request was successfully submitted
-                </p>
+              <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl">
+                <h4 className="text-xl font-semibold mb-2">Why Customize Your System?</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <span>Strengthen your company identity with consistent branding</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <span>Increase user adoption with familiar, intuitive interfaces</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <span>Match terminology and workflows to your specific operations</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </motion.div>

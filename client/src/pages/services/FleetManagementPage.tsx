@@ -15,8 +15,7 @@ import {
   Bell,
   PieChart,
   ChartBar,
-  Filter,
-  AlertCircle
+  Filter
 } from 'lucide-react';
 
 import { ExpandableImage } from '@/components/ui/expandable-image';
@@ -219,6 +218,229 @@ export default function FleetManagementPage() {
           <Button asChild variant="outline" size="lg">
             <Link href="/contact">Request Demo</Link>
           </Button>
+        </div>
+      </motion.section>
+
+      {/* Mechanic Dashboard Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20 overflow-hidden bg-slate-900 text-white py-16"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Mechanic Dashboard</h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Our mechanic dashboard presents all repair information in an intuitive format, including AI-classified descriptions, 
+              priority status indicators, and detailed repair tracking.
+            </p>
+          </div>
+
+          {/* Main Display with Image Carousel */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col lg:flex-row justify-center items-center gap-8 lg:gap-16 mb-16"
+          >
+            {/* Main Image Display */}
+            <div className="flex-1 max-w-xl">
+              <div className="relative rounded-xl border-2 border-gray-700 shadow-2xl overflow-hidden">
+                <ExpandableImage 
+                  src={mechanicDashboardImages[activeMechanicImage].src} 
+                  alt={mechanicDashboardImages[activeMechanicImage].alt} 
+                  containerClassName="cursor-pointer"
+                />
+              </div>
+              <h3 className="text-xl font-bold text-center mt-6 mb-2">
+                {mechanicDashboardImages[activeMechanicImage].title}
+              </h3>
+            </div>
+            
+            {/* Dashboard Features */}
+            <div className="flex-1 max-w-md">
+              <div className="grid grid-cols-1 gap-4 mb-8">
+                {mechanicDashboardImages.map((image, idx) => (
+                  <button 
+                    key={idx}
+                    className={`bg-slate-800 rounded-xl overflow-hidden p-4 border-2 transition-all duration-200 ${
+                      activeMechanicImage === idx 
+                        ? 'border-blue-500 shadow-md shadow-blue-900/30' 
+                        : 'border-transparent hover:border-blue-500/50'
+                    }`}
+                    onClick={() => setActiveMechanicImage(idx)}
+                    aria-label={`View ${image.title}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 flex-shrink-0 bg-slate-700 rounded-lg overflow-hidden">
+                        <img src={image.src} alt={image.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-medium mb-1">{image.title}</h4>
+                        <p className="text-sm text-gray-400">
+                          {idx === 0 ? "AI-classified repairs with priority indicators" : "Complete time tracking for repair lifecycle"}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-800/30">
+                <h4 className="font-bold text-blue-300 mb-2">Dashboard Benefits:</h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span>Emergency repair prioritization with visual indicators</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span>Complete timeline tracking for maintenance efficiency</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span>Advanced analytics on service times and patterns</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Problem Classification Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20 overflow-hidden bg-slate-800 text-white py-16"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Repair Problem Classification</h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Track repair categories and costs with detailed analytics that help identify frequent issues and optimize maintenance budgets.
+            </p>
+          </div>
+
+          {/* Problem Classification Display */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col lg:flex-row justify-center items-center gap-12"
+          >
+            {/* Main Image Display */}
+            <div className="flex-1 max-w-4xl">
+              <div className="relative rounded-xl border-2 border-gray-700 shadow-2xl overflow-hidden">
+                <ExpandableImage 
+                  src="/images/problem-classification/problem-look.png" 
+                  alt="Problem classification graph showing repair categories and costs" 
+                  containerClassName="cursor-pointer"
+                />
+              </div>
+            </div>
+            
+            {/* Problem Classification Features */}
+            <div className="flex-1 max-w-md">
+              <div className="space-y-6">
+                <div className="bg-slate-700 rounded-lg p-5 border border-slate-600 shadow-md">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <PieChart className="h-6 w-6 text-blue-400" /> 
+                    Repair Category Breakdown
+                  </h3>
+                  <p className="text-gray-300">
+                    View the distribution of repair types across your fleet, helping identify systemic issues that may require preventative maintenance programs.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-700 rounded-lg p-5 border border-slate-600 shadow-md">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <ChartBar className="h-6 w-6 text-green-400" /> 
+                    Cost Analysis
+                  </h3>
+                  <p className="text-gray-300">
+                    Monitor repair costs per category and identify which issues are most expensive, allowing for better budget planning and resource allocation.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-700 rounded-lg p-5 border border-slate-600 shadow-md">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <Filter className="h-6 w-6 text-yellow-400" /> 
+                    Customizable Reports
+                  </h3>
+                  <p className="text-gray-300">
+                    Generate tailored reports by department, vehicle type, or time period to gain actionable insights for decision-making and maintenance scheduling.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Service Records Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="mb-20 overflow-hidden bg-gradient-to-r from-slate-600 to-slate-700 py-16 text-white"
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Complete Service Tracking</h2>
+            <p className="text-lg text-slate-200 max-w-3xl mx-auto">
+              Track individual service costs, repair descriptions, and cumulative fleet expenses with detailed service records.
+            </p>
+          </div>
+
+          {/* Main Service Records Display */}
+          <motion.div
+            variants={fadeIn}
+            className="flex flex-col lg:flex-row justify-center items-center gap-12"
+          >
+            {/* Main Image Display */}
+            <div className="flex-1 max-w-4xl">
+              <div className="relative rounded-xl border-2 border-slate-500 shadow-2xl overflow-hidden">
+                <ExpandableImage 
+                  src="/images/service-records/service-costs.png" 
+                  alt="Service records showing repair costs, mechanic assignments, and service details" 
+                  containerClassName="cursor-pointer"
+                />
+              </div>
+            </div>
+            
+            {/* Service Records Features */}
+            <div className="flex-1 max-w-md">
+              <div className="space-y-6">
+                <div className="bg-slate-700 rounded-lg p-5 border border-slate-500 shadow-md">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <BarChart3 className="h-6 w-6 text-blue-400" /> 
+                    Cost Tracking
+                  </h3>
+                  <p className="text-gray-300">
+                    Monitor both individual repair expenses and total fleet maintenance costs to optimize your budget and identify trends.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-700 rounded-lg p-5 border border-slate-500 shadow-md">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <Clock className="h-6 w-6 text-green-400" /> 
+                    Service History
+                  </h3>
+                  <p className="text-gray-300">
+                    Access complete service history with timestamps, mechanic assignments, and detailed repair descriptions for each vehicle.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-700 rounded-lg p-5 border border-slate-500 shadow-md">
+                  <h3 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <FileSpreadsheet className="h-6 w-6 text-yellow-400" /> 
+                    Actionable Reports
+                  </h3>
+                  <p className="text-gray-300">
+                    Generate custom reports to identify patterns, forecast maintenance costs, and make data-driven decisions for your fleet.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </motion.section>
 

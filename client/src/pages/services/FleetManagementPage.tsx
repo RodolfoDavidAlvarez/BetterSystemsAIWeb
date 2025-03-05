@@ -12,8 +12,15 @@ import {
   Truck,
   BarChart3,
   Clock4,
-  Bell
+  Bell,
+  PieChart,
+  ChartBar,
+  Filter,
+  Plus,
+  AlertTriangle
 } from 'lucide-react';
+
+import { ExpandableImage } from '@/components/ui/expandable-image';
 
 import { fadeIn, staggerChildren } from '../../lib/animations';
 import { Button } from '../../components/ui/button';

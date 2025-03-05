@@ -1,490 +1,611 @@
-import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { fadeIn, staggerChildren } from "@/lib/animations";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import {
-  Timer,
-  ArrowLeft,
-  BellRing,
-  Database,
-  FileText,
-  Truck,
-  Calendar,
-  Clock,
-  ClipboardCheck,
-  Wrench,
-  BarChart3,
-  TrendingUp,
-  Smartphone,
-  MessageSquare,
-  Settings,
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Link } from 'wouter';
+import { 
+  ArrowRight, 
+  ChevronRight, 
+  TrendingUp, 
+  Clock, 
+  BarChart, 
+  Shield, 
+  Cpu, 
+  CarFront, 
+  Users, 
+  Clipboard, 
+  FileSpreadsheet, 
+  LineChart, 
   Maximize2,
-  X,
-} from "lucide-react";
-import React, { useState } from "react";
-import AutoplayPlugin from "embla-carousel-autoplay";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+  Wrench,
+  Car,
+  CalendarCheck,
+  Building,
+  ExternalLink
+} from 'lucide-react';
+
+import { fadeIn, staggerChildren } from '../../lib/animations';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Separator } from '../../components/ui/separator';
+import { Badge } from '../../components/ui/badge';
+import { Dialog, DialogContent, DialogClose, DialogTrigger } from "../../components/ui/dialog"
 
 export default function FleetManagementPage() {
-  // State for image gallery modal
-  const [selectedImage, setSelectedImage] = useState<{ src: string; title: string; alt: string } | null>(null);
-  
-  // Reference for animating elements
-  const bellRef = React.useRef<HTMLDivElement>(null);
-  const phoneRef = React.useRef<HTMLDivElement>(null);
-  const trucksRef = React.useRef<HTMLDivElement>(null);
-  
-  // Gallery images from the original page
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Gallery Images
   const galleryImages = [
     {
-      src: "/images/ai-classification-gallery.png",
-      title: "AI Classification Gallery",
-      alt: "AI Classification system showcase"
-    },
-    {
-      src: "/images/cost-analysis-reporting.png",
-      title: "Cost Analysis and Incident Reporting",
-      alt: "Cost analysis and incident reporting interface"
+      src: "/images/vehicle-management-detail.png",
+      title: "Vehicle Management Dashboard",
+      alt: "Vehicle management dashboard showing detailed vehicle information"
     },
     {
       src: "/images/driver-management.png",
+      title: "Driver Management Interface",
+      alt: "Driver management interface with driver details and assignments"
+    },
+    {
+      src: "/images/ai-classification-gallery.png",
+      title: "AI-Powered Classification",
+      alt: "AI classification system for vehicle and resource management"
+    },
+    {
+      src: "/images/cost-analysis-reporting.png",
+      title: "Cost Analysis & Reporting",
+      alt: "Cost analysis and incident reporting dashboard"
+    }
+  ];
+
+  // Features List
+  const features = [
+    {
+      icon: CarFront,
+      title: "Vehicle Tracking & Management",
+      description: "Real-time GPS tracking and comprehensive vehicle history including maintenance records, fuel usage, and performance metrics."
+    },
+    {
+      icon: Users,
       title: "Driver Management",
-      alt: "Driver management interface"
+      description: "Complete driver profiles with licensing information, training records, safety scores, and assignment histories."
     },
     {
-      src: "/images/vehicle-management-detail.png",
-      title: "Vehicle Management Detail",
-      alt: "Vehicle management detailed view"
-    }
-  ];
-  
-  // Animation effect
-  React.useEffect(() => {
-    // Notification bell animation
-    if (bellRef.current) {
-      const bell = bellRef.current;
-      const bellAnimation = () => {
-        bell.animate([
-          { transform: 'rotate(0deg)' },
-          { transform: 'rotate(15deg)' },
-          { transform: 'rotate(-15deg)' },
-          { transform: 'rotate(0deg)' }
-        ], {
-          duration: 1000,
-          iterations: Infinity,
-          easing: 'ease-in-out',
-          direction: 'alternate',
-          delay: 2000,
-        });
-      };
-      bellAnimation();
-    }
-
-    // Phone notification animation
-    if (phoneRef.current) {
-      const phone = phoneRef.current;
-      const phoneAnimation = () => {
-        phone.animate([
-          { transform: 'translateY(0px)' },
-          { transform: 'translateY(-10px)' },
-          { transform: 'translateY(0px)' }
-        ], {
-          duration: 1500,
-          iterations: Infinity,
-          easing: 'ease-in-out',
-        });
-      };
-      phoneAnimation();
-    }
-
-    // Trucks animation
-    if (trucksRef.current) {
-      const trucks = trucksRef.current;
-      const trucksAnimation = () => {
-        trucks.animate([
-          { transform: 'translateX(0px)' },
-          { transform: 'translateX(10px)' },
-          { transform: 'translateX(0px)' }
-        ], {
-          duration: 2000,
-          iterations: Infinity,
-          easing: 'ease-in-out',
-        });
-      };
-      trucksAnimation();
-    }
-  }, []);
-
-  // Core features with animations
-  const coreFeatures = [
-    {
-      title: "Automated Repairs",
-      subtitle: "Save Time With Instant Booking",
-      icon: Wrench,
-      color: "bg-blue-500",
-      description: "When a vehicle needs service, repair requests are automatically sent to drivers and mechanics, eliminating paperwork and manual coordination.",
-      animation: "pulse"
+      icon: Clipboard,
+      title: "Maintenance Scheduling",
+      description: "Automated maintenance alerts based on mileage, engine hours, and calendar dates with work order creation and tracking."
     },
     {
-      title: "Real-Time Updates",
-      subtitle: "Stay Informed Anywhere",
-      icon: BellRing,
-      color: "bg-green-500",
-      description: "Get real-time notifications on repair status and maintenance updates via SMS alerts, so you're always in the loop.",
-      ref: bellRef,
-      animation: "bounce"
+      icon: Shield,
+      title: "Compliance Management",
+      description: "Automated tracking of regulatory requirements, inspection schedules, and documentation management."
     },
     {
-      title: "Centralized Data",
-      subtitle: "Everything in One Place",
-      icon: Database,
-      color: "bg-purple-500",
-      description: "Keep all your important fleet information — vehicle details, tire specs, supplier contacts, certifications, and licensing — in one secure location.",
-      animation: "fade"
+      icon: FileSpreadsheet,
+      title: "Cost Tracking & Analysis",
+      description: "Detailed cost tracking for vehicles, including acquisition, maintenance, fuel, and depreciation with customizable reporting."
     },
     {
-      title: "Smart Scheduling",
-      subtitle: "Efficient Coordination",
-      icon: Calendar,
-      color: "bg-orange-500",
-      description: "Quickly find when drivers and vehicles are available, reducing the hassle of coordinating repairs and maintenance.",
-      animation: "slide"
-    }
-  ];
-  
-  // Statistics and metrics
-  const metrics = [
-    {
-      value: "2,500+",
-      label: "Hours Saved Annually",
-      description: "Labor hours saved managing driver, vehicle, and incident information.",
-      icon: Clock
-    },
-    {
-      value: "300+",
-      label: "Vehicles Managed",
-      description: "Fleet size successfully managed with our system.",
-      icon: Truck,
-      ref: trucksRef
-    },
-    {
-      value: "60%",
-      label: "Faster Responses",
-      description: "Improvement in maintenance response times.",
-      icon: Timer
+      icon: Cpu,
+      title: "AI-Powered Optimization",
+      description: "Machine learning algorithms optimize routes, predict maintenance needs, and identify cost-saving opportunities."
     }
   ];
 
-  // Benefits carousel items  
+  // Case Study Data
+  const caseStudy = {
+    company: "Agave Environmental Contracting Inc.",
+    logo: "/images/agave-logo.png",
+    clientUrl: "https://www.agave-inc.com/",
+    challenge: "Managing a growing fleet of over 300 vehicles across multiple locations with increasing administrative overhead and maintenance costs.",
+    solution: "Implemented a comprehensive AI-powered fleet management system with real-time tracking, automated maintenance scheduling, and predictive analytics.",
+    results: [
+      {
+        icon: Clock,
+        value: "2,500+",
+        label: "Annual Labor Hours Saved"
+      },
+      {
+        icon: TrendingUp,
+        value: "22%",
+        label: "Maintenance Cost Reduction"
+      },
+      {
+        icon: BarChart,
+        value: "15%",
+        label: "Overall Fleet Efficiency Increase"
+      }
+    ]
+  };
+
   const benefits = [
     {
-      title: "Instant Repair Booking",
-      icon: Smartphone,
-      ref: phoneRef,
-      description: "Drivers report issues directly from their phones, and work orders are automatically created and dispatched."
+      icon: TrendingUp,
+      title: "Reduced Operating Costs",
+      description: "Cut fleet operating costs by optimizing routes, improving maintenance scheduling, and reducing fuel consumption."
     },
     {
-      title: "Monthly Checkups",
-      icon: ClipboardCheck,
-      description: "Automated mileage and performance checks help you quickly spot issues and plan preventative maintenance."
+      icon: Clock,
+      title: "Increased Productivity",
+      description: "Automate administrative tasks and streamline workflows to free up staff time for higher-value activities."
     },
     {
-      title: "Easy Communication",
-      icon: MessageSquare,
-      description: "SMS alerts keep everyone informed without having to check multiple systems or make phone calls."
+      icon: Shield,
+      title: "Enhanced Safety & Compliance",
+      description: "Ensure regulatory compliance and improve safety with automatic alerts, inspections tracking, and driver behavior monitoring."
     },
     {
-      title: "Track Repairs & Maintenance",
-      icon: FileText,
-      description: "Know exactly when each vehicle was last serviced and what work was performed."
+      icon: LineChart,
+      title: "Data-Driven Decisions",
+      description: "Make informed fleet decisions with comprehensive analytics and customizable reporting."
+    }
+  ];
+
+  // Timeline for implementation
+  const implementationTimeline = [
+    {
+      title: "Assessment & Planning",
+      description: "We analyze your current fleet management processes, identify pain points, and develop a custom implementation plan.",
+      duration: "2-3 weeks"
     },
     {
-      title: "Performance Analytics",
-      icon: BarChart3,
-      description: "Detailed analysis helps you identify reliable vehicles and make informed purchasing decisions."
+      title: "System Configuration",
+      description: "Our team configures the software to match your specific fleet management needs and integrates with your existing systems.",
+      duration: "2-4 weeks"
+    },
+    {
+      title: "Deployment & Training",
+      description: "We deploy the system and provide comprehensive training for your team to ensure a smooth transition.",
+      duration: "1-2 weeks"
+    },
+    {
+      title: "Ongoing Support & Optimization",
+      description: "Continuous support and regular system updates to ensure your fleet management solution evolves with your business needs.",
+      duration: "Ongoing"
     }
   ];
 
   return (
-    <div className="container mx-auto px-4 pb-16">
-      {/* Hero Section with Visual Impact */}
-      <motion.div
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/5 to-primary/20 p-8 pt-16 md:p-16 mb-16"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3" />
-        
-        <div className="relative z-10 max-w-4xl">
-          {/* Navigation */}
-          <div className="mb-8">
-            <Link href="/services/custom-solutions" className="inline-flex items-center text-primary hover:underline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Custom Solutions
-            </Link>
-          </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
-            Fleet Management <br/><span className="text-primary">Made Simple</span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl">
-            Imagine having all your fleet information in one place. Our system makes it easy to track vehicles, drivers, and repairs so you can save time, reduce downtime, and keep your trucks on the road.
-          </p>
-          
-          <div className="flex flex-wrap gap-4">
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/get-started">
-                Get Started <ArrowLeft className="h-4 w-4 rotate-180" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/contact">Contact Sales</Link>
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Key Metrics with Animations */}
+    <div className="container py-12 space-y-20">
+      {/* Hero Section */}
       <motion.section 
-        className="mb-16"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        <div className="grid md:grid-cols-3 gap-6">
-          {metrics.map((metric, index) => (
-            <motion.div 
-              key={index} 
-              variants={fadeIn}
-              className="bg-primary/5 rounded-2xl p-8 text-center relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
-              <div className="relative z-10">
-                <div ref={metric.ref} className="mx-auto mb-4 p-4 rounded-full bg-primary/10 inline-block">
-                  <metric.icon className="h-8 w-8 text-primary" />
-                </div>
-                <div className="text-4xl font-bold mb-2 text-foreground">{metric.value}</div>
-                <div className="font-semibold mb-2 text-primary">{metric.label}</div>
-                <p className="text-muted-foreground">{metric.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        <div className="text-center mt-6 text-muted-foreground">
-          <p>Developed for the largest landscaping company in Arizona</p>
-        </div>
-      </motion.section>
-
-      {/* Core Features with Visual Elements */}
-      <motion.section 
-        className="mb-16"
-        variants={staggerChildren}
-        initial="initial"
-        animate="animate"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Our fleet management system simplifies every aspect of your operations
-          </p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-8">
-          {coreFeatures.map((feature, index) => (
-            <motion.div 
-              key={index}
-              variants={fadeIn}
-              className="rounded-2xl bg-gradient-to-br from-background to-muted/30 p-1 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="bg-background rounded-xl p-8 h-full flex flex-col">
-                <div className="flex items-start mb-6">
-                  <div ref={feature.ref} className={`p-3 rounded-lg ${feature.color} text-white mr-4`}>
-                    <feature.icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold mb-1">{feature.title}</h3>
-                    <p className="text-primary font-medium">{feature.subtitle}</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground flex-grow">{feature.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* Benefits Carousel */}
-      <motion.section 
-        className="mb-16"
+        className="text-center space-y-6"
         variants={fadeIn}
         initial="initial"
         animate="animate"
       >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Better Decisions, Better Results</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Make informed choices about your fleet with powerful features
-          </p>
-        </div>
-        
-        <Carousel 
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          plugins={[
-            AutoplayPlugin({
-              delay: 4000,
-            }),
-          ]}
-          className="w-full"
-        >
-          <CarouselContent>
-            {benefits.map((benefit, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 pl-4">
-                <div className="bg-primary/5 rounded-2xl p-8 h-full flex flex-col hover:bg-primary/10 transition-colors duration-300">
-                  <div className="mb-6 flex items-center">
-                    <div ref={index === 0 ? benefit.ref : undefined} className="bg-primary/20 p-4 rounded-full mr-4">
-                      <benefit.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-bold">{benefit.title}</h3>
-                  </div>
-                  <p className="text-muted-foreground">{benefit.description}</p>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="flex justify-center gap-2 mt-8">
-            <CarouselPrevious className="relative static translate-y-0 left-0" />
-            <CarouselNext className="relative static translate-y-0 right-0" />
-          </div>
-        </Carousel>
-      </motion.section>
-
-      {/* Real Customer Highlight */}
-      <motion.section
-        className="mb-16 bg-primary/5 rounded-2xl p-8 md:p-12 relative overflow-hidden"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="text-4xl text-primary mb-4">❝</div>
-          <p className="text-xl md:text-2xl italic mb-6">
-            Better Systems AI's Fleet Management System has revolutionized how we handle our vehicle maintenance. 
-            The automation and real-time insights have been game-changing for our operations.
-          </p>
-          <div className="flex items-center">
-            <div className="bg-primary/20 rounded-full p-2 mr-4">
-              <Settings className="h-5 w-5 text-primary" />
-            </div>
-            <p className="font-medium">Operations Director, Agave Environmental Contract, Inc</p>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Interactive System Gallery */}
-      <motion.section
-        className="mb-16"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">System Overview</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            View our intuitive fleet management interface in action
-          </p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {galleryImages.map((image, index) => (
-            <motion.div 
-              key={index}
-              whileHover={{ scale: 1.03 }}
-              className="rounded-xl overflow-hidden shadow-md bg-background cursor-pointer relative group"
-              onClick={() => setSelectedImage(image)}
-            >
-              <div className="aspect-video relative">
-                <img 
-                  src={image.src} 
-                  alt={image.alt} 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <Maximize2 className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-medium text-sm truncate">{image.title}</h3>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* CTA Section */}
-      <motion.section
-        className="text-center bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-8 md:p-12"
-        variants={fadeIn}
-        initial="initial"
-        animate="animate"
-      >
-        <h2 className="text-3xl font-bold mb-4">Get Started Today</h2>
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Streamline your fleet operations, reduce costs, and enjoy more time to focus on growing your business. 
-          Ready to make fleet management effortless? Reach out to us and take control of your fleet today!
+        <Badge className="px-4 py-1 rounded-full">Fleet Management System</Badge>
+        <h1 className="text-4xl md:text-5xl font-bold">Streamline Your Fleet Operations with AI-Powered Intelligence</h1>
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          Optimize vehicle management, reduce costs, and enhance operational efficiency with our comprehensive fleet management solution.
         </p>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Button asChild size="lg" className="gap-2">
-            <Link href="/get-started">
-              Request Demo <TrendingUp className="h-4 w-4 ml-1" />
-            </Link>
+        <div className="flex gap-4 justify-center">
+          <Button asChild size="lg">
+            <Link href="/get-started">Get Started</Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href="/contact">Contact Sales</Link>
           </Button>
         </div>
       </motion.section>
-      
-      {/* Image Modal */}
-      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background/95 backdrop-blur-sm">
-          <div className="relative">
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-2 right-2 z-10 rounded-full bg-background/80 p-2 text-foreground hover:bg-background/90 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            
-            {selectedImage && (
-              <div className="overflow-auto max-h-[80vh]">
-                <img 
-                  src={selectedImage.src} 
-                  alt={selectedImage.alt} 
-                  className="w-full h-auto object-contain"
-                />
-                <div className="p-4 bg-background">
-                  <h3 className="text-xl font-semibold mb-2">{selectedImage.title}</h3>
-                  <p className="text-muted-foreground">{selectedImage.alt}</p>
+
+      {/* Gallery Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="space-y-8"
+      >
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold">System Overview</h2>
+          <p className="text-muted-foreground">
+            Explore our comprehensive fleet management solution
+          </p>
+        </div>
+
+        <motion.div 
+          variants={fadeIn}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {galleryImages.map((image, idx) => (
+            <Dialog key={idx}>
+              <DialogTrigger asChild>
+                <div 
+                  className="relative overflow-hidden rounded-xl border border-border/40 shadow-sm bg-card/50 transition-all duration-300 hover:shadow-md group cursor-pointer"
+                  onClick={() => setSelectedImage(image.src)}
+                >
+                  <div className="aspect-video overflow-hidden">
+                    <img 
+                      src={image.src} 
+                      alt={image.alt} 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        console.error(`Failed to load image: ${image.src}`);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <Maximize2 className="text-white h-10 w-10" />
+                  </div>
+                  <div className="p-4 bg-background/90 backdrop-blur-sm">
+                    <h3 className="font-medium text-lg">{image.title}</h3>
+                  </div>
+                </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-hidden p-1">
+                <div className="relative h-full">
+                  <DialogClose className="absolute top-4 right-4 z-10 bg-black/20 hover:bg-black/40 p-2 rounded-full text-white">
+                    <Maximize2 className="h-5 w-5" />
+                  </DialogClose>
+                  <img 
+                    src={image.src} 
+                    alt={image.alt} 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      console.error(`Failed to load large image: ${image.src}`);
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      {/* Features Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="space-y-8"
+      >
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold">Comprehensive Fleet Management Features</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our fleet management system provides all the tools you need to manage your fleet efficiently
+          </p>
+        </div>
+
+        <motion.div 
+          variants={fadeIn}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {features.map((feature, idx) => (
+            <Card key={idx} className="border-border/40 hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <div className="bg-primary/10 rounded-full p-2 inline-block mb-2">
+                  <feature.icon className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-xl">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      {/* AI Benefits Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="space-y-8"
+      >
+        <div className="text-center space-y-2">
+          <Badge variant="secondary" className="mb-4">AI-POWERED</Badge>
+          <h2 className="text-3xl font-bold">The Power of AI in Fleet Management</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our solution leverages artificial intelligence to transform your fleet operations
+          </p>
+        </div>
+
+        <motion.div 
+          variants={fadeIn}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          <Card className="border-border/40 overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-6">
+              <h3 className="text-2xl font-bold mb-4">Predictive Maintenance</h3>
+              <p className="text-muted-foreground mb-6">
+                AI algorithms analyze vehicle data to predict maintenance needs before failures occur, reducing downtime and costly repairs.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Early detection of potential issues</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Optimized maintenance scheduling</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Reduced unexpected breakdowns</span>
+                </li>
+              </ul>
+            </div>
+          </Card>
+
+          <Card className="border-border/40 overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-6">
+              <h3 className="text-2xl font-bold mb-4">Route Optimization</h3>
+              <p className="text-muted-foreground mb-6">
+                Advanced AI algorithms analyze traffic patterns, delivery requirements, and vehicle capabilities to determine the most efficient routes.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Reduced fuel consumption</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Improved delivery times</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Dynamic adjustment to real-time conditions</span>
+                </li>
+              </ul>
+            </div>
+          </Card>
+
+          <Card className="border-border/40 overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-6">
+              <h3 className="text-2xl font-bold mb-4">Driver Behavior Analysis</h3>
+              <p className="text-muted-foreground mb-6">
+                AI monitors and analyzes driver behavior to improve safety, reduce fuel consumption, and identify training opportunities.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Reduced accident rates</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Lower insurance premiums</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Targeted driver coaching</span>
+                </li>
+              </ul>
+            </div>
+          </Card>
+
+          <Card className="border-border/40 overflow-hidden">
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-6">
+              <h3 className="text-2xl font-bold mb-4">Intelligent Reporting</h3>
+              <p className="text-muted-foreground mb-6">
+                AI transforms fleet data into actionable insights with customizable dashboards and automated reporting.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Automated compliance reporting</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Customizable KPI dashboards</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ChevronRight className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Trend analysis and forecasting</span>
+                </li>
+              </ul>
+            </div>
+          </Card>
+        </motion.div>
+      </motion.section>
+
+      {/* Case Study Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="space-y-8"
+      >
+        <div className="text-center space-y-2">
+          <Badge variant="outline" className="mb-4">SUCCESS STORY</Badge>
+          <h2 className="text-3xl font-bold">Client Success: {caseStudy.company}</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            See how our fleet management solution transformed operations for a leading environmental contracting company
+          </p>
+        </div>
+
+        <motion.div variants={fadeIn}>
+          <Card className="border-border/40">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div>
+                  <a 
+                    href={caseStudy.clientUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center hover:opacity-80 transition-opacity"
+                  >
+                    <div className="h-16 bg-primary/5 rounded px-4 flex items-center">
+                      <img 
+                        src={caseStudy.logo} 
+                        alt={`${caseStudy.company} logo`} 
+                        className="h-full object-contain" 
+                        onError={(e) => {
+                          console.error("Failed to load logo:", caseStudy.logo);
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          const element = document.createElement('div');
+                          element.className = "flex items-center gap-2";
+                          element.innerHTML = `
+                            <Building className="h-5 w-5 text-primary" />
+                            <span className="font-medium">${caseStudy.company}</span>
+                          `;
+                          (e.target as HTMLImageElement).parentNode?.appendChild(element);
+                        }}
+                      />
+                    </div>
+                    <ExternalLink className="ml-2 h-4 w-4 text-muted-foreground" />
+                  </a>
+                </div>
+                <Separator orientation="vertical" className="h-10" />
+                <div className="grid grid-cols-3 gap-6">
+                  {caseStudy.results.map((result, idx) => (
+                    <div key={idx} className="text-center">
+                      <div className="font-bold text-2xl text-primary">{result.value}</div>
+                      <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                        <result.icon className="h-3 w-3" />
+                        <span>{result.label}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="font-medium text-lg mb-2">The Challenge</h3>
+                  <p className="text-muted-foreground">{caseStudy.challenge}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium text-lg mb-2">Our Solution</h3>
+                  <p className="text-muted-foreground">{caseStudy.solution}</p>
+                </div>
+              </div>
+
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <h3 className="font-medium text-lg mb-2">Key Improvements</h3>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <li className="flex items-start gap-2 text-sm">
+                    <CarFront className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Centralized vehicle tracking and management</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <Wrench className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Automated maintenance scheduling</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <Car className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Reduced vehicle downtime by 34%</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <FileSpreadsheet className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Streamlined compliance reporting</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Improved driver safety and accountability</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-sm">
+                    <CalendarCheck className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Enhanced resource scheduling and allocation</span>
+                  </li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.section>
+
+      {/* Benefits Section */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="space-y-8"
+      >
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold">Business Benefits</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            The strategic advantages our fleet management solution brings to your business
+          </p>
+        </div>
+
+        <motion.div 
+          variants={fadeIn}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {benefits.map((benefit, idx) => (
+            <Card key={idx} className="border-border/40 hover:shadow-md transition-all duration-300">
+              <CardHeader className="pb-2">
+                <div className="bg-primary/10 rounded-full p-2 inline-block mb-2">
+                  <benefit.icon className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-xl">{benefit.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{benefit.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      {/* Implementation Timeline */}
+      <motion.section
+        variants={staggerChildren}
+        initial="initial"
+        animate="animate"
+        className="space-y-8"
+      >
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold">Implementation Process</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our streamlined approach to implementing your fleet management solution
+          </p>
+        </div>
+
+        <motion.div 
+          variants={fadeIn}
+          className="relative"
+        >
+          <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-border/60"></div>
+          
+          {implementationTimeline.map((step, idx) => (
+            <div 
+              key={idx} 
+              className={`relative flex flex-col md:flex-row items-center md:items-start mb-12 last:mb-0 ${
+                idx % 2 === 0 ? 'md:flex-row-reverse' : ''
+              }`}
+            >
+              <div className={`md:w-1/2 px-4 ${idx % 2 === 0 ? 'md:text-right' : ''}`}>
+                <div className="rounded-lg bg-card p-6 border border-border/40 shadow-sm md:mr-6 md:ml-0">
+                  <div className="font-bold text-xl mb-2">{step.title}</div>
+                  <div className="text-sm text-muted-foreground mb-4">{step.description}</div>
+                  <Badge variant="outline">{step.duration}</Badge>
+                </div>
+              </div>
+              
+              <div className="hidden md:block absolute left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-background border-4 border-primary z-10">
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="font-bold">{idx + 1}</span>
+                </div>
+              </div>
+              
+              <div className="md:w-1/2"></div>
+            </div>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      {/* CTA Section */}
+      <motion.div 
+        className="text-center bg-primary/5 rounded-2xl p-12"
+        variants={fadeIn}
+        initial="initial"
+        animate="animate"
+      >
+        <h2 className="text-3xl font-bold mb-4">Ready to Optimize Your Fleet Operations?</h2>
+        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Contact us today to learn how our fleet management solution can transform your operations and drive significant cost savings.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Button asChild size="lg">
+            <Link href="/get-started">Request Demo</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href="/services/custom-solutions">View More Solutions</Link>
+          </Button>
+        </div>
+      </motion.div>
     </div>
   );
 }

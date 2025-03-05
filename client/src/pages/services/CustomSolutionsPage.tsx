@@ -139,11 +139,17 @@ export default function CustomSolutionsPage() {
                                 rel="noopener noreferrer"
                                 className="flex items-center hover:opacity-80 transition-opacity"
                               >
-                                <img 
-                                  src={study.logo} 
-                                  alt={`${study.company} logo`} 
-                                  className="h-12 object-contain" 
-                                />
+                                <div className="h-12 bg-primary/5 rounded px-2 flex items-center">
+                                  <img 
+                                    src={study.logo} 
+                                    alt={`${study.company} logo`} 
+                                    onError={(e) => {
+                                      console.error("Failed to load image:", study.logo);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                    className="h-full object-contain" 
+                                  />
+                                </div>
                                 <ExternalLink className="ml-2 h-4 w-4 text-muted-foreground" />
                               </a>
                             )}
@@ -206,6 +212,10 @@ export default function CustomSolutionsPage() {
                               <img 
                                 src={study.galleryImages[0]} 
                                 alt="System screenshot" 
+                                onError={(e) => {
+                                  console.error("Failed to load image:", study.galleryImages[0]);
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -215,14 +225,23 @@ export default function CustomSolutionsPage() {
                                   <img 
                                     src={img} 
                                     alt={`System screenshot ${idx + 2}`} 
+                                    onError={(e) => {
+                                      console.error("Failed to load image:", img);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
                               ))}
                             </div>
-                            <p className="text-center text-xs text-muted-foreground">
-                              Click "View Full Case Study" to see more screenshots
-                            </p>
+                            <div className="text-center px-3 py-2 bg-primary/5 rounded-lg">
+                              <Button asChild variant="link" size="sm" className="group">
+                                <Link href={study.link}>
+                                  View Full Case Study for All Screenshots
+                                  <ArrowRight className="ml-1 h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </div>

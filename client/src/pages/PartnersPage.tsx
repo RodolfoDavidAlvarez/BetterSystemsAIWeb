@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
 
 const partners = [
   {
@@ -11,7 +12,12 @@ const partners = [
   {
     name: "Agave Environmental Contracting, Inc.",
     logo: "/AEC-Horizontal-Official-Logo-2020.png",
-    description: "Agave Environmental Contracting, Inc. provides expert landscaping services with 34+ years of experience and 6,000+ completed projects"
+    description: "Agave Environmental Contracting, Inc. provides expert landscaping services with 34+ years of experience and 6,000+ completed projects.",
+    caseStudy: {
+      title: "Fleet Management System",
+      description: "We helped Agave optimize their fleet of 300+ vehicles, saving them 2,500+ annual labor hours and reducing maintenance costs by 22% through our comprehensive AI-powered fleet management system.",
+      link: "/services/fleet-management"
+    }
   }
 ];
 
@@ -41,7 +47,20 @@ export default function PartnersPage() {
                 />
               </div>
               <h2 className="text-2xl font-bold mb-3 text-center">{partner.name}</h2>
-              <p className="text-muted-foreground text-center">{partner.description}</p>
+              <p className="text-muted-foreground text-center mb-4">{partner.description}</p>
+              
+              {partner.caseStudy && (
+                <div className="mt-6 border-t pt-4">
+                  <h3 className="font-semibold text-lg mb-2">Success Story: {partner.caseStudy.title}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{partner.caseStudy.description}</p>
+                  <Link 
+                    href={partner.caseStudy.link}
+                    className="text-primary hover:underline inline-flex items-center text-sm font-medium"
+                  >
+                    View Case Study <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

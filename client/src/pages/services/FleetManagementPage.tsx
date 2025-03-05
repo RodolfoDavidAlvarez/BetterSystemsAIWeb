@@ -9,6 +9,7 @@ import {
   ZoomIn,
   ZoomOut,
   CheckCircle,
+  CheckCircle2,
   Truck,
   BarChart3,
   Clock4,
@@ -443,40 +444,69 @@ export default function FleetManagementPage() {
           
           <motion.div 
             variants={fadeIn}
-            className="relative"
+            className="relative h-[500px] flex items-center justify-center"
           >
-            <div className="relative mx-auto w-[280px] md:w-[320px]">
-              {/* Phone Frame */}
-              <div className="absolute inset-0 bg-[#1e394a] rounded-[40px] shadow-xl transform rotate-2 scale-[1.01] z-0"></div>
-              
+            <div className="relative mx-auto w-[300px]">
               {/* Main Image */}
-              <div className="relative bg-white rounded-[36px] overflow-hidden shadow-lg z-10">
+              <div className="absolute left-0 top-0 w-[230px] bg-white rounded-[36px] overflow-hidden shadow-lg border-8 border-[#1e3a4a] z-10">
                 <img 
-                  src="/images/repair-request-form-1.png" 
-                  alt="Mobile view of vehicle repair request form with personal and vehicle information fields" 
-                  className="w-full"
-                  onError={(e) => {
-                    console.error(`Failed to load repair form image`);
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+                  src="/images/repair-request-form/form-main.png" 
+                  alt="Mobile view of vehicle repair request form with personal information fields and language selector" 
+                  className="w-full h-auto"
                 />
               </div>
               
-              {/* Second Image (Smaller & Offset) */}
-              <div className="absolute -bottom-16 -right-8 w-[65%] bg-white rounded-[24px] overflow-hidden shadow-lg transform -rotate-3 z-20 border-4 border-white">
+              {/* Second Image */}
+              <div className="absolute right-0 top-[180px] w-[220px] bg-white rounded-[36px] overflow-hidden shadow-lg border-8 border-[#1e3a4a] z-20">
                 <img 
-                  src="/images/repair-request-form-2.png" 
-                  alt="Mobile view of the problem description and photo upload section of the repair form" 
-                  className="w-full"
-                  onError={(e) => {
-                    console.error(`Failed to load repair form detail image`);
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+                  src="/images/repair-request-form/form-upload.png" 
+                  alt="Mobile view showing photo upload functionality for vehicle repairs" 
+                  className="w-full h-auto"
                 />
               </div>
             </div>
           </motion.div>
         </div>
+
+        {/* Additional Screenshots - Loading and Submitted States */}
+        <motion.div 
+          variants={fadeIn}
+          className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8"
+        >
+          <div className="rounded-lg overflow-hidden shadow-lg border border-muted">
+            <div className="bg-primary-foreground text-primary p-3 font-medium">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                <span>Loading State</span>
+              </div>
+            </div>
+            <div className="p-3 bg-muted/20">
+              <img 
+                src="/images/repair-request-form/loading.jpeg" 
+                alt="Loading state of the repair request form" 
+                className="w-full h-auto rounded-md shadow"
+              />
+              <p className="text-sm text-muted-foreground mt-3">The loading state provides visual feedback while form elements are being prepared</p>
+            </div>
+          </div>
+          
+          <div className="rounded-lg overflow-hidden shadow-lg border border-muted">
+            <div className="bg-primary-foreground text-primary p-3 font-medium">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                <span>Submission Confirmation</span>
+              </div>
+            </div>
+            <div className="p-3 bg-muted/20">
+              <img 
+                src="/images/repair-request-form/submitted.jpeg" 
+                alt="Submission confirmation screen after repair request is sent" 
+                className="w-full h-auto rounded-md shadow"
+              />
+              <p className="text-sm text-muted-foreground mt-3">Clear confirmation helps drivers know their request was successfully submitted</p>
+            </div>
+          </div>
+        </motion.div>
       </motion.section>
 
       {/* CTA Section */}

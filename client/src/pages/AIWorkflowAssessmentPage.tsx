@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -156,9 +156,6 @@ export default function AIWorkflowAssessmentPage() {
     // For now, we'll simulate the response with some tailored recommendations
     
     const industry = formData.industry;
-    const manualProcesses = formData.manualProcesses;
-    const painPoints = formData.painPoints;
-    const businessGoals = formData.businessGoals;
     
     // Generate recommendations based on the industry
     let industryRecommendations: string[] = [];
@@ -374,7 +371,7 @@ export default function AIWorkflowAssessmentPage() {
             <Card>
               <CardHeader className="bg-primary/5 border-b">
                 <div className="flex items-center gap-2">
-                  <Robot className="h-6 w-6 text-primary" />
+                  <Bot className="h-6 w-6 text-primary" />
                   <CardTitle>AI Integration Options</CardTitle>
                 </div>
                 <CardDescription>
@@ -454,7 +451,7 @@ export default function AIWorkflowAssessmentPage() {
         {/* Progress indicators */}
         <div className="mb-8">
           <div className="flex justify-between">
-            {steps.map((s, i) => (
+            {steps.map((_, i) => (
               <div 
                 key={i} 
                 className={`text-sm font-medium ${i <= step ? 'text-primary' : 'text-muted-foreground'}`}

@@ -18,6 +18,7 @@ import PartnersPage from "./pages/PartnersPage";
 import ContactPage from "./pages/ContactPage";
 import SocialPage from "./pages/SocialPage";
 import GetStartedPage from "./pages/GetStartedPage";
+import AIWorkflowAssessmentPage from "./pages/AIWorkflowAssessmentPage";
 
 import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
 import AIConsultingPage from "./pages/services/AIConsultingPage";
@@ -48,6 +49,7 @@ function App() {
             <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
             <Route path="/services/ai-consulting" component={AIConsultingPage} />
             <Route path="/services/ai-assistants/personal-assistant-tutorial" component={AIPersonalAssistantTutorialPage} />
+            <Route path="/ai-workflow-assessment" component={AIWorkflowAssessmentPage} />
             
             {/* 404 Route */}
             <Route>404 Page Not Found</Route>

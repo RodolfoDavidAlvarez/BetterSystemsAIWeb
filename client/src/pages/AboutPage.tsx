@@ -10,30 +10,26 @@ const founder = {
 const values = [
   {
     title: "Client-Centricity",
-    description: "We deeply understand each client's unique business needs, identifying inefficiencies and building customized solutions that directly address their specific challenges."
+    description: "We assess unique business needs comprehensively, identifying inefficiencies and recommending tailored solutions."
   },
   {
     title: "Innovation",
-    description: "We pioneer cutting-edge AI and automation solutions that transform businesses, dramatically enhancing efficiency, productivity, and creating lasting competitive advantage."
+    description: "Driving business growth by pioneering AI and automation solutions that enhance efficiency, productivity, and competitive advantage."
   },
   {
-    title: "Continuous Learning",
-    description: "We're committed to exploring emerging technologies, staying ahead of industry trends, and bringing the most advanced AI innovations to our clients before their competitors."
+    title: "Continuous Research",
+    description: "Staying ahead of industry trends by consistently exploring and integrating the latest advancements in AI technology."
   }
 ];
 
 const beliefs = [
   {
-    title: "Technology for All",
-    description: "We firmly believe that transformative AI technologies should be accessible to every business, regardless of their size, industry, or current technical expertise."
+    title: "Technology Accessibility",
+    description: "We believe emerging technologies should be available to every business regardless of expertise, business size, or industry."
   },
   {
     title: "Personalized Solutions",
-    description: "We understand that every business operates uniquely with specific processes, challenges, and goals. Our solutions are meticulously tailored to maximize your specific business potential."
-  },
-  {
-    title: "Partnership Approach",
-    description: "We don't just deliver and leave. We build lasting relationships with our clients, providing ongoing support and adaptation as your business grows and evolves."
+    description: "Every business has unique services, processes, and necessities to be the most optimal in their specific business field."
   }
 ];
 
@@ -48,19 +44,16 @@ export default function AboutPage() {
           <section>
             <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
             <p className="text-muted-foreground">
-              To democratize access to cutting-edge AI and automation technologies for businesses of all sizes. 
-              We transform operations, drive substantial profit growth, and create sustainable competitive 
-              advantages through customized technological solutions that address real business challenges.
+              To make the most updated automation and AI technologies available to small-medium size businesses 
+              that enhances efficiency, drives profits and growth, and fosters long-term competitive sustainability.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
             <p className="text-muted-foreground">
-              To be the indispensable technology partner for forward-thinking businesses, consistently 
-              delivering innovative AI solutions that keep our clients at the forefront of their industries. 
-              We envision a world where every business, regardless of size, has access to the transformative 
-              power of advanced technology.
+              To be the trusted partner that empowers businesses with the most updated emerging technology, 
+              ensuring they remain competitive in a rapidly evolving digital world.
             </p>
           </section>
         </div>
@@ -69,7 +62,7 @@ export default function AboutPage() {
       {/* Core Beliefs */}
       <section className="mb-16">
         <h2 className="text-2xl font-bold mb-8 text-center">Core Beliefs</h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {beliefs.map((belief, index) => (
             <Card key={index} className="border-border/40 hover:border-border/60 transition-colors duration-300">
               <CardContent className="p-6">

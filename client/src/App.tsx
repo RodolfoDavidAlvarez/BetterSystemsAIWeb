@@ -21,6 +21,7 @@ import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuesti
 import AIConsultingPage from "./pages/services/AIConsultingPage";
 import AIPersonalAssistantTutorialPage from "./pages/services/AIPersonalAssistantTutorialPage";
 import BuildWebsiteWithAIPage from "./pages/learn/BuildWebsiteWithAIPage";
+import LearnPage from "./pages/LearnPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
             <Route path="/services/ai-consulting" component={AIConsultingPage} />
             <Route path="/services/ai-assistants/personal-assistant-tutorial" component={AIPersonalAssistantTutorialPage} />
             <Route path="/ai-workflow-assessment" component={AIWorkflowAssessmentPage} />
+            <Route path="/learn" component={LearnPage} />
             <Route path="/learn/build-website-with-ai" component={BuildWebsiteWithAIPage} />
             
             {/* 404 Route */}

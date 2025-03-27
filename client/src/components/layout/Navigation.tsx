@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
-  { label: "Learn", href: "/learn/build-website-with-ai" },
+  { label: "Learn", href: "/learn" },
   { label: "About", href: "/about" },
   { label: "Partners", href: "/partners" }
 ];
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [location] = useLocation();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 border-b border-border/10 transition-all duration-200">
@@ -34,7 +35,12 @@ export default function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-md hover:bg-accent/10"
+                className={cn(
+                  "text-sm font-medium transition-colors px-3 py-2 rounded-md hover:bg-accent/10", 
+                  location === item.href || location.startsWith(item.href + "/")
+                  ? "text-foreground font-semibold bg-accent/5" 
+                  : "text-muted-foreground hover:text-foreground"
+                )}
               >
                 {item.label}
               </Link>
@@ -88,7 +94,12 @@ export default function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent/10 hover:text-foreground"
+                className={cn(
+                  "block rounded-md px-3 py-2 text-base font-medium hover:bg-accent/10",
+                  location === item.href || location.startsWith(item.href + "/")
+                  ? "text-foreground font-semibold bg-accent/5" 
+                  : "text-muted-foreground hover:text-foreground"
+                )}
                 onClick={() => setIsOpen(false)}
               >
                 {item.label}

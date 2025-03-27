@@ -21,7 +21,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: process.env.VITE_SERVER_URL || 'http://localhost:3000', // Use port 3000 as set in PORT env var
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {

@@ -75,7 +75,7 @@ localPort = 5183
 externalPort = 9000
 
 [workflows]
-runButton = "Full Stack Dev"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -98,11 +98,19 @@ args = "Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "Server Build"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Server Build"
+args = "Server Setup"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client Setup"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client"
 
 [[workflows.workflow]]
 name = "Server Build"
@@ -128,11 +136,18 @@ args = "cd client && npm run dev"
 
 [[workflows.workflow]]
 name = "Client"
-author = 38057015
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev"
+args = "cd client && npm run dev -- --host=0.0.0.0 --port=5000"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Server"
@@ -147,21 +162,6 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export NODE_ENV=production && export PORT=3000 && export JWT_SECRET=bettersystems-blog-secret-key-dev && export COOKIE_SECRET=bettersystems-cookie-secret-key && export SESSION_SECRET=bettersystems-session-secret-key && node --experimental-specifier-resolution=node dist/index.js"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "export NODE_ENV=production && export VITE_SERVER_URL=http://0.0.0.0:3000 && cd client && npm run dev -- --host=0.0.0.0 --port=5000"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Full Stack Dev"
@@ -179,3 +179,31 @@ args = "cd client && npm run dev -- --host=0.0.0.0 --port=5000"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export NODE_ENV=development && export PORT=3000 && node --experimental-specifier-resolution=node dist/index.js"
+
+[[workflows.workflow]]
+name = "Server Setup"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npm install && npx esbuild index.ts --platform=node --packages=external --bundle --format=esm --outfile=../dist/index.js --sourcemap"
+
+[[workflows.workflow]]
+name = "Client Setup"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm install"

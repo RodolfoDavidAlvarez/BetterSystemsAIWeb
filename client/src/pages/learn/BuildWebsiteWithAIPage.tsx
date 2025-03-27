@@ -73,6 +73,25 @@ export default function BuildWebsiteWithAIPage() {
             </div>
           </div>
         </section>
+        
+        {/* Interactive Guide Section */}
+        <section className="space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-bold">Interactive Guide</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Explore our interactive presentation to learn more about building websites with AI
+            </p>
+          </div>
+          <div className="w-full flex justify-center">
+            <iframe 
+              src="https://gamma.app/embed/q3cex4nt9iegyr6" 
+              style={{ width: "100%", maxWidth: "700px", height: "450px" }} 
+              allow="fullscreen" 
+              title="Build Websites with AI"
+              className="border rounded-lg shadow-md"
+            ></iframe>
+          </div>
+        </section>
 
         {/* Process Section */}
         <section className="space-y-8">

@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+// We're running without the React plugin for now
+// import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -32,11 +33,12 @@ export default defineConfig({
     sourcemap: true
   },
   css: {
-    postcss: {
-      plugins: [
-        require('autoprefixer'),
-        require('tailwindcss'),
-      ],
-    },
+    // Comment out the PostCSS config for now
+    // postcss: {
+    //   plugins: [
+    //     require('autoprefixer'),
+    //     require('tailwindcss'),
+    //   ],
+    // },
   },
 })

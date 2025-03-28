@@ -25,7 +25,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       }
-    }
+    },
+    // Allow all hosts
+    fs: {
+      allow: ['.'],
+    },
+    cors: true,
+    // Disable the host check to allow all hosts
+    origin: '*',
+    // Explicitly allow all hosts
+    allowedHosts: ['localhost', '127.0.0.1', '0.0.0.0', '.replit.dev', '.worf.replit.dev', '*.replit.dev', '*.worf.replit.dev'],
   },
   build: {
     outDir: '../dist/public',

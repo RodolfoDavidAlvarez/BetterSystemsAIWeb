@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { fadeIn, staggerChildren } from "@/lib/animations";
 import { BrainCircuit, Mail, Globe, Phone, MessageSquare, Share2, LineChart, Users, Cog, BadgeCheck } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 export default function ServicesPage() {
   const services = [
@@ -75,13 +76,18 @@ export default function ServicesPage() {
 
   return (
     <div className="container mx-auto px-4 py-16">
+      <SEO 
+        title="AI Services"
+        description="Comprehensive AI solutions including consulting, automation assistants, efficiency assessments, and custom development. Reduce costs by 90% and achieve 200%+ ROI."
+        keywords="AI consulting, business automation, AI assistants, efficiency assessment, custom AI solutions, process automation"
+      />
       <motion.div 
         className="max-w-3xl mx-auto mb-12 text-center"
         initial="initial"
         animate="animate"
         variants={fadeIn}
       >
-        <h1 className="text-4xl font-bold mb-4">Our Services</h1>
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">Our Services</h1>
         <p className="text-muted-foreground">
           Transform your business operations with our comprehensive suite of AI-powered solutions.
         </p>
@@ -96,20 +102,20 @@ export default function ServicesPage() {
         {services.map((service, index) => (
           <motion.section 
             key={index} 
-            className="group relative overflow-hidden rounded-xl p-8 transition-all duration-300 hover:bg-primary/5 hover:shadow-lg"
+            className="group relative overflow-hidden rounded-xl p-6 md:p-8 transition-all duration-300 hover:bg-primary/5 hover:shadow-lg"
             variants={fadeIn}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.01 }}
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="mb-4">
-              <h2 className="text-3xl font-bold">{service.title}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">{service.title}</h2>
               {service.subtitle && (
-                <p className="text-lg text-muted-foreground mt-1">{service.subtitle}</p>
+                <p className="text-base md:text-lg text-muted-foreground mt-1">{service.subtitle}</p>
               )}
             </div>
-            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
+            <p className="text-base md:text-lg text-muted-foreground mb-6 leading-relaxed">{service.description}</p>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6">
               {service.benefits.map((benefit, idx) => (
                 <motion.div 
                   key={idx}
@@ -119,7 +125,7 @@ export default function ServicesPage() {
                   transition={{ delay: idx * 0.1 }}
                 >
                   <div className="size-1.5 rounded-full bg-primary" />
-                  <span className="text-sm font-medium">{benefit}</span>
+                  <span className="text-sm md:text-base font-medium">{benefit}</span>
                 </motion.div>
               ))}
             </div>

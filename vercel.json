@@ -1,21 +1,11 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": "dist/public",
   "installCommand": "npm install",
-  "framework": null,
-  "functions": {
-    "server/index.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server/index.ts"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/dist/public/$1"
+      "destination": "/api"
     }
   ]
 }

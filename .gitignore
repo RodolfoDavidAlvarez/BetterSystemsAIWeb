@@ -4,4 +4,4 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
-vite.config.ts.timestamp-*
+vite.config.ts.timestamp-*.env

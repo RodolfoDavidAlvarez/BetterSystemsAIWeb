@@ -94,10 +94,10 @@ export default function HomePage() {
       <Hero />
 
       {/* Welcome Video */}
-      <section className="py-20 bg-accent/5">
+      <section className="py-12 md:py-20 bg-accent/5">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-8">
-            <h2 className="text-4xl font-bold mb-6">Welcome to Better Systems AI</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Welcome to Better Systems AI</h2>
             <p className="text-lg text-muted-foreground">
               Learn about our mission to make advanced AI technology accessible to businesses of all sizes.
             </p>
@@ -118,10 +118,10 @@ export default function HomePage() {
       </section>
 
       {/* Key AI Benefits */}
-      <section id="services" className="py-20">
+      <section id="services" className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl font-bold mb-6">Key AI Benefits for Your Business</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Key AI Benefits for Your Business</h2>
             <p className="text-lg text-muted-foreground">
               Discover how AI implementation can transform your business metrics and drive sustainable growth.
             </p>
@@ -136,10 +136,10 @@ export default function HomePage() {
             <CarouselContent>
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">Customer Experience</h3>
-                    <div className="text-4xl font-bold text-primary mb-4">40% Faster Response</div>
-                    <p className="text-lg">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Customer Experience</h3>
+                    <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-3 md:mb-4">40% Faster Response</div>
+                    <p className="text-base md:text-lg">
                       AI chatbots and automation streamline customer support, reducing wait times and improving satisfaction.
                     </p>
                   </CardContent>
@@ -148,10 +148,10 @@ export default function HomePage() {
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">Operational Reliability</h3>
-                    <div className="text-4xl font-bold text-primary mb-4">30% Less Downtime</div>
-                    <p className="text-lg">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Operational Reliability</h3>
+                    <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-3 md:mb-4">30% Less Downtime</div>
+                    <p className="text-base md:text-lg">
                       AI systems optimize processes, preventing costly disruptions and ensuring smoother workflows.
                     </p>
                   </CardContent>
@@ -160,10 +160,10 @@ export default function HomePage() {
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">Revenue Growth</h3>
-                    <div className="text-4xl font-bold text-primary mb-4">20%+ Increase</div>
-                    <p className="text-lg">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Revenue Growth</h3>
+                    <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-3 md:mb-4">20%+ Increase</div>
+                    <p className="text-base md:text-lg">
                       Companies using AI report significant revenue increases through new opportunities and optimized operations.
                     </p>
                   </CardContent>
@@ -172,10 +172,10 @@ export default function HomePage() {
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">ROI Impact</h3>
-                    <div className="text-4xl font-bold text-primary mb-4">$4.60 per $1 Spent</div>
-                    <p className="text-lg">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">ROI Impact</h3>
+                    <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-3 md:mb-4">$4.60 per $1 Spent</div>
+                    <p className="text-base md:text-lg">
                       AI investments deliver substantial returns by automating processes and unlocking new revenue streams.
                     </p>
                   </CardContent>
@@ -184,10 +184,10 @@ export default function HomePage() {
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">Cost Reduction</h3>
-                    <div className="text-4xl font-bold text-primary mb-4">Up to 40% Savings</div>
-                    <p className="text-lg">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Cost Reduction</h3>
+                    <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-3 md:mb-4">Up to 40% Savings</div>
+                    <p className="text-base md:text-lg">
                       AI-powered automation slashes operational expenses while maintaining or improving service quality.
                     </p>
                   </CardContent>
@@ -196,10 +196,10 @@ export default function HomePage() {
 
               <CarouselItem className="md:basis-1/2 lg:basis-1/3">
                 <Card className="h-full transition-all duration-300 hover:scale-105 border-0 hover:bg-accent/5 shadow-sm hover:shadow">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">Productivity Boost</h3>
-                    <div className="text-4xl font-bold text-primary mb-4">40% More Output</div>
-                    <p className="text-lg">
+                  <CardContent className="p-6 md:p-8">
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Productivity Boost</h3>
+                    <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-primary mb-3 md:mb-4">40% More Output</div>
+                    <p className="text-base md:text-lg">
                       AI accelerates workflows and reduces wasted time, allowing teams to focus on high-value strategic work.
                     </p>
                   </CardContent>
@@ -224,28 +224,28 @@ export default function HomePage() {
       <section id="about" className="bg-primary/5 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Our Mission</h2>
             <p className="text-xl text-muted-foreground leading-relaxed mb-8">
               To make the most updated automation and AI technologies available to small-medium size businesses 
               that enhances efficiency, drives profits and growth, and fosters long-term competitive sustainability.
             </p>
-            <h2 className="text-4xl font-bold mb-6">Our Vision</h2>
-            <p className="text-xl text-muted-foreground leading-relaxed mb-12">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Our Vision</h2>
+            <p className="text-base md:text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8 md:mb-12">
               To be the trusted partner that empowers businesses with the most updated emerging technology, 
               ensuring they remain competitive in a rapidly evolving digital world.
             </p>
             
-            <h2 className="text-4xl font-bold mb-8">Core Beliefs</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6 md:mb-8">Core Beliefs</h2>
             <div className="grid md:grid-cols-2 gap-8 text-left">
-              <div className="bg-card p-8 rounded-lg shadow-sm">
-                <h3 className="text-2xl font-semibold mb-4">Technology Accessibility</h3>
+              <div className="bg-card p-6 md:p-8 rounded-lg shadow-sm">
+                <h3 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Technology Accessibility</h3>
                 <p className="text-lg text-muted-foreground leading-relaxed">
                   We believe emerging technologies should be available to every business regardless of expertise, 
                   business size, or industry.
                 </p>
               </div>
-              <div className="bg-card p-8 rounded-lg shadow-sm">
-                <h3 className="text-2xl font-semibold mb-4">Personalized Solutions</h3>
+              <div className="bg-card p-6 md:p-8 rounded-lg shadow-sm">
+                <h3 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Personalized Solutions</h3>
                 <p className="text-lg text-muted-foreground leading-relaxed">
                   Every business has unique services, processes, and necessities to be the most optimal 
                   in their specific business field.
@@ -257,21 +257,21 @@ export default function HomePage() {
       </section>
 
       {/* Overview Sections */}
-      <div className="container mx-auto px-4 py-20 space-y-32">
+      <div className="container mx-auto px-4 py-12 md:py-20 space-y-20 md:space-y-32">
         {/* Services Overview */}
         <section className="space-y-12">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-4xl font-bold mb-6">Our Services</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Our Services</h2>
             <p className="text-lg text-muted-foreground mb-8">
               We deliver practical, ROI-focused AI solutions that reduce labor costs, boost operational efficiency, 
               and ensure your business remains at the forefront of innovation in your industry.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             {services.map((service, index) => (
               <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 hover:bg-accent/5 shadow-sm">
-                <CardContent className="p-8">
+                <CardContent className="p-6 md:p-8">
                   <h3 className="text-2xl font-bold mb-3">{service.title}</h3>
                   <p className="text-muted-foreground mb-6">{service.description}</p>
                   <Button asChild variant="link" className="p-0 group-hover:translate-x-1 transition-transform">
@@ -290,9 +290,9 @@ export default function HomePage() {
         </section>
 
         {/* About Overview */}
-        <section className="grid md:grid-cols-2 gap-16 items-center">
+        <section className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
           <div className="space-y-8">
-            <h2 className="text-4xl font-bold">About Better Systems AI</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold">About Better Systems AI</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               Better Systems AI is a dedicated consulting firm, and technology integrator and partner, 
               ensuring long-term success of small to medium-size businesses through innovative AI and automation. 
@@ -323,7 +323,7 @@ export default function HomePage() {
         {/* Partners Overview */}
         <section id="partners" className="text-center space-y-8">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-4xl font-bold mb-6">Our Partners</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Our Partners</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               We collaborate with industry leaders to deliver the best AI solutions
               for your business needs. Join our growing network of successful partnerships
@@ -336,12 +336,12 @@ export default function HomePage() {
         </section>
 
         {/* Contact CTA */}
-        <section id="contact" className="bg-primary/5 rounded-2xl p-16 text-center">
-          <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Business?</h2>
-          <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+        <section id="contact" className="bg-primary/5 rounded-2xl p-8 md:p-12 lg:p-16 text-center">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">Ready to Transform Your Business?</h2>
+          <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-10 max-w-2xl mx-auto leading-relaxed">
             Take the first step towards AI-powered efficiency. Contact us today to discuss your unique business needs and how we can help.
           </p>
-          <div className="flex gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
             <Button asChild size="lg" className="font-semibold">
               <Link href="/contact">Contact Us</Link>
             </Button>

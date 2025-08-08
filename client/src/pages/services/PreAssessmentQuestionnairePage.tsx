@@ -406,7 +406,7 @@ export default function PreAssessmentQuestionnairePage() {
     }
 
     try {
-      const response = await fetch("https://hook.us1.make.com/onwbnec5advmcbxw242fb1u9cqd0frd2", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -421,18 +421,25 @@ export default function PreAssessmentQuestionnairePage() {
         throw new Error("Failed to submit form");
       }
 
-      toast({
-        title: "Success!",
-        description: "Thank you for completing the pre-assessment questionnaire. We'll be in touch soon!",
-      });
+      // Parse the JSON response
+      const result = await response.json();
 
-      // Reset form and redirect to the correct URL
-      form.reset();
-      window.location.href = "https://bettersystems.ai/services/ai-efficiency-assessment";
+      if (result.success) {
+        toast({
+          title: "Success!",
+          description: result.message || "Thank you for completing the pre-assessment questionnaire. We'll be in touch soon!",
+        });
+
+        // Reset form and redirect to the correct URL
+        form.reset();
+        window.location.href = "/services/ai-efficiency-assessment";
+      } else {
+        throw new Error(result.message || "Failed to submit form");
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to submit the form. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit the form. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -721,7 +728,7 @@ export default function PreAssessmentQuestionnairePage() {
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                           <span>Submitting...</span>
                         </div>
                       ) : (

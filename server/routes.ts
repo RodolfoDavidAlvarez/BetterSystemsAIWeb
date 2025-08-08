@@ -1,6 +1,9 @@
+import './loadEnv';
 import type { Express } from "express";
 import { login, register, getCurrentUser } from './controllers/auth';
 import { authenticate } from './middleware/auth';
+import { sendCustomerEmail, sendAdminNotification } from './services/email';
+import { saveToAirtable } from './services/airtable';
 
 export function registerRoutes(app: Express) {
   // Public API routes
@@ -8,12 +11,42 @@ export function registerRoutes(app: Express) {
     console.log('Contact API endpoint hit');
     try {
       console.log('Processing contact request:', req.body);
-      res.json({ success: true, message: "Message received" });
+      
+      // Extract form data
+      const formData = {
+        ...req.body,
+        formType: req.body.formIdentifier || 'Contact Form',
+        submittedAt: new Date().toISOString()
+      };
+
+      // Save to Airtable
+      const airtableResult = await saveToAirtable(formData);
+      if (!airtableResult.success) {
+        console.error('Airtable save failed:', airtableResult.error);
+      }
+
+      // Send customer confirmation email
+      const customerEmailResult = await sendCustomerEmail(formData);
+      if (!customerEmailResult.success) {
+        console.error('Customer email failed:', customerEmailResult.error);
+      }
+
+      // Send admin notification
+      const adminEmailResult = await sendAdminNotification(formData);
+      if (!adminEmailResult.success) {
+        console.error('Admin email failed:', adminEmailResult.error);
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Your submission has been received. Check your email for confirmation.",
+        recordId: airtableResult.recordId
+      });
     } catch (error) {
       console.error('Contact API error:', error);
       res.status(500).json({ 
         success: false, 
-        message: "Failed to send message" 
+        message: "Failed to process your submission. Please try again." 
       });
     }
   });

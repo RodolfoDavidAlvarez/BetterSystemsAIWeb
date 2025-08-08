@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 // Simplified navigation items
 const navItems = [
@@ -19,13 +20,13 @@ export default function Navigation() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 border-b border-border/10 transition-all duration-200">
       <nav className="container mx-auto px-4">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-16 md:h-20 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <img 
               src="/logo-transparent.png" 
               alt="Better Systems AI Logo" 
-              className="h-20 w-auto object-contain" 
+              className="h-16 md:h-20 w-auto object-contain" 
             />
           </Link>
 
@@ -48,6 +49,7 @@ export default function Navigation() {
             <Button asChild variant="default">
               <Link href="/contact">Contact Us</Link>
             </Button>
+            <ThemeToggle />
           </div>
 
           {/* Mobile Menu Button */}
@@ -113,6 +115,9 @@ export default function Navigation() {
               >
                 <Link href="/contact">Contact Us</Link>
               </Button>
+            </div>
+            <div className="px-3 py-2">
+              <ThemeToggle />
             </div>
           </div>
         </div>

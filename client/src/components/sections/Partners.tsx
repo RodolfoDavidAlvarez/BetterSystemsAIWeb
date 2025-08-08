@@ -34,7 +34,7 @@ export default function Partners() {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <Card className="h-full shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <Card className="h-full shadow-lg border hover:shadow-xl transition-shadow">
                 <CardContent className="p-8">
                   <div className="h-24 flex items-center justify-center mb-6 bg-white rounded-lg p-6">
                     <img

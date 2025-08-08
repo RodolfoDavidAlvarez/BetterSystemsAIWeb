@@ -55,7 +55,7 @@ export default function SimpleEfficiencyAssessmentForm() {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("https://hook.us1.make.com/onwbnec5advmcbxw242fb1u9cqd0frd2", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,17 +70,24 @@ export default function SimpleEfficiencyAssessmentForm() {
         throw new Error("Failed to submit form");
       }
 
-      toast({
-        title: "Thanks for reaching out!",
-        description: "We'll get back to you shortly to discuss how we can help improve your business efficiency.",
-      });
+      // Parse the JSON response
+      const result = await response.json();
 
-      form.reset();
-      window.location.href = "/services/ai-efficiency-assessment";
+      if (result.success) {
+        toast({
+          title: "Thanks for reaching out!",
+          description: result.message || "We'll get back to you shortly to discuss how we can help improve your business efficiency.",
+        });
+
+        form.reset();
+        window.location.href = "/services/ai-efficiency-assessment";
+      } else {
+        throw new Error(result.message || "Failed to submit form");
+      }
     } catch (error) {
       toast({
         title: "Something went wrong",
-        description: "Please try again or contact us directly.",
+        description: error instanceof Error ? error.message : "Please try again or contact us directly.",
         variant: "destructive",
       });
     } finally {
@@ -290,7 +297,7 @@ export default function SimpleEfficiencyAssessmentForm() {
                   >
                     {isSubmitting ? (
                       <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
                         <span>Sending...</span>
                       </div>
                     ) : (

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SEO } from "@/components/SEO";
 
 const founder = {
   name: "Rodolfo",
@@ -36,6 +37,11 @@ const beliefs = [
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-16">
+      <SEO 
+        title="About Us"
+        description="Learn about Better Systems AI - your trusted partner in AI transformation. We empower businesses with innovative automation solutions that drive efficiency and growth."
+        keywords="about Better Systems AI, AI consulting company, business automation experts, AI transformation partner"
+      />
       {/* Mission & Vision */}
       <div className="max-w-3xl mx-auto mb-16">
         <h1 className="text-4xl font-bold mb-8 text-center">About Better Systems AI</h1>

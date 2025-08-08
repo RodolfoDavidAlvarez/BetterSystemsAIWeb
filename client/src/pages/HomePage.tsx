@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import type { EmblaOptionsType } from "embla-carousel";
+import { SEO } from "@/components/SEO";
 
 interface Service {
   title: string;
@@ -91,6 +92,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Better Systems AI - AI Automation Solutions for Business"
+        description="Transform your business with AI automation. Reduce costs by 90%, save thousands of hours, and achieve 200%+ ROI with our custom AI assistants and consulting services."
+      />
       <Hero />
 
       {/* Welcome Video */}

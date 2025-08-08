@@ -106,7 +106,7 @@ export default function RequestSolutionForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,8 +121,15 @@ export default function RequestSolutionForm() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      setIsSuccess(true);
-      form.reset();
+      // Parse the JSON response
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSuccess(true);
+        form.reset();
+      } else {
+        throw new Error(result.message || "Failed to submit form");
+      }
     } catch (error) {
       console.error('Submission error:', error);
       toast({
@@ -414,7 +421,7 @@ export default function RequestSolutionForm() {
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                     <span>Submitting...</span>
                   </div>
                 ) : (

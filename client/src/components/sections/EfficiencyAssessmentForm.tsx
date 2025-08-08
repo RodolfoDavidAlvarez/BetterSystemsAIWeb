@@ -68,7 +68,7 @@ export default function EfficiencyAssessmentForm() {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("https://hook.us1.make.com/onwbnec5advmcbxw242fb1u9cqd0frd2", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,12 +83,19 @@ export default function EfficiencyAssessmentForm() {
         throw new Error("Failed to submit form");
       }
 
-      setIsSuccess(true);
-      form.reset();
+      // Parse the JSON response
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSuccess(true);
+        form.reset();
+      } else {
+        throw new Error(result.message || "Failed to submit form");
+      }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to submit the form. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit the form. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -392,7 +399,7 @@ export default function EfficiencyAssessmentForm() {
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
                     <span>Submitting...</span>
                   </div>
                 ) : (

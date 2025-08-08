@@ -106,7 +106,7 @@ export default function RequestSolutionForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -120,6 +120,8 @@ export default function RequestSolutionForm() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const result = await response.json();
 
       setIsSuccess(true);
       form.reset();
@@ -414,7 +416,7 @@ export default function RequestSolutionForm() {
               >
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                     <span>Submitting...</span>
                   </div>
                 ) : (

@@ -35,13 +35,13 @@ export default function ContactPage() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const response = await fetch('https://hook.us1.make.com/y1oalov070odcaa6srerwwsfjcvn1r6n', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          form_name: "Contact us",
+          formIdentifier: "Contact Form",
           name: values.name,
           email: values.email,
           message: values.question,
@@ -51,6 +51,8 @@ export default function ContactPage() {
       if (!response.ok) {
         throw new Error('Failed to submit form');
       }
+
+      const result = await response.json();
 
       setIsSuccess(true);
       toast({

@@ -1,174 +1,174 @@
+import React from "react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SEO } from "@/components/SEO";
-
-const founder = {
-  name: "Rodolfo",
-  role: "Founder & CEO",
-  avatar: "/Professional Headshot Rodolfo compressed.jpg",
-};
-
-const values = [
-  {
-    title: "Client-Centricity",
-    description: "We assess unique business needs comprehensively, identifying inefficiencies and recommending tailored solutions."
-  },
-  {
-    title: "Innovation",
-    description: "Driving business growth by pioneering AI and automation solutions that enhance efficiency, productivity, and competitive advantage."
-  },
-  {
-    title: "Continuous Research",
-    description: "Staying ahead of industry trends by consistently exploring and integrating the latest advancements in AI technology."
-  }
-];
-
-const beliefs = [
-  {
-    title: "Technology Accessibility",
-    description: "We believe emerging technologies should be available to every business regardless of expertise, business size, or industry."
-  },
-  {
-    title: "Personalized Solutions",
-    description: "Every business has unique services, processes, and necessities to be the most optimal in their specific business field."
-  }
-];
+import { Linkedin, Mail, Target, Lightbulb, Users, Award, ArrowRight, Zap } from "lucide-react";
 
 export default function AboutPage() {
+  const team = [
+    {
+      name: "Rodolfo Alvarez",
+      role: "CEO & Founder",
+      bio: "AI strategist with 15+ years transforming businesses through smart automation",
+      linkedin: "https://linkedin.com/in/rodolfoalvarez",
+      email: "ralvarez@bettersystems.ai"
+    },
+    {
+      name: "Adrian Romero",
+      role: "CTO & Co-Founder", 
+      bio: "Full-stack developer who makes AI work in the real world",
+      linkedin: "https://linkedin.com/in/adrianromero",
+      email: "adrian@bettersystems.ai"
+    }
+  ];
+
+  const values = [
+    {
+      icon: Target,
+      title: "Results That Matter",
+      description: "We don't just talk tech - we deliver measurable impact on your bottom line"
+    },
+    {
+      icon: Lightbulb,
+      title: "Smart Innovation",
+      description: "Cutting-edge AI applied to real business problems, not tech for tech's sake"
+    },
+    {
+      icon: Users,
+      title: "Human-Centered",
+      description: "AI should make your life easier, not more complicated. Period."
+    },
+    {
+      icon: Award,
+      title: "Excellence Always",
+      description: "We're not satisfied until your business is transformed"
+    }
+  ];
+
+  const stats = [
+    { number: "500+", label: "Hours Saved Weekly" },
+    { number: "90%", label: "Average Cost Reduction" },
+    { number: "24/7", label: "AI Working For You" },
+    { number: "100%", label: "Client Satisfaction" }
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="min-h-screen bg-gradient-to-br from-white via-muted/30 to-primary/5 py-20">
       <SEO 
-        title="About Us"
-        description="Learn about Better Systems AI - your trusted partner in AI transformation. We empower businesses with innovative automation solutions that drive efficiency and growth."
-        keywords="about Better Systems AI, AI consulting company, business automation experts, AI transformation partner"
+        title="About Us - Better Systems AI"
+        description="Meet the team behind Better Systems AI. We're on a mission to make AI accessible to every business."
       />
-      {/* Mission & Vision */}
-      <div className="max-w-3xl mx-auto mb-16">
-        <h1 className="text-4xl font-bold mb-8 text-center">About Better Systems AI</h1>
-        
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
-            <p className="text-muted-foreground">
-              To make the most updated automation and AI technologies available to small-medium size businesses 
-              that enhances efficiency, drives profits and growth, and fosters long-term competitive sustainability.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
-            <p className="text-muted-foreground">
-              To be the trusted partner that empowers businesses with the most updated emerging technology, 
-              ensuring they remain competitive in a rapidly evolving digital world.
-            </p>
-          </section>
+      
+      <div className="container mx-auto px-4 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-sm font-bold mb-6">
+            <Zap className="h-4 w-4 text-primary" />
+            WHO WE ARE
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            AI Experts Who <span className="text-primary">Get Business</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            We're not just tech nerds. We're business people who happen to be really good at making AI work for you.
+          </p>
         </div>
-      </div>
 
-      {/* Core Beliefs */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold mb-8 text-center">Core Beliefs</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          {beliefs.map((belief, index) => (
-            <Card key={index} className="border-border/40 hover:border-border/60 transition-colors duration-300">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-2">{belief.title}</h3>
-                <p className="text-muted-foreground">{belief.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold mb-8 text-center">Core Values</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {values.map((value, index) => (
-            <Card key={index} className="border-border/40 hover:border-border/60 transition-colors duration-300">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-2">{value.title}</h3>
-                <p className="text-muted-foreground">{value.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Leadership */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold mb-8 text-center">Leadership</h2>
-        <Card className="max-w-md mx-auto border-border/40 hover:border-border/60 transition-colors duration-300">
-          <CardContent className="pt-6">
-            <div className="p-4">
-              <Avatar className="h-48 w-48 mx-auto mb-6">
-                <AvatarImage 
-                  src={founder.avatar} 
-                  alt={founder.name}
-                  className="object-cover object-top"
-                  loading="eager"
-                />
-                <AvatarFallback>{founder.name[0]}</AvatarFallback>
-              </Avatar>
+        {/* Stats Section */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+          {stats.map((stat, index) => (
+            <div key={index} className="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.number}</div>
+              <p className="text-sm font-semibold text-muted-foreground">{stat.label}</p>
             </div>
-            <h3 className="font-bold text-xl mb-2 text-center">{founder.name}</h3>
-            <p className="text-muted-foreground text-center mb-4">{founder.role}</p>
-            <p className="text-muted-foreground text-center">
-              A passionate technologist and business leader dedicated to helping companies 
-              leverage AI to achieve their full potential.
-            </p>
+          ))}
+        </div>
+
+        {/* Mission */}
+        <Card className="mb-16 border-0 shadow-xl bg-gradient-to-br from-white to-primary/5 overflow-hidden">
+          <CardContent className="p-8 md:p-12">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Our Mission</h2>
+              <p className="text-lg md:text-xl text-muted-foreground text-center leading-relaxed">
+                To democratize AI for every business. No more watching big corporations use technology 
+                you can't access. We bring enterprise-level AI automation to companies that actually 
+                need it most - yours.
+              </p>
+            </div>
           </CardContent>
         </Card>
-      </section>
 
-      {/* Team Members */}
-      <section>
-        <h2 className="text-2xl font-bold mb-8 text-center">Our Team</h2>
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <Card className="border-border/40 hover:border-border/60 transition-colors duration-300">
-            <CardContent className="pt-6">
-              <div className="p-4">
-                <Avatar className="h-48 w-48 mx-auto mb-6">
-                  <AvatarImage 
-                    src="/team/jesus-landin.jpg"
-                    alt="Jesus Landin"
-                    className="object-cover object-top"
-                    loading="eager"
-                  />
-                  <AvatarFallback>JL</AvatarFallback>
-                </Avatar>
-              </div>
-              <h3 className="font-bold text-xl mb-2 text-center">Jesus Landin</h3>
-              <p className="text-muted-foreground text-center mb-4">Mechanical Engineer</p>
-              <p className="text-muted-foreground text-center">
-                A skilled mechanical engineer bringing technical expertise and innovative solutions 
-                to our engineering challenges and system implementations.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/40 hover:border-border/60 transition-colors duration-300">
-            <CardContent className="pt-6">
-              <div className="p-4">
-                <Avatar className="h-48 w-48 mx-auto mb-6">
-                  <AvatarImage 
-                    src="/Alejandra Portrait Photo for Website.jpg"
-                    alt="Alejandra Alvarez"
-                    className="object-cover object-top"
-                    loading="eager"
-                  />
-                  <AvatarFallback>AA</AvatarFallback>
-                </Avatar>
-              </div>
-              <h3 className="font-bold text-xl mb-2 text-center">Alejandra Alvarez</h3>
-              <p className="text-muted-foreground text-center mb-4">Google Ad and SEO Strategist / Front End Developer</p>
-              <p className="text-muted-foreground text-center">
-                A skilled front-end developer with 4+ years of experience, specializing in Google Ads and SEO strategies to optimize digital presence and drive business growth.
-              </p>
-            </CardContent>
-          </Card>
+        {/* Values */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12">What Drives Us</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {values.map((value, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                <CardContent className="p-8">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-primary/10">
+                      <value.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">{value.title}</h3>
+                      <p className="text-muted-foreground">{value.description}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </section>
+
+        {/* Team */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12">The Minds Behind the Magic</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {team.map((member, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all group">
+                <CardContent className="p-8 text-center">
+                  <div className="w-28 h-28 bg-gradient-to-br from-primary to-secondary rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <span className="text-3xl font-bold text-white">
+                      {member.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">{member.name}</h3>
+                  <p className="text-primary font-semibold mb-4">{member.role}</p>
+                  <p className="text-muted-foreground mb-6">{member.bio}</p>
+                  <div className="flex justify-center gap-4">
+                    <Button asChild size="sm" variant="outline" className="hover:bg-primary hover:text-white">
+                      <a href={member.linkedin} target="_blank" rel="noopener noreferrer">
+                        <Linkedin className="h-4 w-4" />
+                      </a>
+                    </Button>
+                    <Button asChild size="sm" variant="outline" className="hover:bg-primary hover:text-white">
+                      <a href={`mailto:${member.email}`}>
+                        <Mail className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-8 md:p-12 text-center text-white shadow-2xl">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to Join the AI Revolution?
+          </h2>
+          <p className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+            Let's talk about how we can transform your business with AI that actually works.
+          </p>
+          <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 font-bold shadow-xl">
+            <Link href="/contact">
+              Start Your Transformation <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

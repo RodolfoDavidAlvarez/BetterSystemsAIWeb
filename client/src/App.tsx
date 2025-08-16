@@ -5,65 +5,81 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import RootLayout from "./components/layout/RootLayout";
 import HomePage from "./pages/HomePage";
 import ServicesPage from "./pages/ServicesPage";
-import AIAssistantsPage from "./pages/services/AIAssistantsPage";
-import EfficiencyAuditPage from "./pages/services/EfficiencyAuditPage";
-import FleetManagementPage from "./pages/services/FleetManagementPage";
-import CustomSolutionsPage from "./pages/services/CustomSolutionsPage";
 import AboutPage from "./pages/AboutPage";
-import PartnersPage from "./pages/PartnersPage";
 import ContactPage from "./pages/ContactPage";
-import SocialPage from "./pages/SocialPage";
-import GetStartedPage from "./pages/GetStartedPage";
-import AIWorkflowAssessmentPage from "./pages/AIWorkflowAssessmentPage";
-import PreAssessmentQuestionnairePage from "./pages/services/PreAssessmentQuestionnairePage";
-import AIConsultingPage from "./pages/services/AIConsultingPage";
-import AIPersonalAssistantTutorialPage from "./pages/services/AIPersonalAssistantTutorialPage";
-import BuildWebsiteWithAIPage from "./pages/learn/BuildWebsiteWithAIPage";
 import LearnPage from "./pages/LearnPage";
+import ClientOnboardingPage from "./pages/ClientOnboardingPage";
+import PartnersPage from "./pages/PartnersPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
+
+// Admin imports
+import LoginPage from "./pages/admin/LoginPage";
+import DashboardPage from "./pages/admin/DashboardPage";
+import BlogPostsPage from "./pages/admin/BlogPostsPage";
+import BlogPostEditor from "./pages/admin/BlogPostEditor";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   useScrollToTop();
 
   return (
     <HelmetProvider>
-      <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
         <Router>
           <RootLayout>
             <Switch>
-            {/* Public Routes */}
+            {/* Core Pages */}
             <Route path="/" component={HomePage} />
             <Route path="/services" component={ServicesPage} />
-            <Route path="/services/ai-assistants" component={AIAssistantsPage} />
-            <Route path="/services/ai-efficiency-assessment" component={EfficiencyAuditPage} />
-            <Route path="/services/fleet-management" component={FleetManagementPage} />
-            <Route path="/services/custom-solutions" component={CustomSolutionsPage} />
             <Route path="/about" component={AboutPage} />
-            <Route path="/partners" component={PartnersPage} />
-            <Route path="/contact" component={ContactPage} />
-            <Route path="/founders-social" component={SocialPage} />
-            <Route path="/get-started" component={GetStartedPage} />
-
-            <Route path="/services/pre-assessment" component={PreAssessmentQuestionnairePage} />
-            <Route path="/services/ai-consulting" component={AIConsultingPage} />
-            <Route path="/services/ai-assistants/personal-assistant-tutorial" component={AIPersonalAssistantTutorialPage} />
-            <Route path="/ai-workflow-assessment" component={AIWorkflowAssessmentPage} />
             <Route path="/learn" component={LearnPage} />
-            <Route path="/learn/build-website-with-ai" component={BuildWebsiteWithAIPage} />
+            <Route path="/contact" component={ContactPage} />
+            <Route path="/partners" component={PartnersPage} />
+            <Route path="/client-onboarding" component={ClientOnboardingPage} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" component={LoginPage} />
+            <Route path="/admin/dashboard">
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/blog">
+              <ProtectedRoute>
+                <BlogPostsPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/blog/new">
+              <ProtectedRoute>
+                <BlogPostEditor />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/blog/:id">
+              {(params) => (
+                <ProtectedRoute>
+                  <BlogPostEditor postId={params.id} />
+                </ProtectedRoute>
+              )}
+            </Route>
             
             {/* 404 Route */}
-            <Route>404 Page Not Found</Route>
+            <Route>
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
+                  <p className="text-muted-foreground mb-8">The page you're looking for doesn't exist.</p>
+                  <a href="/" className="text-primary hover:underline">Go back home</a>
+                </div>
+              </div>
+            </Route>
           </Switch>
           <Toaster />
         </RootLayout>
       </Router>
     </QueryClientProvider>
-    </ThemeProvider>
     </HelmetProvider>
   );
 }

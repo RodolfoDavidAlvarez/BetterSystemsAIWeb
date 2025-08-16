@@ -4,72 +4,415 @@
 
 @layer base {
   :root {
-    /* Light mode colors */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-
+    /* High-contrast color palette for better readability */
+    --primary: 217 91% 50%; /* Darker blue for better contrast #4285F4 */
+    --secondary: 220 20% 35%; /* Darker gray #525B66 */
+    --accent: 217 91% 60%; /* Lighter blue for accents #5B9BF5 */
+    
+    /* Base Colors - High Contrast */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 220 39% 8%; /* Very dark for maximum readability #0D1117 */
+    
+    /* Card & Surface Colors */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-
+    --card-foreground: 220 39% 8%;
+    
+    /* Muted & Subtle Colors - Better contrast */
+    --muted: 210 40% 95%; /* Very light gray #F8FAFC */
+    --muted-foreground: 220 20% 25%; /* Much darker gray for readability #3F4B57 */
+    
+    /* UI Elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-
-    --primary: 221 91% 54%;
+    --popover-foreground: 220 39% 8%;
+    
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 221 91% 54%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    /* Dark mode colors */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 221 91% 54%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 221 91% 54%;
     --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 221 91% 54%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62.8% 30.6%;
+    --accent-foreground: 220 39% 8%;
+    
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 221 91% 54%;
+    
+    --border: 220 13% 88%; /* Darker border for visibility #D1D5DB */
+    --input: 220 13% 88%;
+    --ring: 217 91% 50%; /* Blue focus ring */
+    
+    --radius: 0.5rem;
   }
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
+    background-color: #ffffff !important;
+    font-feature-settings: "kern" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+  
+  html {
+    background-color: #ffffff !important;
+    scroll-behavior: smooth;
+  }
+  
+  #root {
+    background-color: #ffffff !important;
+  }
+  
+  /* Enhanced Typography for Mobile */
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-semibold text-foreground;
+    line-height: 1.2;
+  }
+  
+  h1 {
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
+    font-weight: 600;
+  }
+  
+  h2 {
+    @apply text-2xl sm:text-3xl md:text-4xl;
+    font-weight: 600;
+  }
+  
+  h3 {
+    @apply text-xl sm:text-2xl md:text-3xl;
+    font-weight: 600;
+  }
+  
+  h4 {
+    @apply text-lg sm:text-xl;
+    font-weight: 600;
+  }
+  
+  /* Enhanced paragraph readability */
+  p {
+    @apply text-foreground leading-7;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* Large text for better mobile readability */
+  .text-large {
+    @apply text-lg sm:text-xl;
+    line-height: 1.7;
+  }
+  
+  /* Extra large text for hero sections */
+  .text-hero {
+    @apply text-xl sm:text-2xl;
+    line-height: 1.6;
+  }
+  
+  /* Smooth transitions only */
+  * {
+    @apply transition-opacity duration-300 ease-in-out;
+  }
+  
+  /* Mobile-optimized Card styling */
+  .card {
+    @apply bg-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border;
+    padding: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .card {
+      padding: 2rem;
+    }
+  }
+  
+  /* Button styling - Mobile optimized */
+  button {
+    @apply font-medium rounded-lg;
+    min-height: 44px; /* Apple's recommended touch target */
+  }
+  
+  /* Mobile-friendly Input styling */
+  input, textarea {
+    @apply bg-white border-2 border-border focus:border-primary rounded-lg;
+    @apply transition-colors duration-200;
+    @apply placeholder:text-muted-foreground;
+    min-height: 44px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Enhanced hover effects for non-touch devices */
+  @media (hover: hover) {
+    .hover-lift {
+      @apply transition-transform duration-300 hover:-translate-y-1;
+    }
+  }
+  
+  /* Section styling */
+  section {
+    @apply relative;
+    padding: 3rem 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    section {
+      padding: 4rem 1rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    section {
+      padding: 6rem 1rem;
+    }
+  }
+  
+  /* Header/Navbar - Mobile optimized */
+  header {
+    @apply bg-white border-b-2 border-border;
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Section backgrounds with visual interest */
+  .bg-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .bg-section-blue {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%);
+  }
+  
+  .bg-section-pattern {
+    background-color: #f8fafc;
+    background-image: 
+      radial-gradient(circle at 2px 2px, rgba(91, 155, 245, 0.05) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+  
+  /* Enhanced Shadows for depth */
+  .shadow-soft {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 
+                0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+  
+  .hover\:shadow-soft:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 
+                0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* HIGH IMPACT text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    font-weight: 900;
+    text-shadow: 0 0 30px rgba(91, 155, 245, 0.5);
+  }
+  
+  /* EXPLOSIVE shadows */
+  .shadow-3xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 
+                0 0 60px rgba(91, 155, 245, 0.3);
+  }
+  
+  .hover\:shadow-3xl:hover {
+    box-shadow: 0 35px 70px -12px rgba(0, 0, 0, 0.35), 
+                0 0 80px rgba(91, 155, 245, 0.4);
+  }
+  
+  /* Subtle gradient backgrounds */
+  .bg-gradient-subtle {
+    @apply bg-gradient-to-b from-white to-muted;
+  }
+  
+  /* Mobile-optimized spacing */
+  .section-padding {
+    @apply py-12 md:py-16 lg:py-24;
+  }
+  
+  /* Enhanced focus states for accessibility */
+  *:focus {
+    @apply outline-none ring-4 ring-primary/30 ring-offset-2 ring-offset-background;
+  }
+  
+  /* Mobile-friendly scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-secondary/50 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary/70;
+  }
+  
+  /* Primary button - Mobile optimized */
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary/30;
+    min-height: 48px;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Link hover - enhanced */
+  a {
+    @apply transition-colors duration-200;
+  }
+  
+  a:hover {
+    @apply text-primary;
+  }
+  
+  /* Fade in animation - optimized */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-in {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  /* Animation delays */
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+  
+  /* Enhanced hero section with visual interest */
+  .hero-pattern {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f0f7ff 100%);
+    background-image: 
+      radial-gradient(circle at 20% 30%, rgba(91, 155, 245, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(91, 155, 245, 0.06) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, rgba(91, 155, 245, 0.04) 0%, transparent 30%);
+  }
+  
+  /* Decorative elements */
+  .decorative-dots {
+    background-image: radial-gradient(circle, #5b9bf5 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.1;
+  }
+  
+  .accent-border {
+    border-left: 4px solid #5b9bf5;
+  }
+  
+  .icon-background {
+    background: linear-gradient(135deg, #5b9bf5 0%, #4285f4 100%);
+  }
+  
+  /* Card variations for visual interest */
+  .card-blue {
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+    border-left: 4px solid #5b9bf5;
+  }
+  
+  .card-hover-blue:hover {
+    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+    border-color: #5b9bf5;
+  }
+  
+  /* Mobile-specific utilities */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Container improvements for mobile */
+  .container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* Grid improvements for mobile */
+  .grid-mobile {
+    @apply grid gap-6 sm:gap-8;
+  }
+  
+  /* Typography scale for mobile */
+  .text-mobile-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+  
+  .text-mobile-xl {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+  
+  /* Enhanced readability for small text */
+  .text-small {
+    @apply text-sm;
+    line-height: 1.6;
+  }
+  
+  /* Better spacing for mobile lists */
+  ul, ol {
+    @apply space-y-3;
+  }
+  
+  li {
+    line-height: 1.7;
+  }
+  
+  /* Image optimization */
+  img {
+    @apply max-w-full h-auto;
+  }
+  
+  /* Partner carousel animation */
+  @keyframes scroll-x {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-scroll-x {
+    animation: scroll-x 30s linear infinite;
+  }
+  
+  .animate-scroll-x:hover {
+    animation-play-state: paused;
+  }
+  
+  /* Form improvements */
+  form {
+    @apply space-y-6;
+  }
+  
+  /* Table responsive */
+  table {
+    @apply w-full text-left;
+  }
+  
+  th, td {
+    @apply p-3 border-b border-border;
+  }
+  
+  /* Improved navigation for mobile */
+  nav a {
+    @apply block py-3 px-4 text-base;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 }

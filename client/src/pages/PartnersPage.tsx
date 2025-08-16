@@ -18,6 +18,11 @@ const partners = [
       description: "We helped Agave optimize their fleet of 300+ vehicles, saving them 2,500+ annual labor hours and reducing maintenance costs by 22% through our comprehensive AI-powered fleet management system.",
       link: "/services/fleet-management"
     }
+  },
+  {
+    name: "HITA of Arizona",
+    logo: "/partner-hita.png",
+    description: "HITA of Arizona is a leading hospitality and tourism association dedicated to supporting Arizona's vibrant hospitality industry through advocacy, education, and networking."
   }
 ];
 

@@ -21,9 +21,9 @@ export default function Navbar() {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <img 
-            src="/logo-transparent.png" 
+            src="/official-logo.png" 
             alt="Better Systems AI Logo" 
-            className="h-20 w-auto object-contain"
+            className="h-20 w-auto object-contain px-4 py-2"
           />
         </Link>
 

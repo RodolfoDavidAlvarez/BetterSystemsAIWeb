@@ -17,7 +17,12 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(vercel:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(cp:*)",
+      "Bash(grep:*)",
+      "Bash(pkill:*)",
+      "Bash(curl:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

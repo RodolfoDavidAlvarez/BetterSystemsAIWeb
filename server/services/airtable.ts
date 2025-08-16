@@ -23,12 +23,7 @@ interface FormSubmission {
 
 export async function saveToAirtable(data: FormSubmission) {
   try {
-    // Map form data to Airtable fields
-    const record = {
-      'Name': data.name,
-      'Email': data.email,
-      'Phone': data.phone || '',
-      'Company': data.company || '',
+    let record: any = {
       'Form Type': data.formType,
       'Submitted At': data.submittedAt,
       'Status': 'New',
@@ -36,21 +31,65 @@ export async function saveToAirtable(data: FormSubmission) {
       'Form Data': JSON.stringify(data),
     };
 
-    // Add specific fields based on form type
-    if (data.message) {
-      record['Message'] = data.message;
-    }
-    
-    if (data.currentChallenges) {
-      record['Current Challenges'] = data.currentChallenges;
-    }
-    
-    if (data.timeline) {
-      record['Timeline'] = data.timeline;
-    }
-    
-    if (data.industry) {
-      record['Industry'] = data.industry;
+    // Handle Client Onboarding form type
+    if (data.formType === 'Client Onboarding') {
+      record = {
+        ...record,
+        // Business Information
+        'Name': data.businessName || 'Not provided',
+        'Company': data.businessName || '',
+        'Legal Business Name': data.legalBusinessName || '',
+        'Business Address': data.businessAddress || '',
+        'Phone': data.businessPhone || '',
+        'Website': data.website || '',
+        
+        // Primary Contact
+        'Email': data.primaryContactEmail || '',
+        'Primary Contact Name': data.primaryContactName || '',
+        'Primary Contact Title': data.primaryContactTitle || '',
+        'Primary Contact Phone': data.primaryContactPhone || '',
+        
+        // Operations Contact
+        'Operations Contact Name': data.operationsContactName || '',
+        'Operations Contact Title': data.operationsContactTitle || '',
+        'Operations Contact Email': data.operationsContactEmail || '',
+        'Operations Contact Phone': data.operationsContactPhone || '',
+        
+        // Billing Contact
+        'Billing Contact Name': data.billingContactName || '',
+        'Billing Contact Title': data.billingContactTitle || '',
+        'Billing Contact Email': data.billingContactEmail || '',
+        'Billing Contact Phone': data.billingContactPhone || '',
+        
+        // Additional Information
+        'Additional Notes': data.additionalNotes || '',
+      };
+    } else {
+      // Handle regular contact form
+      record = {
+        ...record,
+        'Name': data.name || '',
+        'Email': data.email || '',
+        'Phone': data.phone || '',
+        'Company': data.company || '',
+      };
+      
+      // Add specific fields based on form data
+      if (data.message) {
+        record['Message'] = data.message;
+      }
+      
+      if (data.currentChallenges) {
+        record['Current Challenges'] = data.currentChallenges;
+      }
+      
+      if (data.timeline) {
+        record['Timeline'] = data.timeline;
+      }
+      
+      if (data.industry) {
+        record['Industry'] = data.industry;
+      }
     }
 
     const result = await base(process.env.AIRTABLE_TABLE_NAME || 'tblYCy5c4UHCy0vr9').create(record);

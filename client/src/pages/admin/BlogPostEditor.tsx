@@ -431,7 +431,7 @@ export default function BlogPostEditor() {
                       </TabsContent>
                       <TabsContent value="preview" className="border rounded-md p-4 min-h-[300px]">
                         {field.value ? (
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <div className="prose prose-sm max-w-none">
                             <ReactMarkdown 
                               remarkPlugins={[remarkGfm]}
                               components={{

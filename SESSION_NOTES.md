@@ -91,3 +91,19 @@
 - Apply similar high-energy approach to remaining pages if desired
 - Test on various devices
 - Consider A/B testing the bold messaging approach
+
+## Partners Carousel Update - Aug 17, 2025
+
+### What We Did
+- **Increased Scrolling Speed**: Reduced animation duration from 30s to 15s for faster scrolling
+- **Added Navigation Controls**: 
+  - Left/Right arrow buttons for manual scrolling
+  - Play/Pause button to control automatic scrolling
+  - Clean, minimal button design with primary color theme
+- **Enhanced User Control**: Users can now manually navigate partners or let it auto-scroll
+
+### Key Changes
+- `client/src/index.css`: Updated animation duration from 30s to 15s
+- `client/src/pages/HomePage.tsx`: Added navigation controls with state management
+- Imported necessary icons (ChevronLeft, ChevronRight, Pause, Play)
+- Added useState and useRef hooks for carousel control

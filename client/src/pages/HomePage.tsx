@@ -1,12 +1,28 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
-import { ArrowRight, Zap, TrendingUp, Clock, Users, Brain, Shield, Rocket, Target, Star } from "lucide-react";
-import Partners from "@/components/sections/Partners";
+import { ArrowRight, Zap, TrendingUp, Clock, Users, Brain, Shield, Rocket, Target, Star, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
 export default function HomePage() {
+  const [isScrolling, setIsScrolling] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const toggleScrolling = () => {
+    setIsScrolling(!isScrolling);
+  };
+  
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 300;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+  
   const benefits = [
     { 
       icon: Zap, 
@@ -154,8 +170,36 @@ export default function HomePage() {
           </div>
           
           <div className="relative">
-            <div className="overflow-hidden mx-auto">
-              <div className="flex animate-scroll-x gap-16 py-4">
+            {/* Navigation Controls */}
+            <div className="flex justify-center gap-4 mb-6">
+              <Button
+                onClick={() => scrollCarousel('left')}
+                variant="outline"
+                size="icon"
+                className="rounded-full w-10 h-10 border-2 border-primary/20 hover:border-primary/40"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                onClick={toggleScrolling}
+                variant="outline"
+                size="icon"
+                className="rounded-full w-10 h-10 border-2 border-primary/20 hover:border-primary/40"
+              >
+                {isScrolling ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+              </Button>
+              <Button
+                onClick={() => scrollCarousel('right')}
+                variant="outline"
+                size="icon"
+                className="rounded-full w-10 h-10 border-2 border-primary/20 hover:border-primary/40"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="overflow-hidden mx-auto" ref={scrollRef}>
+              <div className={`flex gap-16 py-4 ${isScrolling ? 'animate-scroll-x' : ''}`}>
                 <div className="flex items-center gap-16 shrink-0">
                   <img src="/partner-ssw.png" alt="SSW Partner" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
                   <img src="/partner-aec.png" alt="AEC Partner" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
@@ -294,9 +338,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* PARTNERS SECTION */}
-      <Partners />
 
       {/* CTA - MAXIMUM ENERGY */}
       <section className="section-padding bg-gradient-to-br from-primary to-secondary text-white relative overflow-hidden">

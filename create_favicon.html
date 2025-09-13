@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Favicon</title>
+</head>
+<body>
+    <canvas id="favicon" width="32" height="32"></canvas>
+    <br>
+    <button onclick="downloadFavicon()">Download Favicon</button>
+    
+    <script>
+        const canvas = document.getElementById('favicon');
+        const ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, 32, 32);
+        
+        // Brand blue background with rounded corners
+        const brandBlue = '#4285F4';
+        const padding = 3;
+        const radius = 6;
+        
+        ctx.fillStyle = brandBlue;
+        ctx.beginPath();
+        ctx.moveTo(padding + radius, padding);
+        ctx.lineTo(32 - padding - radius, padding);
+        ctx.quadraticCurveTo(32 - padding, padding, 32 - padding, padding + radius);
+        ctx.lineTo(32 - padding, 32 - padding - radius);
+        ctx.quadraticCurveTo(32 - padding, 32 - padding, 32 - padding - radius, 32 - padding);
+        ctx.lineTo(padding + radius, 32 - padding);
+        ctx.quadraticCurveTo(padding, 32 - padding, padding, 32 - padding - radius);
+        ctx.lineTo(padding, padding + radius);
+        ctx.quadraticCurveTo(padding, padding, padding + radius, padding);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw white "B"
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('B', 16, 17);
+        
+        // Enlarge canvas for preview
+        canvas.style.width = '128px';
+        canvas.style.height = '128px';
+        canvas.style.imageRendering = 'pixelated';
+        
+        function downloadFavicon() {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'favicon.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+</body>
+</html>

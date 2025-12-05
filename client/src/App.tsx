@@ -13,6 +13,7 @@ import ContactPage from "./pages/ContactPage";
 import LearnPage from "./pages/LearnPage";
 import ClientOnboardingPage from "./pages/ClientOnboardingPage";
 import PartnersPage from "./pages/PartnersPage";
+import SocialPage from "./pages/SocialPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
 
 // Admin imports
@@ -39,6 +40,7 @@ function App() {
             <Route path="/contact" component={ContactPage} />
             <Route path="/partners" component={PartnersPage} />
             <Route path="/client-onboarding" component={ClientOnboardingPage} />
+            <Route path="/rodolfo" component={SocialPage} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" component={LoginPage} />

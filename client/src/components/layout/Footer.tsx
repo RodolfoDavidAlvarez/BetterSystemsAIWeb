@@ -64,8 +64,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/founders-social" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Social Media
+                <Link href="/rodolfo" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Contact Card
                 </Link>
               </li>
             </ul>

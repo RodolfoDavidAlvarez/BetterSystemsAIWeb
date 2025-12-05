@@ -16,6 +16,8 @@ interface EmailData {
   email: string;
   phone?: string;
   company?: string;
+  companyExpertise?: string;
+  notes?: string;
   message?: string;
   formType: string;
   [key: string]: any;
@@ -43,6 +45,17 @@ export async function sendCustomerEmail(data: EmailData) {
         </ul>
         <p>If you have any immediate questions, feel free to reach out.</p>
         <p>Best regards,<br>The Better Systems AI Team</p>
+      </div>
+    `;
+  } else if (formType === 'Contact Card Form') {
+    subject = 'Welcome to Better Systems AI!';
+    htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4285F4;">Welcome, ${name}! 👋</h2>
+        <p>Thank you for submitting your contact information. We're excited to connect with you and learn more about ${data.company ? data.company : 'your company'}.</p>
+        <p>Our team will review your information and get back to you soon to discuss how Better Systems AI can help transform your business.</p>
+        <p>In the meantime, feel free to reach out if you have any questions.</p>
+        <p>Best regards,<br>Rodolfo Alvarez<br>CEO & Founder<br>Better Systems AI</p>
       </div>
     `;
   } else {
@@ -113,6 +126,26 @@ export async function sendAdminNotification(data: EmailData) {
         <h3>Additional Information</h3>
         <p><strong>Notes:</strong> ${data.additionalNotes || 'None provided'}</p>
         
+        <hr style="margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">Submitted at: ${data.submittedAt || new Date().toISOString()}</p>
+      </div>
+    `;
+  } else if (formType === 'Contact Card Form') {
+    // Contact Card Form template
+    const { name, email, phone, company, notes } = data;
+    subjectLine = `New Contact Card Submission from ${name}${company ? ` - ${company}` : ''}`;
+    htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4285F4;">New Contact Card Form Submission</h2>
+        <h3>Contact Information</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email || 'Not provided'}</p>
+        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        <p><strong>Company:</strong> ${company || 'Not provided'}</p>
+        ${notes ? `
+        <h3>Notes</h3>
+        <p style="white-space: pre-wrap;">${notes}</p>
+        ` : ''}
         <hr style="margin: 20px 0;">
         <p style="color: #666; font-size: 12px;">Submitted at: ${data.submittedAt || new Date().toISOString()}</p>
       </div>

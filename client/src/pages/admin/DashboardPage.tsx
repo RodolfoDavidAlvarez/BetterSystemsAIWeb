@@ -192,7 +192,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/clients')}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
@@ -207,6 +207,26 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                   {stats?.clients.total || 0} clients in your CRM
+                </p>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/plan')}>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Operations Plan
+              </CardTitle>
+              <CardDescription>
+                Financials, onboarding, integrations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Real vs sample data labels in one view
                 </p>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </div>

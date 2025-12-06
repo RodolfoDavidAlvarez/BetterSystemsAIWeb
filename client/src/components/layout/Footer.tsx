@@ -89,8 +89,15 @@ export default function Footer() {
             ))}
           </div>
           <div className="text-center text-sm text-muted-foreground">
-            <p>© {currentYear} Better Systems AI. All rights reserved.</p>
-            {/* Admin link removed */}
+            <p>
+              © {currentYear} Better Systems AI. All rights reserved.
+              <Link
+                href="/admin/login"
+                className="ml-2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                ·
+              </Link>
+            </p>
           </div>
         </div>
       </div>

@@ -179,3 +179,78 @@ export async function sendAdminNotification(data: EmailData) {
     return { success: false, error };
   }
 }
+
+// Project Update Email
+interface ProjectUpdateEmailData {
+  to: string;
+  clientName: string;
+  projectName: string;
+  updateTitle: string;
+  updateContent: string;
+  updateType: string;
+}
+
+export async function sendProjectUpdateEmail(data: ProjectUpdateEmailData) {
+  const { to, clientName, projectName, updateTitle, updateContent, updateType } = data;
+
+  const typeColors: Record<string, string> = {
+    progress: '#4285F4',
+    milestone: '#34A853',
+    blocker: '#EA4335',
+    deliverable: '#FBBC04',
+    general: '#5F6368'
+  };
+
+  const typeLabels: Record<string, string> = {
+    progress: 'Progress Update',
+    milestone: 'Milestone Reached',
+    blocker: 'Important Notice',
+    deliverable: 'Deliverable Ready',
+    general: 'Project Update'
+  };
+
+  const color = typeColors[updateType] || typeColors.general;
+  const label = typeLabels[updateType] || typeLabels.general;
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background-color: ${color}; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+        <h2 style="margin: 0;">${label}: ${projectName}</h2>
+      </div>
+
+      <div style="border: 1px solid #e0e0e0; border-top: none; padding: 20px; border-radius: 0 0 8px 8px;">
+        <p>Hi ${clientName},</p>
+
+        <h3 style="color: ${color}; margin-top: 20px;">${updateTitle}</h3>
+
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; margin: 15px 0;">
+          ${updateContent.replace(/\n/g, '<br>')}
+        </div>
+
+        <p>If you have any questions about this update, please don't hesitate to reach out.</p>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+        <p style="color: #666; font-size: 14px;">
+          Best regards,<br>
+          The Better Systems AI Team
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const result = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'Better Systems AI <noreply@bettersystemsai.com>',
+      to: to,
+      subject: `[${projectName}] ${updateTitle}`,
+      html: htmlContent,
+    });
+
+    console.log(`[Email] Project update sent to ${to} for project ${projectName}`);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error sending project update email:', error);
+    return { success: false, error };
+  }
+}

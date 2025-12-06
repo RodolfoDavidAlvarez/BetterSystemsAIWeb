@@ -21,6 +21,11 @@ import LoginPage from "./pages/admin/LoginPage";
 import DashboardPage from "./pages/admin/DashboardPage";
 import BlogPostsPage from "./pages/admin/BlogPostsPage";
 import BlogPostEditor from "./pages/admin/BlogPostEditor";
+import ClientsPage from "./pages/admin/ClientsPage";
+import ClientEditorPage from "./pages/admin/ClientEditorPage";
+import ProjectsPage from "./pages/admin/ProjectsPage";
+import ProjectDetailPage from "./pages/admin/ProjectDetailPage";
+import ProjectEditorPage from "./pages/admin/ProjectEditorPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -66,7 +71,49 @@ function App() {
                 </ProtectedRoute>
               )}
             </Route>
-            
+
+            {/* CRM Routes */}
+            <Route path="/admin/clients">
+              <ProtectedRoute>
+                <ClientsPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/clients/new">
+              <ProtectedRoute>
+                <ClientEditorPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/clients/:id/edit">
+              <ProtectedRoute>
+                <ClientEditorPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/clients/:id">
+              <ProtectedRoute>
+                <ClientEditorPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/projects">
+              <ProtectedRoute>
+                <ProjectsPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/projects/new">
+              <ProtectedRoute>
+                <ProjectEditorPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/projects/:id/edit">
+              <ProtectedRoute>
+                <ProjectEditorPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/projects/:id">
+              <ProtectedRoute>
+                <ProjectDetailPage />
+              </ProtectedRoute>
+            </Route>
+
             {/* 404 Route */}
             <Route>
               <div className="min-h-screen flex items-center justify-center">

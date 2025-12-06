@@ -1,9 +1,36 @@
 import './loadEnv';
 import type { Express } from "express";
 import { login, register, getCurrentUser } from './controllers/auth';
-import { authenticate } from './middleware/auth';
+import { authenticate, isAdmin } from './middleware/auth';
 import { sendCustomerEmail, sendAdminNotification } from './services/email';
 import { saveToAirtable } from './services/airtable';
+
+// CRM Controllers
+import {
+  getAllClients,
+  getClientById,
+  createClient,
+  updateClient,
+  deleteClient,
+  getClientStats
+} from './controllers/clients';
+
+import {
+  getAllProjects,
+  getProjectById,
+  createProject,
+  updateProject,
+  deleteProject,
+  getProjectStats
+} from './controllers/projects';
+
+import {
+  getProjectUpdates,
+  createProjectUpdate,
+  sendUpdateToClient,
+  updateProjectUpdate,
+  deleteProjectUpdate
+} from './controllers/projectUpdates';
 
 export function registerRoutes(app: Express) {
   // Public API routes
@@ -119,17 +146,42 @@ export function registerRoutes(app: Express) {
       environment: process.env.NODE_ENV
     });
   });
-  
-  // Blog and admin endpoints have been removed
-  
-  // Public blog routes - DISABLED
-  // app.get("/api/blog", getAllBlogPosts);
-  // app.get("/api/blog/:slug", getBlogPostBySlug);
-  
-  // Protected admin blog routes - DISABLED
-  // app.post("/api/admin/blog", authenticate, isAdmin, createBlogPost);
-  // app.get("/api/admin/blog", authenticate, isAdmin, getAllBlogPostsAdmin);
-  // app.get("/api/admin/blog/:id", authenticate, isAdmin, getBlogPostById);
-  // app.put("/api/admin/blog/:id", authenticate, isAdmin, updateBlogPost);
-  // app.delete("/api/admin/blog/:id", authenticate, isAdmin, deleteBlogPost);
+
+  // ==================== CRM API ROUTES ====================
+
+  // Client routes (protected)
+  app.get("/api/admin/clients", authenticate, isAdmin, getAllClients);
+  app.get("/api/admin/clients/stats", authenticate, isAdmin, getClientStats);
+  app.get("/api/admin/clients/:id", authenticate, isAdmin, getClientById);
+  app.post("/api/admin/clients", authenticate, isAdmin, createClient);
+  app.put("/api/admin/clients/:id", authenticate, isAdmin, updateClient);
+  app.delete("/api/admin/clients/:id", authenticate, isAdmin, deleteClient);
+
+  // Project routes (protected)
+  app.get("/api/admin/projects", authenticate, isAdmin, getAllProjects);
+  app.get("/api/admin/projects/stats", authenticate, isAdmin, getProjectStats);
+  app.get("/api/admin/projects/:id", authenticate, isAdmin, getProjectById);
+  app.post("/api/admin/projects", authenticate, isAdmin, createProject);
+  app.put("/api/admin/projects/:id", authenticate, isAdmin, updateProject);
+  app.delete("/api/admin/projects/:id", authenticate, isAdmin, deleteProject);
+
+  // Project Updates routes (protected)
+  app.get("/api/admin/projects/:projectId/updates", authenticate, isAdmin, getProjectUpdates);
+  app.post("/api/admin/projects/:projectId/updates", authenticate, isAdmin, createProjectUpdate);
+  app.put("/api/admin/updates/:updateId", authenticate, isAdmin, updateProjectUpdate);
+  app.delete("/api/admin/updates/:updateId", authenticate, isAdmin, deleteProjectUpdate);
+  app.post("/api/admin/updates/:updateId/send", authenticate, isAdmin, sendUpdateToClient);
+
+  // Dashboard stats
+  app.get("/api/admin/dashboard/stats", authenticate, isAdmin, async (req, res) => {
+    try {
+      // Return combined stats for the dashboard
+      res.json({
+        success: true,
+        message: 'Dashboard stats endpoint - use individual stat endpoints for data'
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch dashboard stats' });
+    }
+  });
 }

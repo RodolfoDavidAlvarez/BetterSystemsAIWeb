@@ -49,12 +49,12 @@ export default function LoginPage() {
     }
   }, [navigate]);
   
-  // Initialize form
+  // Initialize form with dev credentials pre-filled
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
-      password: '',
+      username: 'rodolfo',
+      password: 'password123',
     },
   });
   

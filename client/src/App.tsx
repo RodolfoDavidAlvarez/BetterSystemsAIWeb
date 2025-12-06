@@ -15,6 +15,7 @@ import ClientOnboardingPage from "./pages/ClientOnboardingPage";
 import PartnersPage from "./pages/PartnersPage";
 import SocialPage from "./pages/SocialPage";
 import { useScrollToTop } from './hooks/useScrollToTop';
+import OperationsPlanPage from "./pages/admin/OperationsPlanPage";
 
 // Admin imports
 import LoginPage from "./pages/admin/LoginPage";
@@ -111,6 +112,11 @@ function App() {
             <Route path="/admin/projects/:id">
               <ProtectedRoute>
                 <ProjectDetailPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/plan">
+              <ProtectedRoute>
+                <OperationsPlanPage />
               </ProtectedRoute>
             </Route>
 

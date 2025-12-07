@@ -88,6 +88,7 @@
     "rest-express": "file:",
     "sharp": "^0.33.5",
     "shepherd.js": "^14.5.0",
+    "stripe": "^20.0.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "terser": "^5.37.0",

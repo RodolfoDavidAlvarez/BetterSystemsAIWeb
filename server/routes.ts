@@ -32,6 +32,19 @@ import {
   deleteProjectUpdate
 } from './controllers/projectUpdates';
 
+import {
+  syncAllStripeData,
+  syncStripeCustomers,
+  syncStripeInvoices,
+  syncStripePaymentIntents,
+  syncStripeSubscriptions,
+  createInvoice,
+  createPaymentLinkForClient,
+  getBillingDashboard
+} from './controllers/billing';
+
+import { constructWebhookEvent, handleWebhookEvent } from './services/stripe';
+
 export function registerRoutes(app: Express) {
   // Public API routes
   app.post("/api/contact", async (req, res) => {
@@ -182,6 +195,57 @@ export function registerRoutes(app: Express) {
       });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Failed to fetch dashboard stats' });
+    }
+  });
+
+  // ==================== BILLING & STRIPE ROUTES ====================
+
+  // Billing Dashboard
+  app.get("/api/admin/billing/dashboard", authenticate, isAdmin, getBillingDashboard);
+
+  // Stripe Sync Operations
+  app.post("/api/admin/billing/sync/all", authenticate, isAdmin, syncAllStripeData);
+  app.post("/api/admin/billing/sync/customers", authenticate, isAdmin, syncStripeCustomers);
+  app.post("/api/admin/billing/sync/invoices", authenticate, isAdmin, syncStripeInvoices);
+  app.post("/api/admin/billing/sync/payments", authenticate, isAdmin, syncStripePaymentIntents);
+  app.post("/api/admin/billing/sync/subscriptions", authenticate, isAdmin, syncStripeSubscriptions);
+
+  // Invoice Management
+  app.post("/api/admin/billing/invoices", authenticate, isAdmin, createInvoice);
+
+  // Payment Links
+  app.post("/api/admin/billing/payment-links", authenticate, isAdmin, createPaymentLinkForClient);
+
+  // Stripe Webhook (no auth required - Stripe signature verification instead)
+  app.post("/api/webhooks/stripe", async (req, res) => {
+    const signature = req.headers['stripe-signature'];
+
+    if (!signature || typeof signature !== 'string') {
+      return res.status(400).json({ error: 'Missing stripe-signature header' });
+    }
+
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error('STRIPE_WEBHOOK_SECRET not configured');
+      return res.status(500).json({ error: 'Webhook secret not configured' });
+    }
+
+    try {
+      // Construct the event using the raw body
+      const event = constructWebhookEvent(
+        req.body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+
+      // Handle the event
+      const result = await handleWebhookEvent(event);
+
+      console.log(`[Stripe Webhook] Processed ${event.type}:`, result);
+
+      res.json({ received: true, type: result.type });
+    } catch (error: any) {
+      console.error('[Stripe Webhook] Error:', error.message);
+      return res.status(400).json({ error: error.message });
     }
   });
 }

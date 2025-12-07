@@ -30,37 +30,45 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Enhanced CORS configuration - MUST be first middleware to handle preflight requests
+const corsOptions = {
+  origin: function(origin, callback) {
+    // In development/testing, allow all origins for maximum compatibility
+    console.log(`[CORS] Request from origin: ${origin || 'no origin'}`);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cookie'],
+  exposedHeaders: ['Content-Length', 'X-Refresh-Token', 'Set-Cookie'],
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Explicitly handle OPTIONS preflight requests for all routes
+app.options('*', cors(corsOptions));
+
 // Enhanced debug logging middleware
 const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   if (process.env.NODE_ENV === 'development') {
     console.log('Headers:', JSON.stringify(req.headers, null, 2));
     console.log('Query:', JSON.stringify(req.query, null, 2));
-    console.log('Body:', JSON.stringify(req.body, null, 2));
+    if (req.method !== 'GET' && req.method !== 'OPTIONS') {
+      console.log('Body:', JSON.stringify(req.body, null, 2));
+    }
   }
   next();
 };
 
-// Enhanced CORS configuration for better cross-domain compatibility
-app.use(cors({
-  origin: function(origin, callback) {
-    // In development/testing, allow all origins for maximum compatibility
-    console.log(`[CORS] Request from origin: ${origin || 'no origin'}`);
-    callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Length', 'X-Refresh-Token']
-}));
-
-// Add explicit CORS preflight handling
-app.options('*', cors());
-
 // Parse cookies
 app.use(cookieParser());
 
-// Parse JSON body before logging
+// Parse JSON body - skip for OPTIONS requests
 app.use(express.json({
   limit: '10mb',
   verify: (req, _res, buf) => {

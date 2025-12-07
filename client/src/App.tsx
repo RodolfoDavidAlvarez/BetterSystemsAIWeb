@@ -27,6 +27,7 @@ import ClientEditorPage from "./pages/admin/ClientEditorPage";
 import ProjectsPage from "./pages/admin/ProjectsPage";
 import ProjectDetailPage from "./pages/admin/ProjectDetailPage";
 import ProjectEditorPage from "./pages/admin/ProjectEditorPage";
+import BillingPage from "./pages/admin/BillingPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -117,6 +118,11 @@ function App() {
             <Route path="/admin/plan">
               <ProtectedRoute>
                 <OperationsPlanPage />
+              </ProtectedRoute>
+            </Route>
+            <Route path="/admin/billing">
+              <ProtectedRoute>
+                <BillingPage />
               </ProtectedRoute>
             </Route>
 

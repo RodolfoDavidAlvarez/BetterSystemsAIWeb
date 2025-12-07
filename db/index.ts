@@ -1,6 +1,8 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
-import ws from "ws";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from 'pg';
 import * as schema from "@db/schema";
+
+const { Pool } = pg;
 
 // Flag to track if we're using a mock database
 let isMockDatabase = false;
@@ -69,12 +71,11 @@ try {
       query: { select: () => [] },
     };
   } else {
-    // Create the real database connection
-    dbInstance = drizzle({
-      connection: connectionString,
-      schema,
-      ws: ws,
+    // Create the real database connection using node-postgres
+    const pool = new Pool({
+      connectionString,
     });
+    dbInstance = drizzle({ client: pool, schema });
   }
   
   console.log("[Database] Database connection initialized successfully");

@@ -35,10 +35,10 @@ export const getApiBaseUrl = () => {
     return apiUrl;
   }
   
-  // Use direct IP when in local development
+  // Use relative URLs in local development to go through Vite proxy (avoids CORS)
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log(`Using local development API URL on port 3000`);
-    return `http://${window.location.hostname}:3000/api`;
+    console.log(`Using relative API URL (will proxy to port 3000)`);
+    return '/api';
   }
   
   // For production deployment

@@ -29,6 +29,7 @@ import ProjectDetailPage from "./pages/admin/ProjectDetailPage";
 import ProjectEditorPage from "./pages/admin/ProjectEditorPage";
 import BillingPage from "./pages/admin/BillingPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AdminLayout from "./components/layout/AdminLayout";
 
 function App() {
   useScrollToTop();
@@ -53,23 +54,31 @@ function App() {
             <Route path="/admin/login" component={LoginPage} />
             <Route path="/admin/dashboard">
               <ProtectedRoute>
-                <DashboardPage />
+                <AdminLayout>
+                  <DashboardPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/blog">
               <ProtectedRoute>
-                <BlogPostsPage />
+                <AdminLayout>
+                  <BlogPostsPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/blog/new">
               <ProtectedRoute>
-                <BlogPostEditor />
+                <AdminLayout>
+                  <BlogPostEditor />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/blog/:id">
               {(params) => (
                 <ProtectedRoute>
-                  <BlogPostEditor postId={params.id} />
+                  <AdminLayout>
+                    <BlogPostEditor postId={params.id} />
+                  </AdminLayout>
                 </ProtectedRoute>
               )}
             </Route>
@@ -77,52 +86,72 @@ function App() {
             {/* CRM Routes */}
             <Route path="/admin/clients">
               <ProtectedRoute>
-                <ClientsPage />
+                <AdminLayout>
+                  <ClientsPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/clients/new">
               <ProtectedRoute>
-                <ClientEditorPage />
+                <AdminLayout>
+                  <ClientEditorPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/clients/:id/edit">
               <ProtectedRoute>
-                <ClientEditorPage />
+                <AdminLayout>
+                  <ClientEditorPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/clients/:id">
               <ProtectedRoute>
-                <ClientEditorPage />
+                <AdminLayout>
+                  <ClientEditorPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/projects">
               <ProtectedRoute>
-                <ProjectsPage />
+                <AdminLayout>
+                  <ProjectsPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/projects/new">
               <ProtectedRoute>
-                <ProjectEditorPage />
+                <AdminLayout>
+                  <ProjectEditorPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/projects/:id/edit">
               <ProtectedRoute>
-                <ProjectEditorPage />
+                <AdminLayout>
+                  <ProjectEditorPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/projects/:id">
               <ProtectedRoute>
-                <ProjectDetailPage />
+                <AdminLayout>
+                  <ProjectDetailPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/plan">
               <ProtectedRoute>
-                <OperationsPlanPage />
+                <AdminLayout>
+                  <OperationsPlanPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
             <Route path="/admin/billing">
               <ProtectedRoute>
-                <BillingPage />
+                <AdminLayout>
+                  <BillingPage />
+                </AdminLayout>
               </ProtectedRoute>
             </Route>
 

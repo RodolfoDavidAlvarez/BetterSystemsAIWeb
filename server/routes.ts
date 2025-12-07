@@ -33,6 +33,12 @@ import {
 } from './controllers/projectUpdates';
 
 import {
+  getActivityLog,
+  logActivity,
+  getActivityStats
+} from './controllers/activity';
+
+import {
   syncAllStripeData,
   syncStripeCustomers,
   syncStripeInvoices,
@@ -184,6 +190,11 @@ export function registerRoutes(app: Express) {
   app.put("/api/admin/updates/:updateId", authenticate, isAdmin, updateProjectUpdate);
   app.delete("/api/admin/updates/:updateId", authenticate, isAdmin, deleteProjectUpdate);
   app.post("/api/admin/updates/:updateId/send", authenticate, isAdmin, sendUpdateToClient);
+
+  // Activity Log routes (protected)
+  app.get("/api/admin/activity", authenticate, isAdmin, getActivityLog);
+  app.post("/api/admin/activity", authenticate, isAdmin, logActivity);
+  app.get("/api/admin/activity/stats", authenticate, isAdmin, getActivityStats);
 
   // Dashboard stats
   app.get("/api/admin/dashboard/stats", authenticate, isAdmin, async (req, res) => {

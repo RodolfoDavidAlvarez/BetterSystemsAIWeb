@@ -1,7 +1,8 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Facebook, Linkedin, Youtube } from "lucide-react";
 import { BrandX } from "@/components/ui/icons/brand-x";
 import { BrandTiktok } from "@/components/ui/icons/brand-tiktok";
+import { useEffect } from "react";
 
 const socialLinks = [
   { icon: Linkedin, href: "https://linkedin.com/in/bettersystemsai", label: "LinkedIn" },
@@ -13,6 +14,20 @@ const socialLinks = [
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [, navigate] = useLocation();
+
+  // Keyboard shortcut for admin access (Ctrl+Shift+A or Cmd+Shift+A)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        navigate('/admin/login');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   return (
     <footer className="bg-muted/50 border-t">
@@ -93,7 +108,9 @@ export default function Footer() {
               © {currentYear} Better Systems AI. All rights reserved.
               <Link
                 href="/admin/login"
-                className="ml-2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                className="ml-2 opacity-0 hover:opacity-30 transition-opacity duration-300 cursor-pointer"
+                title="Admin Access"
+                aria-label="Admin Access"
               >
                 ·
               </Link>

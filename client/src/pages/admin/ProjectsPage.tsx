@@ -22,8 +22,8 @@ import {
 import { Badge } from '../../components/ui/badge';
 import { Progress } from '../../components/ui/progress';
 import { useScrollToTop } from '../../hooks/useScrollToTop';
+import ProjectPreview from '../../components/admin/ProjectPreview';
 import {
-  ArrowLeft,
   Plus,
   Search,
   Eye,
@@ -77,6 +77,8 @@ export default function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -158,21 +160,15 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="container py-10">
-      <div className="flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/dashboard')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-              <p className="text-muted-foreground">
-                Track and manage your client projects
-              </p>
-            </div>
-          </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+          <p className="text-muted-foreground">
+            Track and manage your client projects
+          </p>
+        </div>
           <Button onClick={() => navigate('/admin/projects/new')}>
             <Plus className="mr-2 h-4 w-4" />
             New Project
@@ -288,7 +284,11 @@ export default function ProjectsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/admin/projects/${project.id}`)}
+                            onClick={() => {
+                              setSelectedProjectId(project.id);
+                              setPreviewOpen(true);
+                            }}
+                            title="Quick Preview"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -316,6 +316,15 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Project Preview Slide-over */}
+      {selectedProjectId && (
+        <ProjectPreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          projectId={selectedProjectId}
+        />
+      )}
     </div>
   );
 }

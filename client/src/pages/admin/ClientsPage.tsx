@@ -21,8 +21,8 @@ import {
 } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
 import { useScrollToTop } from '../../hooks/useScrollToTop';
+import ClientPreview from '../../components/admin/ClientPreview';
 import {
-  ArrowLeft,
   Plus,
   Search,
   Eye,
@@ -61,6 +61,8 @@ export default function ClientsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchClients();
@@ -133,26 +135,20 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="container py-10">
-      <div className="flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/dashboard')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
-              <p className="text-muted-foreground">
-                Manage your client relationships
-              </p>
-            </div>
-          </div>
-          <Button onClick={() => navigate('/admin/clients/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Client
-          </Button>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
+          <p className="text-muted-foreground">
+            Manage your client relationships
+          </p>
         </div>
+        <Button onClick={() => navigate('/admin/clients/new')}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Client
+        </Button>
+      </div>
 
         {/* Filters */}
         <Card>
@@ -243,7 +239,11 @@ export default function ClientsPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/admin/clients/${client.id}`)}
+                            onClick={() => {
+                              setSelectedClientId(client.id);
+                              setPreviewOpen(true);
+                            }}
+                            title="Quick Preview"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -271,6 +271,15 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Client Preview Slide-over */}
+      {selectedClientId && (
+        <ClientPreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          clientId={selectedClientId}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { useLocation } from "wouter";
 import {
-  ArrowLeft,
   ArrowUpRight,
   BadgeCheck,
   CheckCircle2,
@@ -387,23 +386,17 @@ export default function OperationsPlanPage() {
   const realHours = workItems.filter((w) => w.source === "real").reduce((acc, item) => acc + item.hours, 0);
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50 min-h-screen">
-      <div className="container py-10 space-y-8">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/admin/dashboard")}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Central plan & UI pass</p>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">CRM Control Hub</h1>
-                <p className="text-muted-foreground">
-                  Grounded in the Desert Moon Lighting CRM folder. Real vs sample data clearly labeled.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
+    <div className="p-6 space-y-8">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Central plan & UI pass</p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">CRM Control Hub</h1>
+            <p className="text-muted-foreground">
+              Grounded in the Desert Moon Lighting CRM folder. Real vs sample data clearly labeled.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => navigate("/admin/clients")}>
                 <Layers className="mr-2 h-4 w-4" />
                 Clients

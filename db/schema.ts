@@ -214,11 +214,226 @@ export const activityLog = pgTable("activity_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ==================== BILLING TABLES (STRIPE INTEGRATION) ====================
+
+// Stripe Customers - links clients to Stripe customer IDs
+export const stripeCustomers = pgTable("stripe_customers", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id).notNull(),
+  stripeCustomerId: text("stripe_customer_id").unique().notNull(),
+
+  // Customer metadata from Stripe
+  email: text("email"),
+  name: text("name"),
+  phone: text("phone"),
+
+  // Billing details
+  currency: text("currency").default("usd"),
+  balance: decimal("balance", { precision: 10, scale: 2 }).default("0"), // Account balance
+
+  // Stripe metadata
+  stripeData: jsonb("stripe_data"), // Full Stripe customer object
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Invoices - Stripe invoices
+export const invoices = pgTable("invoices", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id).notNull(),
+  projectId: integer("project_id").references(() => projects.id),
+  stripeCustomerId: integer("stripe_customer_id").references(() => stripeCustomers.id),
+
+  // Stripe IDs
+  stripeInvoiceId: text("stripe_invoice_id").unique(),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+
+  // Invoice details
+  invoiceNumber: text("invoice_number"),
+  description: text("description"),
+
+  // Financial details
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 10, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  amountPaid: decimal("amount_paid", { precision: 10, scale: 2 }).default("0"),
+  amountDue: decimal("amount_due", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default("usd").notNull(),
+
+  // Status and dates
+  status: text("status").notNull(), // draft, open, paid, void, uncollectible
+  dueDate: timestamp("due_date"),
+  paidAt: timestamp("paid_at"),
+
+  // URLs
+  hostedInvoiceUrl: text("hosted_invoice_url"),
+  invoicePdf: text("invoice_pdf"),
+
+  // Line items (stored as JSON)
+  lineItems: jsonb("line_items"),
+
+  // Stripe metadata
+  stripeData: jsonb("stripe_data"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment Intents - Stripe payment tracking
+export const paymentIntents = pgTable("payment_intents", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id),
+  invoiceId: integer("invoice_id").references(() => invoices.id),
+  stripeCustomerId: integer("stripe_customer_id").references(() => stripeCustomers.id),
+
+  // Stripe ID
+  stripePaymentIntentId: text("stripe_payment_intent_id").unique().notNull(),
+
+  // Payment details
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default("usd").notNull(),
+
+  // Status
+  status: text("status").notNull(), // requires_payment_method, requires_confirmation, requires_action, processing, succeeded, canceled
+
+  // Payment method
+  paymentMethod: text("payment_method"), // card, bank_transfer, etc.
+  paymentMethodDetails: jsonb("payment_method_details"),
+
+  // Metadata
+  description: text("description"),
+  receiptEmail: text("receipt_email"),
+
+  // Stripe metadata
+  stripeData: jsonb("stripe_data"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Subscriptions - Recurring billing
+export const subscriptions = pgTable("subscriptions", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id).notNull(),
+  projectId: integer("project_id").references(() => projects.id),
+  stripeCustomerId: integer("stripe_customer_id").references(() => stripeCustomers.id),
+
+  // Stripe ID
+  stripeSubscriptionId: text("stripe_subscription_id").unique().notNull(),
+
+  // Subscription details
+  status: text("status").notNull(), // active, past_due, unpaid, canceled, incomplete, incomplete_expired, trialing
+
+  // Pricing
+  currency: text("currency").default("usd").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  interval: text("interval").notNull(), // month, year, week, day
+  intervalCount: integer("interval_count").default(1),
+
+  // Dates
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAt: timestamp("cancel_at"),
+  canceledAt: timestamp("canceled_at"),
+  endedAt: timestamp("ended_at"),
+  trialStart: timestamp("trial_start"),
+  trialEnd: timestamp("trial_end"),
+
+  // Items (stored as JSON)
+  items: jsonb("items"),
+
+  // Stripe metadata
+  stripeData: jsonb("stripe_data"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Quotes - Estimates/proposals that can be converted to invoices
+export const quotes = pgTable("quotes", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id).notNull(),
+  projectId: integer("project_id").references(() => projects.id),
+
+  // Quote details
+  quoteNumber: text("quote_number").unique().notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+
+  // Financial details
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 10, scale: 2 }).default("0"),
+  discount: decimal("discount", { precision: 10, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default("usd").notNull(),
+
+  // Status
+  status: text("status").default("draft").notNull(), // draft, sent, accepted, declined, expired, converted
+
+  // Dates
+  expiresAt: timestamp("expires_at"),
+  acceptedAt: timestamp("accepted_at"),
+  convertedAt: timestamp("converted_at"),
+
+  // Line items (stored as JSON)
+  lineItems: jsonb("line_items").notNull(),
+
+  // Terms and notes
+  terms: text("terms"),
+  notes: text("notes"),
+
+  // Conversion
+  convertedToInvoiceId: integer("converted_to_invoice_id").references(() => invoices.id),
+
+  // Created by
+  createdBy: integer("created_by").references(() => users.id),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment Links - One-time payment links
+export const paymentLinks = pgTable("payment_links", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id),
+  invoiceId: integer("invoice_id").references(() => invoices.id),
+  quoteId: integer("quote_id").references(() => quotes.id),
+
+  // Stripe ID
+  stripePaymentLinkId: text("stripe_payment_link_id").unique(),
+
+  // Link details
+  url: text("url").notNull(),
+  description: text("description"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default("usd").notNull(),
+
+  // Status
+  active: boolean("active").default(true),
+  expiresAt: timestamp("expires_at"),
+
+  // Tracking
+  clickCount: integer("click_count").default(0),
+  paidAt: timestamp("paid_at"),
+
+  // Stripe metadata
+  stripeData: jsonb("stripe_data"),
+
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ==================== RELATIONS ====================
 
 export const clientsRelations = relations(clients, ({ many }) => ({
   projects: many(projects),
   onboardings: many(clientOnboarding),
+  stripeCustomers: many(stripeCustomers),
+  invoices: many(invoices),
+  quotes: many(quotes),
+  subscriptions: many(subscriptions),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -287,3 +502,39 @@ export const insertActivityLogSchema = createInsertSchema(activityLog);
 export const selectActivityLogSchema = createSelectSchema(activityLog);
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type ActivityLog = z.infer<typeof selectActivityLogSchema>;
+
+// Stripe Customers
+export const insertStripeCustomerSchema = createInsertSchema(stripeCustomers);
+export const selectStripeCustomerSchema = createSelectSchema(stripeCustomers);
+export type InsertStripeCustomer = z.infer<typeof insertStripeCustomerSchema>;
+export type StripeCustomer = z.infer<typeof selectStripeCustomerSchema>;
+
+// Invoices
+export const insertInvoiceSchema = createInsertSchema(invoices);
+export const selectInvoiceSchema = createSelectSchema(invoices);
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = z.infer<typeof selectInvoiceSchema>;
+
+// Payment Intents
+export const insertPaymentIntentSchema = createInsertSchema(paymentIntents);
+export const selectPaymentIntentSchema = createSelectSchema(paymentIntents);
+export type InsertPaymentIntent = z.infer<typeof insertPaymentIntentSchema>;
+export type PaymentIntent = z.infer<typeof selectPaymentIntentSchema>;
+
+// Subscriptions
+export const insertSubscriptionSchema = createInsertSchema(subscriptions);
+export const selectSubscriptionSchema = createSelectSchema(subscriptions);
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = z.infer<typeof selectSubscriptionSchema>;
+
+// Quotes
+export const insertQuoteSchema = createInsertSchema(quotes);
+export const selectQuoteSchema = createSelectSchema(quotes);
+export type InsertQuote = z.infer<typeof insertQuoteSchema>;
+export type Quote = z.infer<typeof selectQuoteSchema>;
+
+// Payment Links
+export const insertPaymentLinkSchema = createInsertSchema(paymentLinks);
+export const selectPaymentLinkSchema = createSelectSchema(paymentLinks);
+export type InsertPaymentLink = z.infer<typeof insertPaymentLinkSchema>;
+export type PaymentLink = z.infer<typeof selectPaymentLinkSchema>;

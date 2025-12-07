@@ -23,7 +23,10 @@
       "Bash(pkill:*)",
       "Bash(curl:*)",
       "Bash(rm:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(cd /Users/rodolfoalvarez/Documents/Better\\ Systems\\ AI/BetterSystems.ai:*)",
+      "WebFetch(domain:supabase.com)",
+      "Bash(cd:*)"
     ],
     "deny": []
   }

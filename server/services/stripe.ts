@@ -1,54 +1,92 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
 if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is required in environment variables');
+  throw new Error("STRIPE_SECRET_KEY is required in environment variables");
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-11-17.clover',
+  apiVersion: "2025-11-17.clover",
   typescript: true,
 });
 
 // ==================== CUSTOMERS ====================
 
+/**
+ * Get ALL Stripe customers with pagination
+ * Fetches all customers including historical data
+ */
 export async function getAllStripeCustomers() {
-  const customers = await stripe.customers.list({ limit: 100 });
-  return customers.data;
+  const allCustomers: Stripe.Customer[] = [];
+  let hasMore = true;
+  let startingAfter: string | undefined = undefined;
+
+  while (hasMore) {
+    const params: Stripe.CustomerListParams = {
+      limit: 100, // Maximum per request
+    };
+
+    if (startingAfter) {
+      params.starting_after = startingAfter;
+    }
+
+    const customers = await stripe.customers.list(params);
+    allCustomers.push(...customers.data);
+
+    hasMore = customers.has_more;
+    if (customers.data.length > 0) {
+      startingAfter = customers.data[customers.data.length - 1].id;
+    }
+  }
+
+  return allCustomers;
 }
 
 export async function getStripeCustomer(customerId: string) {
   return await stripe.customers.retrieve(customerId);
 }
 
-export async function createStripeCustomer(params: {
-  email: string;
-  name?: string;
-  phone?: string;
-  metadata?: Record<string, string>;
-}) {
+export async function createStripeCustomer(params: { email: string; name?: string; phone?: string; metadata?: Record<string, string> }) {
   return await stripe.customers.create(params);
 }
 
-export async function updateStripeCustomer(
-  customerId: string,
-  params: Stripe.CustomerUpdateParams
-) {
+export async function updateStripeCustomer(customerId: string, params: Stripe.CustomerUpdateParams) {
   return await stripe.customers.update(customerId, params);
 }
 
 // ==================== INVOICES ====================
 
+/**
+ * Get ALL Stripe invoices with pagination
+ * Fetches all invoices including historical data
+ */
 export async function getAllStripeInvoices(customerId?: string) {
-  const params: Stripe.InvoiceListParams = {
-    limit: 100,
-  };
+  const allInvoices: Stripe.Invoice[] = [];
+  let hasMore = true;
+  let startingAfter: string | undefined = undefined;
 
-  if (customerId) {
-    params.customer = customerId;
+  while (hasMore) {
+    const params: Stripe.InvoiceListParams = {
+      limit: 100, // Maximum per request
+    };
+
+    if (customerId) {
+      params.customer = customerId;
+    }
+
+    if (startingAfter) {
+      params.starting_after = startingAfter;
+    }
+
+    const invoices = await stripe.invoices.list(params);
+    allInvoices.push(...invoices.data);
+
+    hasMore = invoices.has_more;
+    if (invoices.data.length > 0) {
+      startingAfter = invoices.data[invoices.data.length - 1].id;
+    }
   }
 
-  const invoices = await stripe.invoices.list(params);
-  return invoices.data;
+  return allInvoices;
 }
 
 export async function getStripeInvoice(invoiceId: string) {
@@ -60,7 +98,7 @@ export async function createStripeInvoice(params: {
   description?: string;
   dueDate?: number;
   autoAdvance?: boolean;
-  collectionMethod?: 'charge_automatically' | 'send_invoice';
+  collectionMethod?: "charge_automatically" | "send_invoice";
   metadata?: Record<string, string>;
 }) {
   const invoice = await stripe.invoices.create({
@@ -68,7 +106,7 @@ export async function createStripeInvoice(params: {
     description: params.description,
     due_date: params.dueDate,
     auto_advance: params.autoAdvance ?? false,
-    collection_method: params.collectionMethod ?? 'send_invoice',
+    collection_method: params.collectionMethod ?? "send_invoice",
     metadata: params.metadata,
   });
 
@@ -88,7 +126,7 @@ export async function addInvoiceLineItem(params: {
     invoice: params.invoice,
     description: params.description,
     amount: params.amount,
-    currency: params.currency ?? 'usd',
+    currency: params.currency ?? "usd",
     quantity: params.quantity ?? 1,
   });
 
@@ -103,6 +141,10 @@ export async function sendStripeInvoice(invoiceId: string) {
   return await stripe.invoices.sendInvoice(invoiceId);
 }
 
+export async function updateStripeInvoice(invoiceId: string, params: Stripe.InvoiceUpdateParams) {
+  return await stripe.invoices.update(invoiceId, params);
+}
+
 export async function voidStripeInvoice(invoiceId: string) {
   return await stripe.invoices.voidInvoice(invoiceId);
 }
@@ -113,17 +155,38 @@ export async function payStripeInvoice(invoiceId: string) {
 
 // ==================== PAYMENT INTENTS ====================
 
+/**
+ * Get ALL payment intents with pagination
+ * Fetches all payment intents including historical data
+ */
 export async function getAllPaymentIntents(customerId?: string) {
-  const params: Stripe.PaymentIntentListParams = {
-    limit: 100,
-  };
+  const allPaymentIntents: Stripe.PaymentIntent[] = [];
+  let hasMore = true;
+  let startingAfter: string | undefined = undefined;
 
-  if (customerId) {
-    params.customer = customerId;
+  while (hasMore) {
+    const params: Stripe.PaymentIntentListParams = {
+      limit: 100, // Maximum per request
+    };
+
+    if (customerId) {
+      params.customer = customerId;
+    }
+
+    if (startingAfter) {
+      params.starting_after = startingAfter;
+    }
+
+    const paymentIntents = await stripe.paymentIntents.list(params);
+    allPaymentIntents.push(...paymentIntents.data);
+
+    hasMore = paymentIntents.has_more;
+    if (paymentIntents.data.length > 0) {
+      startingAfter = paymentIntents.data[paymentIntents.data.length - 1].id;
+    }
   }
 
-  const paymentIntents = await stripe.paymentIntents.list(params);
-  return paymentIntents.data;
+  return allPaymentIntents;
 }
 
 export async function getPaymentIntent(paymentIntentId: string) {
@@ -140,7 +203,7 @@ export async function createPaymentIntent(params: {
 }) {
   return await stripe.paymentIntents.create({
     amount: params.amount,
-    currency: params.currency ?? 'usd',
+    currency: params.currency ?? "usd",
     customer: params.customer,
     description: params.description,
     metadata: params.metadata,
@@ -153,17 +216,38 @@ export async function createPaymentIntent(params: {
 
 // ==================== SUBSCRIPTIONS ====================
 
+/**
+ * Get ALL subscriptions with pagination
+ * Fetches all subscriptions including historical data
+ */
 export async function getAllSubscriptions(customerId?: string) {
-  const params: Stripe.SubscriptionListParams = {
-    limit: 100,
-  };
+  const allSubscriptions: Stripe.Subscription[] = [];
+  let hasMore = true;
+  let startingAfter: string | undefined = undefined;
 
-  if (customerId) {
-    params.customer = customerId;
+  while (hasMore) {
+    const params: Stripe.SubscriptionListParams = {
+      limit: 100, // Maximum per request
+    };
+
+    if (customerId) {
+      params.customer = customerId;
+    }
+
+    if (startingAfter) {
+      params.starting_after = startingAfter;
+    }
+
+    const subscriptions = await stripe.subscriptions.list(params);
+    allSubscriptions.push(...subscriptions.data);
+
+    hasMore = subscriptions.has_more;
+    if (subscriptions.data.length > 0) {
+      startingAfter = subscriptions.data[subscriptions.data.length - 1].id;
+    }
   }
 
-  const subscriptions = await stripe.subscriptions.list(params);
-  return subscriptions.data;
+  return allSubscriptions;
 }
 
 export async function getSubscription(subscriptionId: string) {
@@ -184,10 +268,7 @@ export async function createSubscription(params: {
   });
 }
 
-export async function cancelSubscription(
-  subscriptionId: string,
-  cancelAtPeriodEnd: boolean = false
-) {
+export async function cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = false) {
   if (cancelAtPeriodEnd) {
     return await stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: true,
@@ -208,9 +289,9 @@ export async function createPaymentLink(params: {
   // Create a price first (required for payment links)
   const price = await stripe.prices.create({
     unit_amount: params.amount,
-    currency: params.currency ?? 'usd',
+    currency: params.currency ?? "usd",
     product_data: {
-      name: params.description ?? 'Payment',
+      name: params.description ?? "Payment",
     },
   });
 
@@ -234,11 +315,7 @@ export async function getPaymentLink(paymentLinkId: string) {
 
 // ==================== WEBHOOK HANDLING ====================
 
-export function constructWebhookEvent(
-  payload: string | Buffer,
-  signature: string,
-  secret: string
-) {
+export function constructWebhookEvent(payload: string | Buffer, signature: string, secret: string) {
   return stripe.webhooks.constructEvent(payload, signature, secret);
 }
 
@@ -246,29 +323,29 @@ export async function handleWebhookEvent(event: Stripe.Event) {
   console.log(`[Stripe Webhook] Received event: ${event.type}`);
 
   switch (event.type) {
-    case 'customer.created':
-    case 'customer.updated':
-      return { type: 'customer', data: event.data.object as Stripe.Customer };
+    case "customer.created":
+    case "customer.updated":
+      return { type: "customer", data: event.data.object as Stripe.Customer };
 
-    case 'invoice.created':
-    case 'invoice.updated':
-    case 'invoice.paid':
-    case 'invoice.payment_failed':
-    case 'invoice.finalized':
-      return { type: 'invoice', data: event.data.object as Stripe.Invoice };
+    case "invoice.created":
+    case "invoice.updated":
+    case "invoice.paid":
+    case "invoice.payment_failed":
+    case "invoice.finalized":
+      return { type: "invoice", data: event.data.object as Stripe.Invoice };
 
-    case 'payment_intent.created':
-    case 'payment_intent.succeeded':
-    case 'payment_intent.payment_failed':
-      return { type: 'payment_intent', data: event.data.object as Stripe.PaymentIntent };
+    case "payment_intent.created":
+    case "payment_intent.succeeded":
+    case "payment_intent.payment_failed":
+      return { type: "payment_intent", data: event.data.object as Stripe.PaymentIntent };
 
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated':
-    case 'customer.subscription.deleted':
-      return { type: 'subscription', data: event.data.object as Stripe.Subscription };
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      return { type: "subscription", data: event.data.object as Stripe.Subscription };
 
     default:
       console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
-      return { type: 'unhandled', data: event.data.object };
+      return { type: "unhandled", data: event.data.object };
   }
 }

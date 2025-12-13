@@ -429,8 +429,7 @@ export default function BlogPostsPage() {
             )}
           </div>
         </Card>
-      </div>
-      
+
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>

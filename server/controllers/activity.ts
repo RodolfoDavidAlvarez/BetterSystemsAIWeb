@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../../db/index';
 import { activityLog, users, clients, projects, insertActivityLogSchema } from '../../db/schema';
-import { eq, desc, and, inArray, sql } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
@@ -58,7 +58,7 @@ export const getActivityLog = async (req: Request, res: Response) => {
 
     // Fetch entity names for context
     const enrichedActivities = await Promise.all(
-      activities.map(async (activity) => {
+      activities.map(async (activity: typeof activities[0]) => {
         let entityName = null;
 
         if (activity.entityType === 'client') {

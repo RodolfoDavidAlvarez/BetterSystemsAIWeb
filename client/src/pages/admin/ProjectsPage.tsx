@@ -315,7 +315,6 @@ export default function ProjectsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       {/* Project Preview Slide-over */}
       {selectedProjectId && (

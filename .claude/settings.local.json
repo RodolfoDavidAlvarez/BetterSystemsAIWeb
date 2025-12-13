@@ -30,7 +30,12 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(npm run db:push:*)",
-      "Bash(createdb:*)"
+      "Bash(createdb:*)",
+      "Bash(npm run check:*)",
+      "Bash(psql:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(npx vite build)"
     ],
     "deny": []
   }

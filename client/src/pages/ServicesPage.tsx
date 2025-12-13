@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,11 +10,8 @@ import {
   Users,
   ArrowRight,
   Check,
-  Sparkles,
   Zap,
   Target,
-  Award,
-  Clock,
   Shield,
   Rocket,
   Brain,

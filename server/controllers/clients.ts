@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../../db/index';
-import { clients, projects, insertClientSchema, activityLog } from '../../db/schema';
+import { clients, projects, deals, insertClientSchema, activityLog, dealStakeholders } from '../../db/schema';
 import { eq, desc, ilike, or, sql, count } from 'drizzle-orm';
 import { AuthenticatedRequest } from '../middleware/auth';
 
@@ -32,13 +32,61 @@ export const getAllClients = async (req: Request, res: Response) => {
       .limit(parseInt(limit as string))
       .offset(offset);
 
+    // Get deal information for each client (check both primary client and stakeholder relationships)
+    const clientsWithDeals = await Promise.all(
+      allClients.map(async (client: { id: number; name: string; email: string; status: string; [key: string]: unknown }) => {
+        // First check if client is primary on any deal
+        let clientDeals = await db.select()
+          .from(deals)
+          .where(eq(deals.clientId, client.id))
+          .orderBy(desc(deals.createdAt))
+          .limit(1);
+
+        // If no primary deal found, check stakeholder relationships
+        if (clientDeals.length === 0) {
+          const stakeholderDeals = await db
+            .select({
+              id: deals.id,
+              name: deals.name,
+              stage: deals.stage,
+              value: deals.value,
+              clientId: deals.clientId,
+              createdAt: deals.createdAt,
+              updatedAt: deals.updatedAt,
+              description: deals.description,
+              priority: deals.priority,
+              probability: deals.probability,
+              expectedCloseDate: deals.expectedCloseDate,
+              actualCloseDate: deals.actualCloseDate,
+              ownerId: deals.ownerId,
+              source: deals.source,
+              nextSteps: deals.nextSteps,
+              notes: deals.notes,
+              tags: deals.tags,
+            })
+            .from(dealStakeholders)
+            .innerJoin(deals, eq(dealStakeholders.dealId, deals.id))
+            .where(eq(dealStakeholders.clientId, client.id))
+            .orderBy(desc(deals.createdAt))
+            .limit(1);
+
+          clientDeals = stakeholderDeals;
+        }
+
+        return {
+          ...client,
+          deal: clientDeals[0] || null,
+        };
+      })
+    );
+
     // Get total count
     const totalResult = await db.select({ count: count() }).from(clients);
     const total = totalResult[0]?.count || 0;
 
     res.json({
       success: true,
-      clients: allClients,
+      clients: clientsWithDeals,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),

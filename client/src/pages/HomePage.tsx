@@ -1,9 +1,9 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
-import { ArrowRight, Zap, TrendingUp, Clock, Users, Brain, Shield, Rocket, Target, Star, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { ArrowRight, Zap, Users, Brain, Shield, Rocket, Target, Star, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
 export default function HomePage() {
   const [isScrolling, setIsScrolling] = useState(true);

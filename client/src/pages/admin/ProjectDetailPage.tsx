@@ -1,40 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'wouter';
-import { useToast } from '../../hooks/use-toast';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../../components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../../components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../components/ui/select';
-import { Badge } from '../../components/ui/badge';
-import { Progress } from '../../components/ui/progress';
-import { Separator } from '../../components/ui/separator';
-import { useScrollToTop } from '../../hooks/useScrollToTop';
+import { useEffect, useState } from "react";
+import { useLocation, useParams } from "wouter";
+import { useToast } from "../../hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Badge } from "../../components/ui/badge";
+import { Progress } from "../../components/ui/progress";
+import { Separator } from "../../components/ui/separator";
+import { useScrollToTop } from "../../hooks/useScrollToTop";
 import {
   ArrowLeft,
   Plus,
@@ -49,9 +29,11 @@ import {
   Clock,
   MessageSquare,
   CheckCircle2,
-  Loader2
-} from 'lucide-react';
-import { getApiBaseUrl } from '../../lib/queryClient';
+  Loader2,
+  GitBranch,
+  CheckSquare,
+} from "lucide-react";
+import { getApiBaseUrl } from "../../lib/queryClient";
 
 interface ProjectUpdate {
   id: number;
@@ -88,29 +70,29 @@ interface Project {
 }
 
 const updateSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  content: z.string().min(1, 'Content is required'),
-  updateType: z.string().default('progress'),
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  updateType: z.string().default("progress"),
   isInternal: z.boolean().default(false),
 });
 
 type UpdateFormValues = z.infer<typeof updateSchema>;
 
 const statusColors: Record<string, string> = {
-  pending: 'bg-gray-500',
-  proposal: 'bg-blue-500',
-  active: 'bg-green-500',
-  'on-hold': 'bg-yellow-500',
-  completed: 'bg-purple-500',
-  cancelled: 'bg-red-500'
+  pending: "bg-gray-500",
+  proposal: "bg-blue-500",
+  active: "bg-green-500",
+  "on-hold": "bg-yellow-500",
+  completed: "bg-purple-500",
+  cancelled: "bg-red-500",
 };
 
 const updateTypeColors: Record<string, string> = {
-  progress: 'bg-blue-500',
-  milestone: 'bg-green-500',
-  blocker: 'bg-red-500',
-  deliverable: 'bg-yellow-500',
-  general: 'bg-gray-500'
+  progress: "bg-blue-500",
+  milestone: "bg-green-500",
+  blocker: "bg-red-500",
+  deliverable: "bg-yellow-500",
+  general: "bg-gray-500",
 };
 
 export default function ProjectDetailPage() {
@@ -126,13 +108,16 @@ export default function ProjectDetailPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [sendingUpdate, setSendingUpdate] = useState<number | null>(null);
+  const [changelogs, setChangelogs] = useState<any[]>([]);
+  const [selectedChangelogs, setSelectedChangelogs] = useState<number[]>([]);
+  const [isLoadingChangelogs, setIsLoadingChangelogs] = useState(false);
 
   const form = useForm<UpdateFormValues>({
     resolver: zodResolver(updateSchema),
     defaultValues: {
-      title: '',
-      content: '',
-      updateType: 'progress',
+      title: "",
+      content: "",
+      updateType: "progress",
       isInternal: false,
     },
   });
@@ -141,13 +126,19 @@ export default function ProjectDetailPage() {
     fetchProject();
   }, [projectId]);
 
+  useEffect(() => {
+    if (isDialogOpen) {
+      fetchChangelogs();
+    }
+  }, [isDialogOpen, projectId]);
+
   const fetchProject = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const baseUrl = getApiBaseUrl();
 
       const response = await fetch(`${baseUrl}/admin/projects/${projectId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
@@ -156,39 +147,88 @@ export default function ProjectDetailPage() {
         setUpdates(data.updates || []);
       }
     } catch (error) {
-      console.error('Error fetching project:', error);
-      toast({ title: 'Error', description: 'Failed to load project', variant: 'destructive' });
+      console.error("Error fetching project:", error);
+      toast({ title: "Error", description: "Failed to load project", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const onSubmitUpdate = async (values: UpdateFormValues) => {
-    setIsSaving(true);
+  const fetchChangelogs = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      setIsLoadingChangelogs(true);
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const baseUrl = getApiBaseUrl();
 
-      const response = await fetch(`${baseUrl}/admin/projects/${projectId}/updates`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values)
+      const params = new URLSearchParams({
+        isPublic: "true",
+        status: "published",
+        projectId: projectId || "",
+      });
+
+      const response = await fetch(`${baseUrl}/admin/changelogs/public?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
       if (data.success) {
-        toast({ title: 'Success', description: 'Update created successfully' });
+        setChangelogs(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching changelogs:", error);
+    } finally {
+      setIsLoadingChangelogs(false);
+    }
+  };
+
+  const handleChangelogToggle = (changelogId: number) => {
+    setSelectedChangelogs((prev) => {
+      const newSelection = prev.includes(changelogId) ? prev.filter((id) => id !== changelogId) : [...prev, changelogId];
+
+      // Auto-populate form with selected changelogs
+      if (newSelection.length > 0) {
+        const selected = changelogs.filter((c) => newSelection.includes(c.id));
+        const titles = selected.map((c) => `• ${c.title}`).join("\n");
+        const descriptions = selected.map((c) => `${c.title}\n${c.description}`).join("\n\n");
+
+        form.setValue("title", selected.length === 1 ? selected[0].title : "Project Updates");
+        form.setValue("content", descriptions);
+      } else {
+        form.setValue("title", "");
+        form.setValue("content", "");
+      }
+
+      return newSelection;
+    });
+  };
+
+  const onSubmitUpdate = async (values: UpdateFormValues) => {
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const baseUrl = getApiBaseUrl();
+
+      const response = await fetch(`${baseUrl}/admin/projects/${projectId}/updates`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: "Success", description: "Update created successfully" });
         form.reset();
+        setSelectedChangelogs([]);
         setIsDialogOpen(false);
         fetchProject();
       } else {
-        toast({ title: 'Error', description: data.message, variant: 'destructive' });
+        toast({ title: "Error", description: data.message, variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to create update', variant: 'destructive' });
+      toast({ title: "Error", description: "Failed to create update", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -197,54 +237,54 @@ export default function ProjectDetailPage() {
   const sendUpdateToClient = async (updateId: number) => {
     setSendingUpdate(updateId);
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const baseUrl = getApiBaseUrl();
 
       const response = await fetch(`${baseUrl}/admin/updates/${updateId}/send`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
       if (data.success) {
-        toast({ title: 'Success', description: 'Update sent to client!' });
+        toast({ title: "Success", description: "Update sent to client!" });
         fetchProject();
       } else {
-        toast({ title: 'Error', description: data.message, variant: 'destructive' });
+        toast({ title: "Error", description: data.message, variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to send update', variant: 'destructive' });
+      toast({ title: "Error", description: "Failed to send update", variant: "destructive" });
     } finally {
       setSendingUpdate(null);
     }
   };
 
   const deleteUpdate = async (updateId: number) => {
-    if (!confirm('Are you sure you want to delete this update?')) return;
+    if (!confirm("Are you sure you want to delete this update?")) return;
 
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const baseUrl = getApiBaseUrl();
 
       const response = await fetch(`${baseUrl}/admin/updates/${updateId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
       if (data.success) {
-        toast({ title: 'Success', description: 'Update deleted' });
+        toast({ title: "Success", description: "Update deleted" });
         fetchProject();
       } else {
-        toast({ title: 'Error', description: data.message, variant: 'destructive' });
+        toast({ title: "Error", description: data.message, variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to delete update', variant: 'destructive' });
+      toast({ title: "Error", description: "Failed to delete update", variant: "destructive" });
     }
   };
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '-';
+    if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString();
   };
 
@@ -253,8 +293,8 @@ export default function ProjectDetailPage() {
   };
 
   const formatCurrency = (amount: string | null) => {
-    if (!amount) return '-';
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount));
+    if (!amount) return "-";
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(parseFloat(amount));
   };
 
   if (isLoading) {
@@ -279,15 +319,13 @@ export default function ProjectDetailPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/projects')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/projects")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                <Badge className={`${statusColors[project.status]} text-white`}>
-                  {project.status}
-                </Badge>
+                <Badge className={`${statusColors[project.status]} text-white`}>{project.status}</Badge>
               </div>
               <p className="text-muted-foreground">
                 {project.type} • {project.client.name}
@@ -336,12 +374,47 @@ export default function ProjectDetailPage() {
                   <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                       <DialogTitle>Create Project Update</DialogTitle>
-                      <DialogDescription>
-                        Add a new update for this project. You can send it to the client later.
-                      </DialogDescription>
+                      <DialogDescription>Add a new update for this project. You can send it to the client later.</DialogDescription>
                     </DialogHeader>
                     <Form {...form}>
                       <form onSubmit={form.handleSubmit(onSubmitUpdate)} className="space-y-4">
+                        {/* Changelog Selection */}
+                        {changelogs.length > 0 && (
+                          <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
+                            <div className="flex items-center gap-2">
+                              <GitBranch className="h-4 w-4" />
+                              <FormLabel className="text-sm font-semibold">Include Changelogs (Optional)</FormLabel>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Select changelogs to automatically populate the update content</p>
+                            {isLoadingChangelogs ? (
+                              <div className="text-sm text-muted-foreground">Loading changelogs...</div>
+                            ) : (
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {changelogs.map((changelog) => (
+                                  <div
+                                    key={changelog.id}
+                                    className="flex items-start gap-2 p-2 rounded border hover:bg-background cursor-pointer"
+                                    onClick={() => handleChangelogToggle(changelog.id)}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedChangelogs.includes(changelog.id)}
+                                      onChange={() => handleChangelogToggle(changelog.id)}
+                                      className="mt-1"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium">{changelog.title}</div>
+                                      <div className="text-xs text-muted-foreground line-clamp-2">{changelog.description}</div>
+                                      <Badge variant="outline" className="mt-1 text-xs">
+                                        {changelog.category}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                         <FormField
                           control={form.control}
                           name="title"
@@ -362,11 +435,7 @@ export default function ProjectDetailPage() {
                             <FormItem>
                               <FormLabel>Content</FormLabel>
                               <FormControl>
-                                <Textarea
-                                  placeholder="Describe the update..."
-                                  className="min-h-[100px]"
-                                  {...field}
-                                />
+                                <Textarea placeholder="Describe the update..." className="min-h-[100px]" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -403,10 +472,7 @@ export default function ProjectDetailPage() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Visibility</FormLabel>
-                                <Select
-                                  onValueChange={(v) => field.onChange(v === 'true')}
-                                  defaultValue={field.value ? 'true' : 'false'}
-                                >
+                                <Select onValueChange={(v) => field.onChange(v === "true")} defaultValue={field.value ? "true" : "false"}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue />
@@ -433,7 +499,7 @@ export default function ProjectDetailPage() {
                                 Saving...
                               </>
                             ) : (
-                              'Create Update'
+                              "Create Update"
                             )}
                           </Button>
                         </div>
@@ -455,12 +521,8 @@ export default function ProjectDetailPage() {
                       <div key={update.id} className="border rounded-lg p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
-                            <Badge className={`${updateTypeColors[update.updateType]} text-white`}>
-                              {update.updateType}
-                            </Badge>
-                            {update.isInternal && (
-                              <Badge variant="outline">Internal</Badge>
-                            )}
+                            <Badge className={`${updateTypeColors[update.updateType]} text-white`}>{update.updateType}</Badge>
+                            {update.isInternal && <Badge variant="outline">Internal</Badge>}
                             {update.sentToClient && (
                               <Badge variant="outline" className="text-green-600 border-green-600">
                                 <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -487,20 +549,14 @@ export default function ProjectDetailPage() {
                               </Button>
                             )}
                             {!update.sentToClient && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => deleteUpdate(update.id)}
-                              >
+                              <Button variant="ghost" size="icon" onClick={() => deleteUpdate(update.id)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             )}
                           </div>
                         </div>
                         <h4 className="font-semibold mt-2">{update.title}</h4>
-                        <p className="text-muted-foreground mt-1 whitespace-pre-wrap">
-                          {update.content}
-                        </p>
+                        <p className="text-muted-foreground mt-1 whitespace-pre-wrap">{update.content}</p>
                         <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
@@ -595,9 +651,7 @@ export default function ProjectDetailPage() {
                   <CardTitle>Notes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {project.notes}
-                  </p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{project.notes}</p>
                 </CardContent>
               </Card>
             )}

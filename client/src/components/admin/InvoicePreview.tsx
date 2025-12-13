@@ -3,7 +3,7 @@ import { Download, ExternalLink, Send } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { getApiBaseUrl } from '../../lib/queryClient';
 
@@ -232,7 +232,7 @@ export default function InvoicePreview({ open, onOpenChange, invoiceId }: Invoic
               {invoice.hostedInvoiceUrl && (
                 <Button
                   variant="outline"
-                  onClick={() => window.open(invoice.hostedInvoiceUrl, '_blank')}
+                  onClick={() => invoice.hostedInvoiceUrl && window.open(invoice.hostedInvoiceUrl, '_blank')}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
                   View in Stripe
@@ -241,7 +241,7 @@ export default function InvoicePreview({ open, onOpenChange, invoiceId }: Invoic
               {invoice.invoicePdf && (
                 <Button
                   variant="outline"
-                  onClick={() => window.open(invoice.invoicePdf, '_blank')}
+                  onClick={() => invoice.invoicePdf && window.open(invoice.invoicePdf, '_blank')}
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Download PDF

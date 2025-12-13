@@ -43,6 +43,12 @@ interface Client {
   status: string;
   industry: string | null;
   createdAt: string;
+  deal?: {
+    id: number;
+    name: string;
+    stage: string;
+    value: string;
+  } | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -150,9 +156,9 @@ export default function ClientsPage() {
         </Button>
       </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="pt-6">
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
             <div className="flex gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -199,6 +205,7 @@ export default function ClientsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Client</TableHead>
+                    <TableHead>Deal/Source</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Industry</TableHead>
@@ -216,6 +223,21 @@ export default function ClientsPage() {
                             {client.email}
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {client.deal ? (
+                          <div className="text-sm">
+                            <div className="font-medium text-primary hover:underline cursor-pointer"
+                                 onClick={() => navigate(`/admin/deals`)}>
+                              {client.deal.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {client.deal.stage} • ${parseFloat(client.deal.value).toLocaleString()}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No deal</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div>
@@ -270,7 +292,6 @@ export default function ClientsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       {/* Client Preview Slide-over */}
       {selectedClientId && (

@@ -43,7 +43,7 @@ export function ContinuousGallery({ images }: ContinuousGalleryProps) {
             delay: 2000,
             stopOnInteraction: false,
             stopOnMouseEnter: true,
-          }),
+          }) as any,
         ]}
         className="w-full"
       >

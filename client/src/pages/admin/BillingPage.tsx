@@ -62,6 +62,20 @@ interface Client {
   email: string;
 }
 
+interface BillableTicket {
+  id: number;
+  title: string;
+  description: string;
+  timeSpent: string;
+  hourlyRate: string | null;
+  billableAmount: string | null;
+  dealId: number | null;
+  dealName?: string;
+  applicationSource: string;
+  status: string;
+  resolvedAt: string | null;
+}
+
 export default function BillingPage() {
   useScrollToTop();
   const { toast } = useToast();
@@ -152,6 +166,11 @@ export default function BillingPage() {
     description: "",
   });
 
+  // Billable tickets state for invoice creation
+  const [billableTickets, setBillableTickets] = useState<BillableTicket[]>([]);
+  const [selectedTicketIds, setSelectedTicketIds] = useState<number[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
+
   useEffect(() => {
     // #region agent log
     fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
@@ -220,6 +239,109 @@ export default function BillingPage() {
       setDeals(data.deals || []);
     } catch (error: any) {
       console.error("Error loading deals:", error);
+    }
+  };
+
+  // Load billable tickets for a specific client/deal
+  const loadBillableTickets = async (clientId?: string, dealId?: string) => {
+    if (!clientId) {
+      setBillableTickets([]);
+      setSelectedTicketIds([]);
+      return;
+    }
+
+    try {
+      setLoadingTickets(true);
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const baseUrl = getApiBaseUrl();
+
+      const params = new URLSearchParams();
+      params.append("clientId", clientId);
+      if (dealId) params.append("dealId", dealId);
+
+      const response = await fetch(`${baseUrl}/admin/tickets/billable?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) throw new Error("Failed to load billable tickets");
+
+      const data = await response.json();
+      setBillableTickets(data.tickets || []);
+      setSelectedTicketIds([]); // Reset selection when tickets change
+    } catch (error: any) {
+      console.error("Error loading billable tickets:", error);
+      setBillableTickets([]);
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
+  // Toggle ticket selection
+  const toggleTicketSelection = (ticketId: number) => {
+    setSelectedTicketIds((prev) =>
+      prev.includes(ticketId) ? prev.filter((id) => id !== ticketId) : [...prev, ticketId]
+    );
+  };
+
+  // Add selected tickets as line items
+  const addTicketsAsLineItems = () => {
+    const selectedTickets = billableTickets.filter((t) => selectedTicketIds.includes(t.id));
+
+    if (selectedTickets.length === 0) {
+      toast({
+        title: "No tickets selected",
+        description: "Please select at least one ticket to add",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newLineItems = selectedTickets.map((ticket) => {
+      const hours = parseFloat(ticket.timeSpent) || 0;
+      const rate = parseFloat(ticket.hourlyRate || "65"); // Default $65/hr
+      return {
+        description: `[Ticket #${ticket.id}] ${ticket.title}`,
+        amount: rate.toString(),
+        quantity: hours.toString(),
+        tax: "",
+      };
+    });
+
+    // Add to existing line items (filter out empty ones first)
+    const existingItems = invoiceForm.lineItems.filter(
+      (item) => item.description || item.amount
+    );
+    setInvoiceForm({
+      ...invoiceForm,
+      lineItems: [...existingItems, ...newLineItems].length > 0
+        ? [...existingItems, ...newLineItems]
+        : [{ description: "", amount: "", quantity: "1", tax: "" }],
+    });
+
+    toast({
+      title: "Tickets Added",
+      description: `Added ${selectedTickets.length} ticket(s) as line items`,
+    });
+  };
+
+  // Mark tickets as billed after invoice creation
+  const markTicketsAsBilled = async (ticketIds: number[]) => {
+    if (ticketIds.length === 0) return;
+
+    try {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const baseUrl = getApiBaseUrl();
+
+      await fetch(`${baseUrl}/admin/tickets/mark-billed`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ticketIds }),
+      });
+    } catch (error: any) {
+      console.error("Error marking tickets as billed:", error);
     }
   };
 
@@ -737,9 +859,24 @@ export default function BillingPage() {
 
       await response.json();
 
+      // Extract ticket IDs from line items that were added from tickets
+      const ticketIdsFromLineItems = validLineItems
+        .map((item) => {
+          const match = item.description.match(/\[Ticket #(\d+)\]/);
+          return match ? parseInt(match[1]) : null;
+        })
+        .filter((id): id is number => id !== null);
+
+      // Mark those tickets as billed
+      if (ticketIdsFromLineItems.length > 0) {
+        await markTicketsAsBilled(ticketIdsFromLineItems);
+      }
+
       toast({
         title: "Invoice Created",
-        description: invoiceForm.sendImmediately ? `Invoice sent to client successfully` : `Invoice created successfully`,
+        description: invoiceForm.sendImmediately
+          ? `Invoice sent to client successfully${ticketIdsFromLineItems.length > 0 ? ` (${ticketIdsFromLineItems.length} ticket(s) marked as billed)` : ""}`
+          : `Invoice created successfully${ticketIdsFromLineItems.length > 0 ? ` (${ticketIdsFromLineItems.length} ticket(s) marked as billed)` : ""}`,
       });
 
       setShowCreateInvoiceDialog(false);
@@ -753,6 +890,9 @@ export default function BillingPage() {
         notes: "",
         taxRate: "",
       });
+      // Reset billable tickets state
+      setBillableTickets([]);
+      setSelectedTicketIds([]);
 
       await loadDashboard();
     } catch (error: any) {
@@ -2494,7 +2634,8 @@ export default function BillingPage() {
               <Select
                 value={invoiceForm.clientId}
                 onValueChange={(value) => {
-                  setInvoiceForm({ ...invoiceForm, clientId: value, dealId: "" }); // Reset deal when client changes
+                  setInvoiceForm({ ...invoiceForm, clientId: value, dealId: "" });
+                  loadBillableTickets(value); // Load billable tickets for this client
                 }}
               >
                 <SelectTrigger>
@@ -2517,6 +2658,7 @@ export default function BillingPage() {
                 onValueChange={(value) => {
                   const actualValue = value === "none" ? "" : value;
                   setInvoiceForm({ ...invoiceForm, dealId: actualValue });
+                  loadBillableTickets(invoiceForm.clientId, actualValue); // Reload tickets filtered by deal
                 }}
                 disabled={!invoiceForm.clientId}
               >
@@ -2535,6 +2677,81 @@ export default function BillingPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Billable Tickets Section */}
+            {invoiceForm.clientId && (
+              <div className="grid gap-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Billable Tickets
+                  {billableTickets.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {billableTickets.length}
+                    </Badge>
+                  )}
+                </Label>
+                {loadingTickets ? (
+                  <div className="text-sm text-muted-foreground p-3 border rounded-lg">
+                    Loading billable tickets...
+                  </div>
+                ) : billableTickets.length === 0 ? (
+                  <div className="text-sm text-muted-foreground p-3 border rounded-lg">
+                    No billable tickets found for this {invoiceForm.dealId ? "deal" : "client"}
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-2 max-h-48 overflow-y-auto space-y-2">
+                    {billableTickets.map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className={`flex items-center gap-3 p-2 rounded cursor-pointer hover:bg-muted transition-colors ${
+                          selectedTicketIds.includes(ticket.id) ? "bg-muted" : ""
+                        }`}
+                        onClick={() => toggleTicketSelection(ticket.id)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedTicketIds.includes(ticket.id)}
+                          onChange={() => toggleTicketSelection(ticket.id)}
+                          className="rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">
+                            #{ticket.id} - {ticket.title}
+                          </div>
+                          <div className="text-xs text-muted-foreground flex gap-2">
+                            <span>{parseFloat(ticket.timeSpent).toFixed(2)}h</span>
+                            <span>×</span>
+                            <span>${parseFloat(ticket.hourlyRate || "65").toFixed(0)}/hr</span>
+                            <span>=</span>
+                            <span className="font-semibold text-foreground">
+                              ${(parseFloat(ticket.timeSpent) * parseFloat(ticket.hourlyRate || "65")).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {ticket.applicationSource}
+                        </Badge>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center pt-2 border-t mt-2">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedTicketIds.length} selected
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={addTicketsAsLineItems}
+                        disabled={selectedTicketIds.length === 0}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add to Invoice
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label htmlFor="description">Description *</Label>

@@ -9,7 +9,7 @@ const socialLinks = [
   { icon: BrandX, href: "https://x.com/bettersystemsai", label: "X (Twitter)" },
   { icon: Facebook, href: "https://facebook.com/bettersystemsai", label: "Facebook" },
   { icon: BrandTiktok, href: "https://tiktok.com/@bettersystemsai", label: "TikTok" },
-  { icon: Youtube, href: "https://youtube.com/bettersystemsai", label: "YouTube" }
+  { icon: Youtube, href: "https://youtube.com/bettersystemsai", label: "YouTube" },
 ];
 
 export default function Footer() {
@@ -19,14 +19,14 @@ export default function Footer() {
   // Keyboard shortcut for admin access (Ctrl+Shift+A or Cmd+Shift+A)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "A") {
         e.preventDefault();
-        navigate('/admin/login');
+        navigate("/admin/login");
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
   return (
@@ -37,8 +37,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h3 className="font-bold text-lg mb-4">Better Systems AI</h3>
             <p className="text-muted-foreground mb-4 max-w-sm">
-              Transforming businesses through innovative AI solutions. We help companies modernize, 
-              optimize, and grow in the digital age.
+              Transforming businesses through innovative AI solutions. We help companies modernize, optimize, and grow in the digital age.
             </p>
           </div>
 
@@ -81,6 +80,11 @@ export default function Footer() {
               <li>
                 <Link href="/rodolfo" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contact Card
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/login" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Admin Access
                 </Link>
               </li>
             </ul>

@@ -1,9 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useToast } from '../../hooks/use-toast';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import { useScrollToTop } from '../../hooks/useScrollToTop';
+import { useEffect, useState } from "react";
+import { useToast } from "../../hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
+import { useScrollToTop } from "../../hooks/useScrollToTop";
+import { getApiBaseUrl } from "../../lib/queryClient";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import {
   Bug,
   Clock,
@@ -13,255 +25,334 @@ import {
   Filter,
   RefreshCw,
   ExternalLink,
-  MessageSquare,
-  Calendar
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+  Calendar,
+  DollarSign,
+  Timer,
+  Building2,
+  Briefcase,
+  Search,
+  Plus,
+  Receipt,
+} from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 
-interface BugReport {
-  id: string;
-  user_name: string;
-  user_email: string;
+interface Ticket {
+  id: number;
+  clientId: number | null;
+  dealId: number | null;
+  applicationSource: string;
+  externalTicketId: string | null;
+  submitterEmail: string;
+  submitterName: string | null;
   title: string;
   description: string;
-  screenshot_url?: string;
-  status: 'pending' | 'in_progress' | 'resolved' | 'closed';
-  application_source: string;
-  admin_notes?: string;
-  created_at: string;
-  updated_at: string;
-  resolved_at?: string;
+  screenshotUrl: string | null;
+  priority: string;
+  labels: string[] | null;
+  status: "pending" | "in_progress" | "resolved" | "billed";
+  timeSpent: string;
+  hourlyRate: string | null;
+  billableAmount: string | null;
+  readyToBill: boolean;
+  invoiceId: number | null;
+  billedAt: string | null;
+  resolution: string | null;
+  internalNotes: string | null;
+  resolvedAt: string | null;
+  assignedTo: number | null;
+  createdAt: string;
+  updatedAt: string;
+  // Joined data
+  client?: { name: string; email: string } | null;
+  deal?: { name: string; hourlyRate: string } | null;
+  effectiveHourlyRate: number;
+  calculatedBillableAmount: number;
+}
+
+interface TicketStats {
+  total: number;
+  byStatus: Record<string, number>;
+  byPriority: Record<string, number>;
+  byApplicationSource: Record<string, number>;
+  totalUnbilledAmount: number;
+}
+
+interface Deal {
+  id: number;
+  name: string;
+  clientId: number;
 }
 
 export default function TicketsPage() {
   useScrollToTop();
   const { toast } = useToast();
-  const [tickets, setTickets] = useState<BugReport[]>([]);
-  const [filteredTickets, setFilteredTickets] = useState<BugReport[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [stats, setStats] = useState<TicketStats | null>(null);
+  const [deals, setDeals] = useState<Deal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedTicket, setSelectedTicket] = useState<BugReport | null>(null);
-  const [adminNotes, setAdminNotes] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedAppSource, setSelectedAppSource] = useState<string>("all");
+  const [selectedDeal, setSelectedDeal] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Supabase configuration - using Fleet Management System's database
-  const SUPABASE_URL = 'https://kxcixjiafdohbpwijfmd.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4Y2l4amlhZmRvaGJwd2lqZm1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxMzc3NTAsImV4cCI6MjA3OTcxMzc1MH0.KWXHkYzRWBgbBbKreSGLLVAkfg_LsaaO0_cNI8GzdQs';
+  // Form state for editing ticket
+  const [editForm, setEditForm] = useState({
+    timeSpent: "",
+    hourlyRate: "",
+    internalNotes: "",
+    resolution: "",
+    readyToBill: false,
+  });
+
+  const baseUrl = getApiBaseUrl();
 
   useEffect(() => {
     fetchTickets();
-  }, []);
+    fetchStats();
+    fetchDeals();
+  }, [selectedStatus, selectedAppSource, selectedDeal, searchQuery]);
 
-  useEffect(() => {
-    filterTickets();
-  }, [tickets, selectedFilter, selectedStatus]);
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  };
 
   const fetchTickets = async () => {
     setIsLoading(true);
     try {
-      // Fetch from Supabase directly
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/bug_reports?select=*&order=created_at.desc`,
-        {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        }
-      );
+      const params = new URLSearchParams();
+      if (selectedStatus !== "all") params.append("status", selectedStatus);
+      if (selectedAppSource !== "all") params.append("applicationSource", selectedAppSource);
+      if (selectedDeal !== "all") params.append("dealId", selectedDeal);
+      if (searchQuery) params.append("search", searchQuery);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch tickets');
-      }
+      const response = await fetch(`${baseUrl}/admin/tickets?${params.toString()}`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch tickets");
 
       const data = await response.json();
-      setTickets(data);
+      setTickets(data.tickets || []);
     } catch (error) {
-      console.error('Error fetching tickets:', error);
+      console.error("Error fetching tickets:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load tickets',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load tickets",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filterTickets = () => {
-    let filtered = [...tickets];
-
-    // Filter by application
-    if (selectedFilter !== 'all') {
-      filtered = filtered.filter(t => t.application_source === selectedFilter);
-    }
-
-    // Filter by status
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(t => t.status === selectedStatus);
-    }
-
-    setFilteredTickets(filtered);
-  };
-
-  const handleStatusUpdate = async (ticketId: string, newStatus: string) => {
-    setIsSaving(true);
+  const fetchStats = async () => {
     try {
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/bug_reports?id=eq.${ticketId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({
-            status: newStatus,
-            ...(newStatus === 'resolved' || newStatus === 'closed' ? { resolved_at: new Date().toISOString() } : {})
-          })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to update status');
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Ticket status updated successfully'
+      const response = await fetch(`${baseUrl}/admin/tickets/stats`, {
+        headers: getAuthHeaders(),
       });
 
-      // Refresh tickets
-      await fetchTickets();
+      if (!response.ok) throw new Error("Failed to fetch stats");
 
-      // Update selected ticket if it's the one being updated
+      const data = await response.json();
+      setStats(data.stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchDeals = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/admin/deals`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch deals");
+
+      const data = await response.json();
+      setDeals(data.deals || []);
+    } catch (error) {
+      console.error("Error fetching deals:", error);
+    }
+  };
+
+  const handleStatusUpdate = async (ticketId: number, newStatus: string) => {
+    setIsSaving(true);
+    try {
+      const response = await fetch(`${baseUrl}/admin/tickets/${ticketId}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update status");
+
+      toast({
+        title: "Success",
+        description: "Ticket status updated",
+      });
+
+      fetchTickets();
+      fetchStats();
+
       if (selectedTicket?.id === ticketId) {
-        const updatedTickets = await response.json();
-        setSelectedTicket(updatedTickets[0]);
+        const data = await response.json();
+        setSelectedTicket(data.ticket);
       }
     } catch (error) {
-      console.error('Error updating ticket:', error);
+      console.error("Error updating ticket:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update ticket status',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleNotesUpdate = async () => {
+  const handleTicketUpdate = async () => {
     if (!selectedTicket) return;
 
     setIsSaving(true);
     try {
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/bug_reports?id=eq.${selectedTicket.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({
-            admin_notes: adminNotes
-          })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to update notes');
-      }
-
-      const updatedTickets = await response.json();
-
-      toast({
-        title: 'Success',
-        description: 'Notes saved successfully'
+      const response = await fetch(`${baseUrl}/admin/tickets/${selectedTicket.id}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          timeSpent: editForm.timeSpent || selectedTicket.timeSpent,
+          hourlyRate: editForm.hourlyRate || null,
+          internalNotes: editForm.internalNotes,
+          resolution: editForm.resolution,
+          readyToBill: editForm.readyToBill,
+        }),
       });
 
-      setSelectedTicket(updatedTickets[0]);
-      await fetchTickets();
-    } catch (error) {
-      console.error('Error updating notes:', error);
+      if (!response.ok) throw new Error("Failed to update ticket");
+
+      const data = await response.json();
+
       toast({
-        title: 'Error',
-        description: 'Failed to save notes',
-        variant: 'destructive'
+        title: "Success",
+        description: "Ticket updated successfully",
+      });
+
+      setSelectedTicket(data.ticket);
+      fetchTickets();
+      fetchStats();
+    } catch (error) {
+      console.error("Error updating ticket:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update ticket",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const openTicketDetail = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setEditForm({
+      timeSpent: ticket.timeSpent || "0",
+      hourlyRate: ticket.hourlyRate || "",
+      internalNotes: ticket.internalNotes || "",
+      resolution: ticket.resolution || "",
+      readyToBill: ticket.readyToBill,
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30";
+      case "in_progress":
+        return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30";
+      case "resolved":
+        return "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30";
+      case "billed":
+        return "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30";
+      default:
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-500/30";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4" />;
-      case 'in_progress':
-        return <PlayCircle className="h-4 w-4" />;
-      case 'resolved':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'closed':
-        return <XCircle className="h-4 w-4" />;
+      case "pending":
+        return <Clock className="h-3.5 w-3.5" />;
+      case "in_progress":
+        return <PlayCircle className="h-3.5 w-3.5" />;
+      case "resolved":
+        return <CheckCircle className="h-3.5 w-3.5" />;
+      case "billed":
+        return <Receipt className="h-3.5 w-3.5" />;
       default:
-        return <Bug className="h-4 w-4" />;
+        return <Bug className="h-3.5 w-3.5" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400';
-      case 'in_progress':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400';
-      case 'resolved':
-        return 'bg-green-500/10 text-green-700 dark:text-green-400';
-      case 'closed':
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return "bg-red-500/10 text-red-700 dark:text-red-400";
+      case "high":
+        return "bg-orange-500/10 text-orange-700 dark:text-orange-400";
+      case "medium":
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      case "low":
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
       default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
   };
 
-  const getAppBadgeColor = (app: string) => {
-    switch (app) {
-      case 'fleet-management':
-        return 'bg-purple-500/10 text-purple-700 dark:text-purple-400';
-      case 'crm-proposal':
-        return 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400';
+  const getAppSourceColor = (source: string) => {
+    switch (source) {
+      case "crm-lighting":
+        return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400";
+      case "agave-fleet":
+        return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
+      case "direct":
+        return "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400";
       default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-400';
+        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
     }
   };
 
-  const getAppLabel = (app: string) => {
-    switch (app) {
-      case 'fleet-management':
-        return 'Fleet Management';
-      case 'crm-proposal':
-        return 'CRM & Proposals';
+  const getAppSourceLabel = (source: string) => {
+    switch (source) {
+      case "crm-lighting":
+        return "CRM Lighting";
+      case "agave-fleet":
+        return "AgaveFleet";
+      case "direct":
+        return "Direct";
       default:
-        return app;
+        return source;
     }
   };
 
-  const stats = {
-    total: tickets.length,
-    pending: tickets.filter(t => t.status === 'pending').length,
-    inProgress: tickets.filter(t => t.status === 'in_progress').length,
-    resolved: tickets.filter(t => t.status === 'resolved').length,
-    fleetManagement: tickets.filter(t => t.application_source === 'fleet-management').length,
-    crmProposal: tickets.filter(t => t.application_source === 'crm-proposal').length
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
   };
 
-  if (isLoading) {
+  const getStatusCount = (status: string) => {
+    if (!stats) return 0;
+    if (status === "all") return stats.total;
+    return stats.byStatus[status] || 0;
+  };
+
+  if (isLoading && tickets.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <div className="flex flex-col items-center">
@@ -277,18 +368,26 @@ export default function TicketsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bug Report Tickets</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Support Tickets</h1>
           <p className="text-muted-foreground">
-            Manage bug reports from all client applications
+            Manage support tickets from all applications
           </p>
         </div>
-        <Button onClick={fetchTickets} variant="outline">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              fetchTickets();
+              fetchStats();
+            }}
+            variant="outline"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -296,7 +395,7 @@ export default function TicketsPage() {
             <Bug className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold">{stats?.total || 0}</div>
           </CardContent>
         </Card>
 
@@ -306,7 +405,7 @@ export default function TicketsPage() {
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
+            <div className="text-2xl font-bold">{stats?.byStatus?.pending || 0}</div>
           </CardContent>
         </Card>
 
@@ -316,151 +415,228 @@ export default function TicketsPage() {
             <PlayCircle className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
+            <div className="text-2xl font-bold">{stats?.byStatus?.in_progress || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fleet Mgmt</CardTitle>
+            <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.fleetManagement}</div>
+            <div className="text-2xl font-bold">{stats?.byStatus?.resolved || 0}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-green-500/5 to-emerald-500/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CRM</CardTitle>
+            <CardTitle className="text-sm font-medium">Unbilled Amount</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.crmProposal}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(stats?.totalUnbilledAmount || 0)}
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-4">
+        {/* Search */}
+        <div className="flex items-center gap-2 flex-1 min-w-[200px] max-w-md">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search tickets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+
+        {/* Application Filter */}
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Application:</span>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant={selectedFilter === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedFilter('all')}
-            >
-              All
-            </Button>
-            <Button
-              size="sm"
-              variant={selectedFilter === 'fleet-management' ? 'default' : 'outline'}
-              onClick={() => setSelectedFilter('fleet-management')}
-            >
-              Fleet Management
-            </Button>
-            <Button
-              size="sm"
-              variant={selectedFilter === 'crm-proposal' ? 'default' : 'outline'}
-              onClick={() => setSelectedFilter('crm-proposal')}
-            >
-              CRM
-            </Button>
-          </div>
+          <Select value={selectedAppSource} onValueChange={setSelectedAppSource}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Application" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Applications</SelectItem>
+              <SelectItem value="crm-lighting">CRM Lighting</SelectItem>
+              <SelectItem value="agave-fleet">AgaveFleet</SelectItem>
+              <SelectItem value="direct">Direct</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Deal Filter */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Status:</span>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant={selectedStatus === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedStatus('all')}
-            >
-              All
-            </Button>
-            <Button
-              size="sm"
-              variant={selectedStatus === 'pending' ? 'default' : 'outline'}
-              onClick={() => setSelectedStatus('pending')}
-            >
-              Pending
-            </Button>
-            <Button
-              size="sm"
-              variant={selectedStatus === 'in_progress' ? 'default' : 'outline'}
-              onClick={() => setSelectedStatus('in_progress')}
-            >
-              In Progress
-            </Button>
-            <Button
-              size="sm"
-              variant={selectedStatus === 'resolved' ? 'default' : 'outline'}
-              onClick={() => setSelectedStatus('resolved')}
-            >
-              Resolved
-            </Button>
-          </div>
+          <Briefcase className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedDeal} onValueChange={setSelectedDeal}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Deal" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Deals</SelectItem>
+              {deals.map((deal) => (
+                <SelectItem key={deal.id} value={deal.id.toString()}>
+                  {deal.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {/* Tickets Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredTickets.map((ticket) => (
-          <Card
-            key={ticket.id}
-            className="cursor-pointer hover:shadow-lg transition-all border-2"
-            onClick={() => {
-              setSelectedTicket(ticket);
-              setAdminNotes(ticket.admin_notes || '');
-            }}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <Badge className={getAppBadgeColor(ticket.application_source)}>
-                  {getAppLabel(ticket.application_source)}
-                </Badge>
-                <Badge className={getStatusColor(ticket.status)}>
-                  <span className="flex items-center gap-1">
-                    {getStatusIcon(ticket.status)}
-                    {ticket.status.replace('_', ' ').toUpperCase()}
-                  </span>
-                </Badge>
-              </div>
-              <CardTitle className="text-base line-clamp-2">{ticket.title}</CardTitle>
-              <CardDescription className="line-clamp-2">{ticket.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>{formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <MessageSquare className="h-3 w-3" />
-                  <span>{ticket.user_name}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Status Tabs with Notification Badges */}
+      <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="all" className="flex items-center gap-2 relative">
+            <Bug className="h-4 w-4" />
+            <span>All</span>
+            {getStatusCount("all") > 0 && (
+              <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                {getStatusCount("all")}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="pending" className="flex items-center gap-2 relative">
+            <Clock className="h-4 w-4" />
+            <span>Pending</span>
+            {getStatusCount("pending") > 0 && (
+              <span className="ml-1 rounded-full bg-yellow-500 text-white px-2 py-0.5 text-xs font-medium">
+                {getStatusCount("pending")}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="in_progress" className="flex items-center gap-2 relative">
+            <PlayCircle className="h-4 w-4" />
+            <span>In Progress</span>
+            {getStatusCount("in_progress") > 0 && (
+              <span className="ml-1 rounded-full bg-blue-500 text-white px-2 py-0.5 text-xs font-medium">
+                {getStatusCount("in_progress")}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="resolved" className="flex items-center gap-2 relative">
+            <CheckCircle className="h-4 w-4" />
+            <span>Resolved</span>
+            {getStatusCount("resolved") > 0 && (
+              <span className="ml-1 rounded-full bg-green-500 text-white px-2 py-0.5 text-xs font-medium">
+                {getStatusCount("resolved")}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="billed" className="flex items-center gap-2 relative">
+            <Receipt className="h-4 w-4" />
+            <span>Billed</span>
+            {getStatusCount("billed") > 0 && (
+              <span className="ml-1 rounded-full bg-purple-500 text-white px-2 py-0.5 text-xs font-medium">
+                {getStatusCount("billed")}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-      {filteredTickets.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Bug className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-semibold mb-2">No tickets found</p>
-            <p className="text-muted-foreground">Try adjusting your filters or check back later</p>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value={selectedStatus} className="mt-6">
+          {/* Tickets Grid */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {tickets.map((ticket) => (
+              <Card
+                key={ticket.id}
+                className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50"
+                onClick={() => openTicketDetail(ticket)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <Badge className={getAppSourceColor(ticket.applicationSource)}>
+                      {getAppSourceLabel(ticket.applicationSource)}
+                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge className={getPriorityColor(ticket.priority)}>
+                        {ticket.priority}
+                      </Badge>
+                      <Badge className={`${getStatusColor(ticket.status)} border`}>
+                        <span className="flex items-center gap-1">
+                          {getStatusIcon(ticket.status)}
+                          {ticket.status.replace("_", " ")}
+                        </span>
+                      </Badge>
+                    </div>
+                  </div>
+                  <CardTitle className="text-base line-clamp-2">{ticket.title}</CardTitle>
+                  <CardDescription className="line-clamp-2 text-sm">
+                    {ticket.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2 text-sm">
+                    {/* Client/Deal Info */}
+                    {ticket.deal && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Briefcase className="h-3 w-3" />
+                        <span className="truncate">{ticket.deal.name}</span>
+                      </div>
+                    )}
+                    {ticket.client && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Building2 className="h-3 w-3" />
+                        <span className="truncate">{ticket.client.name}</span>
+                      </div>
+                    )}
 
-      {/* Ticket Detail Modal */}
+                    {/* Time & Billing */}
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Timer className="h-3 w-3" />
+                        <span>{parseFloat(ticket.timeSpent || "0")}hrs</span>
+                      </div>
+                      <div className="flex items-center gap-1 font-medium text-green-600">
+                        <DollarSign className="h-3 w-3" />
+                        <span>{formatCurrency(ticket.calculatedBillableAmount)}</span>
+                      </div>
+                    </div>
+
+                    {/* Timestamp */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}</span>
+                    </div>
+                  </div>
+
+                  {/* Ready to Bill indicator */}
+                  {ticket.readyToBill && !ticket.invoiceId && (
+                    <div className="mt-3 flex items-center gap-1 text-xs font-medium text-green-600">
+                      <Receipt className="h-3 w-3" />
+                      Ready to bill
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {tickets.length === 0 && (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Bug className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-semibold mb-2">No tickets found</p>
+                <p className="text-muted-foreground">
+                  Tickets will appear here when submitted from your client applications
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Ticket Detail Slide-Over */}
       {selectedTicket && (
         <>
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            className="fixed inset-0 bg-black/50 z-50"
             onClick={() => setSelectedTicket(null)}
           />
           <div className="fixed inset-y-0 right-0 w-full md:w-[600px] bg-background shadow-2xl z-50 overflow-y-auto">
@@ -468,14 +644,17 @@ export default function TicketsPage() {
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge className={getAppBadgeColor(selectedTicket.application_source)}>
-                      {getAppLabel(selectedTicket.application_source)}
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <Badge className={getAppSourceColor(selectedTicket.applicationSource)}>
+                      {getAppSourceLabel(selectedTicket.applicationSource)}
                     </Badge>
-                    <Badge className={getStatusColor(selectedTicket.status)}>
+                    <Badge className={getPriorityColor(selectedTicket.priority)}>
+                      {selectedTicket.priority}
+                    </Badge>
+                    <Badge className={`${getStatusColor(selectedTicket.status)} border`}>
                       <span className="flex items-center gap-1">
                         {getStatusIcon(selectedTicket.status)}
-                        {selectedTicket.status.replace('_', ' ').toUpperCase()}
+                        {selectedTicket.status.replace("_", " ")}
                       </span>
                     </Badge>
                   </div>
@@ -483,7 +662,7 @@ export default function TicketsPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(selectedTicket.created_at), { addSuffix: true })}
+                      {format(new Date(selectedTicket.createdAt), "MMM d, yyyy 'at' h:mm a")}
                     </span>
                   </div>
                 </div>
@@ -492,22 +671,35 @@ export default function TicketsPage() {
                 </Button>
               </div>
 
-              {/* Reporter Info */}
+              {/* Submitter Info */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Reported By</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Submitted By</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="font-medium">{selectedTicket.user_name}</p>
-                  <a href={`mailto:${selectedTicket.user_email}`} className="text-sm text-primary hover:underline">
-                    {selectedTicket.user_email}
+                  <p className="font-medium">{selectedTicket.submitterName || "Unknown"}</p>
+                  <a
+                    href={`mailto:${selectedTicket.submitterEmail}`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {selectedTicket.submitterEmail}
                   </a>
+                  {selectedTicket.client && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Client: {selectedTicket.client.name}
+                    </p>
+                  )}
+                  {selectedTicket.deal && (
+                    <p className="text-sm text-muted-foreground">
+                      Deal: {selectedTicket.deal.name}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
               {/* Description */}
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Description</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -516,19 +708,19 @@ export default function TicketsPage() {
               </Card>
 
               {/* Screenshot */}
-              {selectedTicket.screenshot_url && (
+              {selectedTicket.screenshotUrl && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="pb-2">
                     <CardTitle className="text-sm">Screenshot</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <img
-                      src={selectedTicket.screenshot_url}
-                      alt="Bug screenshot"
+                      src={selectedTicket.screenshotUrl}
+                      alt="Screenshot"
                       className="w-full rounded-lg border"
                     />
                     <a
-                      href={selectedTicket.screenshot_url}
+                      href={selectedTicket.screenshotUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
@@ -542,68 +734,133 @@ export default function TicketsPage() {
 
               {/* Status Update */}
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Update Status</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      variant={selectedTicket.status === 'pending' ? 'default' : 'outline'}
-                      onClick={() => handleStatusUpdate(selectedTicket.id, 'pending')}
-                      disabled={isSaving}
-                    >
-                      <Clock className="mr-2 h-4 w-4" />
-                      Pending
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={selectedTicket.status === 'in_progress' ? 'default' : 'outline'}
-                      onClick={() => handleStatusUpdate(selectedTicket.id, 'in_progress')}
-                      disabled={isSaving}
-                    >
-                      <PlayCircle className="mr-2 h-4 w-4" />
-                      In Progress
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={selectedTicket.status === 'resolved' ? 'default' : 'outline'}
-                      onClick={() => handleStatusUpdate(selectedTicket.id, 'resolved')}
-                      disabled={isSaving}
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Resolved
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={selectedTicket.status === 'closed' ? 'default' : 'outline'}
-                      onClick={() => handleStatusUpdate(selectedTicket.id, 'closed')}
-                      disabled={isSaving}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Closed
-                    </Button>
+                    {["pending", "in_progress", "resolved", "billed"].map((status) => (
+                      <Button
+                        key={status}
+                        size="sm"
+                        variant={selectedTicket.status === status ? "default" : "outline"}
+                        onClick={() => handleStatusUpdate(selectedTicket.id, status)}
+                        disabled={isSaving}
+                        className="capitalize"
+                      >
+                        {getStatusIcon(status)}
+                        <span className="ml-2">{status.replace("_", " ")}</span>
+                      </Button>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Admin Notes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Admin Notes</CardTitle>
+              {/* Time Tracking & Billing */}
+              <Card className="border-green-500/30 bg-green-500/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Time & Billing
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    className="w-full min-h-[100px] p-3 border rounded-lg resize-none"
-                    placeholder="Add internal notes about this ticket..."
-                  />
-                  <Button onClick={handleNotesUpdate} disabled={isSaving} className="w-full">
-                    {isSaving ? 'Saving...' : 'Save Notes'}
-                  </Button>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="timeSpent">Hours Worked</Label>
+                      <Input
+                        id="timeSpent"
+                        type="number"
+                        step="0.25"
+                        min="0"
+                        value={editForm.timeSpent}
+                        onChange={(e) => setEditForm({ ...editForm, timeSpent: e.target.value })}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hourlyRate">
+                        Rate Override (Default: ${selectedTicket.effectiveHourlyRate})
+                      </Label>
+                      <Input
+                        id="hourlyRate"
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={editForm.hourlyRate}
+                        onChange={(e) => setEditForm({ ...editForm, hourlyRate: e.target.value })}
+                        placeholder={`${selectedTicket.effectiveHourlyRate}`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculated Amount */}
+                  <div className="p-4 bg-background rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Calculated Amount:</span>
+                      <span className="text-2xl font-bold text-green-600">
+                        {formatCurrency(
+                          parseFloat(editForm.timeSpent || "0") *
+                            (parseFloat(editForm.hourlyRate) || selectedTicket.effectiveHourlyRate)
+                        )}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {editForm.timeSpent || "0"} hrs × $
+                      {editForm.hourlyRate || selectedTicket.effectiveHourlyRate}/hr
+                    </p>
+                  </div>
+
+                  {/* Ready to Bill Toggle */}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="readyToBill"
+                      checked={editForm.readyToBill}
+                      onChange={(e) => setEditForm({ ...editForm, readyToBill: e.target.checked })}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <Label htmlFor="readyToBill" className="cursor-pointer">
+                      Mark as ready to bill
+                    </Label>
+                  </div>
                 </CardContent>
               </Card>
+
+              {/* Resolution Notes */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Resolution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={editForm.resolution}
+                    onChange={(e) => setEditForm({ ...editForm, resolution: e.target.value })}
+                    placeholder="How was this ticket resolved?"
+                    rows={3}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Internal Notes */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Internal Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={editForm.internalNotes}
+                    onChange={(e) => setEditForm({ ...editForm, internalNotes: e.target.value })}
+                    placeholder="Add internal notes..."
+                    rows={3}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Save Button */}
+              <Button onClick={handleTicketUpdate} disabled={isSaving} className="w-full">
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </div>
         </>

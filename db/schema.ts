@@ -21,7 +21,9 @@ export const blogPosts = pgTable("blog_posts", {
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
   coverImage: text("coverImage"),
-  authorId: integer("authorId").references(() => users.id).notNull(),
+  authorId: integer("authorId")
+    .references(() => users.id)
+    .notNull(),
   published: boolean("published").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
@@ -78,7 +80,9 @@ export const clients = pgTable("clients", {
 // Projects - engagements with clients
 export const projects = pgTable("projects", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientId: integer("client_id").references(() => clients.id).notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
 
   // Project Details
   name: text("name").notNull(),
@@ -114,7 +118,9 @@ export const projects = pgTable("projects", {
 // Project Updates - notifications/status updates sent to clients
 export const projectUpdates = pgTable("project_updates", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  projectId: integer("project_id").references(() => projects.id).notNull(),
+  projectId: integer("project_id")
+    .references(() => projects.id)
+    .notNull(),
 
   // Update Content
   title: text("title").notNull(),
@@ -150,7 +156,9 @@ export const onboardingTemplates = pgTable("onboarding_templates", {
 // Onboarding Steps - individual steps in a template
 export const onboardingSteps = pgTable("onboarding_steps", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  templateId: integer("template_id").references(() => onboardingTemplates.id).notNull(),
+  templateId: integer("template_id")
+    .references(() => onboardingTemplates.id)
+    .notNull(),
 
   // Step Details
   stepOrder: integer("step_order").notNull(),
@@ -171,9 +179,13 @@ export const onboardingSteps = pgTable("onboarding_steps", {
 // Client Onboarding Progress - tracks client through onboarding
 export const clientOnboarding = pgTable("client_onboarding", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientId: integer("client_id").references(() => clients.id).notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
   projectId: integer("project_id").references(() => projects.id),
-  templateId: integer("template_id").references(() => onboardingTemplates.id).notNull(),
+  templateId: integer("template_id")
+    .references(() => onboardingTemplates.id)
+    .notNull(),
 
   // Progress
   currentStepId: integer("current_step_id").references(() => onboardingSteps.id),
@@ -188,8 +200,12 @@ export const clientOnboarding = pgTable("client_onboarding", {
 // Onboarding Step Completion - tracks individual step completion
 export const onboardingStepCompletion = pgTable("onboarding_step_completion", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientOnboardingId: integer("client_onboarding_id").references(() => clientOnboarding.id).notNull(),
-  stepId: integer("step_id").references(() => onboardingSteps.id).notNull(),
+  clientOnboardingId: integer("client_onboarding_id")
+    .references(() => clientOnboarding.id)
+    .notNull(),
+  stepId: integer("step_id")
+    .references(() => onboardingSteps.id)
+    .notNull(),
 
   status: text("status").default("pending").notNull(), // pending, in_progress, completed, skipped
   completedAt: timestamp("completed_at"),
@@ -219,7 +235,9 @@ export const activityLog = pgTable("activity_log", {
 // Stripe Customers - links clients to Stripe customer IDs
 export const stripeCustomers = pgTable("stripe_customers", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientId: integer("client_id").references(() => clients.id).notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
   stripeCustomerId: text("stripe_customer_id").unique().notNull(),
 
   // Customer metadata from Stripe
@@ -241,8 +259,11 @@ export const stripeCustomers = pgTable("stripe_customers", {
 // Invoices - Stripe invoices
 export const invoices = pgTable("invoices", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientId: integer("client_id").references(() => clients.id).notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
   projectId: integer("project_id").references(() => projects.id),
+  dealId: integer("deal_id").references(() => deals.id),
   stripeCustomerId: integer("stripe_customer_id").references(() => stripeCustomers.id),
 
   // Stripe IDs
@@ -315,7 +336,9 @@ export const paymentIntents = pgTable("payment_intents", {
 // Subscriptions - Recurring billing
 export const subscriptions = pgTable("subscriptions", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientId: integer("client_id").references(() => clients.id).notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
   projectId: integer("project_id").references(() => projects.id),
   stripeCustomerId: integer("stripe_customer_id").references(() => stripeCustomers.id),
 
@@ -353,7 +376,9 @@ export const subscriptions = pgTable("subscriptions", {
 // Quotes - Estimates/proposals that can be converted to invoices
 export const quotes = pgTable("quotes", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  clientId: integer("client_id").references(() => clients.id).notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
   projectId: integer("project_id").references(() => projects.id),
 
   // Quote details
@@ -425,6 +450,134 @@ export const paymentLinks = pgTable("payment_links", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// ==================== DEALS & DOCUMENTS TABLES ====================
+
+// Deals - Sales opportunities/engagements (extends client relationship)
+export const deals = pgTable("deals", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
+
+  // Deal Details
+  name: text("name").notNull(), // Deal name/title
+  description: text("description"),
+  value: decimal("value", { precision: 10, scale: 2 }), // Estimated/actual deal value
+
+  // Stage & Status
+  stage: text("stage").default("lead").notNull(), // lead, prospect, proposal, negotiation, active, won, lost
+  priority: text("priority").default("medium"), // low, medium, high, urgent
+  probability: integer("probability").default(50), // 0-100% chance of closing
+
+  // Billing - Default hourly rate for tickets under this deal
+  hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }).default("65"), // Default $65/hr
+
+  // Dates
+  expectedCloseDate: timestamp("expected_close_date"),
+  actualCloseDate: timestamp("actual_close_date"),
+
+  // Assignment
+  ownerId: integer("owner_id").references(() => users.id), // Sales/account owner
+
+  // Internal tracking
+  source: text("source").default("real").notNull(), // real, sample (for data tagging)
+  nextSteps: text("next_steps"),
+  notes: text("notes"),
+  tags: text("tags").array(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Documents - File attachments for deals, clients, projects
+export const documents = pgTable("documents", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Polymorphic relationship - can attach to different entities
+  entityType: text("entity_type").notNull(), // client, deal, project, update
+  entityId: integer("entity_id").notNull(),
+
+  // Document details
+  title: text("title").notNull(),
+  description: text("description"),
+  fileType: text("file_type").notNull(), // pdf, image, doc, etc.
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size"), // bytes
+  mimeType: text("mime_type"),
+
+  // Storage
+  fileUrl: text("file_url").notNull(), // URL or path to file
+  thumbnailUrl: text("thumbnail_url"), // For images/previews
+
+  // Categorization
+  category: text("category"), // nda, sow, invoice, photo, contract, proposal, etc.
+  tags: text("tags").array(),
+
+  // Status
+  status: text("status").default("active").notNull(), // active, archived, deleted
+
+  // Tracking
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Deal Interactions - Communications and activities related to deals
+export const dealInteractions = pgTable("deal_interactions", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  dealId: integer("deal_id")
+    .references(() => deals.id)
+    .notNull(),
+
+  // Interaction details
+  type: text("type").notNull(), // email, call, meeting, note, task
+  subject: text("subject").notNull(),
+  content: text("content"),
+
+  // People involved
+  contactPerson: text("contact_person"), // Client contact
+  ownerId: integer("owner_id").references(() => users.id), // Team member
+
+  // Scheduling
+  scheduledAt: timestamp("scheduled_at"),
+  completedAt: timestamp("completed_at"),
+
+  // Status
+  status: text("status").default("completed").notNull(), // scheduled, completed, cancelled
+
+  // Email tracking
+  emailSent: boolean("email_sent").default(false),
+  emailOpenedAt: timestamp("email_opened_at"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Email Templates - Reusable templates for client updates
+export const emailTemplates = pgTable("email_templates", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Template details
+  name: text("name").notNull(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(), // HTML or markdown
+
+  // Categorization
+  category: text("category").notNull(), // update, invoice, onboarding, general
+
+  // Template variables (stored as JSON array)
+  variables: jsonb("variables"), // e.g., [{"name": "client_name", "description": "Client's name"}]
+
+  // Settings
+  includeAttachments: boolean("include_attachments").default(false),
+  isActive: boolean("is_active").default(true),
+
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ==================== RELATIONS ====================
 
 export const clientsRelations = relations(clients, ({ many }) => ({
@@ -434,6 +587,8 @@ export const clientsRelations = relations(clients, ({ many }) => ({
   invoices: many(invoices),
   quotes: many(quotes),
   subscriptions: many(subscriptions),
+  deals: many(deals),
+  supportTickets: many(supportTickets),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -457,6 +612,19 @@ export const projectUpdatesRelations = relations(projectUpdates, ({ one }) => ({
     fields: [projectUpdates.createdBy],
     references: [users.id],
   }),
+}));
+
+export const dealsRelations = relations(deals, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [deals.clientId],
+    references: [clients.id],
+  }),
+  owner: one(users, {
+    fields: [deals.ownerId],
+    references: [users.id],
+  }),
+  supportTickets: many(supportTickets),
+  interactions: many(dealInteractions),
 }));
 
 // ==================== ZOD SCHEMAS & TYPES ====================
@@ -538,3 +706,285 @@ export const insertPaymentLinkSchema = createInsertSchema(paymentLinks);
 export const selectPaymentLinkSchema = createSelectSchema(paymentLinks);
 export type InsertPaymentLink = z.infer<typeof insertPaymentLinkSchema>;
 export type PaymentLink = z.infer<typeof selectPaymentLinkSchema>;
+
+// Deals
+export const insertDealSchema = createInsertSchema(deals);
+export const selectDealSchema = createSelectSchema(deals);
+export type InsertDeal = z.infer<typeof insertDealSchema>;
+export type Deal = z.infer<typeof selectDealSchema>;
+
+// Documents
+export const insertDocumentSchema = createInsertSchema(documents);
+export const selectDocumentSchema = createSelectSchema(documents);
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = z.infer<typeof selectDocumentSchema>;
+
+// Deal Interactions
+export const insertDealInteractionSchema = createInsertSchema(dealInteractions);
+export const selectDealInteractionSchema = createSelectSchema(dealInteractions);
+export type InsertDealInteraction = z.infer<typeof insertDealInteractionSchema>;
+export type DealInteraction = z.infer<typeof selectDealInteractionSchema>;
+
+// Email Templates
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates);
+export const selectEmailTemplateSchema = createSelectSchema(emailTemplates);
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+export type EmailTemplate = z.infer<typeof selectEmailTemplateSchema>;
+
+// ==================== CHANGELOG TABLES ====================
+
+// Changelogs - Track changes from GitHub commits and manual entries
+export const changelogs = pgTable("changelogs", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Change Details
+  title: text("title").notNull(),
+  description: text("description").notNull(), // Markdown supported
+  category: text("category").notNull(), // feature, bugfix, improvement, breaking, security, other
+  priority: text("priority").default("medium"), // low, medium, high
+
+  // GitHub Integration
+  githubCommitSha: text("github_commit_sha"), // SHA of the commit
+  githubCommitUrl: text("github_commit_url"), // URL to the commit
+  githubAuthor: text("github_author"), // Commit author
+  githubDate: timestamp("github_date"), // Commit date
+
+  // Manual vs Auto
+  isFromGitHub: boolean("is_from_github").default(false),
+  syncedAt: timestamp("synced_at"), // When it was synced from GitHub
+
+  // Status
+  status: text("status").default("draft").notNull(), // draft, published, archived
+  isPublic: boolean("is_public").default(true), // Can be included in client updates
+
+  // Related to Projects/Updates
+  relatedProjectId: integer("related_project_id").references(() => projects.id),
+  usedInUpdates: jsonb("used_in_updates"), // Array of update IDs where this changelog was used
+
+  // Metadata
+  tags: text("tags").array(),
+  notes: text("notes"), // Internal notes
+
+  // Created by
+  createdBy: integer("created_by").references(() => users.id),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Changelog Schemas
+export const insertChangelogSchema = createInsertSchema(changelogs);
+export const selectChangelogSchema = createSelectSchema(changelogs);
+export type InsertChangelog = z.infer<typeof insertChangelogSchema>;
+export type Changelog = z.infer<typeof selectChangelogSchema>;
+
+// ==================== SYSTEM UPDATES/ANNOUNCEMENTS TABLE ====================
+
+// System Updates - Announcements sent to deal administrators
+export const systemUpdates = pgTable("system_updates", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Update Details
+  title: text("title").notNull(),
+  content: text("content").notNull(), // Markdown supported
+  category: text("category").notNull(), // announcement, feature, update, maintenance
+
+  // Sending Status
+  sentAt: timestamp("sent_at"),
+  recipientCount: integer("recipient_count").default(0),
+
+  // Metadata
+  createdBy: integer("created_by").references(() => users.id),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// System Update Recipients - Tracks which deals received which updates
+export const systemUpdateRecipients = pgTable("system_update_recipients", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  updateId: integer("update_id")
+    .references(() => systemUpdates.id)
+    .notNull(),
+  dealId: integer("deal_id")
+    .references(() => deals.id)
+    .notNull(),
+
+  // Delivery status
+  emailSent: boolean("email_sent").default(false),
+  emailSentAt: timestamp("email_sent_at"),
+  emailOpenedAt: timestamp("email_opened_at"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// System Updates Schemas
+export const insertSystemUpdateSchema = createInsertSchema(systemUpdates);
+export const selectSystemUpdateSchema = createSelectSchema(systemUpdates);
+export type InsertSystemUpdate = z.infer<typeof insertSystemUpdateSchema>;
+export type SystemUpdate = z.infer<typeof selectSystemUpdateSchema>;
+
+export const insertSystemUpdateRecipientSchema = createInsertSchema(systemUpdateRecipients);
+export const selectSystemUpdateRecipientSchema = createSelectSchema(systemUpdateRecipients);
+export type InsertSystemUpdateRecipient = z.infer<typeof insertSystemUpdateRecipientSchema>;
+export type SystemUpdateRecipient = z.infer<typeof selectSystemUpdateRecipientSchema>;
+
+// ==================== DEAL STAKEHOLDERS TABLE ====================
+
+// Deal Stakeholders - Links multiple contacts/clients to a single deal
+export const dealStakeholders = pgTable("deal_stakeholders", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  dealId: integer("deal_id")
+    .references(() => deals.id)
+    .notNull(),
+  clientId: integer("client_id")
+    .references(() => clients.id)
+    .notNull(),
+
+  // Role/relationship to the deal
+  role: text("role").default("stakeholder"), // primary, stakeholder, contact, decision_maker, influencer
+  isPrimary: boolean("is_primary").default(false), // Is this the primary contact for the deal?
+
+  // Notes specific to this stakeholder's involvement
+  notes: text("notes"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Deal Stakeholders Schemas
+export const insertDealStakeholderSchema = createInsertSchema(dealStakeholders);
+export const selectDealStakeholderSchema = createSelectSchema(dealStakeholders);
+export type InsertDealStakeholder = z.infer<typeof insertDealStakeholderSchema>;
+export type DealStakeholder = z.infer<typeof selectDealStakeholderSchema>;
+
+// ==================== EMAIL LOG TABLE ====================
+
+// Email Log - Stores emails synced from Resend for documentation
+export const emailLogs = pgTable("email_logs", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Resend Email ID
+  resendId: text("resend_id").unique(),
+
+  // Email Details
+  from: text("from").notNull(),
+  to: text("to").array().notNull(), // Array of recipient emails
+  cc: text("cc").array(), // CC recipients
+  bcc: text("bcc").array(), // BCC recipients
+  replyTo: text("reply_to"),
+  subject: text("subject").notNull(),
+  htmlBody: text("html_body"), // HTML content
+  textBody: text("text_body"), // Plain text content
+
+  // Status from Resend
+  status: text("status").default("sent"), // sent, delivered, bounced, complained, etc.
+  lastEvent: text("last_event"), // Last webhook event
+
+  // Categorization
+  category: text("category").default("general"), // general, client, notification, marketing, transactional
+  tags: text("tags").array(),
+
+  // Related entities
+  relatedClientId: integer("related_client_id").references(() => clients.id),
+  relatedDealId: integer("related_deal_id").references(() => deals.id),
+  relatedProjectId: integer("related_project_id").references(() => projects.id),
+
+  // Timestamps from Resend
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
+  bouncedAt: timestamp("bounced_at"),
+
+  // Sync metadata
+  syncedAt: timestamp("synced_at").defaultNow(),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Email Log Schemas
+export const insertEmailLogSchema = createInsertSchema(emailLogs);
+export const selectEmailLogSchema = createSelectSchema(emailLogs);
+export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
+export type EmailLog = z.infer<typeof selectEmailLogSchema>;
+
+// ==================== SUPPORT TICKETS TABLE ====================
+
+// Support Tickets - Unified ticket system receiving from external apps
+export const supportTickets = pgTable("support_tickets", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Relationships
+  clientId: integer("client_id").references(() => clients.id),
+  dealId: integer("deal_id").references(() => deals.id), // Group tickets by deal
+
+  // Source identification (which app submitted the ticket)
+  applicationSource: text("application_source").notNull(), // "crm-lighting", "agave-fleet", "direct"
+  externalTicketId: text("external_ticket_id"), // Original ID from source app
+
+  // Submitter info (for email matching to clients)
+  submitterEmail: text("submitter_email").notNull(),
+  submitterName: text("submitter_name"),
+
+  // Ticket details
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  screenshotUrl: text("screenshot_url"),
+  priority: text("priority").default("medium"), // low, medium, high, urgent
+  labels: text("labels").array(),
+
+  // Status flow: pending → in_progress → resolved → billed
+  status: text("status").default("pending").notNull(),
+
+  // Time tracking & billing
+  timeSpent: decimal("time_spent", { precision: 6, scale: 2 }).default("0"), // Hours worked
+  hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }), // Override rate (null = use deal rate)
+  billableAmount: decimal("billable_amount", { precision: 10, scale: 2 }), // Calculated: timeSpent * rate
+  readyToBill: boolean("ready_to_bill").default(false),
+
+  // Invoice link (when ticket is billed)
+  invoiceId: integer("invoice_id").references(() => invoices.id),
+  billedAt: timestamp("billed_at"),
+
+  // Resolution
+  resolution: text("resolution"), // How the ticket was resolved
+  internalNotes: text("internal_notes"),
+  resolvedAt: timestamp("resolved_at"),
+
+  // Assignment
+  assignedTo: integer("assigned_to").references(() => users.id),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Support Tickets Relations
+export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
+  client: one(clients, {
+    fields: [supportTickets.clientId],
+    references: [clients.id],
+  }),
+  deal: one(deals, {
+    fields: [supportTickets.dealId],
+    references: [deals.id],
+  }),
+  assignee: one(users, {
+    fields: [supportTickets.assignedTo],
+    references: [users.id],
+  }),
+  invoice: one(invoices, {
+    fields: [supportTickets.invoiceId],
+    references: [invoices.id],
+  }),
+}));
+
+// Support Tickets Schemas
+export const insertSupportTicketSchema = createInsertSchema(supportTickets);
+export const selectSupportTicketSchema = createSelectSchema(supportTickets);
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportTicket = z.infer<typeof selectSupportTicketSchema>;

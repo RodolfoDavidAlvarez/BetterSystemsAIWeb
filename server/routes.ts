@@ -58,11 +58,11 @@ import {
   getTicketStats,
 } from "./controllers/tickets";
 
-import {
-  receiveExternalTicket,
-  getExternalTicketStatus,
-  externalTicketsHealthCheck,
-} from "./controllers/externalTickets";
+import { receiveExternalTicket, getExternalTicketStatus, externalTicketsHealthCheck } from "./controllers/externalTickets";
+
+import { getDealStakeholders, addDealStakeholder, updateDealStakeholder, removeDealStakeholder } from "./controllers/stakeholders";
+
+import { getAllEmailLogs, getEmailLogById, getEmailStats, syncEmailsFromResend, handleResendWebhook } from "./controllers/emailLogs";
 
 import { constructWebhookEvent, handleWebhookEvent } from "./services/stripe";
 
@@ -263,6 +263,12 @@ export function registerRoutes(app: Express) {
   app.post("/api/admin/deals/preview-email", authenticate, isAdmin, previewEmail);
   app.get("/api/admin/email-templates", authenticate, isAdmin, getEmailTemplates);
 
+  // Deal stakeholders (contacts associated with deals)
+  app.get("/api/admin/deals/:dealId/stakeholders", authenticate, isAdmin, getDealStakeholders);
+  app.post("/api/admin/deals/:dealId/stakeholders", authenticate, isAdmin, addDealStakeholder);
+  app.put("/api/admin/stakeholders/:stakeholderId", authenticate, isAdmin, updateDealStakeholder);
+  app.delete("/api/admin/stakeholders/:stakeholderId", authenticate, isAdmin, removeDealStakeholder);
+
   // ==================== DOCUMENTS ROUTES ====================
 
   // Document routes (protected)
@@ -317,6 +323,17 @@ export function registerRoutes(app: Express) {
     const express = require("express");
     express.static("uploads")(req, res, next);
   });
+
+  // ==================== EMAIL LOGS ROUTES ====================
+
+  // Email logs routes (protected)
+  app.get("/api/admin/emails", authenticate, isAdmin, getAllEmailLogs);
+  app.get("/api/admin/emails/stats", authenticate, isAdmin, getEmailStats);
+  app.get("/api/admin/emails/:id", authenticate, isAdmin, getEmailLogById);
+  app.post("/api/admin/emails/sync", authenticate, isAdmin, syncEmailsFromResend);
+
+  // Resend Webhook (no auth required - webhook signature verification should be added)
+  app.post("/api/webhooks/resend", handleResendWebhook);
 
   // Stripe Webhook (no auth required - Stripe signature verification instead)
   app.post("/api/webhooks/stripe", async (req, res) => {

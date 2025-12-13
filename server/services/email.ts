@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import { db } from "@db/index";
+import { emailLogs } from "@db/schema";
 
 // Initialize Resend with API key
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -77,6 +79,27 @@ export async function sendCustomerEmail(data: EmailData) {
       subject: subject,
       html: htmlContent,
     });
+
+    // Log email to database
+    if (result.data?.id) {
+      try {
+        await db.insert(emailLogs).values({
+          resendId: result.data.id,
+          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          to: [email],
+          subject: subject,
+          htmlBody: htmlContent,
+          status: "sent",
+          lastEvent: "email.sent",
+          category: "transactional",
+          sentAt: new Date(),
+          syncedAt: new Date(),
+        });
+      } catch (dbError) {
+        console.error("[Email Service] Failed to log email to database:", dbError);
+        // Don't fail the email send if logging fails
+      }
+    }
 
     return { success: true, data: result };
   } catch (error) {
@@ -180,6 +203,27 @@ export async function sendAdminNotification(data: EmailData) {
       html: htmlContent,
     });
 
+    // Log email to database
+    if (result.data?.id) {
+      try {
+        await db.insert(emailLogs).values({
+          resendId: result.data.id,
+          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          to: [recipientEmail],
+          subject: subjectLine,
+          htmlBody: htmlContent,
+          status: "sent",
+          lastEvent: "email.sent",
+          category: "notification",
+          sentAt: new Date(),
+          syncedAt: new Date(),
+        });
+      } catch (dbError) {
+        console.error("[Email Service] Failed to log email to database:", dbError);
+        // Don't fail the email send if logging fails
+      }
+    }
+
     return { success: true, data: result };
   } catch (error) {
     console.error("Error sending admin notification:", error);
@@ -253,6 +297,27 @@ export async function sendProjectUpdateEmail(data: ProjectUpdateEmailData) {
       subject: `[${projectName}] ${updateTitle}`,
       html: htmlContent,
     });
+
+    // Log email to database
+    if (result.data?.id) {
+      try {
+        await db.insert(emailLogs).values({
+          resendId: result.data.id,
+          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          to: [to],
+          subject: `[${projectName}] ${updateTitle}`,
+          htmlBody: htmlContent,
+          status: "sent",
+          lastEvent: "email.sent",
+          category: "client",
+          sentAt: new Date(),
+          syncedAt: new Date(),
+        });
+      } catch (dbError) {
+        console.error("[Email Service] Failed to log email to database:", dbError);
+        // Don't fail the email send if logging fails
+      }
+    }
 
     console.log(`[Email] Project update sent to ${to} for project ${projectName}`);
     return { success: true, data: result };

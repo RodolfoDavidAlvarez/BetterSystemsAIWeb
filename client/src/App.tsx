@@ -28,6 +28,7 @@ import DealDetailPage from "./pages/admin/DealDetailPage";
 import TicketsPage from "./pages/admin/TicketsPage";
 import ChangelogPage from "./pages/admin/ChangelogPage";
 import UpdatesPage from "./pages/admin/UpdatesPage";
+import EmailsPage from "./pages/admin/EmailsPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 
@@ -149,6 +150,13 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <UpdatesPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/admin/emails">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <EmailsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

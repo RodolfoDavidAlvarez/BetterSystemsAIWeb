@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { useLocation } from "wouter";
-import { Home, Users, CreditCard, Briefcase, LogOut, ChevronRight, GitBranch, Megaphone, Ticket } from "lucide-react";
+import { Home, Users, CreditCard, Briefcase, LogOut, ChevronRight, GitBranch, Megaphone, Ticket, Mail } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -94,6 +94,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       title: "Billing",
       url: "/admin/billing",
       icon: CreditCard,
+    },
+    {
+      title: "Emails",
+      url: "/admin/emails",
+      icon: Mail,
     },
     {
       title: "Updates",

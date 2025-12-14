@@ -20,7 +20,8 @@ interface ExternalTicketPayload {
   submitterName?: string;
   title: string;
   description: string;
-  screenshotUrl?: string;
+  screenshotUrl?: string; // Legacy single screenshot (deprecated)
+  screenshotUrls?: string[]; // Array of screenshots (max 3)
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   page?: string;
   status?: string;
@@ -152,7 +153,8 @@ export const receiveExternalTicket = async (req: Request, res: Response) => {
         submitterName: payload.submitterName || null,
         title: payload.title,
         description: payload.description,
-        screenshotUrl: payload.screenshotUrl || null,
+        screenshotUrl: payload.screenshotUrl || null, // Legacy field (deprecated)
+        screenshotUrls: payload.screenshotUrls || (payload.screenshotUrl ? [payload.screenshotUrl] : null), // New array field with backward compatibility
         priority: payload.priority || 'medium',
         page: payload.page || null,
         status: payload.status || 'pending',

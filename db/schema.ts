@@ -938,6 +938,7 @@ export const supportTickets = pgTable("support_tickets", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   screenshotUrl: text("screenshot_url"),
+  screenshotUrls: text("screenshot_urls").array(), // Array of screenshot URLs (max 3)
   priority: text("priority").default("medium"), // low, medium, high, urgent
   page: text("page"), // Page/area where issue is occurring (from CRM)
   labels: text("labels").array(),

@@ -847,6 +847,10 @@ export const dealStakeholders = pgTable("deal_stakeholders", {
   role: text("role").default("stakeholder"), // primary, stakeholder, contact, decision_maker, influencer
   isPrimary: boolean("is_primary").default(false), // Is this the primary contact for the deal?
 
+  // Notification preferences
+  receivesUpdates: boolean("receives_updates").default(true), // Receives feature updates, fixes, improvements
+  receivesBilling: boolean("receives_billing").default(false), // Receives invoices, quotes, payment info
+
   // Notes specific to this stakeholder's involvement
   notes: text("notes"),
 
@@ -935,6 +939,7 @@ export const supportTickets = pgTable("support_tickets", {
   description: text("description").notNull(),
   screenshotUrl: text("screenshot_url"),
   priority: text("priority").default("medium"), // low, medium, high, urgent
+  page: text("page"), // Page/area where issue is occurring (from CRM)
   labels: text("labels").array(),
 
   // Status flow: pending → in_progress → resolved → billed

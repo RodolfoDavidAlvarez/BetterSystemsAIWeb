@@ -22,6 +22,9 @@ interface ExternalTicketPayload {
   description: string;
   screenshotUrl?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
+  page?: string;
+  status?: string;
+  createdAt?: string;
 }
 
 // Validate API key for the given application source
@@ -151,7 +154,8 @@ export const receiveExternalTicket = async (req: Request, res: Response) => {
         description: payload.description,
         screenshotUrl: payload.screenshotUrl || null,
         priority: payload.priority || 'medium',
-        status: 'pending',
+        page: payload.page || null,
+        status: payload.status || 'pending',
         timeSpent: '0',
         readyToBill: false,
       })

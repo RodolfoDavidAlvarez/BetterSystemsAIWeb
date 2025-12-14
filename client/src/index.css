@@ -4,38 +4,38 @@
 
 @layer base {
   :root {
-    /* High-contrast color palette for better readability */
-    --primary: 217 91% 50%; /* Darker blue for better contrast #4285F4 */
-    --secondary: 220 20% 35%; /* Darker gray #525B66 */
-    --accent: 217 91% 60%; /* Lighter blue for accents #5B9BF5 */
-    
-    /* Base Colors - High Contrast */
-    --background: 0 0% 100%; /* Pure white */
-    --foreground: 220 39% 8%; /* Very dark for maximum readability #0D1117 */
-    
-    /* Card & Surface Colors */
-    --card: 0 0% 100%;
-    --card-foreground: 220 39% 8%;
-    
-    /* Muted & Subtle Colors - Better contrast */
-    --muted: 210 40% 95%; /* Very light gray #F8FAFC */
-    --muted-foreground: 220 20% 25%; /* Much darker gray for readability #3F4B57 */
-    
+    /* Enhanced contrast color palette */
+    --primary: 217 91% 45%; /* Deeper blue for stronger presence */
+    --secondary: 220 25% 30%; /* Darker gray for better definition */
+    --accent: 217 91% 55%; /* Vibrant blue for highlights */
+
+    /* Base Colors - Enhanced Contrast */
+    --background: 220 15% 97%; /* Subtle gray background instead of pure white */
+    --foreground: 220 40% 10%; /* Very dark text for maximum readability */
+
+    /* Card & Surface Colors - Strong differentiation */
+    --card: 0 0% 100%; /* Pure white cards stand out from background */
+    --card-foreground: 220 40% 10%;
+
+    /* Muted & Subtle Colors - Increased contrast */
+    --muted: 220 20% 92%; /* More visible gray */
+    --muted-foreground: 220 25% 20%; /* Much darker for better readability */
+
     /* UI Elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 220 39% 8%;
-    
+    --popover-foreground: 220 40% 10%;
+
     --primary-foreground: 0 0% 100%;
     --secondary-foreground: 0 0% 100%;
-    --accent-foreground: 220 39% 8%;
-    
-    --destructive: 0 84% 60%;
+    --accent-foreground: 220 40% 10%;
+
+    --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
-    
-    --border: 220 13% 88%; /* Darker border for visibility #D1D5DB */
-    --input: 220 13% 88%;
-    --ring: 217 91% 50%; /* Blue focus ring */
-    
+
+    --border: 220 20% 80%; /* Much darker borders for clear definition */
+    --input: 220 20% 80%;
+    --ring: 217 91% 45%; /* Strong focus ring */
+
     --radius: 0.5rem;
   }
 }
@@ -46,48 +46,49 @@
   }
   
   body {
-    @apply bg-white text-foreground;
-    background-color: #ffffff !important;
+    @apply text-foreground;
+    background-color: hsl(var(--background)) !important;
     font-feature-settings: "kern" 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.6;
   }
-  
+
   html {
-    background-color: #ffffff !important;
+    background-color: hsl(var(--background)) !important;
     scroll-behavior: smooth;
   }
-  
+
   #root {
-    background-color: #ffffff !important;
+    background-color: hsl(var(--background)) !important;
   }
   
-  /* Enhanced Typography for Mobile */
+  /* Enhanced Typography - Bolder and more readable */
   h1, h2, h3, h4, h5, h6 {
-    @apply tracking-tight font-semibold text-foreground;
+    @apply tracking-tight text-foreground;
     line-height: 1.2;
+    font-weight: 700; /* Increased from 600 */
   }
-  
+
   h1 {
     @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
-    font-weight: 600;
+    font-weight: 800; /* Extra bold for maximum impact */
   }
-  
+
   h2 {
     @apply text-2xl sm:text-3xl md:text-4xl;
-    font-weight: 600;
+    font-weight: 700; /* Bold */
   }
-  
+
   h3 {
     @apply text-xl sm:text-2xl md:text-3xl;
-    font-weight: 600;
+    font-weight: 700; /* Bold */
   }
-  
+
   h4 {
     @apply text-lg sm:text-xl;
-    font-weight: 600;
+    font-weight: 600; /* Semibold */
   }
   
   /* Enhanced paragraph readability */
@@ -114,22 +115,30 @@
     @apply transition-opacity duration-300 ease-in-out;
   }
   
-  /* Mobile-optimized Card styling */
+  /* Enhanced Card styling with stronger presence */
   .card {
-    @apply bg-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-border;
+    @apply bg-card rounded-xl transition-all duration-300;
     padding: 1.5rem;
+    border: 2px solid hsl(var(--border)); /* Thicker border */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   }
-  
+
+  .card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
   @media (min-width: 768px) {
     .card {
       padding: 2rem;
     }
   }
   
-  /* Button styling - Mobile optimized */
+  /* Button styling - Enhanced visibility */
   button {
-    @apply font-medium rounded-lg;
+    @apply rounded-lg;
     min-height: 44px; /* Apple's recommended touch target */
+    font-weight: 600; /* Semibold for better readability */
   }
   
   /* Mobile-friendly Input styling */
@@ -250,12 +259,13 @@
     @apply bg-secondary/70;
   }
   
-  /* Primary button - Mobile optimized */
+  /* Primary button - Enhanced with stronger presence */
   .btn-primary {
     @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary/30;
     min-height: 48px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600; /* Semibold for better visibility */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
   }
   
   /* Link hover - enhanced */

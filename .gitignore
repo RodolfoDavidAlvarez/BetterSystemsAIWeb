@@ -6,3 +6,8 @@ vite.config.ts.*
 *.tar.gz
 vite.config.ts.timestamp-*.env
 .vercel
+
+# Environment variables - never commit
+.env
+.env.local
+.env.*.local

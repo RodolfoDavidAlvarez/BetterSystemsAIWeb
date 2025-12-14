@@ -6,6 +6,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from 'http';
 import { existsSync } from 'fs';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import { registerRoutes } from './routes';
 
 // JWT Secret Configuration with better production handling
@@ -99,12 +100,29 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Apply request logger after body parsing
 app.use(requestLogger);
 
-// Static file serving with enhanced logging
-const staticDir = join(dirname(__dirname), 'dist/public');
-console.log(`[Static Files] Serving from: ${staticDir}`);
-console.log(`[Static Files] Directory exists: ${existsSync(staticDir)}`);
+// Development vs Production static file serving
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const VITE_PORT = 5173;
 
-app.use(express.static(staticDir));
+if (isDevelopment) {
+  console.log(`[Development Mode] Proxying frontend requests to Vite dev server on port ${VITE_PORT}`);
+
+  // Proxy non-API requests to Vite dev server in development
+  app.use('/', createProxyMiddleware({
+    target: `http://localhost:${VITE_PORT}`,
+    changeOrigin: true,
+    ws: true, // Proxy websockets for HMR
+    logLevel: 'silent',
+    // Only proxy non-API requests
+    filter: (pathname) => !pathname.startsWith('/api'),
+  }));
+} else {
+  // Production: serve static files
+  const staticDir = join(dirname(__dirname), 'dist/public');
+  console.log(`[Production Mode] Serving static files from: ${staticDir}`);
+  console.log(`[Static Files] Directory exists: ${existsSync(staticDir)}`);
+  app.use(express.static(staticDir));
+}
 
 
 // Health check endpoint with detailed response
@@ -125,15 +143,18 @@ app.get('/api/health', (_req, res) => {
 // Register API routes
 registerRoutes(app);
 
-// SPA fallback with logging - exclude API routes
-app.get('*', (req, res, next) => {
-  // Skip API routes to avoid conflicts
-  if (req.url.startsWith('/api/')) {
-    return next();
-  }
-  console.log(`[SPA Fallback] Serving index.html for: ${req.url}`);
-  res.sendFile(join(staticDir, 'index.html'));
-});
+// SPA fallback only needed in production (development uses Vite proxy)
+if (!isDevelopment) {
+  const staticDir = join(dirname(__dirname), 'dist/public');
+  app.get('*', (req, res, next) => {
+    // Skip API routes to avoid conflicts
+    if (req.url.startsWith('/api/')) {
+      return next();
+    }
+    console.log(`[SPA Fallback] Serving index.html for: ${req.url}`);
+    res.sendFile(join(staticDir, 'index.html'));
+  });
+}
 
 // Enhanced error handling
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {

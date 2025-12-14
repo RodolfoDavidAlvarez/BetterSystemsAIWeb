@@ -541,82 +541,82 @@ export default function TicketsPage() {
         </TabsList>
 
         <TabsContent value={selectedStatus} className="mt-6">
-          {/* Tickets Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {tickets.map((ticket) => (
-              <Card
-                key={ticket.id}
-                className="cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/50"
-                onClick={() => openTicketDetail(ticket)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <Badge className={getAppSourceColor(ticket.applicationSource)}>
-                      {getAppSourceLabel(ticket.applicationSource)}
-                    </Badge>
-                    <div className="flex items-center gap-1">
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority}
-                      </Badge>
-                      <Badge className={`${getStatusColor(ticket.status)} border`}>
-                        <span className="flex items-center gap-1">
-                          {getStatusIcon(ticket.status)}
-                          {ticket.status.replace("_", " ")}
-                        </span>
-                      </Badge>
+          {/* Tickets List View */}
+          <Card>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {tickets.map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="p-4 hover:bg-muted/50 cursor-pointer transition-colors group"
+                    onClick={() => openTicketDetail(ticket)}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      {/* Left: Title, Description, Submitter */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <h3 className="font-semibold text-base group-hover:text-primary transition-colors">
+                            {ticket.title}
+                          </h3>
+                          <div className="flex items-center gap-1">
+                            <Badge className={getAppSourceColor(ticket.applicationSource)} variant="outline">
+                              {getAppSourceLabel(ticket.applicationSource)}
+                            </Badge>
+                            <Badge className={getPriorityColor(ticket.priority)} variant="outline">
+                              {ticket.priority}
+                            </Badge>
+                            <Badge className={`${getStatusColor(ticket.status)} border`} variant="outline">
+                              <span className="flex items-center gap-1">
+                                {getStatusIcon(ticket.status)}
+                                {ticket.status.replace("_", " ")}
+                              </span>
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          {ticket.description}
+                        </p>
+
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <strong className="text-foreground">Submitted by:</strong>
+                            {ticket.submitterName || ticket.submitterEmail}
+                          </span>
+                          {ticket.deal && (
+                            <span className="flex items-center gap-1">
+                              <Briefcase className="h-3 w-3" />
+                              {ticket.deal.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Time & Billing */}
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        <div className="text-sm text-muted-foreground whitespace-nowrap">
+                          {format(new Date(ticket.createdAt), "MMM d, yyyy")}
+                        </div>
+                        <div className="text-xs text-muted-foreground whitespace-nowrap">
+                          {format(new Date(ticket.createdAt), "h:mm a")}
+                        </div>
+                        <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                          <DollarSign className="h-3 w-3" />
+                          {formatCurrency(ticket.calculatedBillableAmount)}
+                        </div>
+                        {ticket.readyToBill && !ticket.invoiceId && (
+                          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-700 border-green-500/30">
+                            <Receipt className="h-3 w-3 mr-1" />
+                            Ready to bill
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <CardTitle className="text-base line-clamp-2">{ticket.title}</CardTitle>
-                  <CardDescription className="line-clamp-2 text-sm">
-                    {ticket.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2 text-sm">
-                    {/* Client/Deal Info */}
-                    {ticket.deal && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Briefcase className="h-3 w-3" />
-                        <span className="truncate">{ticket.deal.name}</span>
-                      </div>
-                    )}
-                    {ticket.client && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="h-3 w-3" />
-                        <span className="truncate">{ticket.client.name}</span>
-                      </div>
-                    )}
-
-                    {/* Time & Billing */}
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Timer className="h-3 w-3" />
-                        <span>{parseFloat(ticket.timeSpent || "0")}hrs</span>
-                      </div>
-                      <div className="flex items-center gap-1 font-medium text-green-600">
-                        <DollarSign className="h-3 w-3" />
-                        <span>{formatCurrency(ticket.calculatedBillableAmount)}</span>
-                      </div>
-                    </div>
-
-                    {/* Timestamp */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>{formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}</span>
-                    </div>
-                  </div>
-
-                  {/* Ready to Bill indicator */}
-                  {ticket.readyToBill && !ticket.invoiceId && (
-                    <div className="mt-3 flex items-center gap-1 text-xs font-medium text-green-600">
-                      <Receipt className="h-3 w-3" />
-                      Ready to bill
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {tickets.length === 0 && (
             <Card>

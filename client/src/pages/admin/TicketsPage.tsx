@@ -48,7 +48,8 @@ interface Ticket {
   submitterName: string | null;
   title: string;
   description: string;
-  screenshotUrl: string | null;
+  screenshotUrl: string | null; // Legacy field (deprecated)
+  screenshotUrls: string[] | null; // Array of screenshot URLs (max 3)
   priority: string;
   labels: string[] | null;
   status: "pending" | "in_progress" | "resolved" | "billed";
@@ -840,30 +841,61 @@ export default function TicketsPage() {
                 </CardContent>
               </Card>
 
-              {/* Screenshot */}
-              {selectedTicket.screenshotUrl && (
+              {/* Screenshots Gallery */}
+              {(selectedTicket.screenshotUrls && selectedTicket.screenshotUrls.length > 0) || selectedTicket.screenshotUrl ? (
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Screenshot</CardTitle>
+                    <CardTitle className="text-sm">
+                      {selectedTicket.screenshotUrls && selectedTicket.screenshotUrls.length > 1
+                        ? `Screenshots (${selectedTicket.screenshotUrls.length})`
+                        : "Screenshot"}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <img
-                      src={selectedTicket.screenshotUrl}
-                      alt="Screenshot"
-                      className="w-full rounded-lg border"
-                    />
-                    <a
-                      href={selectedTicket.screenshotUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Open in new tab
-                    </a>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {selectedTicket.screenshotUrls && selectedTicket.screenshotUrls.length > 0 ? (
+                        selectedTicket.screenshotUrls.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Screenshot ${index + 1}`}
+                              className="w-full rounded-lg border hover:border-primary transition-colors cursor-pointer"
+                              onClick={() => window.open(url, '_blank')}
+                            />
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="absolute top-2 right-2 p-1.5 bg-background/90 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 text-primary" />
+                            </a>
+                          </div>
+                        ))
+                      ) : selectedTicket.screenshotUrl ? (
+                        <div className="relative group">
+                          <img
+                            src={selectedTicket.screenshotUrl}
+                            alt="Screenshot"
+                            className="w-full rounded-lg border hover:border-primary transition-colors cursor-pointer"
+                            onClick={() => window.open(selectedTicket.screenshotUrl!, '_blank')}
+                          />
+                          <a
+                            href={selectedTicket.screenshotUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute top-2 right-2 p-1.5 bg-background/90 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 text-primary" />
+                          </a>
+                        </div>
+                      ) : null}
+                    </div>
                   </CardContent>
                 </Card>
-              )}
+              ) : null}
 
               {/* Status Update */}
               <Card>

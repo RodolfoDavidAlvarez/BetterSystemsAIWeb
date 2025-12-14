@@ -2,22 +2,56 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ CRITICAL: Development Port Configuration
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ALWAYS USE PORT 5173 FOR DEVELOPMENT                   │
+│  http://localhost:5173                                  │
+│                                                         │
+│  ❌ NEVER use port 3001 directly in browser            │
+│  ❌ NEVER use port 3000                                │
+└─────────────────────────────────────────────────────────┘
+```
+
+### How It Works (One-Way Proxy)
+
+```
+Browser → localhost:5173 (Vite)
+              │
+              ├── Serves React frontend
+              │
+              └── Proxies /api/* → localhost:3001 (Express)
+                                        │
+                                        └── Handles all API routes
+```
+
+- **Port 5173 (Vite)**: Your entry point. Serves frontend AND proxies API requests
+- **Port 3001 (Express)**: API server only. Never access directly in browser
+- The proxy is configured in `vite.config.ts` (lines 31-36)
+
+### Why This Matters
+- Accessing port 3001 directly will NOT serve the frontend
+- CORS issues occur if you mix ports
+- Authentication cookies may not work correctly across ports
+
 ## Build and Development Commands
 
 ### Root Level (Full Stack)
 
 - `npm run dev` - Start both client and server in development mode
-  - **Single Entry Point**: Always use `http://localhost:5173` to access the application
-  - Client (Vite) runs on port 5173
-  - Server (Express) runs on port 3001 (API requests are proxied automatically)
+  - **Access at**: `http://localhost:5173` (ONLY this URL)
+  - Vite (frontend) runs on port 5173
+  - Express (API) runs on port 3001 (proxied automatically)
 - `npm run build` - Build the full application (client + server)
 - `npm start` - Start production server
 - `npm run check` - Run TypeScript type checking
 
-### Individual Services (for debugging)
+### Individual Services (for debugging only)
 
-- `npm run dev:server` - Start only the Express server on port 3001
-- `npm run dev:client` - Start only the Vite dev server on port 5173
+- `npm run dev:server` - Start only Express API on port 3001
+- `npm run dev:client` - Start only Vite on port 5173
+- Note: Running individually requires BOTH to be running for full functionality
 
 ### Client Only (client/ directory)
 

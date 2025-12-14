@@ -36,8 +36,9 @@ export const getApiBaseUrl = () => {
   }
   
   // Use relative URLs in local development to go through Vite proxy (avoids CORS)
+  // Vite on port 5173 proxies /api/* to Express on port 3001
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log(`Using relative API URL (will proxy to port 3000)`);
+    console.log(`Using relative API URL (Vite proxies to port 3001)`);
     return '/api';
   }
   

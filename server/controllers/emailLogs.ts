@@ -198,6 +198,12 @@ export async function syncEmailsFromResend(req: Request, res: Response) {
         message: "Emails synced successfully",
         data: result,
       });
+    } else if (result.unsupported) {
+      res.json({
+        success: false,
+        message: result.error || "Email sync not supported by current Resend SDK. Upgrade SDK or rely on webhooks.",
+        data: result,
+      });
     } else {
       res.status(500).json({
         success: false,

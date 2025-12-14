@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": false,
+    "lib": ["esnext"]
+  },
+  "include": ["server/**/*", "db/**/*"],
+  "exclude": ["node_modules", "build", "dist"]
+}

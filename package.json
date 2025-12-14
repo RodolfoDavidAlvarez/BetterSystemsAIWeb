@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "tsx watch --clear-screen=false server/index.ts",
+    "dev:server": "npx tsx server/index.ts",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && vite build && cd .. && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
@@ -103,6 +103,8 @@
   },
   "devDependencies": {
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@swc/core": "^1.15.4",
+    "@swc/helpers": "^0.5.17",
     "@tailwindcss/typography": "^0.5.15",
     "@types/express": "^4.17.21",
     "@types/express-session": "^1.18.1",
@@ -119,6 +121,7 @@
     "esbuild": "^0.24.2",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.7.3",
     "vite": "^5.4.15",

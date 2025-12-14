@@ -28,7 +28,7 @@ import {
   getDealBillingSummary,
 } from "./controllers/billing";
 
-import { getAllDeals, getDealById, createDeal, updateDeal, deleteDeal, addDealInteraction, getDealInteractions } from "./controllers/deals";
+import { getAllDeals, getDealById, createDeal, updateDeal, deleteDeal, addDealInteraction, getDealInteractions, getDealEmails } from "./controllers/deals";
 
 import { getDocuments, uploadDocument, deleteDocument, updateDocument, upload } from "./controllers/documents";
 
@@ -257,6 +257,9 @@ export function registerRoutes(app: Express) {
   // Deal interactions
   app.get("/api/admin/deals/:id/interactions", authenticate, isAdmin, getDealInteractions);
   app.post("/api/admin/deals/:id/interactions", authenticate, isAdmin, addDealInteraction);
+
+  // Deal emails (Resend logs for stakeholders)
+  app.get("/api/admin/deals/:dealId/emails", authenticate, isAdmin, getDealEmails);
 
   // Deal updates (email)
   app.post("/api/admin/deals/:id/send-update", authenticate, isAdmin, sendDealUpdate);

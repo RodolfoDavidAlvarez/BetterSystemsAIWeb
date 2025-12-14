@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../../db/index';
-import { deals, dealInteractions, documents, clients, projects, invoices } from '../../db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { deals, dealInteractions, documents, clients, projects, invoices, supportTickets, emailLogs, dealStakeholders } from '../../db/schema';
+import { eq, desc, and, sql, or, inArray } from 'drizzle-orm';
 
 // Get all deals with related data
 export async function getAllDeals(req: Request, res: Response) {
@@ -15,6 +15,7 @@ export async function getAllDeals(req: Request, res: Response) {
         stage: deals.stage,
         priority: deals.priority,
         probability: deals.probability,
+        hourlyRate: deals.hourlyRate, // Added
         expectedCloseDate: deals.expectedCloseDate,
         actualCloseDate: deals.actualCloseDate,
         nextSteps: deals.nextSteps,
@@ -27,6 +28,8 @@ export async function getAllDeals(req: Request, res: Response) {
         clientId: clients.id,
         clientName: clients.name,
         clientEmail: clients.email,
+        clientPhone: clients.phone, // Added
+        clientContactName: clients.contactName, // Added
         clientStatus: clients.status,
       })
       .from(deals)
@@ -72,7 +75,7 @@ export async function getDealById(req: Request, res: Response) {
   try {
     const dealId = parseInt(req.params.id);
 
-    // Get deal with client info
+    // Get deal with client info - flattened for frontend
     const [deal] = await db
       .select({
         id: deals.id,
@@ -82,6 +85,7 @@ export async function getDealById(req: Request, res: Response) {
         stage: deals.stage,
         priority: deals.priority,
         probability: deals.probability,
+        hourlyRate: deals.hourlyRate, // Added
         expectedCloseDate: deals.expectedCloseDate,
         actualCloseDate: deals.actualCloseDate,
         nextSteps: deals.nextSteps,
@@ -90,7 +94,15 @@ export async function getDealById(req: Request, res: Response) {
         source: deals.source,
         createdAt: deals.createdAt,
         updatedAt: deals.updatedAt,
-        client: clients,
+        // Flattened client info for frontend
+        clientId: clients.id,
+        clientName: clients.name,
+        clientEmail: clients.email,
+        clientPhone: clients.phone, // Added
+        clientContactName: clients.contactName, // Added
+        clientStatus: clients.status,
+        clientIndustry: clients.industry,
+        clientWebsite: clients.website,
       })
       .from(deals)
       .leftJoin(clients, eq(deals.clientId, clients.id))
@@ -121,34 +133,54 @@ export async function getDealById(req: Request, res: Response) {
       .orderBy(desc(documents.createdAt));
 
     // Get related projects
-    const relatedProjects = await db
+    const relatedProjects = deal.clientId ? await db
       .select()
       .from(projects)
-      .where(eq(projects.clientId, deal.client!.id!))
-      .orderBy(desc(projects.createdAt));
+      .where(eq(projects.clientId, deal.clientId))
+      .orderBy(desc(projects.createdAt)) : [];
 
-    // Get related invoices
+    // Get related invoices for this DEAL specifically (not just client)
     const relatedInvoices = await db
       .select()
       .from(invoices)
-      .where(eq(invoices.clientId, deal.client!.id!))
+      .where(eq(invoices.dealId, dealId))
       .orderBy(desc(invoices.createdAt));
 
-    // Calculate billing summary
+    // Get support tickets for this deal
+    const dealTickets = await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.dealId, dealId))
+      .orderBy(desc(supportTickets.createdAt));
+
+    // Calculate billing summary from invoices
     const billingSummary = relatedInvoices.reduce(
       (acc, invoice) => {
         const total = parseFloat(invoice.total || '0');
         const paid = parseFloat(invoice.amountPaid || '0');
         const due = parseFloat(invoice.amountDue || '0');
 
-        acc.total += total;
-        acc.paid += paid;
-        acc.outstanding += due;
+        acc.totalInvoiced += total;
+        acc.totalPaid += paid;
+        acc.totalOutstanding += due;
 
         return acc;
       },
-      { total: 0, paid: 0, outstanding: 0 }
+      { totalInvoiced: 0, totalPaid: 0, totalOutstanding: 0 }
     );
+
+    // Calculate unbilled work from resolved tickets
+    const effectiveRate = parseFloat(deal.hourlyRate || '65');
+    const unbilledWork = dealTickets
+      .filter(t => (t.status === 'resolved' || t.readyToBill) && !t.billedAt)
+      .reduce((acc, ticket) => {
+        const hours = parseFloat(ticket.timeSpent || '0');
+        const ticketRate = parseFloat(ticket.hourlyRate || '') || effectiveRate;
+        acc.ticketCount++;
+        acc.totalHours += hours;
+        acc.totalAmount += hours * ticketRate;
+        return acc;
+      }, { ticketCount: 0, totalHours: 0, totalAmount: 0 });
 
     res.json({
       success: true,
@@ -158,7 +190,11 @@ export async function getDealById(req: Request, res: Response) {
         documents: dealDocuments,
         projects: relatedProjects,
         invoices: relatedInvoices,
-        billing: billingSummary,
+        tickets: dealTickets,
+        billing: {
+          ...billingSummary,
+          unbilledWork,
+        },
       },
     });
   } catch (error: any) {
@@ -245,6 +281,56 @@ export async function getDealInteractions(req: Request, res: Response) {
     res.json({ success: true, data: interactions });
   } catch (error: any) {
     console.error('Error fetching interactions:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+// Get email history for a deal (from Resend logs + stakeholder matching)
+export async function getDealEmails(req: Request, res: Response) {
+  try {
+    const dealId = parseInt(req.params.dealId);
+
+    // Get all stakeholder emails for this deal
+    const stakeholders = await db
+      .select({ email: clients.email })
+      .from(dealStakeholders)
+      .innerJoin(clients, eq(dealStakeholders.clientId, clients.id))
+      .where(eq(dealStakeholders.dealId, dealId));
+
+    const stakeholderEmails = stakeholders.map(s => s.email?.toLowerCase()).filter(Boolean);
+
+    // Get email logs where:
+    // 1. relatedDealId matches this deal, OR
+    // 2. Any recipient matches a stakeholder email
+    let emails;
+    if (stakeholderEmails.length > 0) {
+      emails = await db
+        .select()
+        .from(emailLogs)
+        .where(
+          or(
+            eq(emailLogs.relatedDealId, dealId),
+            // Check if any 'to' email matches stakeholder emails
+            sql`EXISTS (
+              SELECT 1 FROM unnest(${emailLogs.to}) AS t(email)
+              WHERE LOWER(t.email) = ANY(ARRAY[${sql.raw(stakeholderEmails.map(e => `'${e}'`).join(','))}]::text[])
+            )`
+          )
+        )
+        .orderBy(desc(emailLogs.sentAt))
+        .limit(100);
+    } else {
+      emails = await db
+        .select()
+        .from(emailLogs)
+        .where(eq(emailLogs.relatedDealId, dealId))
+        .orderBy(desc(emailLogs.sentAt))
+        .limit(100);
+    }
+
+    res.json({ success: true, emails });
+  } catch (error: any) {
+    console.error('Error fetching deal emails:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 }

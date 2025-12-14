@@ -138,10 +138,20 @@ export default function EmailsPage() {
 
       const data = await response.json();
 
-      toast({
-        title: "Sync Complete",
-        description: `Synced ${data.data?.totalSynced || 0} emails from Resend`,
-      });
+      if (data.success) {
+        toast({
+          title: "Sync Complete",
+          description: `Synced ${data.data?.totalSynced || 0} emails from Resend`,
+        });
+      } else if (data.data?.unsupported) {
+        toast({
+          title: "Sync not available",
+          description: data.message || "Resend SDK does not support listing emails. Upgrade SDK or use webhooks to ingest email events.",
+          variant: "destructive",
+        });
+      } else {
+        throw new Error(data.message || "Failed to sync emails");
+      }
 
       fetchEmails();
       fetchStats();

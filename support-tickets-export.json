@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "subject": "Deals Vs Agreement",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:54:39.772Z",
+    "message": "Hey Rodolfo - any way DEALS could just be the jobs with SIGNED agreements? \n\nAgreements - agreements sent out\n\nDeals - Deals sold and Contracts finalized - *filterable by rep*\n\nProposals - NEW - Any/all proposals generated with a full list of all proposals out. **Also filterable by rep*\n\nI believe this will remove any confusion on what is a solid deal, what is a proposal and what is a legitimate signed contract we can execute and install on. please lmk if any issues with this idea *filterable by rep*\n\nOnly filterable by rep available for admin users. This will let us track who's busy and who's not!",
+    "status": "open",
+    "priority": "high",
+    "category": "feature_request",
+    "projectId": "CRM Proposal System"
+  },
+  {
+    "id": 2,
+    "subject": "Photos not expanding",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:39:45.498Z",
+    "message": "On the photo section for deals the photos were not loading when I clicked on them as it took me to another page to view. Unsure if this is a bug or programming but when deal was sold I was unable to verify a paint match because the photos wouldn't pop up for me to view",
+    "status": "open",
+    "priority": "high",
+    "category": "bug",
+    "projectId": "CRM Proposal System"
+  },
+  {
+    "id": 3,
+    "subject": "Rep Filter",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:38:58.201Z",
+    "message": "On deals sold - can we please have a dropdown of users that allows us to filter based off who's deal it is? I had a rep ask me about his projects. When we have hundreds - it would be nice to simply select their name and see only their projects so I can discuss with them only their projects and know for sure it is theirs.",
+    "status": "open",
+    "priority": "medium",
+    "category": "feature_request",
+    "projectId": "CRM Proposal System"
+  },
+  {
+    "id": 4,
+    "subject": "Remove On Quoting",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:37:27.386Z",
+    "message": "Reps are getting confused with the power supply and control box costs. Can we please remove those from the quoting section of the process? We are charging reps at a cost per linear foot and the cost is included in their redline. I am asking to remove this to remove confusion for reps. I confirmed this one with Vince as well. He agreed we should get rid of it",
+    "status": "open",
+    "priority": "high",
+    "category": "feature_request",
+    "projectId": "CRM Proposal System"
+  },
+  {
+    "id": 5,
+    "subject": "New Deal Workflow Verification",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:36:14.020Z",
+    "message": "I have not seen any emails come in from the new deal email except for your test. I believe we had deals sign this week and I did not get an email. Can you please verify it is indeed working?",
+    "status": "open",
+    "priority": "high",
+    "category": "bug",
+    "projectId": "CRM Proposal System"
+  },
+  {
+    "id": 6,
+    "subject": "Contract Value - Discounts",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:35:38.968Z",
+    "message": "When a sales rep gives discounts - the total contract value on deals shows the price before the discounts. Can we please make it so that the total contract value shows the price AFTER the discounts have been applied?",
+    "status": "open",
+    "priority": "high",
+    "category": "bug",
+    "projectId": "CRM Proposal System"
+  },
+  {
+    "id": 7,
+    "subject": "Sending User Invites",
+    "submittedBy": "Micah Izquierdo",
+    "contactEmail": "micahizquierdo13@gmail.com",
+    "submittedAt": "2025-12-13T22:34:41.081Z",
+    "message": "Hey Rodolfo\n\nAs an admin - I can only send admin invites. Can I have the ability as well as other admins to send out USER invites?",
+    "status": "open",
+    "priority": "medium",
+    "category": "feature_request",
+    "projectId": "CRM Proposal System"
+  }
+]

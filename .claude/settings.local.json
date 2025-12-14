@@ -35,7 +35,9 @@
       "Bash(psql:*)",
       "Bash(npx tsc:*)",
       "Bash(cat:*)",
-      "Bash(npx vite build)"
+      "Bash(npx vite build)",
+      "Bash(npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://rodolfoalvarez@localhost:5432/better_systems_ai\" npx tsx:*)"
     ],
     "deny": []
   }

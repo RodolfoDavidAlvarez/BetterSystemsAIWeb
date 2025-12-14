@@ -33,6 +33,8 @@ import {
   Search,
   Plus,
   Receipt,
+  Trash2,
+  User,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -90,12 +92,16 @@ export default function TicketsPage() {
   const [stats, setStats] = useState<TicketStats | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>(() => {
+    return localStorage.getItem("ticketsSelectedStatus") || "all";
+  });
   const [selectedAppSource, setSelectedAppSource] = useState<string>("all");
   const [selectedDeal, setSelectedDeal] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Form state for editing ticket
   const [editForm, setEditForm] = useState({
@@ -106,7 +112,23 @@ export default function TicketsPage() {
     readyToBill: false,
   });
 
+  // Form state for creating new ticket
+  const [createForm, setCreateForm] = useState({
+    title: "",
+    description: "",
+    submitterEmail: "",
+    submitterName: "",
+    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    applicationSource: "direct",
+    dealId: "",
+  });
+
   const baseUrl = getApiBaseUrl();
+
+  // Remember last selected tab
+  useEffect(() => {
+    localStorage.setItem("ticketsSelectedStatus", selectedStatus);
+  }, [selectedStatus]);
 
   useEffect(() => {
     fetchTickets();
@@ -257,6 +279,100 @@ export default function TicketsPage() {
     }
   };
 
+  const handleCreateTicket = async () => {
+    if (!createForm.title || !createForm.description || !createForm.submitterEmail) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await fetch(`${baseUrl}/admin/tickets`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          title: createForm.title,
+          description: createForm.description,
+          submitterEmail: createForm.submitterEmail,
+          submitterName: createForm.submitterName || null,
+          priority: createForm.priority,
+          applicationSource: createForm.applicationSource,
+          dealId: createForm.dealId ? parseInt(createForm.dealId) : null,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create ticket");
+
+      toast({
+        title: "Success",
+        description: "Ticket created successfully",
+      });
+
+      setShowCreateDialog(false);
+      setCreateForm({
+        title: "",
+        description: "",
+        submitterEmail: "",
+        submitterName: "",
+        priority: "medium",
+        applicationSource: "direct",
+        dealId: "",
+      });
+
+      fetchTickets();
+      fetchStats();
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create ticket",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the detail view
+
+    if (!confirm("Are you sure you want to delete this ticket? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${baseUrl}/admin/tickets/${ticketId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) throw new Error("Failed to delete ticket");
+
+      toast({
+        title: "Success",
+        description: "Ticket deleted successfully",
+      });
+
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket(null);
+      }
+
+      fetchTickets();
+      fetchStats();
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete ticket",
+        variant: "destructive",
+      });
+    }
+  };
+
   const openTicketDetail = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setEditForm({
@@ -271,15 +387,15 @@ export default function TicketsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/30";
+        return "bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700";
       case "in_progress":
-        return "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30";
+        return "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700";
       case "resolved":
-        return "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30";
+        return "bg-emerald-100 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700";
       case "billed":
-        return "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30";
+        return "bg-violet-100 text-violet-900 dark:bg-violet-900 dark:text-violet-100 border-violet-300 dark:border-violet-700";
       default:
-        return "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-500/30";
+        return "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700";
     }
   };
 
@@ -301,28 +417,28 @@ export default function TicketsPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-red-500/10 text-red-700 dark:text-red-400";
+        return "bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100 border-red-300 dark:border-red-700";
       case "high":
-        return "bg-orange-500/10 text-orange-700 dark:text-orange-400";
+        return "bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100 border-orange-300 dark:border-orange-700";
       case "medium":
-        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+        return "bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700";
       case "low":
-        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+        return "bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-700";
       default:
-        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+        return "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700";
     }
   };
 
   const getAppSourceColor = (source: string) => {
     switch (source) {
       case "crm-lighting":
-        return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400";
+        return "bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700";
       case "agave-fleet":
-        return "bg-purple-500/10 text-purple-700 dark:text-purple-400";
+        return "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100 border-purple-300 dark:border-purple-700";
       case "direct":
-        return "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400";
+        return "bg-cyan-100 text-cyan-900 dark:bg-cyan-900 dark:text-cyan-100 border-cyan-300 dark:border-cyan-700";
       default:
-        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+        return "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700";
     }
   };
 
@@ -374,6 +490,13 @@ export default function TicketsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New Ticket
+          </Button>
           <Button
             onClick={() => {
               fetchTickets();
@@ -592,24 +715,34 @@ export default function TicketsPage() {
                         </div>
                       </div>
 
-                      {/* Right: Time & Billing */}
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <div className="text-sm text-muted-foreground whitespace-nowrap">
-                          {format(new Date(ticket.createdAt), "MMM d, yyyy")}
+                      {/* Right: Time, Billing & Actions */}
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="text-sm text-muted-foreground whitespace-nowrap">
+                            {format(new Date(ticket.createdAt), "MMM d, yyyy")}
+                          </div>
+                          <div className="text-xs text-muted-foreground whitespace-nowrap">
+                            {format(new Date(ticket.createdAt), "h:mm a")}
+                          </div>
+                          <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                            <DollarSign className="h-3 w-3" />
+                            {formatCurrency(ticket.calculatedBillableAmount)}
+                          </div>
+                          {ticket.readyToBill && !ticket.invoiceId && (
+                            <Badge variant="outline" className="text-xs bg-green-100 text-green-900 border-green-300">
+                              <Receipt className="h-3 w-3 mr-1" />
+                              Ready to bill
+                            </Badge>
+                          )}
                         </div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap">
-                          {format(new Date(ticket.createdAt), "h:mm a")}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm font-medium text-green-600">
-                          <DollarSign className="h-3 w-3" />
-                          {formatCurrency(ticket.calculatedBillableAmount)}
-                        </div>
-                        {ticket.readyToBill && !ticket.invoiceId && (
-                          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-700 border-green-500/30">
-                            <Receipt className="h-3 w-3 mr-1" />
-                            Ready to bill
-                          </Badge>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleDeleteTicket(ticket.id, e)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -860,6 +993,146 @@ export default function TicketsPage() {
               {/* Save Button */}
               <Button onClick={handleTicketUpdate} disabled={isSaving} className="w-full">
                 {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Create Ticket Dialog */}
+      {showCreateDialog && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={() => setShowCreateDialog(false)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full md:w-[600px] bg-background shadow-2xl z-50 overflow-y-auto">
+            <div className="p-6 space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Create New Ticket</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Add a new support ticket to the system
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowCreateDialog(false)}>
+                  <XCircle className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Form */}
+              <Card>
+                <CardContent className="space-y-4 pt-6">
+                  <div>
+                    <Label htmlFor="title">Title *</Label>
+                    <Input
+                      id="title"
+                      value={createForm.title}
+                      onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                      placeholder="Brief description of the issue"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Description *</Label>
+                    <Textarea
+                      id="description"
+                      value={createForm.description}
+                      onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                      placeholder="Detailed description of the issue"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="submitterName">Submitter Name</Label>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="submitterName"
+                          value={createForm.submitterName}
+                          onChange={(e) => setCreateForm({ ...createForm, submitterName: e.target.value })}
+                          placeholder="John Doe"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="submitterEmail">Submitter Email *</Label>
+                      <Input
+                        id="submitterEmail"
+                        type="email"
+                        value={createForm.submitterEmail}
+                        onChange={(e) => setCreateForm({ ...createForm, submitterEmail: e.target.value })}
+                        placeholder="user@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="priority">Priority</Label>
+                      <Select
+                        value={createForm.priority}
+                        onValueChange={(value: any) => setCreateForm({ ...createForm, priority: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="applicationSource">Application Source</Label>
+                      <Select
+                        value={createForm.applicationSource}
+                        onValueChange={(value) => setCreateForm({ ...createForm, applicationSource: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="direct">Direct</SelectItem>
+                          <SelectItem value="crm-lighting">CRM Lighting</SelectItem>
+                          <SelectItem value="agave-fleet">AgaveFleet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="deal">Deal (Optional)</Label>
+                    <Select
+                      value={createForm.dealId}
+                      onValueChange={(value) => setCreateForm({ ...createForm, dealId: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a deal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No deal</SelectItem>
+                        {deals.map((deal) => (
+                          <SelectItem key={deal.id} value={deal.id.toString()}>
+                            {deal.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Create Button */}
+              <Button onClick={handleCreateTicket} disabled={isCreating} className="w-full">
+                {isCreating ? "Creating..." : "Create Ticket"}
               </Button>
             </div>
           </div>

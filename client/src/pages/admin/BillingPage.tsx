@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { useToast } from "../../hooks/use-toast";
+import { usePersistedState } from "../../hooks/usePersistedState";
 import { useScrollToTop } from "../../hooks/useScrollToTop";
 import { getApiBaseUrl } from "../../lib/queryClient";
 import {
@@ -18,7 +19,10 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  Archive,
   Filter,
+  Trash2,
+  Undo2,
   X,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
@@ -42,6 +46,8 @@ interface BillingDashboardData {
     totalBilled: number;
     totalPaid: number;
     balance: number;
+    unbilledWork: number;
+    nextCharge: number;
     invoiceCount: number;
     subscriptionCount: number;
     lastInvoiceDate: string | null;
@@ -76,6 +82,50 @@ interface BillableTicket {
   resolvedAt: string | null;
 }
 
+type BillingItemType = "invoice" | "subscription" | "paymentLink";
+
+type ArchivedItemsState = {
+  invoices: Set<string>;
+  subscriptions: Set<string>;
+  paymentLinks: Set<string>;
+};
+
+const ARCHIVE_STORAGE_KEY = "billingArchivedItems";
+
+const loadArchivedFromStorage = (): ArchivedItemsState => {
+  if (typeof window === "undefined") {
+    return { invoices: new Set(), subscriptions: new Set(), paymentLinks: new Set() };
+  }
+
+  try {
+    const raw = localStorage.getItem(ARCHIVE_STORAGE_KEY);
+    if (!raw) return { invoices: new Set(), subscriptions: new Set(), paymentLinks: new Set() };
+
+    const parsed = JSON.parse(raw);
+    return {
+      invoices: new Set(parsed.invoices || []),
+      subscriptions: new Set(parsed.subscriptions || []),
+      paymentLinks: new Set(parsed.paymentLinks || []),
+    };
+  } catch {
+    return { invoices: new Set(), subscriptions: new Set(), paymentLinks: new Set() };
+  }
+};
+
+const persistArchivedToStorage = (state: ArchivedItemsState) => {
+  if (typeof window === "undefined") return;
+  const serialized = {
+    invoices: Array.from(state.invoices),
+    subscriptions: Array.from(state.subscriptions),
+    paymentLinks: Array.from(state.paymentLinks),
+  };
+  try {
+    localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(serialized));
+  } catch (error) {
+    console.warn("Could not persist archived billing items", error);
+  }
+};
+
 export default function BillingPage() {
   useScrollToTop();
   const { toast } = useToast();
@@ -88,12 +138,13 @@ export default function BillingPage() {
   const [filterClientId, setFilterClientId] = useState<string>("");
   const [filterDealId, setFilterDealId] = useState<string>("");
   const [viewMode, setViewMode] = useState<"all" | "client" | "deal">("all");
+  const [archivedItems, setArchivedItems] = useState<ArchivedItemsState>(() => loadArchivedFromStorage());
 
-  // Quick filters
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState<"all" | "paid" | "unpaid" | "draft">("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | "invoice" | "subscription" | "paymentLink">("all");
-  const [timeFilter, setTimeFilter] = useState<"all" | "thisYear" | "thisMonth" | "lastMonth" | "lastYear" | "custom">("all");
-  const [yearFilter, setYearFilter] = useState<string>("all");
+  // Quick filters - persisted to localStorage
+  const [paymentStatusFilter, setPaymentStatusFilter] = usePersistedState<"all" | "paid" | "unpaid" | "draft">("admin:billing:paymentStatus", "all");
+  const [typeFilter, setTypeFilter] = usePersistedState<"all" | "invoice" | "subscription" | "paymentLink">("admin:billing:type", "all");
+  const [timeFilter, setTimeFilter] = usePersistedState<"all" | "thisYear" | "thisMonth" | "lastMonth" | "lastYear" | "custom">("admin:billing:time", "all");
+  const [yearFilter, setYearFilter] = usePersistedState<string>("admin:billing:year", "all");
   const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
 
   // Client preview
@@ -109,8 +160,16 @@ export default function BillingPage() {
     advancedFilters: false,
   });
 
-  // Active tab state - synced with typeFilter
-  const [activeTab, setActiveTab] = useState<string>("all");
+  // Active tab state - synced with typeFilter and persisted
+  const [activeTab, setActiveTab] = usePersistedState<string>("admin:billing:tab", "all");
+
+  const updateArchivedItems = (updater: (prev: ArchivedItemsState) => ArchivedItemsState) => {
+    setArchivedItems((prev) => {
+      const next = updater(prev);
+      persistArchivedToStorage(next);
+      return next;
+    });
+  };
 
   // Prevent duplicate API calls from React StrictMode
   const hasLoadedRef = useRef(false);
@@ -172,47 +231,8 @@ export default function BillingPage() {
   const [loadingTickets, setLoadingTickets] = useState(false);
 
   useEffect(() => {
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "BillingPage.tsx:86",
-        message: "useEffect entry - starting parallel loads",
-        data: {
-          timestamp: Date.now(),
-          hasLoaded: hasLoadedRef.current,
-          isLoading: isLoadingRef.current,
-        },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "B",
-      }),
-    }).catch(() => {});
-    // #endregion
-
     // Prevent duplicate calls from React StrictMode double-invocation
     if (hasLoadedRef.current || isLoadingRef.current) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:105",
-          message: "useEffect - skipping duplicate call",
-          data: {
-            timestamp: Date.now(),
-            hasLoaded: hasLoadedRef.current,
-            isLoading: isLoadingRef.current,
-          },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "B",
-        }),
-      }).catch(() => {});
-      // #endregion
       return;
     }
 
@@ -1005,6 +1025,21 @@ export default function BillingPage() {
     });
   };
 
+  const getInvoiceKey = (invoice: any) => (invoice?.stripeInvoiceId || invoice?.id || invoice?.invoiceNumber)?.toString();
+  const getSubscriptionKey = (subscription: any) => (subscription?.stripeSubscriptionId || subscription?.id)?.toString();
+  const getPaymentLinkKey = (link: any) => (link?.stripePaymentLinkId || link?.id)?.toString();
+
+  const isArchived = (type: BillingItemType, id?: string | null) => {
+    if (!id) return false;
+    if (type === "invoice") return archivedItems.invoices.has(id);
+    if (type === "subscription") return archivedItems.subscriptions.has(id);
+    if (type === "paymentLink") return archivedItems.paymentLinks.has(id);
+    return false;
+  };
+
+  const compactHeaderClass = "py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
+  const compactCellClass = "py-2 align-middle text-sm";
+
   // Helper to get client info (name, email) from invoice data
   const getClientInfo = (invoice: any) => {
     // #region agent log
@@ -1131,6 +1166,9 @@ export default function BillingPage() {
   // Filter invoices based on all active filters
   const getFilteredInvoices = () => {
     return (safeDashboardData.invoices || []).filter((inv: any) => {
+      const invoiceKey = getInvoiceKey(inv);
+      if (isArchived("invoice", invoiceKey)) return false;
+
       // Client/Deal filter
       if (filterClientId && inv.clientId !== parseInt(filterClientId)) return false;
       if (filterDealId && inv.dealId && inv.dealId.toString() !== filterDealId) return false;
@@ -1155,6 +1193,9 @@ export default function BillingPage() {
   // Filter subscriptions
   const getFilteredSubscriptions = () => {
     return (safeDashboardData.subscriptions || []).filter((sub: any) => {
+      const subscriptionKey = getSubscriptionKey(sub);
+      if (isArchived("subscription", subscriptionKey)) return false;
+
       // Client filter
       if (filterClientId && sub.clientId !== parseInt(filterClientId)) return false;
 
@@ -1176,6 +1217,9 @@ export default function BillingPage() {
   // Filter payment links
   const getFilteredPaymentLinks = () => {
     return (safeDashboardData.paymentLinks || []).filter((link: any) => {
+      const linkKey = getPaymentLinkKey(link);
+      if (isArchived("paymentLink", linkKey)) return false;
+
       // Client filter
       if (filterClientId && link.clientId !== parseInt(filterClientId)) return false;
 
@@ -1225,14 +1269,18 @@ export default function BillingPage() {
   // Get available years from data
   const getAvailableYears = (): number[] => {
     const years = new Set<number>();
-    [...(safeDashboardData.invoices || []), ...(safeDashboardData.subscriptions || []), ...(safeDashboardData.paymentLinks || [])].forEach(
-      (item: any) => {
-        const date = item.createdAt || item.dueDate || item.paidAt || item.currentPeriodStart;
-        if (date) {
-          years.add(new Date(date).getFullYear());
-        }
+    const visibleItems = [
+      ...(safeDashboardData.invoices || []).filter((inv: any) => !isArchived("invoice", getInvoiceKey(inv))),
+      ...(safeDashboardData.subscriptions || []).filter((sub: any) => !isArchived("subscription", getSubscriptionKey(sub))),
+      ...(safeDashboardData.paymentLinks || []).filter((link: any) => !isArchived("paymentLink", getPaymentLinkKey(link))),
+    ];
+
+    visibleItems.forEach((item: any) => {
+      const date = item.createdAt || item.dueDate || item.paidAt || item.currentPeriodStart;
+      if (date) {
+        years.add(new Date(date).getFullYear());
       }
-    );
+    });
     return Array.from(years).sort((a, b) => b - a);
   };
 
@@ -1253,6 +1301,79 @@ export default function BillingPage() {
 
     const config = statusMap[status] || { label: status, variant: "outline" };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const archiveItem = (type: BillingItemType, id?: string | null) => {
+    if (!id) {
+      toast({
+        title: "Cannot archive",
+        description: "This item is missing an identifier.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateArchivedItems((prev) => {
+      const next: ArchivedItemsState = {
+        invoices: new Set(prev.invoices),
+        subscriptions: new Set(prev.subscriptions),
+        paymentLinks: new Set(prev.paymentLinks),
+      };
+      if (type === "invoice") next.invoices.add(id);
+      if (type === "subscription") next.subscriptions.add(id);
+      if (type === "paymentLink") next.paymentLinks.add(id);
+      return next;
+    });
+
+    toast({
+      title: "Item archived",
+      description: "It will stay hidden even after refreshing from Stripe.",
+    });
+  };
+
+  const restoreArchivedItems = () => {
+    const totalHidden = archivedItems.invoices.size + archivedItems.subscriptions.size + archivedItems.paymentLinks.size;
+    updateArchivedItems(() => ({
+      invoices: new Set(),
+      subscriptions: new Set(),
+      paymentLinks: new Set(),
+    }));
+    toast({
+      title: "Archive cleared",
+      description: totalHidden > 0 ? `Restored ${totalHidden} hidden item${totalHidden === 1 ? "" : "s"}.` : "No hidden items to restore.",
+    });
+  };
+
+  const archiveFilteredItems = () => {
+    const invoicesToArchive = getFilteredInvoices().map((inv) => getInvoiceKey(inv)).filter(Boolean) as string[];
+    const subscriptionsToArchive = getFilteredSubscriptions().map((sub) => getSubscriptionKey(sub)).filter(Boolean) as string[];
+    const linksToArchive = getFilteredPaymentLinks().map((link) => getPaymentLinkKey(link)).filter(Boolean) as string[];
+
+    const total = invoicesToArchive.length + subscriptionsToArchive.length + linksToArchive.length;
+    if (total === 0) {
+      toast({
+        title: "Nothing to archive",
+        description: "No visible billing items match your current filters.",
+      });
+      return;
+    }
+
+    updateArchivedItems((prev) => {
+      const next: ArchivedItemsState = {
+        invoices: new Set(prev.invoices),
+        subscriptions: new Set(prev.subscriptions),
+        paymentLinks: new Set(prev.paymentLinks),
+      };
+      invoicesToArchive.forEach((id) => next.invoices.add(id));
+      subscriptionsToArchive.forEach((id) => next.subscriptions.add(id));
+      linksToArchive.forEach((id) => next.paymentLinks.add(id));
+      return next;
+    });
+
+    toast({
+      title: "Cleaned up",
+      description: `Archived ${invoicesToArchive.length} invoice${invoicesToArchive.length === 1 ? "" : "s"}, ${subscriptionsToArchive.length} subscription${subscriptionsToArchive.length === 1 ? "" : "s"}, ${linksToArchive.length} link${linksToArchive.length === 1 ? "" : "s"}.`,
+    });
   };
 
   if (isLoading) {
@@ -1284,30 +1405,63 @@ export default function BillingPage() {
     },
   };
 
+  const archivedTotals = {
+    invoices: archivedItems.invoices.size,
+    subscriptions: archivedItems.subscriptions.size,
+    paymentLinks: archivedItems.paymentLinks.size,
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Billing & Invoices</h1>
-          <p className="text-muted-foreground">Manage Stripe billing, invoices, and payments</p>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+        <div className="flex items-center gap-5">
+          <h1 className="text-xl font-semibold tracking-tight">Billing & Invoices</h1>
+          <div className="flex items-center gap-2 text-[13px]">
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+              {formatCurrency(safeDashboardData?.summary?.totalRevenue || 0)} revenue
+            </span>
+            <span className="text-muted-foreground/50">·</span>
+            <span className="text-amber-600 dark:text-amber-400">
+              {formatCurrency(safeDashboardData?.summary?.totalOutstanding || 0)} outstanding
+            </span>
+            <span className="text-muted-foreground/50">·</span>
+            <span className="text-muted-foreground">{safeDashboardData?.summary?.totalInvoices || 0} invoices</span>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchFreshStripeData} disabled={isSyncing}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-            {isSyncing ? "Fetching..." : "Refresh from Stripe"}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={fetchFreshStripeData} disabled={isSyncing}>
+            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+            Sync Stripe
           </Button>
-          <Button variant="outline" onClick={syncAllStripeData} disabled={isSyncing}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-            {isSyncing ? "Syncing..." : "Sync to Database"}
+          <Button size="sm" className="h-8 text-[13px] shadow-sm" onClick={() => setShowCreateInvoiceDialog(true)}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            Invoice
           </Button>
-          <Button onClick={() => setShowCreateInvoiceDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Invoice
-          </Button>
-          <Button variant="secondary" onClick={() => setShowCreatePaymentLinkDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button variant="outline" size="sm" className="h-8 text-[13px]" onClick={() => setShowCreatePaymentLinkDialog(true)}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
             Payment Link
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto p-5 space-y-5">
+
+      {/* Archive / Cleanup */}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
+        <span className="text-foreground font-medium">Cleanup</span>
+        <span>
+          Hidden — {archivedTotals.invoices} invoices, {archivedTotals.subscriptions} subs, {archivedTotals.paymentLinks} links
+        </span>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={archiveFilteredItems}>
+            <Archive className="h-4 w-4" />
+            Archive filtered
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={restoreArchivedItems} disabled={archivedTotals.invoices + archivedTotals.subscriptions + archivedTotals.paymentLinks === 0}>
+            <Undo2 className="h-4 w-4" />
+            Restore hidden
           </Button>
         </div>
       </div>
@@ -1779,6 +1933,86 @@ export default function BillingPage() {
         </Card>
       </div>
 
+      {/* What to Charge Next - Prominent Section */}
+      {safeDashboardData.clientGroups && Array.isArray(safeDashboardData.clientGroups) && safeDashboardData.clientGroups.length > 0 && (() => {
+        const clientsWithChargeable = safeDashboardData.clientGroups.filter((g) => (g.nextCharge || 0) > 0);
+        const totalNextCharge = clientsWithChargeable.reduce((sum, g) => sum + (g.nextCharge || 0), 0);
+        const totalUnbilled = safeDashboardData.clientGroups.reduce((sum, g) => sum + (g.unbilledWork || 0), 0);
+
+        if (clientsWithChargeable.length > 0) {
+          return (
+            <Card className="border-2 border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-amber-600" />
+                      What to Charge Next
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      Outstanding balances and unbilled work ready to invoice
+                    </CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-amber-600">{formatCurrency(totalNextCharge)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatCurrency(totalUnbilled)} unbilled work
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {clientsWithChargeable
+                    .sort((a, b) => (b.nextCharge || 0) - (a.nextCharge || 0))
+                    .slice(0, 5)
+                    .map((group) => (
+                      <div
+                        key={group.clientId}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setInvoiceForm((prev) => ({ ...prev, clientId: group.clientId.toString() }));
+                          setShowCreateInvoiceDialog(true);
+                        }}
+                      >
+                        <div className="flex-1">
+                          <div className="font-semibold">{group.clientName}</div>
+                          <div className="text-xs text-muted-foreground flex gap-3 mt-1">
+                            <span>
+                              Balance: <span className="font-medium text-amber-600">{formatCurrency(group.balance || 0)}</span>
+                            </span>
+                            {group.unbilledWork > 0 && (
+                              <span>
+                                Unbilled: <span className="font-medium text-violet-600">{formatCurrency(group.unbilledWork)}</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-amber-600">{formatCurrency(group.nextCharge || 0)}</div>
+                          <Button size="sm" variant="outline" className="mt-1 text-xs" onClick={(e) => {
+                            e.stopPropagation();
+                            setInvoiceForm((prev) => ({ ...prev, clientId: group.clientId.toString() }));
+                            setShowCreateInvoiceDialog(true);
+                          }}>
+                            Create Invoice
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  {clientsWithChargeable.length > 5 && (
+                    <div className="text-center text-sm text-muted-foreground pt-2">
+                      +{clientsWithChargeable.length - 5} more clients with chargeable amounts
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        }
+        return null;
+      })()}
+
       {/* Client Billing Groups */}
       {safeDashboardData.clientGroups && Array.isArray(safeDashboardData.clientGroups) && safeDashboardData.clientGroups.length > 0 && (
         <Card>
@@ -1794,6 +2028,8 @@ export default function BillingPage() {
                   <TableHead className="text-right">Total Billed</TableHead>
                   <TableHead className="text-right">Paid</TableHead>
                   <TableHead className="text-right">Balance Due</TableHead>
+                  <TableHead className="text-right">Unbilled Work</TableHead>
+                  <TableHead className="text-right">Next Charge</TableHead>
                   <TableHead className="text-center">Invoices</TableHead>
                   <TableHead className="text-center">Subscriptions</TableHead>
                   <TableHead>Last Invoice</TableHead>
@@ -1801,7 +2037,7 @@ export default function BillingPage() {
               </TableHeader>
               <TableBody>
                 {safeDashboardData.clientGroups
-                  .sort((a, b) => b.balance - a.balance)
+                  .sort((a, b) => (b.nextCharge || 0) - (a.nextCharge || 0))
                   .map((group) => (
                     <TableRow key={group.clientId}>
                       <TableCell className="font-medium">{group.clientName}</TableCell>
@@ -1810,6 +2046,20 @@ export default function BillingPage() {
                       <TableCell className="text-right">
                         {group.balance > 0 ? (
                           <span className="font-bold text-amber-600">{formatCurrency(group.balance)}</span>
+                        ) : (
+                          <span className="text-muted-foreground">$0.00</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {group.unbilledWork > 0 ? (
+                          <span className="font-semibold text-violet-600">{formatCurrency(group.unbilledWork)}</span>
+                        ) : (
+                          <span className="text-muted-foreground">$0.00</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {group.nextCharge > 0 ? (
+                          <span className="font-bold text-amber-600 dark:text-amber-400">{formatCurrency(group.nextCharge)}</span>
                         ) : (
                           <span className="text-muted-foreground">$0.00</span>
                         )}
@@ -1843,12 +2093,10 @@ export default function BillingPage() {
               setActiveTab(value);
               // Auto-set type filter when tab changes
               if (value !== "all") {
-                const typeMap: Record<string, string> = {
+                const typeMap: Record<string, "all" | "invoice" | "subscription" | "paymentLink"> = {
                   invoices: "invoice",
                   subscriptions: "subscription",
                   paymentLinks: "paymentLink",
-                  quotes: "quote",
-                  other: "other",
                 };
                 if (typeMap[value]) {
                   setTypeFilter(typeMap[value]);
@@ -1919,28 +2167,28 @@ export default function BillingPage() {
                     <Badge variant="outline">{getFilteredInvoices().length}</Badge>
                   </div>
                   <div className="border rounded-lg">
-                    <Table>
+                    <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Invoice #</TableHead>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Deal</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Paid</TableHead>
-                          <TableHead>Due</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Due Date</TableHead>
-                          <TableHead>Actions</TableHead>
+                          <TableHead className={compactHeaderClass}>Invoice #</TableHead>
+                          <TableHead className={compactHeaderClass}>Client</TableHead>
+                          <TableHead className={compactHeaderClass}>Deal</TableHead>
+                          <TableHead className={compactHeaderClass}>Description</TableHead>
+                          <TableHead className={`${compactHeaderClass} text-right`}>Total</TableHead>
+                          <TableHead className={`${compactHeaderClass} text-right`}>Paid</TableHead>
+                          <TableHead className={`${compactHeaderClass} text-right`}>Due</TableHead>
+                          <TableHead className={compactHeaderClass}>Status</TableHead>
+                          <TableHead className={compactHeaderClass}>Due Date</TableHead>
+                          <TableHead className={`${compactHeaderClass} text-right`}>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {getFilteredInvoices()
                           .slice(0, 10)
                           .map((invoice) => (
-                            <TableRow key={invoice.id}>
-                              <TableCell className="font-mono text-sm">{invoice.invoiceNumber || `#${invoice.id}`}</TableCell>
-                              <TableCell>
+                            <TableRow key={invoice.id} className="hover:bg-muted/40 transition-colors">
+                              <TableCell className={`${compactCellClass} font-mono text-sm`}>{invoice.invoiceNumber || `#${invoice.id}`}</TableCell>
+                              <TableCell className={compactCellClass}>
                                 {(() => {
                                   const clientInfo = getClientInfo(invoice);
                                   if (clientInfo.id) {
@@ -1966,27 +2214,34 @@ export default function BillingPage() {
                                   }
                                 })()}
                               </TableCell>
-                              <TableCell>
+                              <TableCell className={compactCellClass}>
                                 {invoice.dealId
                                   ? deals.find((d) => d.id === parseInt(invoice.dealId.toString()))?.name || `Deal #${invoice.dealId}`
                                   : "—"}
                               </TableCell>
-                              <TableCell className="max-w-xs truncate">{invoice.description || "-"}</TableCell>
-                              <TableCell className="font-semibold">{formatCurrency(invoice.total)}</TableCell>
-                              <TableCell className={`font-semibold ${isPaid(invoice, "invoice") ? "text-emerald-600" : "text-muted-foreground"}`}>
+                              <TableCell className={`${compactCellClass} max-w-xs truncate`}>{invoice.description || "-"}</TableCell>
+                              <TableCell className={`${compactCellClass} text-right font-semibold`}>{formatCurrency(invoice.total)}</TableCell>
+                              <TableCell
+                                className={`${compactCellClass} text-right font-semibold ${isPaid(invoice, "invoice") ? "text-emerald-600" : "text-muted-foreground"}`}
+                              >
                                 {formatCurrency(invoice.amountPaid || 0)}
                               </TableCell>
-                              <TableCell className="font-semibold text-orange-600">{formatCurrency(invoice.amountDue)}</TableCell>
-                              <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                              <TableCell>
+                              <TableCell className={`${compactCellClass} text-right font-semibold text-orange-600`}>
+                                {formatCurrency(invoice.amountDue)}
+                              </TableCell>
+                              <TableCell className={compactCellClass}>{getStatusBadge(invoice.status)}</TableCell>
+                              <TableCell className={compactCellClass}>
                                 {invoice.dueDate ? formatDateTime(invoice.dueDate) : "-"}
                                 {invoice.createdAt && (
                                   <span className="text-xs text-muted-foreground block">Created: {formatDateTime(invoice.createdAt)}</span>
                                 )}
                                 {invoice.paidAt && <span className="text-xs text-emerald-600 block">Paid: {formatDateTime(invoice.paidAt)}</span>}
                               </TableCell>
-                              <TableCell>
-                                <div className="flex gap-1">
+                              <TableCell className={`${compactCellClass} text-right`}>
+                                <div className="flex gap-1 justify-end">
+                                  <Button variant="ghost" size="sm" onClick={() => archiveItem("invoice", getInvoiceKey(invoice))} title="Archive">
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
                                   {invoice.hostedInvoiceUrl && (
                                     <Button variant="ghost" size="sm" onClick={() => window.open(invoice.hostedInvoiceUrl, "_blank")}>
                                       <ExternalLink className="h-4 w-4" />
@@ -2020,7 +2275,7 @@ export default function BillingPage() {
                     <Badge variant="outline">{getFilteredSubscriptions().length}</Badge>
                   </div>
                   <div className="border rounded-lg">
-                    <Table>
+                    <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Client</TableHead>
@@ -2029,6 +2284,7 @@ export default function BillingPage() {
                           <TableHead>Interval</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Current Period</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -2080,6 +2336,11 @@ export default function BillingPage() {
                                   <span className="text-xs text-muted-foreground block mt-1">Created: {formatDateTime(subscription.createdAt)}</span>
                                 )}
                               </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm" onClick={() => archiveItem("subscription", getSubscriptionKey(subscription))} title="Archive">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
                             </TableRow>
                           ))}
                       </TableBody>
@@ -2101,7 +2362,7 @@ export default function BillingPage() {
                     <Badge variant="outline">{getFilteredPaymentLinks().length}</Badge>
                   </div>
                   <div className="border rounded-lg">
-                    <Table>
+                    <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Client</TableHead>
@@ -2111,6 +2372,7 @@ export default function BillingPage() {
                           <TableHead>Status</TableHead>
                           <TableHead>Created</TableHead>
                           <TableHead>Link</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -2156,6 +2418,11 @@ export default function BillingPage() {
                                   <ExternalLink className="h-4 w-4" />
                                 </Button>
                               </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm" onClick={() => archiveItem("paymentLink", getPaymentLinkKey(link))} title="Archive">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
                             </TableRow>
                           ))}
                       </TableBody>
@@ -2197,7 +2464,7 @@ export default function BillingPage() {
                 </div>
               ) : (
                 <div className="border rounded-lg">
-                  <Table>
+                  <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Invoice #</TableHead>
@@ -2263,6 +2530,9 @@ export default function BillingPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => archiveItem("invoice", getInvoiceKey(invoice))} title="Archive">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
                               {invoice.hostedInvoiceUrl && (
                                 <Button variant="ghost" size="sm" onClick={() => window.open(invoice.hostedInvoiceUrl, "_blank")}>
                                   <ExternalLink className="h-4 w-4" />
@@ -2293,20 +2563,21 @@ export default function BillingPage() {
                 </div>
               ) : (
                 <div className="border rounded-lg">
-                  <Table>
+                  <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Amount</TableHead>
-                        <TableHead>Paid Status</TableHead>
-                        <TableHead>Interval</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Current Period</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredSubscriptions().map((subscription) => (
-                        <TableRow key={subscription.id}>
+                      <TableHead>Paid Status</TableHead>
+                      <TableHead>Interval</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Current Period</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getFilteredSubscriptions().map((subscription) => (
+                      <TableRow key={subscription.id}>
                           <TableCell>
                             {(() => {
                               const client = clients.find((c) => c.id === subscription.clientId);
@@ -2334,23 +2605,28 @@ export default function BillingPage() {
                           </TableCell>
                           <TableCell>{subscription.interval || "—"}</TableCell>
                           <TableCell>{getStatusBadge(subscription.status)}</TableCell>
-                          <TableCell>
-                            {subscription.currentPeriodStart && subscription.currentPeriodEnd ? (
-                              <div>
-                                <div>{formatDateTime(subscription.currentPeriodStart)}</div>
-                                <div className="text-xs text-muted-foreground">to {formatDateTime(subscription.currentPeriodEnd)}</div>
+                        <TableCell>
+                          {subscription.currentPeriodStart && subscription.currentPeriodEnd ? (
+                            <div>
+                              <div>{formatDateTime(subscription.currentPeriodStart)}</div>
+                              <div className="text-xs text-muted-foreground">to {formatDateTime(subscription.currentPeriodEnd)}</div>
                               </div>
                             ) : (
                               "-"
                             )}
-                            {subscription.createdAt && (
-                              <span className="text-xs text-muted-foreground block mt-1">Created: {formatDateTime(subscription.createdAt)}</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          {subscription.createdAt && (
+                            <span className="text-xs text-muted-foreground block mt-1">Created: {formatDateTime(subscription.createdAt)}</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => archiveItem("subscription", getSubscriptionKey(subscription))} title="Archive">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
                 </div>
               )}
             </TabsContent>
@@ -2369,21 +2645,22 @@ export default function BillingPage() {
                 </div>
               ) : (
                 <div className="border rounded-lg">
-                  <Table>
+                  <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead>Amount</TableHead>
-                        <TableHead>Paid Status</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead>Link</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredPaymentLinks().map((link) => (
-                        <TableRow key={link.id}>
+                      <TableHead>Paid Status</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Link</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getFilteredPaymentLinks().map((link) => (
+                      <TableRow key={link.id}>
                           <TableCell>
                             {(() => {
                               const client = clients.find((c) => c.id === link.clientId);
@@ -2417,15 +2694,20 @@ export default function BillingPage() {
                               <span className="text-xs text-muted-foreground block">Updated: {formatDateTime(link.updatedAt)}</span>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => archiveItem("paymentLink", getPaymentLinkKey(link))} title="Archive">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
                 </div>
               )}
             </TabsContent>
@@ -2619,6 +2901,7 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
+      </div>
 
       {/* Create Invoice Dialog */}
       <Dialog open={showCreateInvoiceDialog} onOpenChange={setShowCreateInvoiceDialog}>

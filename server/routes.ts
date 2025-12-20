@@ -28,11 +28,28 @@ import {
   getDealBillingSummary,
 } from "./controllers/billing";
 
-import { getAllDeals, getDealById, createDeal, updateDeal, deleteDeal, addDealInteraction, getDealInteractions, getDealEmails } from "./controllers/deals";
+import {
+  getAllDeals,
+  getDealById,
+  createDeal,
+  updateDeal,
+  deleteDeal,
+  addDealInteraction,
+  getDealInteractions,
+  getDealEmails,
+} from "./controllers/deals";
 
 import { getDocuments, uploadDocument, deleteDocument, updateDocument, upload } from "./controllers/documents";
 
 import { sendDealUpdate, getEmailTemplates, previewEmail } from "./controllers/dealUpdates";
+
+import {
+  getAllClientTasks,
+  getClientTasks,
+  createClientTask,
+  updateClientTask,
+  deleteClientTask,
+} from "./controllers/clientTasks";
 
 import {
   getAllChangelogs,
@@ -62,7 +79,7 @@ import { receiveExternalTicket, getExternalTicketStatus, externalTicketsHealthCh
 
 import { getDealStakeholders, addDealStakeholder, updateDealStakeholder, removeDealStakeholder } from "./controllers/stakeholders";
 
-import { getAllEmailLogs, getEmailLogById, getEmailStats, syncEmailsFromResend, handleResendWebhook } from "./controllers/emailLogs";
+import { getAllEmailLogs, getEmailLogById, getEmailStats, syncEmailsFromResend, handleResendWebhook, syncEmailsFromGmailController } from "./controllers/emailLogs";
 
 import { constructWebhookEvent, handleWebhookEvent } from "./services/stripe";
 
@@ -166,7 +183,10 @@ export function registerRoutes(app: Express) {
   });
 
   // Auth routes
-  app.post("/api/auth/login", login);
+  app.post("/api/auth/login", (req, res, next) => {
+    console.log("[Route] Login route handler called");
+    login(req, res).catch(next);
+  });
   app.post("/api/auth/register", register);
   app.get("/api/auth/me", authenticate, getCurrentUser);
 
@@ -223,6 +243,15 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ success: false, message: "Failed to fetch dashboard stats" });
     }
   });
+
+  // ==================== CLIENT TASKS ROUTES ====================
+
+  // Client Tasks (To-Do items)
+  app.get("/api/admin/client-tasks", authenticate, isAdmin, getAllClientTasks);
+  app.get("/api/admin/client-tasks/:clientName", authenticate, isAdmin, getClientTasks);
+  app.post("/api/admin/client-tasks", authenticate, isAdmin, createClientTask);
+  app.put("/api/admin/client-tasks/:id", authenticate, isAdmin, updateClientTask);
+  app.delete("/api/admin/client-tasks/:id", authenticate, isAdmin, deleteClientTask);
 
   // ==================== BILLING & STRIPE ROUTES ====================
 
@@ -334,6 +363,7 @@ export function registerRoutes(app: Express) {
   app.get("/api/admin/emails/stats", authenticate, isAdmin, getEmailStats);
   app.get("/api/admin/emails/:id", authenticate, isAdmin, getEmailLogById);
   app.post("/api/admin/emails/sync", authenticate, isAdmin, syncEmailsFromResend);
+  app.post("/api/admin/emails/sync/gmail", authenticate, isAdmin, syncEmailsFromGmailController);
 
   // Resend Webhook (no auth required - webhook signature verification should be added)
   app.post("/api/webhooks/resend", handleResendWebhook);

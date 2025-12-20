@@ -48,7 +48,9 @@ export const clients = pgTable("clients", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   // Basic Info
   name: text("name").notNull(), // Company or individual name
-  contactName: text("contact_name"), // Primary contact person
+  firstName: text("first_name"), // Contact first name
+  lastName: text("last_name"), // Contact last name
+  contactName: text("contact_name"), // Primary contact person (legacy, use firstName/lastName)
   email: text("email").notNull(),
   phone: text("phone"),
   website: text("website"),
@@ -60,6 +62,7 @@ export const clients = pgTable("clients", {
   // Status
   status: text("status").default("lead").notNull(), // lead, prospect, active, inactive, churned
   source: text("source"), // How they found you: referral, website, linkedin, etc.
+  label: text("label").default("contact"), // contact, client, vendor, spam, hidden
 
   // Address
   address: text("address"),
@@ -229,6 +232,32 @@ export const activityLog = pgTable("activity_log", {
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Client Tasks - To-do items for each client
+export const clientTasks = pgTable("client_tasks", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  
+  // Client association (by name for now, can link to clientId later)
+  clientName: text("client_name").notNull(),
+  
+  // Task details
+  task: text("task").notNull(),
+  status: text("status").default("NOT DONE").notNull(), // NOT DONE, IN PROGRESS, DONE
+  priority: text("priority").notNull(), // Fix, Quick win, Revenue, etc.
+  
+  // Optional: Link to client record if needed
+  clientId: integer("client_id").references(() => clients.id),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Client Tasks Schemas
+export const insertClientTaskSchema = createInsertSchema(clientTasks);
+export const selectClientTaskSchema = createSelectSchema(clientTasks);
+export type InsertClientTask = z.infer<typeof insertClientTaskSchema>;
+export type ClientTask = z.infer<typeof selectClientTaskSchema>;
 
 // ==================== BILLING TABLES (STRIPE INTEGRATION) ====================
 
@@ -865,12 +894,13 @@ export type DealStakeholder = z.infer<typeof selectDealStakeholderSchema>;
 
 // ==================== EMAIL LOG TABLE ====================
 
-// Email Log - Stores emails synced from Resend for documentation
+// Email Log - Stores emails synced from Resend/Gmail for documentation
 export const emailLogs = pgTable("email_logs", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
 
-  // Resend Email ID
+  // External Email IDs
   resendId: text("resend_id").unique(),
+  gmailId: text("gmail_id").unique(),
 
   // Email Details
   from: text("from").notNull(),

@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { db } from "../../db/index";
-import { stripeCustomers, invoices, paymentIntents, subscriptions, quotes, paymentLinks, clients, deals } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { stripeCustomers, invoices, paymentIntents, subscriptions, quotes, paymentLinks, clients, deals, supportTickets } from "../../db/schema";
+import { eq, and, or, isNull } from "drizzle-orm";
 import * as stripeService from "../services/stripe";
 
 // ==================== SYNC OPERATIONS ====================
@@ -1399,6 +1399,40 @@ export async function getBillingDashboard(req: Request, res: Response) {
       .filter((inv: any) => inv.status === "draft")
       .reduce((sum: number, inv: any) => sum + parseFloat(inv.total || 0), 0);
 
+    // Get all billable tickets (unbilled work) for all clients
+    const DEFAULT_HOURLY_RATE = 65;
+    const allBillableTickets = await db
+      .select({
+        ticket: supportTickets,
+        dealHourlyRate: deals.hourlyRate,
+      })
+      .from(supportTickets)
+      .leftJoin(deals, eq(supportTickets.dealId, deals.id))
+      .where(
+        and(
+          or(eq(supportTickets.status, "resolved"), eq(supportTickets.readyToBill, true)),
+          isNull(supportTickets.invoiceId)
+        )
+      );
+
+    // Calculate unbilled work per client
+    const unbilledWorkByClient = new Map<number, number>();
+    for (const item of allBillableTickets) {
+      if (!item.ticket.clientId) continue;
+
+      const effectiveRate = item.ticket.hourlyRate
+        ? parseFloat(item.ticket.hourlyRate)
+        : item.dealHourlyRate
+          ? parseFloat(item.dealHourlyRate)
+          : DEFAULT_HOURLY_RATE;
+
+      const timeSpent = parseFloat(item.ticket.timeSpent || "0");
+      const billableAmount = timeSpent * effectiveRate;
+
+      const current = unbilledWorkByClient.get(item.ticket.clientId) || 0;
+      unbilledWorkByClient.set(item.ticket.clientId, current + billableAmount);
+    }
+
     // Group invoices by client
     const clientGroups = allClients
       .map((client: any) => {
@@ -1411,12 +1445,17 @@ export async function getBillingDashboard(req: Request, res: Response) {
           .filter((inv: any) => inv.status !== "void" && inv.status !== "paid")
           .reduce((sum: number, inv: any) => sum + parseFloat(inv.amountDue), 0);
 
+        const unbilledWork = unbilledWorkByClient.get(client.id) || 0;
+        const nextCharge = balance + unbilledWork;
+
         return {
           clientId: client.id,
           clientName: client.name,
           totalBilled,
           totalPaid,
           balance,
+          unbilledWork,
+          nextCharge,
           invoiceCount: clientInvoices.length,
           subscriptionCount: clientSubscriptions.filter((s: any) => s.status === "active").length,
           lastInvoiceDate:
@@ -1425,7 +1464,7 @@ export async function getBillingDashboard(req: Request, res: Response) {
               : null,
         };
       })
-      .filter((g: any) => g.invoiceCount > 0 || g.subscriptionCount > 0);
+      .filter((g: any) => g.invoiceCount > 0 || g.subscriptionCount > 0 || g.unbilledWork > 0);
 
     // #region agent log
     fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {

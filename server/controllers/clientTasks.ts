@@ -9,7 +9,23 @@ import { AuthenticatedRequest } from "../middleware/auth";
  */
 export async function getAllClientTasks(req: Request, res: Response) {
   try {
-    const allTasks = await db.select().from(clientTasks).orderBy(asc(clientTasks.clientName), asc(clientTasks.createdAt));
+    // Check if table exists by attempting to query it
+    // If table doesn't exist, return empty result instead of error
+    let allTasks;
+    try {
+      allTasks = await db.select().from(clientTasks).orderBy(asc(clientTasks.clientName), asc(clientTasks.createdAt));
+    } catch (dbError: any) {
+      // If table doesn't exist (relation does not exist error), return empty
+      if (dbError.message?.includes('does not exist') || dbError.message?.includes('relation')) {
+        console.log("Client tasks table does not exist yet, returning empty result");
+        return res.json({
+          success: true,
+          tasksByClient: {},
+          tasks: [],
+        });
+      }
+      throw dbError; // Re-throw if it's a different error
+    }
 
     // Group by client name
     const tasksByClient: Record<string, typeof allTasks> = {};
@@ -72,22 +88,34 @@ export async function createClientTask(req: AuthenticatedRequest, res: Response)
       });
     }
 
-    const newTask = await db
-      .insert(clientTasks)
-      .values({
-        clientName,
-        task,
-        priority,
-        status: status || "NOT DONE",
-        clientId: clientId || null,
-        updatedAt: new Date(),
-      })
-      .returning();
+    try {
+      const newTask = await db
+        .insert(clientTasks)
+        .values({
+          clientName,
+          task,
+          priority,
+          status: status || "NOT DONE",
+          clientId: clientId || null,
+          updatedAt: new Date(),
+        })
+        .returning();
 
-    res.json({
-      success: true,
-      task: newTask[0],
-    });
+      res.json({
+        success: true,
+        task: newTask[0],
+      });
+    } catch (dbError: any) {
+      // If table doesn't exist, return error with helpful message
+      if (dbError.message?.includes('does not exist') || dbError.message?.includes('relation')) {
+        return res.status(503).json({
+          success: false,
+          message: "Database table not found. Please complete the database migration by running 'npm run db:push'",
+          error: "Table does not exist",
+        });
+      }
+      throw dbError;
+    }
   } catch (error: any) {
     console.error("Error creating client task:", error);
     res.status(500).json({

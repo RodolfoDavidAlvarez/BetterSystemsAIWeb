@@ -15,7 +15,8 @@ import {
   MessageSquare,
   Headphones,
   Code2,
-  ClipboardCheck
+  ClipboardCheck,
+  Calendar
 } from "lucide-react";
 
 export default function ServicesPage() {
@@ -294,7 +295,7 @@ export default function ServicesPage() {
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link href="/book">
-                Book Consultation <Target className="ml-2 h-5 w-5" />
+                Book Consultation <Calendar className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

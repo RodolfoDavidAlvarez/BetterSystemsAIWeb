@@ -127,12 +127,12 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button asChild size="lg" className="bg-gradient-to-r from-primary to-secondary text-white font-bold text-lg px-8 py-4 h-14 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
                   <Link href="/book">
-                    BOOK FREE CONSULTATION <ArrowRight className="ml-2 h-6 w-6" />
+                    BOOK CONSULTATION <ArrowRight className="ml-2 h-6 w-6" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="border-2 border-primary text-primary font-bold text-lg px-8 py-4 h-14 hover:bg-primary hover:text-white transition-all">
-                  <Link href="/services">
-                    SEE HOW IT WORKS
+                  <Link href="/contact">
+                    CONTACT US
                   </Link>
                 </Button>
               </div>
@@ -362,12 +362,12 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center max-w-lg mx-auto sm:max-w-none">
               <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 font-black text-xl px-10 py-6 h-16 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all">
                 <Link href="/book">
-                  BOOK FREE CONSULTATION <ArrowRight className="ml-3 h-6 w-6" />
+                  BOOK CONSULTATION <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="border-4 border-white text-white hover:bg-white/20 font-black text-xl px-10 py-6 h-16 backdrop-blur-sm">
-                <Link href="/services">
-                  SEE OUR SERVICES
+                <Link href="/contact">
+                  CONTACT US
                 </Link>
               </Button>
             </div>

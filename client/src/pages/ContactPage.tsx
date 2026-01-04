@@ -200,9 +200,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h4 className="font-medium mb-2">Email</h4>
-                      <a href="mailto:info@bettersystems.ai" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+                      <a href="mailto:developer@bettersystems.ai" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                         <Mail className="h-4 w-4" />
-                        <span>info@bettersystems.ai</span>
+                        <span>developer@bettersystems.ai</span>
                       </a>
                     </div>
                     <div className="pt-4 border-t">

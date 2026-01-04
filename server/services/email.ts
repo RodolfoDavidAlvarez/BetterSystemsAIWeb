@@ -193,8 +193,8 @@ export async function sendAdminNotification(data: EmailData) {
   }
 
   try {
-    // Use developer email for testing if set, otherwise use EMAIL_TO
-    const recipientEmail = process.env.DEVELOPER_EMAIL || process.env.EMAIL_TO || "contact@bettersystemsai.com";
+    // Send admin notifications to developer@bettersystems.ai
+    const recipientEmail = "developer@bettersystems.ai";
 
     const result = await resend.emails.send({
       from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",

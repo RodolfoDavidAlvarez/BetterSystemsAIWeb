@@ -49,12 +49,12 @@ export default function LoginPage() {
     }
   }, [navigate]);
 
-  // Initialize form with dev credentials pre-filled
+  // Initialize form
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "rodolfo",
-      password: "password123",
+      username: "",
+      password: "",
     },
   });
 
@@ -64,7 +64,7 @@ export default function LoginPage() {
 
     // Create an AbortController for the fetch request
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout (increased to allow for database queries)
 
     try {
       console.log("Sending login request with credentials:", {

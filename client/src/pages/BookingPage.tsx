@@ -210,14 +210,31 @@ export default function BookingPage() {
       <section className="min-h-screen pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-background to-muted/20">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               Book a Discovery Call
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Schedule a free 15-minute call to discuss your business automation needs.
+              Schedule a 15-minute call to discuss your business automation needs.
               We'll explore how we can help you save time and scale.
             </p>
+          </div>
+
+          {/* Personal Introduction */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-white rounded-xl p-6 shadow-sm border mb-10 max-w-2xl mx-auto">
+            <img
+              src="/Professional Headshot Rodolfo compressed.jpg"
+              alt="Rodo Alvarez"
+              className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+            />
+            <div className="text-center sm:text-left">
+              <p className="text-lg font-medium mb-1">Looking forward to meeting you!</p>
+              <p className="text-muted-foreground text-sm">
+                I'm Rodo, founder of Better Systems AI. In our call, we'll talk about your business,
+                identify automation opportunities, and see if we're a good fit to work together.
+              </p>
+              <p className="text-primary text-sm font-medium mt-2">— Rodo Alvarez</p>
+            </div>
           </div>
 
           {/* Progress Steps */}

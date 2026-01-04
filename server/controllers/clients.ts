@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import { db } from '../../db/index';
-import { clients, projects, deals, insertClientSchema, activityLog, dealStakeholders } from '../../db/schema';
-import { eq, desc, ilike, or, sql, count } from 'drizzle-orm';
+import { clients, projects, deals, insertClientSchema, activityLog, dealStakeholders, emailLogs } from '../../db/schema';
+import { eq, desc, ilike, or, sql, count, ne, and } from 'drizzle-orm';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 // Get all clients with optional search and pagination
 export const getAllClients = async (req: Request, res: Response) => {
   try {
-    const { search, status, page = '1', limit = '20' } = req.query;
+    const { search, status, label, hideHidden = 'true', page = '1', limit = '100' } = req.query;
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
     // Apply filters
@@ -17,12 +17,21 @@ export const getAllClients = async (req: Request, res: Response) => {
         or(
           ilike(clients.name, `%${search}%`),
           ilike(clients.email, `%${search}%`),
-          ilike(clients.contactName, `%${search}%`)
+          ilike(clients.contactName, `%${search}%`),
+          ilike(clients.firstName, `%${search}%`),
+          ilike(clients.lastName, `%${search}%`)
         )
       );
     }
     if (status && status !== 'all') {
       conditions.push(eq(clients.status, status as string));
+    }
+    if (label && label !== 'all') {
+      conditions.push(eq(clients.label, label as string));
+    }
+    // Hide contacts with label 'hidden' by default
+    if (hideHidden === 'true') {
+      conditions.push(sql`(${clients.label} IS NULL OR ${clients.label} != 'hidden')`);
     }
 
     const allClients = await db.select()
@@ -104,7 +113,7 @@ export const getAllClients = async (req: Request, res: Response) => {
   }
 };
 
-// Get single client by ID
+// Get single client by ID with associated emails
 export const getClientById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -127,10 +136,21 @@ export const getClientById = async (req: Request, res: Response) => {
       .where(eq(projects.clientId, parseInt(id)))
       .orderBy(desc(projects.createdAt));
 
+    // Get associated emails (where client is sender or recipient)
+    const clientEmail = client[0].email.toLowerCase();
+    const clientEmails = await db.select()
+      .from(emailLogs)
+      .where(
+        sql`LOWER(${emailLogs.from}) LIKE ${`%${clientEmail}%`} OR ${emailLogs.to}::text ILIKE ${`%${clientEmail}%`}`
+      )
+      .orderBy(desc(emailLogs.sentAt))
+      .limit(50);
+
     res.json({
       success: true,
       client: client[0],
-      projects: clientProjects
+      projects: clientProjects,
+      emails: clientEmails
     });
   } catch (error) {
     console.error('Error fetching client:', error);

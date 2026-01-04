@@ -3,6 +3,7 @@ import { db } from "@db/index";
 import { emailLogs } from "@db/schema";
 import { eq, desc, and, or, like, sql } from "drizzle-orm";
 import { syncAllEmails, syncSentEmails, syncReceivedEmails } from "../services/resendSync";
+import { syncEmailsFromGmail as gmailSync } from "../services/gmail";
 
 /**
  * Get all email logs with pagination and filters
@@ -272,6 +273,44 @@ export async function handleResendWebhook(req: Request, res: Response) {
     res.status(500).json({
       success: false,
       message: "Failed to process webhook",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
+/**
+ * Sync emails from Gmail
+ */
+export async function syncEmailsFromGmailController(req: Request, res: Response) {
+  try {
+    const type = req.query.type as string | undefined; // 'sent', 'received', or 'all'
+    const limit = parseInt(req.query.limit as string) || 50;
+    const query = req.query.query as string | undefined;
+
+    const result = await gmailSync({
+      maxResults: limit,
+      query,
+      type: type as "all" | "sent" | "received" | undefined,
+    });
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: `Gmail sync complete: ${result.created} new, ${result.updated} updated, ${result.contacts} contacts created`,
+        data: result,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Failed to sync emails from Gmail",
+        error: result.error,
+      });
+    }
+  } catch (error) {
+    console.error("Error syncing Gmail emails:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to sync emails from Gmail",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

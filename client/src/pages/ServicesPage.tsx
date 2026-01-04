@@ -1,23 +1,21 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
-import { 
-  Bot, 
-  Cog, 
-  LineChart, 
-  Users,
+import {
   ArrowRight,
   Check,
   Zap,
-  Target,
   Shield,
   Rocket,
-  Brain,
-  Calendar,
   Star,
-  TrendingUp
+  TrendingUp,
+  Workflow,
+  MessageSquare,
+  Headphones,
+  Code2,
+  ClipboardCheck
 } from "lucide-react";
 
 export default function ServicesPage() {
@@ -25,109 +23,92 @@ export default function ServicesPage() {
 
   const services = [
     {
-      icon: Brain,
-      title: "Business Optimization with AI",
-      subtitle: "STOP THE CHAOS. START WINNING.",
-      description: "Transform your entire business operation. We eliminate the bottlenecks, automate the busywork, and give you your life back. This isn't just AI - it's business DOMINATION.",
+      icon: Workflow,
+      title: "AI Business Integration",
+      subtitle: "Seamlessly integrate AI into your operations",
+      description: "Transform your entire business operation. We eliminate bottlenecks, automate repetitive tasks, and give you your time back. AI that actually works for your business.",
       features: [
-        "COMPLETE process automation that actually works",
-        "ELIMINATE 90% of manual tasks forever",
-        "CUSTOM AI that learns YOUR business inside out",
-        "24/7 operations while you sleep, vacation, LIVE"
+        "Complete process automation that delivers results",
+        "Reduce manual tasks by up to 90%",
+        "Custom AI trained on your specific workflows",
+        "24/7 automated operations"
       ],
-      pricing: "CUSTOM PRICING",
-      cta: "DOMINATE NOW",
+      pricing: "Custom Pricing",
+      cta: "Get Started",
       color: "from-primary to-secondary",
       stat: "20+",
-      statLabel: "HOURS BACK WEEKLY",
+      statLabel: "Hours Saved Weekly",
       badge: "MOST POPULAR"
     },
     {
-      icon: Calendar,
-      title: "FREE AI Consultation",
-      subtitle: "ZERO RISK. MAXIMUM INSIGHT.",
-      description: "60 minutes that could change EVERYTHING. We'll show you exactly where AI can save you thousands and give you hours back every single week. No sales pitch - just PURE VALUE.",
+      icon: MessageSquare,
+      title: "Automation Consultation",
+      subtitle: "Discover what's possible for your business",
+      description: "A focused session to identify exactly where automation can save you time and money. We'll map out your processes and show you the opportunities.",
       features: [
-        "DEEP dive into your biggest time wasters",
-        "CUSTOM roadmap to AI domination",
-        "EXACT cost savings projections",
-        "ZERO obligation, 100% value"
+        "Deep dive into your current workflows",
+        "Custom automation roadmap",
+        "Clear cost savings projections",
+        "No obligation, pure value"
       ],
-      pricing: "COMPLETELY FREE",
-      cta: "BOOK FREE SESSION",
+      pricing: "Complimentary",
+      cta: "Book Consultation",
       color: "from-accent to-primary",
       stat: "$50K+",
-      statLabel: "AVERAGE SAVINGS REVEALED",
-      badge: "ZERO RISK",
+      statLabel: "Average Savings Identified",
+      badge: "START HERE",
       calendly: true
     },
     {
-      icon: Bot,
-      title: "Ready-Fire AI Assistants",
-      subtitle: "PLUG & PLAY POWER",
-      description: "Pre-built AI weapons that work instantly. No setup hell, no tech nightmares. Just RESULTS from day one.",
+      icon: Headphones,
+      title: "AI Virtual Assistants",
+      subtitle: "Pre-built solutions ready to deploy",
+      description: "Production-ready AI assistants that work from day one. No lengthy setup, no technical headaches. Just results.",
       features: [
-        "INSTANT 24/7 customer support that never sleeps",
-        "SMART email responses that sound human",
-        "BULLETPROOF data entry automation",
-        "GENIUS calendar AI that manages itself"
+        "24/7 customer support automation",
+        "Intelligent email management",
+        "Automated data entry and processing",
+        "Smart scheduling and calendar management"
       ],
       pricing: "Starting at $297/month",
-      cta: "GET INSTANT POWER",
+      cta: "See Options",
       color: "from-accent to-primary",
       stat: "40%",
-      statLabel: "TIME SAVED DAILY"
+      statLabel: "Time Saved Daily"
     },
     {
-      icon: Cog,
-      title: "Custom AI Domination",
-      subtitle: "BUILT FOR YOUR EMPIRE",
-      description: "100% custom AI systems that FIT your business like a glove. No compromises, no 'close enough' - just PERFECT automation that makes your competitors cry.",
+      icon: Code2,
+      title: "Custom AI Development",
+      subtitle: "Built specifically for your business",
+      description: "Fully custom AI systems designed around your exact needs. We build solutions that fit your business perfectly - no compromises.",
       features: [
-        "CUSTOM workflows that match your exact chaos",
-        "SEAMLESS integration with your existing mess",
-        "PROPRIETARY AI models nobody else has",
-        "INFINITE scalability as you CONQUER markets"
+        "Custom workflows matching your processes",
+        "Seamless integration with existing tools",
+        "Proprietary AI models for your use case",
+        "Scalable architecture that grows with you"
       ],
-      pricing: "CUSTOM PRICING",
-      cta: "DEMAND PERFECTION",
+      pricing: "Custom Pricing",
+      cta: "Discuss Your Project",
       color: "from-secondary to-accent",
       stat: "90%",
-      statLabel: "COST DESTRUCTION"
+      statLabel: "Cost Reduction"
     },
     {
-      icon: LineChart,
-      title: "AI Profit Discovery",
-      subtitle: "FIND YOUR HIDDEN GOLDMINE",
-      description: "We X-RAY your business and find every single opportunity to make you rich with AI. No stone unturned, no profit left behind.",
+      icon: ClipboardCheck,
+      title: "Process Analysis & Assessment",
+      subtitle: "Find your automation opportunities",
+      description: "A comprehensive analysis of your business processes to identify every opportunity for AI and automation. Clear roadmap, clear ROI.",
       features: [
-        "DEEP process excavation and profit mining",
-        "EXPLOSIVE ROI projections that'll shock you",
-        "BATTLE-TESTED implementation roadmap",
-        "PRIORITY hit list for maximum impact"
+        "Complete process documentation",
+        "ROI projections for each opportunity",
+        "Prioritized implementation roadmap",
+        "Quick wins vs. long-term improvements"
       ],
-      pricing: "$2,500 INVESTMENT",
-      cta: "FIND MY GOLDMINE",
+      pricing: "$2,500",
+      cta: "Start Assessment",
       color: "from-accent to-primary",
       stat: "200%",
-      statLabel: "AVERAGE ROI EXPLOSION"
-    },
-    {
-      icon: Users,
-      title: "AI Empire Membership",
-      subtitle: "YOUR PERSONAL AI ARMY",
-      description: "VIP access to our AI masterminds. We become your secret weapon for TOTAL business domination. This is your AI advantage that competitors will NEVER have.",
-      features: [
-        "QUARTERLY empire expansion reviews",
-        "CUTTING-EDGE technology updates before anyone else",
-        "VIP priority support that jumps the line",
-        "STRATEGIC war planning for market domination"
-      ],
-      pricing: "$12,000/YEAR INVESTMENT",
-      cta: "JOIN THE ELITE",
-      color: "from-primary to-secondary",
-      stat: "98%",
-      statLabel: "EMPIRE SUCCESS RATE"
+      statLabel: "Average ROI"
     }
   ];
 
@@ -153,17 +134,16 @@ export default function ServicesPage() {
       <div className="container mx-auto px-4 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-black mb-8 shadow-xl">
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold mb-8 shadow-xl">
             <Star className="h-5 w-5" />
-            ⚡ CHOOSE YOUR WEAPON ⚡
+            AI Solutions That Work
           </div>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-none">
-            SERVICES THAT
-            <span className="block text-gradient text-6xl md:text-7xl lg:text-8xl">DOMINATE</span>
+            Our
+            <span className="block text-gradient text-6xl md:text-7xl lg:text-8xl">Services</span>
           </h1>
           <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto font-medium">
-            Stop choosing between good and fast. <span className="text-primary font-bold">Get BOTH.</span> 
-            Every solution designed to make your competitors irrelevant.
+            From consultation to custom development. <span className="text-primary font-bold">Find the right solution</span> for your business automation needs.
           </p>
         </div>
 
@@ -255,7 +235,7 @@ export default function ServicesPage() {
         {/* Benefits Section */}
         <div className="mb-16">
           <h2 className="text-4xl sm:text-5xl font-black text-center mb-12">
-            WHY WE <span className="text-gradient">DEMOLISH</span> THE COMPETITION
+            Why <span className="text-gradient">Choose Us</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
@@ -313,8 +293,8 @@ export default function ServicesPage() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/learn">
-                Learn More <Target className="ml-2 h-5 w-5" />
+              <Link href="/book">
+                Book Consultation <Target className="ml-2 h-5 w-5" />
               </Link>
             </Button>
           </div>

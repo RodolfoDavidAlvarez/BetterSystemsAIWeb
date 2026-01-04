@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "../../db";
-import { systemUpdates, systemUpdateRecipients, deals, clients } from "../../db/schema";
+import { systemUpdates, systemUpdateRecipients, deals, clients, supportTickets } from "../../db/schema";
 import { eq, desc, inArray } from "drizzle-orm";
 import { sendCustomerEmail } from "../services/email";
 
@@ -65,7 +65,7 @@ export async function getUpdateById(req: Request, res: Response) {
 // Send a new update to selected deals
 export async function sendUpdate(req: Request, res: Response) {
   try {
-    const { title, content, category, dealIds } = req.body;
+    const { title, content, category, dealIds, ticketIds } = req.body;
 
     if (!title || !content || !category || !dealIds || !dealIds.length) {
       return res.status(400).json({
@@ -75,11 +75,45 @@ export async function sendUpdate(req: Request, res: Response) {
     }
 
     // Create the update record
+    // Build result/ticket summary to include in the update content
+    const selectedTicketIds: number[] = Array.isArray(ticketIds)
+      ? ticketIds.map((id: any) => Number(id)).filter(Boolean)
+      : [];
+
+    let ticketSummaries: string[] = [];
+
+    if (selectedTicketIds.length > 0) {
+      const relatedTickets = await db
+        .select({
+          id: supportTickets.id,
+          title: supportTickets.title,
+          status: supportTickets.status,
+          priority: supportTickets.priority,
+          resolution: supportTickets.resolution,
+          applicationSource: supportTickets.applicationSource,
+        })
+        .from(supportTickets)
+        .where(inArray(supportTickets.id, selectedTicketIds));
+
+      ticketSummaries = relatedTickets.map((ticket) => {
+        const statusLabel = (ticket.status || "pending").toUpperCase();
+        const priorityLabel = ticket.priority ? ` • Priority: ${ticket.priority}` : "";
+        const sourceLabel = ticket.applicationSource ? ` • Source: ${ticket.applicationSource}` : "";
+        const resolutionLabel = ticket.resolution ? ` — ${ticket.resolution}` : "";
+        return `- [${statusLabel}] ${ticket.title}${resolutionLabel}${priorityLabel}${sourceLabel}`;
+      });
+    }
+
+    const messageWithResults =
+      ticketSummaries.length > 0
+        ? `${content}\n\n---\nResults & Repairs\n${ticketSummaries.join("\n")}`
+        : content;
+
     const [newUpdate] = await db
       .insert(systemUpdates)
       .values({
         title,
-        content,
+        content: messageWithResults,
         category,
         sentAt: new Date(),
         recipientCount: dealIds.length,
@@ -122,7 +156,7 @@ export async function sendUpdate(req: Request, res: Response) {
           customMessage: `
 Hello ${deal.clientName},
 
-${content}
+${messageWithResults}
 
 ---
 This update is regarding: ${deal.dealName}
@@ -156,6 +190,9 @@ function getCategoryLabel(category: string): string {
     feature: "New Feature",
     update: "Update",
     maintenance: "Maintenance Notice",
+    fixes: "Bug Fixes & Repairs",
+    mocks: "Mocks & UX Improvements",
+    progress: "Progress Update",
   };
   return labels[category] || "Update";
 }

@@ -36,7 +36,7 @@ export async function getAllDeals(req: Request, res: Response) {
       .leftJoin(clients, eq(deals.clientId, clients.id))
       .orderBy(desc(deals.createdAt));
 
-    // Get interactions count for each deal
+    // Get interactions count, documents count, and stakeholders count for each deal
     const dealsWithCounts = await Promise.all(
       allDeals.map(async (deal) => {
         const [interactionsCount] = await db
@@ -55,10 +55,16 @@ export async function getAllDeals(req: Request, res: Response) {
             )
           );
 
+        const [stakeholdersCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(dealStakeholders)
+          .where(eq(dealStakeholders.dealId, deal.id));
+
         return {
           ...deal,
           interactionsCount: Number(interactionsCount.count) || 0,
           documentsCount: Number(documentsCount.count) || 0,
+          stakeholdersCount: Number(stakeholdersCount.count) || 0,
         };
       })
     );

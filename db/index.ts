@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from 'pg';
+import pg from "pg";
 import * as schema from "@db/schema";
 
 const { Pool } = pg;
@@ -12,24 +12,24 @@ const getDatabaseConnection = () => {
   // Check if we have a database URL
   if (!process.env.DATABASE_URL) {
     console.error("[Database] WARNING: DATABASE_URL is not set");
-    
+
     // Check if we're in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       console.warn("[Database] Production environment detected without DATABASE_URL");
-      
+
       // In production, check for individual Postgres environment variables
       const pgHost = process.env.PGHOST;
       const pgUser = process.env.PGUSER;
       const pgPassword = process.env.PGPASSWORD;
       const pgDatabase = process.env.PGDATABASE;
-      const pgPort = process.env.PGPORT || '5432';
-      
+      const pgPort = process.env.PGPORT || "5432";
+
       if (pgHost && pgUser && pgPassword && pgDatabase) {
         console.log("[Database] Found individual Postgres environment variables, constructing connection string");
         const constructedUrl = `postgres://${pgUser}:${pgPassword}@${pgHost}:${pgPort}/${pgDatabase}`;
         return constructedUrl;
       }
-      
+
       // Last resort for production - use in-memory mock
       console.error("[Database] No database configuration found in production!");
       console.warn("[Database] Using mock database for production (NOT RECOMMENDED)");
@@ -43,7 +43,7 @@ const getDatabaseConnection = () => {
       return "postgres://mock:mock@localhost:5432/mockdb";
     }
   }
-  
+
   return process.env.DATABASE_URL;
 };
 
@@ -54,12 +54,12 @@ let dbInstance: any;
 try {
   connectionString = getDatabaseConnection();
   // Mask the connection string in logs for security
-  const maskedConnection = connectionString.includes('@') 
-    ? connectionString.replace(/\/\/(.+?)@/, '//****:****@') 
-    : connectionString.substring(0, 15) + '...';
-  
+  const maskedConnection = connectionString.includes("@")
+    ? connectionString.replace(/\/\/(.+?)@/, "//****:****@")
+    : connectionString.substring(0, 15) + "...";
+
   console.log(`[Database] Connecting to database at ${maskedConnection}`);
-  
+
   if (isMockDatabase) {
     console.warn("[Database] Using mock database - some features will be limited");
     // Create a mock DB instance with minimal implementation
@@ -71,17 +71,26 @@ try {
       query: { select: () => [] },
     };
   } else {
-    // Create the real database connection using node-postgres
+    // Create the real database connection using node-postgres with timeout settings
     const pool = new Pool({
       connectionString,
+      connectionTimeoutMillis: 5000, // 5 second timeout for initial connection
+      idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+      max: 20, // Maximum number of clients in the pool
     });
+
+    // Handle pool errors
+    pool.on("error", (err) => {
+      console.error("[Database] Unexpected pool error:", err);
+    });
+
     dbInstance = drizzle({ client: pool, schema });
   }
-  
+
   console.log("[Database] Database connection initialized successfully");
 } catch (error: any) {
   console.error("[Database] Failed to get database connection:", error);
-  
+
   // Create a fallback mock DB instance
   console.warn("[Database] Creating fallback mock database after connection failure");
   isMockDatabase = true;

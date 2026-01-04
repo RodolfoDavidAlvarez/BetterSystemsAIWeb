@@ -1024,3 +1024,48 @@ export const insertSupportTicketSchema = createInsertSchema(supportTickets);
 export const selectSupportTicketSchema = createSelectSchema(supportTickets);
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 export type SupportTicket = z.infer<typeof selectSupportTicketSchema>;
+
+// ==================== DISCOVERY CALL BOOKINGS TABLE ====================
+
+// Bookings - Discovery call bookings from booking page
+export const bookings = pgTable("bookings", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Booking Details
+  date: text("date").notNull(), // YYYY-MM-DD format
+  time: text("time").notNull(), // HH:MM format (24-hour)
+
+  // Contact Info
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  company: text("company"),
+  phone: text("phone"),
+
+  // Discovery Call Details
+  interest: text("interest"), // What they're interested in
+  notes: text("notes"), // Additional notes from prospect
+
+  // Status
+  status: text("status").default("pending").notNull(), // pending, confirmed, completed, cancelled, no_show
+
+  // Email tracking
+  confirmationSent: boolean("confirmation_sent").default(false),
+  reminderSent: boolean("reminder_sent").default(false),
+
+  // Outcome (after call)
+  outcome: text("outcome"), // qualified, not_qualified, rescheduled, no_show
+  followUpNotes: text("follow_up_notes"),
+
+  // Link to client if converted
+  clientId: integer("client_id").references(() => clients.id),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Bookings Schemas
+export const insertBookingSchema = createInsertSchema(bookings);
+export const selectBookingSchema = createSelectSchema(bookings);
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type Booking = z.infer<typeof selectBookingSchema>;

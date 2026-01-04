@@ -4,6 +4,9 @@ import { login, register, getCurrentUser } from "./controllers/auth";
 import { authenticate, isAdmin } from "./middleware/auth";
 import { sendCustomerEmail, sendAdminNotification } from "./services/email";
 import { saveToAirtable } from "./services/airtable";
+import { db } from "../db/index";
+import { bookings } from "../db/schema";
+import { sql } from "drizzle-orm";
 
 // CRM Controllers
 import { getAllClients, getClientById, createClient, updateClient, deleteClient, getClientStats } from "./controllers/clients";
@@ -265,6 +268,27 @@ export function registerRoutes(app: Express) {
         });
       }
 
+      // Save to PostgreSQL database
+      let bookingRecord;
+      try {
+        const [newBooking] = await db.insert(bookings).values({
+          date,
+          time,
+          name,
+          email,
+          company: company || null,
+          interest: interest || null,
+          notes: notes || null,
+          status: "pending",
+          confirmationSent: true,
+        }).returning();
+        bookingRecord = newBooking;
+        console.log("Booking saved to database:", bookingRecord.id);
+      } catch (dbError) {
+        console.error("Database save failed:", dbError);
+      }
+
+      // Also save to Airtable as backup
       const bookingData = {
         date,
         time,
@@ -277,7 +301,6 @@ export function registerRoutes(app: Express) {
         submittedAt: new Date().toISOString(),
       };
 
-      // Save to Airtable
       const airtableResult = await saveToAirtable(bookingData);
       if (!airtableResult.success) {
         console.error("Airtable save failed:", airtableResult.error);
@@ -321,7 +344,6 @@ export function registerRoutes(app: Express) {
             <ul style="color: #fff; margin: 0; padding-left: 20px; line-height: 1.8;">
               <li>15-minute discovery call</li>
               <li>We'll discuss your business automation needs</li>
-              <li>No sales pressure - just exploring if we're a good fit</li>
               <li>You'll receive a follow-up with recommendations</li>
             </ul>
           </div>
@@ -340,7 +362,7 @@ export function registerRoutes(app: Express) {
 
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          from: "Better Systems AI <developer@bettersystems.ai>",
           to: email,
           subject: `Discovery Call Confirmed - ${formattedDate} at ${displayTime}`,
           html: customerEmailHtml,
@@ -394,12 +416,12 @@ export function registerRoutes(app: Express) {
 
       try {
         await resend.emails.send({
-          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
-          to: "developer@bettersystems.ai",
+          from: "Better Systems AI <developer@bettersystems.ai>",
+          to: "rodolfo@bettersystems.ai",
           subject: `[BOOKING] ${name} - ${formattedDate} at ${displayTime}`,
           html: adminEmailHtml,
         });
-        console.log("Admin notification sent to developer@bettersystems.ai");
+        console.log("Admin notification sent to rodolfo@bettersystems.ai");
       } catch (emailError) {
         console.error("Failed to send admin notification:", emailError);
       }
@@ -407,6 +429,7 @@ export function registerRoutes(app: Express) {
       res.json({
         success: true,
         message: "Your discovery call has been booked successfully.",
+        bookingId: bookingRecord?.id,
         recordId: airtableResult.recordId,
       });
     } catch (error) {
@@ -414,6 +437,33 @@ export function registerRoutes(app: Express) {
       res.status(500).json({
         success: false,
         message: "Failed to process your booking. Please try again.",
+      });
+    }
+  });
+
+  // Get booked slots for a specific date (for availability checking)
+  app.get("/api/bookings/slots/:date", async (req, res) => {
+    try {
+      const { date } = req.params;
+
+      // Get all bookings for this date that aren't cancelled
+      const bookedSlots = await db
+        .select({ time: bookings.time })
+        .from(bookings)
+        .where(
+          sql`${bookings.date} = ${date} AND ${bookings.status} != 'cancelled'`
+        );
+
+      res.json({
+        success: true,
+        date,
+        bookedTimes: bookedSlots.map(s => s.time),
+      });
+    } catch (error) {
+      console.error("Error fetching booked slots:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch availability.",
       });
     }
   });

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -16,28 +16,9 @@ interface TimeSlot {
   available: boolean;
 }
 
-// Generate pseudo-random unavailable slots based on date
-function getUnavailableSlots(date: Date): Set<string> {
-  const dateStr = date.toISOString().split("T")[0];
-  const hash = dateStr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const unavailable = new Set<string>();
-
-  // Make 3-5 slots unavailable per day based on date hash
-  const numUnavailable = 3 + (hash % 3);
-  const slots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
-
-  for (let i = 0; i < numUnavailable; i++) {
-    const slotIndex = (hash + i * 7) % slots.length;
-    unavailable.add(slots[slotIndex]);
-  }
-
-  return unavailable;
-}
-
-// Generate time slots for a given date
-function generateTimeSlots(date: Date): TimeSlot[] {
-  const unavailable = getUnavailableSlots(date);
-  const slots: TimeSlot[] = [];
+// Generate all possible time slots
+function getAllTimeSlots(): { time: string; display: string }[] {
+  const slots: { time: string; display: string }[] = [];
 
   // Morning slots (9 AM - 12 PM)
   for (let hour = 9; hour < 12; hour++) {
@@ -46,18 +27,19 @@ function generateTimeSlots(date: Date): TimeSlot[] {
       const displayHour = hour > 12 ? hour - 12 : hour;
       const ampm = hour >= 12 ? "PM" : "AM";
       const display = `${displayHour}:${min.toString().padStart(2, "0")} ${ampm}`;
-      slots.push({ time, display, available: !unavailable.has(time) });
+      slots.push({ time, display });
     }
   }
 
-  // Afternoon slots (1 PM - 5 PM)
-  for (let hour = 13; hour < 17; hour++) {
-    for (let min = 0; min < 60; min += 30) {
+  // Afternoon slots (1 PM - 4:30 PM)
+  for (let hour = 13; hour <= 16; hour++) {
+    const maxMin = hour === 16 ? 30 : 60; // Stop at 4:30 PM
+    for (let min = 0; min < maxMin; min += 30) {
       const time = `${hour.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
       const displayHour = hour > 12 ? hour - 12 : hour;
       const ampm = "PM";
       const display = `${displayHour}:${min.toString().padStart(2, "0")} ${ampm}`;
-      slots.push({ time, display, available: !unavailable.has(time) });
+      slots.push({ time, display });
     }
   }
 
@@ -70,6 +52,8 @@ export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -93,20 +77,48 @@ export default function BookingPage() {
     return date;
   }, []);
 
-  // Disable weekends and dates before minDate
+  // Disable Sundays and dates before minDate
   const disabledDays = useMemo(() => {
     return [
       { before: minDate },
       { after: maxDate },
-      { dayOfWeek: [0, 6] }, // Sunday = 0, Saturday = 6
+      { dayOfWeek: [0] }, // Sunday only
     ];
   }, [minDate, maxDate]);
 
-  // Generate time slots for selected date
-  const timeSlots = useMemo(() => {
-    if (!selectedDate) return [];
-    return generateTimeSlots(selectedDate);
+  // Fetch booked slots when date is selected
+  useEffect(() => {
+    if (!selectedDate) return;
+
+    const fetchBookedSlots = async () => {
+      setIsLoadingSlots(true);
+      try {
+        const dateStr = selectedDate.toISOString().split("T")[0];
+        const response = await fetch(`/api/bookings/slots/${dateStr}`);
+        const data = await response.json();
+        if (data.success) {
+          setBookedTimes(data.bookedTimes || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch booked slots:", error);
+        setBookedTimes([]);
+      } finally {
+        setIsLoadingSlots(false);
+      }
+    };
+
+    fetchBookedSlots();
   }, [selectedDate]);
+
+  // Generate time slots with availability based on booked times
+  const timeSlots = useMemo((): TimeSlot[] => {
+    if (!selectedDate) return [];
+    const allSlots = getAllTimeSlots();
+    return allSlots.map(slot => ({
+      ...slot,
+      available: !bookedTimes.includes(slot.time),
+    }));
+  }, [selectedDate, bookedTimes]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -237,19 +249,44 @@ export default function BookingPage() {
             {/* Step 1: Date Selection */}
             {step === "date" && (
               <div className="flex flex-col items-center">
-                <h2 className="text-xl font-semibold mb-6">Select a Date</h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Earliest availability is 3 days from today. Weekends are not available.
+                <h2 className="text-xl font-semibold mb-4">Select a Date</h2>
+                <p className="text-sm text-muted-foreground mb-8 text-center">
+                  Earliest availability is 3 days from today.<br />
+                  Sundays are not available.
                 </p>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  disabled={disabledDays}
-                  className="rounded-md border"
-                  fromDate={minDate}
-                  toDate={maxDate}
-                />
+                <div className="bg-background rounded-xl border shadow-sm p-4">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDateSelect}
+                    disabled={disabledDays}
+                    className="mx-auto"
+                    fromDate={minDate}
+                    toDate={maxDate}
+                    classNames={{
+                      months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                      month: "space-y-4",
+                      caption: "flex justify-center pt-1 relative items-center h-10",
+                      caption_label: "text-base font-semibold",
+                      nav: "space-x-1 flex items-center",
+                      nav_button: "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-input hover:bg-accent hover:text-accent-foreground",
+                      nav_button_previous: "absolute left-1",
+                      nav_button_next: "absolute right-1",
+                      table: "w-full border-collapse",
+                      head_row: "flex",
+                      head_cell: "text-muted-foreground rounded-md w-10 font-medium text-[0.8rem] text-center",
+                      row: "flex w-full mt-1",
+                      cell: "h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                      day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-accent hover:text-accent-foreground inline-flex items-center justify-center",
+                      day_range_end: "day-range-end",
+                      day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                      day_today: "bg-accent text-accent-foreground font-semibold",
+                      day_outside: "day-outside text-muted-foreground opacity-50",
+                      day_disabled: "text-muted-foreground opacity-30",
+                      day_hidden: "invisible",
+                    }}
+                  />
+                </div>
               </div>
             )}
 
@@ -396,8 +433,8 @@ export default function BookingPage() {
             {/* Step 4: Confirmation */}
             {step === "confirmation" && (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold mb-4">You're All Set!</h2>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -422,20 +459,27 @@ export default function BookingPage() {
 
           {/* Info Section */}
           {step !== "confirmation" && (
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-2xl mb-2">15 min</div>
-                <div className="text-sm text-muted-foreground">Quick discovery call</div>
+            <div className="mt-10 flex flex-wrap justify-center gap-4 md:gap-8">
+              <div className="flex items-center gap-2 bg-card border rounded-full px-5 py-2.5 shadow-sm">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">15-minute call</span>
               </div>
-              <div>
-                <div className="text-2xl mb-2">Free</div>
-                <div className="text-sm text-muted-foreground">No obligation</div>
+              <div className="flex items-center gap-2 bg-card border rounded-full px-5 py-2.5 shadow-sm">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">100% free</span>
               </div>
-              <div>
-                <div className="text-2xl mb-2">48hr</div>
-                <div className="text-sm text-muted-foreground">Follow-up proposal</div>
+              <div className="flex items-center gap-2 bg-card border rounded-full px-5 py-2.5 shadow-sm">
+                <CalendarDays className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">48hr follow-up</span>
               </div>
             </div>
+          )}
+
+          {/* Timezone note */}
+          {step !== "confirmation" && (
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              All times shown in Phoenix, Arizona time (MST)
+            </p>
           )}
         </div>
       </section>

@@ -6,16 +6,12 @@ import { SEO } from "@/components/SEO";
 import {
   ArrowRight,
   Check,
-  Zap,
-  Shield,
-  Rocket,
-  Star,
-  TrendingUp,
-  Workflow,
-  MessageSquare,
-  Headphones,
-  Code2,
-  ClipboardCheck,
+  Clock,
+  Coffee,
+  MessageCircle,
+  Sparkles,
+  Target,
+  Lightbulb,
   Calendar
 } from "lucide-react";
 
@@ -24,278 +20,254 @@ export default function ServicesPage() {
 
   const services = [
     {
-      icon: Workflow,
-      title: "AI Business Integration",
-      subtitle: "Seamlessly integrate AI into your operations",
-      description: "Transform your entire business operation. We eliminate bottlenecks, automate repetitive tasks, and give you your time back. AI that actually works for your business.",
+      icon: Coffee,
+      title: "Let's Talk",
+      subtitle: "A conversation, not a sales pitch",
+      description: "Here's the thing - I don't know if I can help you until we actually talk. Book a quick call, tell me what's eating up your time, and I'll give you my honest take. If AI isn't the right fit, I'll tell you that too.",
       features: [
-        "Complete process automation that delivers results",
-        "Reduce manual tasks by up to 90%",
-        "Custom AI trained on your specific workflows",
-        "24/7 automated operations"
+        "We'll map out where you're losing time",
+        "I'll share what's actually working for other businesses",
+        "You'll leave with actionable ideas (whether we work together or not)",
+        "Zero pressure, just real talk"
       ],
-      pricing: "Custom Pricing",
-      cta: "Get Started",
+      pricing: "On the house",
+      cta: "Book a Call",
       color: "from-primary to-secondary",
-      stat: "20+",
-      statLabel: "Hours Saved Weekly",
-      badge: "MOST POPULAR"
-    },
-    {
-      icon: MessageSquare,
-      title: "Automation Consultation",
-      subtitle: "Discover what's possible for your business",
-      description: "A focused session to identify exactly where automation can save you time and money. We'll map out your processes and show you the opportunities.",
-      features: [
-        "Deep dive into your current workflows",
-        "Custom automation roadmap",
-        "Clear cost savings projections",
-        "No obligation, pure value"
-      ],
-      pricing: "Complimentary",
-      cta: "Book Consultation",
-      color: "from-accent to-primary",
-      stat: "$50K+",
-      statLabel: "Average Savings Identified",
+      stat: "30",
+      statLabel: "minutes that could change everything",
       badge: "START HERE",
-      calendly: true
+      link: "/book"
     },
     {
-      icon: Headphones,
-      title: "AI Virtual Assistants",
-      subtitle: "Pre-built solutions ready to deploy",
-      description: "Production-ready AI assistants that work from day one. No lengthy setup, no technical headaches. Just results.",
+      icon: Clock,
+      title: "Get Your Time Back",
+      subtitle: "Automate the stuff you hate doing",
+      description: "You know those tasks that make you think 'there has to be a better way'? There is. I'll build AI that handles the repetitive work so you can focus on the stuff that actually moves the needle.",
       features: [
-        "24/7 customer support automation",
-        "Intelligent email management",
-        "Automated data entry and processing",
-        "Smart scheduling and calendar management"
+        "Those 3-hour reports? Done in minutes",
+        "Customer questions at 2am? Handled automatically",
+        "Data entry that makes you want to scream? Gone",
+        "The boring admin work? Runs itself"
       ],
-      pricing: "Starting at $297/month",
-      cta: "See Options",
+      pricing: "Depends on complexity",
+      cta: "Let's Discuss",
       color: "from-accent to-primary",
-      stat: "40%",
-      statLabel: "Time Saved Daily"
+      stat: "20+",
+      statLabel: "hours back every week",
+      link: "/contact"
     },
     {
-      icon: Code2,
-      title: "Custom AI Development",
-      subtitle: "Built specifically for your business",
-      description: "Fully custom AI systems designed around your exact needs. We build solutions that fit your business perfectly - no compromises.",
+      icon: Target,
+      title: "Built for Your Business",
+      subtitle: "Not a one-size-fits-all solution",
+      description: "Your business isn't like everyone else's, so why would an off-the-shelf tool work? I build custom AI systems that fit how YOU actually work - not the other way around.",
       features: [
-        "Custom workflows matching your processes",
-        "Seamless integration with existing tools",
-        "Proprietary AI models for your use case",
-        "Scalable architecture that grows with you"
+        "Connects to the tools you already use",
+        "Learns your specific processes",
+        "Grows with your business",
+        "You own it completely"
       ],
-      pricing: "Custom Pricing",
-      cta: "Discuss Your Project",
+      pricing: "Custom quote",
+      cta: "Tell Me What You Need",
       color: "from-secondary to-accent",
-      stat: "90%",
-      statLabel: "Cost Reduction"
+      stat: "100%",
+      statLabel: "built around you",
+      link: "/contact"
     },
     {
-      icon: ClipboardCheck,
-      title: "Process Analysis & Assessment",
-      subtitle: "Find your automation opportunities",
-      description: "A comprehensive analysis of your business processes to identify every opportunity for AI and automation. Clear roadmap, clear ROI.",
+      icon: Lightbulb,
+      title: "Figure Out Where to Start",
+      subtitle: "Because AI is confusing - I get it",
+      description: "Everyone's talking about AI but nobody's explaining it in a way that makes sense. I'll dig into your business, find where AI can actually help (and where it can't), and give you a clear roadmap.",
       features: [
-        "Complete process documentation",
-        "ROI projections for each opportunity",
-        "Prioritized implementation roadmap",
-        "Quick wins vs. long-term improvements"
+        "Full breakdown of your current processes",
+        "Honest assessment of what's worth automating",
+        "Clear priorities - what to do first, second, third",
+        "Real numbers on what you'd save"
       ],
       pricing: "$2,500",
-      cta: "Start Assessment",
+      cta: "Get Clarity",
       color: "from-accent to-primary",
-      stat: "200%",
-      statLabel: "Average ROI"
+      stat: "Clear",
+      statLabel: "roadmap to follow",
+      link: "/contact"
     }
   ];
 
-  const benefits = [
-    { icon: Zap, title: "Fast Implementation", description: "Get up and running in days, not months" },
-    { icon: Shield, title: "Enterprise Security", description: "Bank-level security for your data" },
-    { icon: Rocket, title: "Scalable Solutions", description: "Grow without limits as you expand" }
+  const realTalk = [
+    {
+      question: "Is AI going to replace my employees?",
+      answer: "Honestly? No. It handles the boring repetitive stuff so your team can do more valuable work. Your best people probably hate data entry anyway."
+    },
+    {
+      question: "I'm not technical - will I understand this?",
+      answer: "That's literally my job. I translate tech-speak into normal human words. If you can use a smartphone, you can use what I build."
+    },
+    {
+      question: "What if it doesn't work for my industry?",
+      answer: "I've worked with landscapers, composters, fleet managers, and everything in between. The principles are the same - saving time and reducing headaches."
+    }
   ];
 
   return (
     <div className="min-h-screen bg-background py-20 overflow-hidden">
-      <SEO 
-        title="AI Services - Better Systems AI"
-        description="Explore our AI automation services: custom solutions, AI assistants, efficiency assessments, and consulting. Save 90% on operations."
+      <SEO
+        title="How I Can Help - Rodo Alvarez | AI for Business Owners"
+        description="Tired of hearing about AI without understanding how it applies to YOUR business? Let's have an actual conversation about what's possible."
       />
-      
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="blob h-96 w-96 bg-secondary/20 top-20 -right-48"></div>
-        <div className="blob h-96 w-96 bg-accent/20 bottom-20 -left-48 animation-delay-2000"></div>
-      </div>
-      
-      <div className="container mx-auto px-4 max-w-6xl relative z-10">
-        {/* Header */}
+
+      <div className="container mx-auto px-4 max-w-5xl relative z-10">
+        {/* Header - Personal & Direct */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold mb-8 shadow-xl">
-            <Star className="h-5 w-5" />
-            AI Solutions That Work
-          </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-none">
-            Our
-            <span className="block text-gradient text-6xl md:text-7xl lg:text-8xl">Services</span>
+          <p className="text-primary font-medium mb-4">For business owners who want results, not buzzwords</p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+            Let me show you what
+            <span className="block text-gradient">AI can actually do</span>
           </h1>
-          <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto font-medium">
-            From consultation to custom development. <span className="text-primary font-bold">Find the right solution</span> for your business automation needs.
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Everyone's talking about AI. Most of it is noise.
+            I help business owners cut through the hype and find what actually works.
           </p>
         </div>
 
-        {/* Service Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
+        {/* Personal intro card */}
+        <div className="flex flex-col md:flex-row items-center gap-8 bg-white rounded-2xl p-8 shadow-lg border mb-16 max-w-3xl mx-auto">
+          <img
+            src="/Professional Headshot Rodolfo compressed.jpg"
+            alt="Rodo Alvarez"
+            className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
+          />
+          <div>
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              "I've spent years figuring out what works and what's just hype.
+              Now I help business owners like you skip the trial-and-error
+              and go straight to results."
+            </p>
+            <p className="text-primary font-semibold mt-3">— Rodo Alvarez</p>
+          </div>
+        </div>
+
+        {/* Service Cards - Simpler, More Personal */}
+        <div className="space-y-8 mb-20">
           {services.map((service, index) => (
-            <Button
+            <Card
               key={index}
-              variant={activeService === index ? "default" : "outline"}
-              onClick={() => setActiveService(index)}
-              className={`flex items-center gap-2 ${activeService === index ? 'shadow-xl' : ''}`}
+              className={`overflow-hidden transition-all duration-300 hover:shadow-xl ${index === 0 ? 'border-2 border-primary/30' : ''}`}
             >
-              <service.icon className="h-4 w-4" />
-              {service.title}
-            </Button>
+              <CardContent className="p-0">
+                <div className="grid md:grid-cols-3 gap-0">
+                  {/* Left side - Service info */}
+                  <div className="md:col-span-2 p-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${service.color}`}>
+                        <service.icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold">{service.title}</h3>
+                        <p className="text-muted-foreground">{service.subtitle}</p>
+                      </div>
+                      {service.badge && (
+                        <span className="ml-auto px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                          {service.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                      {service.description}
+                    </p>
+
+                    <ul className="space-y-3 mb-6">
+                      {service.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <Check className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="flex items-center gap-6">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Investment</p>
+                        <p className="text-xl font-bold text-primary">{service.pricing}</p>
+                      </div>
+                      <Button asChild className="ml-auto">
+                        <Link href={service.link}>
+                          {service.cta} <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Right side - Stat */}
+                  <div className={`hidden md:flex flex-col items-center justify-center p-8 bg-gradient-to-br ${service.color} text-white`}>
+                    <span className="text-5xl font-black">{service.stat}</span>
+                    <span className="text-sm text-center opacity-90 mt-2">{service.statLabel}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
-        {/* Active Service Detail */}
-        <Card className="mb-16 border-4 border-primary/20 hover:border-primary/40 shadow-3xl bg-white relative overflow-hidden transition-all duration-300">
-          {services[activeService].badge && (
-            <div className="absolute top-4 right-4 px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white text-xs font-black rounded-full shadow-lg z-10">
-              {services[activeService].badge}
-            </div>
-          )}
-          <div className={`h-3 bg-gradient-to-r ${services[activeService].color}`}></div>
-          <CardContent className="p-8 md:p-12">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <div className="flex items-center gap-6 mb-8">
-                  <div className={`p-5 rounded-2xl bg-gradient-to-br ${services[activeService].color} shadow-xl group-hover:scale-110 transition-transform duration-300`}>
-                    {React.createElement(services[activeService].icon, {
-                      className: "h-10 w-10 text-white"
-                    })}
-                  </div>
-                  <div>
-                    <h2 className="text-3xl sm:text-4xl font-black leading-tight">{services[activeService].title}</h2>
-                    <p className="text-lg font-bold text-primary">{services[activeService].subtitle}</p>
-                  </div>
-                </div>
-                
-                <p className="text-xl mb-8 leading-relaxed font-medium">{services[activeService].description}</p>
-                
-                <ul className="space-y-4 mb-10">
-                  {services[activeService].features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-4">
-                      <div className="mt-1">
-                        <div className="h-6 w-6 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-                          <Check className="h-4 w-4 text-white font-bold" />
-                        </div>
-                      </div>
-                      <span className="font-bold text-lg">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
-                  <div>
-                    <p className="text-4xl font-black text-gradient mb-2">
-                      {services[activeService].pricing}
-                    </p>
-                  </div>
-                  <Button asChild size="lg" className="bg-gradient-to-r from-primary to-secondary text-white font-black text-xl px-8 py-4 h-16 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all">
-                    <Link href={services[activeService].calendly ? "/contact" : "/contact"}>
-                      {services[activeService].cta} <ArrowRight className="ml-3 h-6 w-6" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="relative">
-                <div className={`absolute inset-0 bg-gradient-to-br ${services[activeService].color} opacity-20 rounded-3xl blur-xl`}></div>
-                <div className="relative bg-gradient-to-br from-white to-muted/30 backdrop-blur-sm rounded-3xl p-10 text-center border-4 border-white shadow-2xl">
-                  <div className={`text-7xl sm:text-8xl font-black text-gradient mb-6 leading-none`}>
-                    {services[activeService].stat}
-                  </div>
-                  <p className="text-xl sm:text-2xl font-black text-primary mb-6">{services[activeService].statLabel}</p>
-                  <div className="mt-8">
-                    <div className={`h-20 w-20 mx-auto rounded-full bg-gradient-to-r ${services[activeService].color} flex items-center justify-center shadow-xl`}>
-                      <TrendingUp className="h-10 w-10 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Real Talk / FAQ Section */}
+        <div className="mb-20">
+          <h2 className="text-3xl font-bold text-center mb-4">Real talk</h2>
+          <p className="text-center text-muted-foreground mb-10">Questions I get asked all the time</p>
 
-        {/* Benefits Section */}
-        <div className="mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black text-center mb-12">
-            Why <span className="text-gradient">Choose Us</span>
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="group border-0 bg-gradient-to-br from-white to-muted/20 hover:shadow-2xl hover-lift">
-                <CardContent className="p-6 text-center">
-                  <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <benefit.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">{benefit.title}</h3>
-                  <p className="text-muted-foreground">{benefit.description}</p>
-                </CardContent>
-              </Card>
+          <div className="space-y-6 max-w-3xl mx-auto">
+            {realTalk.map((item, index) => (
+              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border">
+                <p className="font-semibold text-lg mb-3 flex items-start gap-3">
+                  <MessageCircle className="h-5 w-5 text-primary mt-1 shrink-0" />
+                  {item.question}
+                </p>
+                <p className="text-muted-foreground pl-8">{item.answer}</p>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Process Section */}
-        <div className="bg-gradient-to-br from-muted/30 to-transparent rounded-3xl p-8 md:p-12 text-center">
-          <h2 className="text-3xl font-bold mb-8">
-            Simple Process, <span className="text-gradient-primary">Powerful Results</span>
-          </h2>
-          <div className="grid md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+        {/* Simple Process */}
+        <div className="bg-muted/30 rounded-2xl p-8 md:p-12 mb-20">
+          <h2 className="text-2xl font-bold text-center mb-8">Here's how it usually goes</h2>
+          <div className="grid md:grid-cols-4 gap-8 text-center">
             {[
-              { step: "1", title: "Discovery", desc: "We analyze your needs" },
-              { step: "2", title: "Design", desc: "Custom solution created" },
-              { step: "3", title: "Deploy", desc: "Quick implementation" },
-              { step: "4", title: "Optimize", desc: "Continuous improvement" }
-            ].map((item, index) => (
+              { num: "1", title: "We talk", desc: "You tell me what's frustrating you" },
+              { num: "2", title: "I dig in", desc: "I figure out where AI can actually help" },
+              { num: "3", title: "We build", desc: "Custom solution, not cookie-cutter" },
+              { num: "4", title: "You win", desc: "More time, less headaches" }
+            ].map((step, index) => (
               <div key={index} className="relative">
-                <div className="bg-gradient-to-br from-primary to-secondary text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-lg mx-auto mb-3">
-                  {item.step}
+                <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl mx-auto mb-4">
+                  {step.num}
                 </div>
-                <h3 className="font-semibold mb-1">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-                {index < 3 && (
-                  <ArrowRight className="hidden md:block absolute top-6 -right-3 h-4 w-4 text-primary/40" />
-                )}
+                <h3 className="font-semibold mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-16 text-center">
+        {/* Final CTA - Personal */}
+        <div className="text-center">
+          <Sparkles className="h-8 w-8 text-primary mx-auto mb-4" />
           <h2 className="text-3xl font-bold mb-4">
-            Ready to Get Started?
+            Curious if AI makes sense for you?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join hundreds of businesses already saving time and money with AI
+          <p className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto">
+            Let's have a real conversation. No pitch deck, no pressure - just an honest chat about what's possible for your business.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="btn-primary shadow-xl">
-              <Link href="/contact">
-                Start Your AI Journey <ArrowRight className="ml-2 h-5 w-5" />
+            <Button asChild size="lg" className="text-lg px-8">
+              <Link href="/book">
+                <Calendar className="mr-2 h-5 w-5" />
+                Book a Call
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/book">
-                Book Consultation <Calendar className="ml-2 h-5 w-5" />
+            <Button asChild variant="outline" size="lg" className="text-lg px-8">
+              <Link href="/contact">
+                Send me a message
               </Link>
             </Button>
           </div>

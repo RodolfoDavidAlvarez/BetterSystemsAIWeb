@@ -199,18 +199,22 @@ export default function HomePage() {
             </div>
             
             <div className="overflow-hidden mx-auto" ref={scrollRef}>
-              <div className={`flex gap-16 py-4 ${isScrolling ? 'animate-scroll-x' : ''}`}>
-                <div className="flex items-center gap-16 shrink-0">
-                  <img src="/partner-ssw.png" alt="SSW Partner" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
-                  <img src="/partner-aec.png" alt="AEC Partner" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
-                  <img src="/partner-azcc.png" alt="Arizona Composting Council" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
-                  <img src="/partner-hita.png" alt="HITA of Arizona" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+              <div className={`flex gap-12 py-4 ${isScrolling ? 'animate-scroll-x' : ''}`}>
+                <div className="flex items-center gap-12 shrink-0">
+                  <img src="/partner-desert-moon.png" alt="Desert Moon Lighting" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-desert-mist.png" alt="Desert Mist Arizona" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-agave.png" alt="Agave Fleet" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-ssw.png" alt="Soil Seed & Water" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-aec.png" alt="AEC" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-azcc.png" alt="Arizona Composting Council" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <div className="flex items-center gap-16 shrink-0">
-                  <img src="/partner-ssw.png" alt="SSW Partner" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
-                  <img src="/partner-aec.png" alt="AEC Partner" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
-                  <img src="/partner-azcc.png" alt="Arizona Composting Council" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
-                  <img src="/partner-hita.png" alt="HITA of Arizona" className="h-20 md:h-24 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                <div className="flex items-center gap-12 shrink-0">
+                  <img src="/partner-desert-moon.png" alt="Desert Moon Lighting" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-desert-mist.png" alt="Desert Mist Arizona" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-agave.png" alt="Agave Fleet" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-ssw.png" alt="Soil Seed & Water" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-aec.png" alt="AEC" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
+                  <img src="/partner-azcc.png" alt="Arizona Composting Council" className="h-14 md:h-16 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </div>
             </div>

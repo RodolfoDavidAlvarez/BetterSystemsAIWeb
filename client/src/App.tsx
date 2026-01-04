@@ -11,8 +11,10 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import LearnPage from "./pages/LearnPage";
 import ClientOnboardingPage from "./pages/ClientOnboardingPage";
+import OnboardPage from "./pages/OnboardPage";
 import PartnersPage from "./pages/PartnersPage";
 import SocialPage from "./pages/SocialPage";
+import BookingPage from "./pages/BookingPage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
 // Admin imports
@@ -29,6 +31,7 @@ import TicketsPage from "./pages/admin/TicketsPage";
 import ChangelogPage from "./pages/admin/ChangelogPage";
 import UpdatesPage from "./pages/admin/UpdatesPage";
 import EmailsPage from "./pages/admin/EmailsPage";
+import CampaignsPage from "./pages/admin/CampaignsPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 
@@ -49,7 +52,10 @@ function App() {
               <Route path="/contact" component={ContactPage} />
               <Route path="/partners" component={PartnersPage} />
               <Route path="/client-onboarding" component={ClientOnboardingPage} />
+              <Route path="/onboard" component={OnboardPage} />
+              <Route path="/start" component={OnboardPage} />
               <Route path="/rodolfo" component={SocialPage} />
+              <Route path="/book" component={BookingPage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />
@@ -157,6 +163,13 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <EmailsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/admin/campaigns">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <CampaignsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

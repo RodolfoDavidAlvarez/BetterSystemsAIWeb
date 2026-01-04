@@ -129,6 +129,295 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // New Client Onboarding endpoint (sends notification to ralvarez@soilseedandwater.com for testing)
+  app.post("/api/onboard", async (req, res) => {
+    console.log("New onboarding API endpoint hit");
+    try {
+      console.log("Processing onboarding data:", req.body);
+
+      const onboardingData = {
+        ...req.body,
+        formType: "New Client Onboarding",
+        submittedAt: new Date().toISOString(),
+      };
+
+      // Save to Airtable
+      const airtableResult = await saveToAirtable(onboardingData);
+      if (!airtableResult.success) {
+        console.error("Airtable save failed:", airtableResult.error);
+      }
+
+      // Send customer confirmation email if primary contact email provided
+      if (onboardingData.primaryContactEmail) {
+        const customerEmailResult = await sendCustomerEmail({
+          ...onboardingData,
+          email: onboardingData.primaryContactEmail,
+          name: onboardingData.primaryContactName || onboardingData.businessName,
+          formIdentifier: "New Client Onboarding",
+        });
+        if (!customerEmailResult.success) {
+          console.error("Customer email failed:", customerEmailResult.error);
+        }
+      }
+
+      // Send admin notification to ralvarez@soilseedandwater.com for testing
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const adminEmailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px;">New Client Onboarding</h1>
+            <p style="color: #94a3b8; margin-top: 8px;">A new client has completed the onboarding form</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Business Information</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Company:</td><td style="color: #fff; padding: 8px 0;"><strong>${onboardingData.businessName || "Not provided"}</strong></td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Legal Name:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.legalBusinessName || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Industry:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.industry || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Company Size:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.companySize || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Website:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.website || "Not provided"}</td></tr>
+            </table>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Primary Contact</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Name:</td><td style="color: #fff; padding: 8px 0;"><strong>${onboardingData.primaryContactName || "Not provided"}</strong></td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Title:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.primaryContactTitle || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Email:</td><td style="color: #fff; padding: 8px 0;"><a href="mailto:${onboardingData.primaryContactEmail}" style="color: #60a5fa;">${onboardingData.primaryContactEmail || "Not provided"}</a></td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Phone:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.primaryContactPhone || "Not provided"}</td></tr>
+            </table>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Team Contacts</h2>
+            <div style="margin-bottom: 16px;">
+              <h3 style="color: #a5b4fc; margin: 0 0 8px 0; font-size: 14px;">Operations</h3>
+              <p style="margin: 4px 0; color: #fff;">${onboardingData.operationsContactName || "Not provided"} ${onboardingData.operationsContactTitle ? `(${onboardingData.operationsContactTitle})` : ""}</p>
+              <p style="margin: 4px 0; color: #94a3b8;">${onboardingData.operationsContactEmail || ""} ${onboardingData.operationsContactPhone ? `| ${onboardingData.operationsContactPhone}` : ""}</p>
+            </div>
+            <div>
+              <h3 style="color: #a5b4fc; margin: 0 0 8px 0; font-size: 14px;">Billing</h3>
+              <p style="margin: 4px 0; color: #fff;">${onboardingData.billingContactName || "Not provided"} ${onboardingData.billingContactTitle ? `(${onboardingData.billingContactTitle})` : ""}</p>
+              <p style="margin: 4px 0; color: #94a3b8;">${onboardingData.billingContactEmail || ""} ${onboardingData.billingContactPhone ? `| ${onboardingData.billingContactPhone}` : ""}</p>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Project Scope</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Budget:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.budgetRange || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Timeline:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.timeline || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Referral Source:</td><td style="color: #fff; padding: 8px 0;">${onboardingData.referralSource || "Not provided"}</td></tr>
+            </table>
+            ${onboardingData.painPoints ? `<div style="margin-top: 16px;"><h3 style="color: #a5b4fc; margin: 0 0 8px 0; font-size: 14px;">Pain Points</h3><p style="color: #fff; margin: 0; white-space: pre-wrap;">${onboardingData.painPoints}</p></div>` : ""}
+            ${onboardingData.currentTools ? `<div style="margin-top: 16px;"><h3 style="color: #a5b4fc; margin: 0 0 8px 0; font-size: 14px;">Current Tools</h3><p style="color: #fff; margin: 0;">${onboardingData.currentTools}</p></div>` : ""}
+            ${onboardingData.additionalNotes ? `<div style="margin-top: 16px;"><h3 style="color: #a5b4fc; margin: 0 0 8px 0; font-size: 14px;">Additional Notes</h3><p style="color: #fff; margin: 0; white-space: pre-wrap;">${onboardingData.additionalNotes}</p></div>` : ""}
+          </div>
+
+          <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">
+            Submitted at: ${onboardingData.submittedAt}
+          </p>
+        </div>
+      `;
+
+      try {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          to: "ralvarez@soilseedandwater.com",
+          subject: `🚀 New Client Onboarding: ${onboardingData.businessName || "Unknown Business"}`,
+          html: adminEmailHtml,
+        });
+        console.log("Admin notification sent to ralvarez@soilseedandwater.com");
+      } catch (emailError) {
+        console.error("Failed to send admin notification:", emailError);
+      }
+
+      res.json({
+        success: true,
+        message: "Onboarding information received successfully.",
+        recordId: airtableResult.recordId,
+      });
+    } catch (error) {
+      console.error("Onboarding API error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process onboarding information. Please try again.",
+      });
+    }
+  });
+
+  // Discovery Call Booking endpoint
+  app.post("/api/book", async (req, res) => {
+    console.log("Booking API endpoint hit");
+    try {
+      console.log("Processing booking:", req.body);
+
+      const { date, time, name, email, company, interest, notes } = req.body;
+
+      if (!date || !time || !name || !email) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: date, time, name, email",
+        });
+      }
+
+      const bookingData = {
+        date,
+        time,
+        name,
+        email,
+        company: company || "Not provided",
+        interest: interest || "Not specified",
+        notes: notes || "No notes",
+        formType: "Discovery Call Booking",
+        submittedAt: new Date().toISOString(),
+      };
+
+      // Save to Airtable
+      const airtableResult = await saveToAirtable(bookingData);
+      if (!airtableResult.success) {
+        console.error("Airtable save failed:", airtableResult.error);
+      }
+
+      // Format date for display
+      const bookingDate = new Date(date);
+      const formattedDate = bookingDate.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+      // Convert time to display format
+      const [hour, minute] = time.split(":");
+      const hourNum = parseInt(hour);
+      const displayHour = hourNum > 12 ? hourNum - 12 : hourNum;
+      const ampm = hourNum >= 12 ? "PM" : "AM";
+      const displayTime = `${displayHour}:${minute} ${ampm}`;
+
+      // Send confirmation email to customer
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const customerEmailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px;">Your Call is Booked!</h1>
+            <p style="color: #94a3b8; margin-top: 8px;">Discovery Call with Better Systems AI</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px; text-align: center;">
+            <p style="color: #60a5fa; font-size: 14px; margin: 0 0 8px 0;">SCHEDULED FOR</p>
+            <p style="color: #fff; font-size: 24px; font-weight: bold; margin: 0;">${formattedDate}</p>
+            <p style="color: #fff; font-size: 20px; margin: 8px 0 0 0;">${displayTime} (Arizona Time)</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">What to Expect</h2>
+            <ul style="color: #fff; margin: 0; padding-left: 20px; line-height: 1.8;">
+              <li>15-minute discovery call</li>
+              <li>We'll discuss your business automation needs</li>
+              <li>No sales pressure - just exploring if we're a good fit</li>
+              <li>You'll receive a follow-up with recommendations</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(96, 165, 250, 0.1); border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(96, 165, 250, 0.3);">
+            <p style="color: #60a5fa; margin: 0; font-size: 14px;">
+              <strong>Note:</strong> You'll receive a calendar invite with the meeting link shortly before your call.
+            </p>
+          </div>
+
+          <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">
+            Better Systems AI | bettersystems.ai
+          </p>
+        </div>
+      `;
+
+      try {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          to: email,
+          subject: `Discovery Call Confirmed - ${formattedDate} at ${displayTime}`,
+          html: customerEmailHtml,
+        });
+        console.log("Customer confirmation email sent to:", email);
+      } catch (emailError) {
+        console.error("Failed to send customer confirmation:", emailError);
+      }
+
+      // Send notification to admin (developer@bettersystems.ai)
+      const adminEmailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px;">New Discovery Call Booked!</h1>
+            <p style="color: #94a3b8; margin-top: 8px;">itsRodo Alvarez Personal Brand Lead</p>
+          </div>
+
+          <div style="background: rgba(34, 197, 94, 0.1); border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(34, 197, 94, 0.3); text-align: center;">
+            <p style="color: #22c55e; font-size: 24px; font-weight: bold; margin: 0;">${formattedDate}</p>
+            <p style="color: #22c55e; font-size: 20px; margin: 8px 0 0 0;">${displayTime}</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Contact Details</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="color: #94a3b8; padding: 8px 0; width: 120px;">Name:</td><td style="color: #fff; padding: 8px 0;"><strong>${name}</strong></td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Email:</td><td style="color: #fff; padding: 8px 0;"><a href="mailto:${email}" style="color: #60a5fa;">${email}</a></td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Company:</td><td style="color: #fff; padding: 8px 0;">${company || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Interest:</td><td style="color: #fff; padding: 8px 0;">${interest || "Not specified"}</td></tr>
+            </table>
+          </div>
+
+          ${notes ? `
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Notes from Prospect</h2>
+            <p style="color: #fff; margin: 0; white-space: pre-wrap;">${notes}</p>
+          </div>
+          ` : ""}
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; text-align: center;">
+            <p style="color: #94a3b8; margin: 0; font-size: 14px;">
+              Remember to send a calendar invite with meeting link!
+            </p>
+          </div>
+
+          <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">
+            Submitted at: ${bookingData.submittedAt}
+          </p>
+        </div>
+      `;
+
+      try {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+          to: "developer@bettersystems.ai",
+          subject: `[BOOKING] ${name} - ${formattedDate} at ${displayTime}`,
+          html: adminEmailHtml,
+        });
+        console.log("Admin notification sent to developer@bettersystems.ai");
+      } catch (emailError) {
+        console.error("Failed to send admin notification:", emailError);
+      }
+
+      res.json({
+        success: true,
+        message: "Your discovery call has been booked successfully.",
+        recordId: airtableResult.recordId,
+      });
+    } catch (error) {
+      console.error("Booking API error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process your booking. Please try again.",
+      });
+    }
+  });
+
   // Client Onboarding endpoint
   app.post("/api/client-onboarding", async (req, res) => {
     console.log("Client onboarding API endpoint hit");

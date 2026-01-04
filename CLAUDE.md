@@ -102,8 +102,30 @@ Browser → localhost:5173 (Vite)
 - **Multi-page Business Website**: Services, about, contact, client onboarding
 - **Theme System**: Dark/light mode with user preference detection
 - **Form Processing**: Contact forms and client onboarding with email notifications
+- **Discovery Call Booking**: Custom Calendly-like booking system at `/book`
 - **Authentication**: JWT-based auth system (currently minimal usage)
 - **Responsive Design**: Mobile-first with Tailwind responsive classes
+
+### itsRodo Alvarez Personal Brand Integration
+
+This website serves as the funnel destination for the itsRodo Alvarez personal brand.
+
+**Related folder:** `../Personal Branding - itsRodo Alvarez/`
+
+| Route | Purpose | Notifications |
+|-------|---------|---------------|
+| `/book` | Discovery call booking (15-min slots) | developer@bettersystems.ai |
+| `/contact` | General inquiries | admin notification |
+| `/onboard` | Client onboarding form | admin notification |
+
+**Booking System (`/book`):**
+- Custom-built, not Calendly
+- 3-day minimum lead time
+- Weekdays only, 9 AM - 5 PM slots
+- 15-minute intervals
+- Stores to Airtable, emails both customer and admin
+- Source: `client/src/pages/BookingPage.tsx`
+- API: `/api/book` in `server/routes.ts`
 
 ### Frontend Architecture
 

@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { Resend } from 'resend';
 import Airtable from 'airtable';
+import OpenAI from 'openai';
 
 const app = express();
 
@@ -28,6 +29,41 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     env: 'production'
   });
+});
+
+// ElevenLabs signed URL endpoint
+app.get('/api/elevenlabs/signed-url', async (req, res) => {
+  try {
+    const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+    const AGENT_ID = 'agent_7101kebbmvdcfbj8txqzhrmghh1e';
+
+    if (!ELEVENLABS_API_KEY) {
+      console.error('[ElevenLabs] API key not configured');
+      return res.status(500).json({ error: 'ElevenLabs API key not configured' });
+    }
+
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${AGENT_ID}`,
+      {
+        method: 'GET',
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[ElevenLabs] API error:', response.status, errorText);
+      return res.status(response.status).json({ error: 'Failed to get signed URL from ElevenLabs' });
+    }
+
+    const data = await response.json();
+    res.json({ signedUrl: data.signed_url });
+  } catch (error) {
+    console.error('[ElevenLabs] Error getting signed URL:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Contact form endpoint
@@ -324,6 +360,322 @@ app.post('/api/onboard', async (req, res) => {
       message: 'Failed to process onboarding information. Please try again.',
       details: error.message
     });
+  }
+});
+
+// ==================== AI LEAD ANALYSIS ====================
+
+const BUSINESS_CONTEXT = `
+Better Systems AI is a Business Transformation Consultancy that builds technology solutions.
+
+SERVICES & PRICING:
+1. Templated Platforms (subscription): $3,000-$5,000/month
+   - Fleet Management System: Vehicle tracking, repair requests, service records
+   - CRM Proposal System: Pipeline, quoting, invoicing, payment collection
+
+2. Custom Builds: $5,000 to six figures
+   - Custom software automating repetitive work
+   - AI assistants for websites/phones
+   - Full workflow automation
+
+3. Enterprise Transformation: $20,000-$100,000+
+   - Full departmental overhaul
+   - Admin operations, marketing, sales transformation
+
+IDEAL CUSTOMER:
+- Revenue: $10K-$100K+/month
+- Running on duct tape (spreadsheets, disconnected tools)
+- Teams wasting hours on repetitive work
+- Losing leads due to slow follow-up
+- Data scattered across multiple apps
+
+QUALIFICATION CRITERIA:
+- HOT: Has budget, urgent need, decision maker, clear timeline
+- WARM: Shows interest, some pain points, may need nurturing
+- COLD: Just browsing, no clear need, unclear budget
+- NOT_QUALIFIED: Wrong fit, no budget, outside our services
+`;
+
+async function analyzeVoiceAgentLead(transcript) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('[Lead Analysis] OpenAI API key not configured');
+    return getDefaultAnalysis(transcript);
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert sales analyst for Better Systems AI. Analyze voice agent conversations and extract actionable insights.
+
+${BUSINESS_CONTEXT}
+
+Respond with valid JSON only, no markdown. Use this exact structure:
+{
+  "summary": "2-3 sentence executive summary of the conversation",
+  "contactInfo": {
+    "name": "extracted name or null",
+    "email": "extracted email or null",
+    "phone": "extracted phone or null",
+    "company": "extracted company name or null"
+  },
+  "qualification": {
+    "score": "hot|warm|cold|not_qualified",
+    "reasoning": "Why this score was given",
+    "estimatedRevenue": "Potential deal size if mentioned or inferable, or null",
+    "timeline": "When they want to start if mentioned, or null"
+  },
+  "painPoints": ["list", "of", "pain", "points"],
+  "interestedServices": ["which", "services", "they", "mentioned"],
+  "recommendedFollowUp": "Specific next action Rodo should take",
+  "sentiment": "positive|neutral|negative"
+}`
+        },
+        {
+          role: 'user',
+          content: `Analyze this voice agent conversation transcript:\n\n${transcript}`
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 1000,
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return getDefaultAnalysis(transcript);
+    }
+
+    return JSON.parse(content);
+  } catch (error) {
+    console.error('[Lead Analysis] Error:', error.message);
+    return getDefaultAnalysis(transcript);
+  }
+}
+
+function getDefaultAnalysis(transcript) {
+  const emailMatch = transcript.match(/[\w.-]+@[\w.-]+\.\w+/);
+  const phoneMatch = transcript.match(/\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+
+  return {
+    summary: 'Conversation with website visitor. AI analysis unavailable - review transcript manually.',
+    contactInfo: {
+      name: null,
+      email: emailMatch ? emailMatch[0] : null,
+      phone: phoneMatch ? phoneMatch[0] : null,
+      company: null,
+    },
+    qualification: {
+      score: 'warm',
+      reasoning: 'Unable to analyze - defaulting to warm for manual review',
+      estimatedRevenue: null,
+      timeline: null,
+    },
+    painPoints: [],
+    interestedServices: [],
+    recommendedFollowUp: 'Review transcript and reach out if contact info was provided',
+    sentiment: 'neutral',
+  };
+}
+
+function formatLeadEmailHtml(analysis, transcript, conversationId, duration) {
+  const scoreColors = { hot: '#dc2626', warm: '#f59e0b', cold: '#3b82f6', not_qualified: '#6b7280' };
+  const scoreEmoji = { hot: '🔥', warm: '⚡', cold: '❄️', not_qualified: '⏸️' };
+  const sentimentEmoji = { positive: '😊', neutral: '😐', negative: '😟' };
+
+  const scoreColor = scoreColors[analysis.qualification.score] || '#6b7280';
+  const emoji = scoreEmoji[analysis.qualification.score] || '📞';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; }
+    .container { max-width: 650px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, ${scoreColor} 0%, ${scoreColor}dd 100%); color: white; padding: 25px; border-radius: 12px 12px 0 0; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .header .score { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+    .content { background: #ffffff; border: 1px solid #e5e7eb; border-top: none; padding: 25px; border-radius: 0 0 12px 12px; }
+    .summary-box { background: #f8fafc; border-left: 4px solid ${scoreColor}; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0; }
+    .section { margin-bottom: 25px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .info-item { background: #f9fafb; padding: 12px; border-radius: 8px; }
+    .info-label { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
+    .info-value { font-weight: 500; color: #111827; }
+    .tag { display: inline-block; background: #e5e7eb; color: #374151; padding: 4px 10px; border-radius: 999px; font-size: 13px; margin: 2px; }
+    .tag.service { background: #dbeafe; color: #1d4ed8; }
+    .tag.pain { background: #fef3c7; color: #92400e; }
+    .follow-up { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 15px; border-radius: 8px; }
+    .follow-up-title { font-weight: 600; color: #065f46; margin-bottom: 5px; }
+    .transcript { background: #f9fafb; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 13px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+    .meta { font-size: 12px; color: #9ca3af; margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>${emoji} Voice Agent Lead - ${analysis.qualification.score.toUpperCase()}</h1>
+      <div class="score">Sentiment: ${sentimentEmoji[analysis.sentiment]} ${analysis.sentiment} | Duration: ${Math.round(duration / 60)} min</div>
+    </div>
+
+    <div class="content">
+      <div class="summary-box">
+        <strong>Summary:</strong> ${analysis.summary}
+      </div>
+
+      <div class="section">
+        <div class="section-title">Contact Information</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Name</div>
+            <div class="info-value">${analysis.contactInfo.name || 'Not provided'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">${analysis.contactInfo.email || 'Not provided'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Phone</div>
+            <div class="info-value">${analysis.contactInfo.phone || 'Not provided'}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Company</div>
+            <div class="info-value">${analysis.contactInfo.company || 'Not provided'}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Lead Qualification</div>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">Score Reasoning</div>
+            <div class="info-value">${analysis.qualification.reasoning}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Est. Deal Size</div>
+            <div class="info-value">${analysis.qualification.estimatedRevenue || 'Unknown'}</div>
+          </div>
+        </div>
+        ${analysis.qualification.timeline ? `<div class="info-item" style="margin-top: 10px;"><div class="info-label">Timeline</div><div class="info-value">${analysis.qualification.timeline}</div></div>` : ''}
+      </div>
+
+      ${analysis.painPoints.length > 0 ? `
+      <div class="section">
+        <div class="section-title">Pain Points Identified</div>
+        ${analysis.painPoints.map(p => `<span class="tag pain">${p}</span>`).join('')}
+      </div>
+      ` : ''}
+
+      ${analysis.interestedServices.length > 0 ? `
+      <div class="section">
+        <div class="section-title">Services Interested In</div>
+        ${analysis.interestedServices.map(s => `<span class="tag service">${s}</span>`).join('')}
+      </div>
+      ` : ''}
+
+      <div class="section">
+        <div class="follow-up">
+          <div class="follow-up-title">Recommended Follow-Up</div>
+          ${analysis.recommendedFollowUp}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Full Transcript</div>
+        <div class="transcript">${transcript}</div>
+      </div>
+
+      <div class="meta">
+        Conversation ID: ${conversationId}<br>
+        Processed: ${new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' })} (Arizona Time)
+      </div>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+}
+
+// ElevenLabs Voice Agent Webhook - Post-call notifications with AI analysis
+app.post('/api/webhooks/elevenlabs', async (req, res) => {
+  console.log('[ElevenLabs Webhook] Received post-call data');
+  console.log('[ElevenLabs Webhook] Payload keys:', Object.keys(req.body || {}));
+
+  try {
+    const payload = req.body;
+    console.log('[ElevenLabs Webhook] Full payload:', JSON.stringify(payload).slice(0, 2000));
+
+    // Extract conversation data - ElevenLabs format
+    const data = payload.data || payload;
+    const conversationId = data.conversation_id || data.id || payload.conversation_id || 'unknown';
+
+    // ElevenLabs transcript format: array of {role, message} or {role, content}
+    const transcript = data.transcript || data.messages || payload.transcript || [];
+    const duration = data.call_duration_secs || data.duration || payload.duration || 0;
+
+    // Format transcript for analysis
+    let transcriptText = '';
+    if (Array.isArray(transcript)) {
+      transcriptText = transcript.map((msg) => {
+        const role = msg.role === 'agent' ? 'Aria' : 'Visitor';
+        const content = msg.message || msg.content || msg.text || '';
+        return `${role}: ${content}`;
+      }).join('\n\n');
+    } else if (typeof transcript === 'string') {
+      transcriptText = transcript;
+    }
+
+    console.log('[ElevenLabs Webhook] Transcript length:', transcriptText.length);
+    console.log('[ElevenLabs Webhook] Transcript preview:', transcriptText.slice(0, 500));
+
+    // Skip if no meaningful transcript
+    if (!transcriptText || transcriptText.trim().length < 20) {
+      console.log('[ElevenLabs Webhook] Skipping - no meaningful transcript');
+      return res.json({ success: true, skipped: true, reason: 'no_transcript' });
+    }
+
+    // Analyze the conversation with AI
+    console.log('[ElevenLabs Webhook] Analyzing conversation with AI...');
+    const analysis = await analyzeVoiceAgentLead(transcriptText);
+    console.log(`[ElevenLabs Webhook] Lead score: ${analysis.qualification.score}`);
+
+    // Format the email HTML with AI insights
+    const emailHtml = formatLeadEmailHtml(analysis, transcriptText, conversationId, duration);
+
+    // Send to Rodo's personal email with AI-powered subject line
+    const scoreEmoji = { hot: '🔥', warm: '⚡', cold: '❄️', not_qualified: '⏸️' };
+    const emoji = scoreEmoji[analysis.qualification.score] || '📞';
+
+    const subjectParts = [
+      emoji,
+      analysis.qualification.score.toUpperCase(),
+      analysis.contactInfo.name ? `- ${analysis.contactInfo.name}` : '',
+      analysis.contactInfo.company ? `(${analysis.contactInfo.company})` : '',
+      '- Voice Agent Lead'
+    ].filter(Boolean);
+
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'Better Systems AI <noreply@bettersystemsai.com>',
+      to: 'rodolfo@bettersystems.ai',
+      subject: subjectParts.join(' '),
+      html: emailHtml,
+    });
+
+    console.log(`[ElevenLabs Webhook] AI-enhanced notification sent for conversation ${conversationId}`);
+    res.json({
+      success: true,
+      conversationId,
+      leadScore: analysis.qualification.score,
+      contactExtracted: !!(analysis.contactInfo.email || analysis.contactInfo.phone)
+    });
+  } catch (error) {
+    console.error('[ElevenLabs Webhook] Error:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 

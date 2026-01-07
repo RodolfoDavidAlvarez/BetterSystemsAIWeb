@@ -4,6 +4,8 @@ import { login, register, getCurrentUser } from "./controllers/auth";
 import { authenticate, isAdmin } from "./middleware/auth";
 import { sendCustomerEmail, sendAdminNotification } from "./services/email";
 import { saveToAirtable } from "./services/airtable";
+import { analyzeVoiceAgentLead, formatLeadEmailHtml } from "./services/leadAnalysis";
+import { Resend } from "resend";
 import { db } from "../db/index";
 import { bookings } from "../db/schema";
 import { sql } from "drizzle-orm";
@@ -362,7 +364,7 @@ export function registerRoutes(app: Express) {
 
       try {
         await resend.emails.send({
-          from: "Better Systems AI <developer@bettersystems.ai>",
+          from: "Better Systems AI <info@bettersystems.ai>",
           to: email,
           subject: `Discovery Call Confirmed - ${formattedDate} at ${displayTime}`,
           html: customerEmailHtml,
@@ -372,7 +374,7 @@ export function registerRoutes(app: Express) {
         console.error("Failed to send customer confirmation:", emailError);
       }
 
-      // Send notification to admin (developer@bettersystems.ai)
+      // Send notification to admin
       const adminEmailHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
           <div style="text-align: center; margin-bottom: 30px;">
@@ -416,7 +418,7 @@ export function registerRoutes(app: Express) {
 
       try {
         await resend.emails.send({
-          from: "Better Systems AI <developer@bettersystems.ai>",
+          from: "Better Systems AI <info@bettersystems.ai>",
           to: "rodolfo@bettersystems.ai",
           subject: `[BOOKING] ${name} - ${formattedDate} at ${displayTime}`,
           html: adminEmailHtml,
@@ -707,43 +709,121 @@ export function registerRoutes(app: Express) {
   // Resend Webhook (no auth required - webhook signature verification should be added)
   app.post("/api/webhooks/resend", handleResendWebhook);
 
-  // ElevenLabs Voice Agent Webhook - Post-call notifications
+  // ==================== ELEVENLABS VOICE AI ROUTES ====================
+
+  // Get signed URL for ElevenLabs Conversational AI
+  app.get("/api/elevenlabs/signed-url", async (req, res) => {
+    const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+    const AGENT_ID = "agent_7101kebbmvdcfbj8txqzhrmghh1e"; // Better Systems AI Receptionist - Aria
+
+    if (!ELEVENLABS_API_KEY) {
+      console.error("[ElevenLabs] API key not configured");
+      return res.status(500).json({ error: "ElevenLabs API key not configured" });
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${AGENT_ID}`,
+        {
+          method: "GET",
+          headers: {
+            "xi-api-key": ELEVENLABS_API_KEY,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[ElevenLabs] Failed to get signed URL:", errorText);
+        return res.status(response.status).json({ error: "Failed to get signed URL" });
+      }
+
+      const data = await response.json();
+      console.log("[ElevenLabs] Generated signed URL for conversation");
+      res.json({ signedUrl: data.signed_url });
+    } catch (error: any) {
+      console.error("[ElevenLabs] Error getting signed URL:", error.message);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ElevenLabs Voice Agent Webhook - Post-call notifications with AI analysis
   app.post("/api/webhooks/elevenlabs", async (req, res) => {
     console.log("[ElevenLabs Webhook] Received post-call data");
+    console.log("[ElevenLabs Webhook] Payload keys:", Object.keys(req.body || {}));
+
     try {
       const payload = req.body;
 
-      // Extract conversation data
-      const conversationId = payload.conversation_id || payload.id || "unknown";
-      const transcript = payload.transcript || payload.messages || [];
-      const duration = payload.duration || payload.call_duration || 0;
-      const agentId = payload.agent_id || "agent_4601keazjk9megq92qt2kw0pffrf";
+      // Log full payload for debugging (first 2000 chars)
+      console.log("[ElevenLabs Webhook] Full payload:", JSON.stringify(payload).slice(0, 2000));
 
-      // Format transcript for email
+      // ElevenLabs sends data in different formats depending on event type
+      // Handle the transcript event format
+      const data = payload.data || payload;
+
+      // Extract conversation data - ElevenLabs format
+      const conversationId = data.conversation_id || data.id || payload.conversation_id || "unknown";
+
+      // ElevenLabs transcript format: array of {role, message} or {role, content}
+      const transcript = data.transcript || data.messages || payload.transcript || [];
+      const duration = data.call_duration_secs || data.duration || payload.duration || 0;
+
+      // Format transcript for analysis
       let transcriptText = "";
       if (Array.isArray(transcript)) {
         transcriptText = transcript.map((msg: any) => {
-          const role = msg.role === "agent" ? "Alex" : "Visitor";
-          return `${role}: ${msg.content || msg.text || msg.message || ""}`;
+          const role = msg.role === "agent" ? "Aria" : "Visitor";
+          const content = msg.message || msg.content || msg.text || "";
+          return `${role}: ${content}`;
         }).join("\n\n");
       } else if (typeof transcript === "string") {
         transcriptText = transcript;
       }
 
-      // Send admin notification email
-      await sendAdminNotification({
-        subject: `Voice Agent Call - ${new Date().toLocaleString()}`,
-        formType: "ElevenLabs Voice Agent",
-        formData: {
-          conversationId,
-          duration: `${Math.round(duration / 60)} minutes`,
-          timestamp: new Date().toISOString(),
-          transcript: transcriptText || "No transcript available",
-        },
+      console.log("[ElevenLabs Webhook] Transcript length:", transcriptText.length);
+      console.log("[ElevenLabs Webhook] Transcript preview:", transcriptText.slice(0, 500));
+
+      // Skip if no meaningful transcript
+      if (!transcriptText || transcriptText.trim().length < 20) {
+        console.log("[ElevenLabs Webhook] Skipping - no meaningful transcript");
+        return res.json({ success: true, skipped: true, reason: "no_transcript" });
+      }
+
+      // Analyze the conversation with AI
+      console.log("[ElevenLabs Webhook] Analyzing conversation with AI...");
+      const analysis = await analyzeVoiceAgentLead(transcriptText);
+      console.log(`[ElevenLabs Webhook] Lead score: ${analysis.qualification.score}`);
+
+      // Format the email HTML with AI insights
+      const emailHtml = formatLeadEmailHtml(analysis, transcriptText, conversationId, duration);
+
+      // Send to Rodo's personal email with AI-powered subject line
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const scoreEmoji: Record<string, string> = { hot: "🔥", warm: "⚡", cold: "❄️", not_qualified: "⏸️" };
+      const emoji = scoreEmoji[analysis.qualification.score] || "📞";
+
+      const subjectParts = [
+        `${emoji} [${analysis.qualification.score.toUpperCase()}]`,
+        analysis.contactInfo.name || "Website Visitor",
+        analysis.contactInfo.company ? `@ ${analysis.contactInfo.company}` : "",
+        "- Voice Agent Lead"
+      ].filter(Boolean);
+
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
+        to: "rodolfo@bettersystems.ai",
+        subject: subjectParts.join(" "),
+        html: emailHtml,
       });
 
-      console.log(`[ElevenLabs Webhook] Notification sent for conversation ${conversationId}`);
-      res.json({ success: true, conversationId });
+      console.log(`[ElevenLabs Webhook] AI-enhanced notification sent for conversation ${conversationId}`);
+      res.json({
+        success: true,
+        conversationId,
+        leadScore: analysis.qualification.score,
+        contactExtracted: !!(analysis.contactInfo.email || analysis.contactInfo.phone)
+      });
     } catch (error: any) {
       console.error("[ElevenLabs Webhook] Error:", error.message);
       res.status(500).json({ error: error.message });

@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import RootLayout from "./components/layout/RootLayout";
+import VoiceWidget from "./components/VoiceWidget";
 import HomePage from "./pages/HomePage";
 import ServicesPage from "./pages/ServicesPage";
 import AboutPage from "./pages/AboutPage";
@@ -188,6 +189,7 @@ function App() {
               </Route>
             </Switch>
             <Toaster />
+            <VoiceWidget />
           </RootLayout>
         </Router>
       </QueryClientProvider>

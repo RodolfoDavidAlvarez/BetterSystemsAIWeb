@@ -1,7 +1,7 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
-  "installCommand": "npm install",
+  "installCommand": "npm install && cd client && npm install",
   "functions": {
     "api/**/*.js": {
       "memory": 1024,

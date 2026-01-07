@@ -707,6 +707,49 @@ export function registerRoutes(app: Express) {
   // Resend Webhook (no auth required - webhook signature verification should be added)
   app.post("/api/webhooks/resend", handleResendWebhook);
 
+  // ElevenLabs Voice Agent Webhook - Post-call notifications
+  app.post("/api/webhooks/elevenlabs", async (req, res) => {
+    console.log("[ElevenLabs Webhook] Received post-call data");
+    try {
+      const payload = req.body;
+
+      // Extract conversation data
+      const conversationId = payload.conversation_id || payload.id || "unknown";
+      const transcript = payload.transcript || payload.messages || [];
+      const duration = payload.duration || payload.call_duration || 0;
+      const agentId = payload.agent_id || "agent_4601keazjk9megq92qt2kw0pffrf";
+
+      // Format transcript for email
+      let transcriptText = "";
+      if (Array.isArray(transcript)) {
+        transcriptText = transcript.map((msg: any) => {
+          const role = msg.role === "agent" ? "Alex" : "Visitor";
+          return `${role}: ${msg.content || msg.text || msg.message || ""}`;
+        }).join("\n\n");
+      } else if (typeof transcript === "string") {
+        transcriptText = transcript;
+      }
+
+      // Send admin notification email
+      await sendAdminNotification({
+        subject: `Voice Agent Call - ${new Date().toLocaleString()}`,
+        formType: "ElevenLabs Voice Agent",
+        formData: {
+          conversationId,
+          duration: `${Math.round(duration / 60)} minutes`,
+          timestamp: new Date().toISOString(),
+          transcript: transcriptText || "No transcript available",
+        },
+      });
+
+      console.log(`[ElevenLabs Webhook] Notification sent for conversation ${conversationId}`);
+      res.json({ success: true, conversationId });
+    } catch (error: any) {
+      console.error("[ElevenLabs Webhook] Error:", error.message);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Stripe Webhook (no auth required - Stripe signature verification instead)
   app.post("/api/webhooks/stripe", async (req, res) => {
     const signature = req.headers["stripe-signature"];

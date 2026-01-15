@@ -90,51 +90,42 @@ interface EmailLog {
   sentAt: string | null;
 }
 
-// Clean, professional color palette with proper contrast
-const labelConfig: Record<string, { color: string; bgColor: string; borderColor: string; icon: typeof User; label: string }> = {
+// Clean minimal color palette
+const labelConfig: Record<string, { color: string; icon: typeof User; label: string }> = {
   client: {
-    color: 'text-emerald-900 dark:text-emerald-300',
-    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
-    borderColor: 'border-emerald-300 dark:border-emerald-700',
+    color: 'text-emerald-600 dark:text-emerald-400',
     icon: UserCheck,
     label: 'Client'
   },
   contact: {
-    color: 'text-slate-700 dark:text-slate-200',
-    bgColor: 'bg-slate-100 dark:bg-slate-800',
-    borderColor: 'border-slate-300 dark:border-slate-600',
+    color: 'text-slate-500 dark:text-slate-400',
     icon: User,
     label: 'Contact'
   },
   vendor: {
-    color: 'text-blue-900 dark:text-blue-300',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-    borderColor: 'border-blue-300 dark:border-blue-700',
+    color: 'text-indigo-600 dark:text-indigo-400',
     icon: Store,
     label: 'Vendor'
   },
   spam: {
-    color: 'text-orange-900 dark:text-orange-300',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-    borderColor: 'border-orange-300 dark:border-orange-700',
+    color: 'text-orange-600 dark:text-orange-400',
     icon: Ban,
     label: 'Spam'
   },
   hidden: {
-    color: 'text-zinc-700 dark:text-zinc-400',
-    bgColor: 'bg-zinc-100 dark:bg-zinc-800',
-    borderColor: 'border-zinc-300 dark:border-zinc-600',
+    color: 'text-zinc-400 dark:text-zinc-500',
     icon: EyeOff,
     label: 'Hidden'
   },
 };
 
-const statusConfig: Record<string, { color: string; bgColor: string }> = {
-  lead: { color: 'text-slate-700 dark:text-slate-200', bgColor: 'bg-slate-100 dark:bg-slate-800' },
-  prospect: { color: 'text-blue-900 dark:text-blue-300', bgColor: 'bg-blue-100 dark:bg-blue-900/40' },
-  active: { color: 'text-emerald-900 dark:text-emerald-300', bgColor: 'bg-emerald-100 dark:bg-emerald-900/40' },
-  inactive: { color: 'text-amber-900 dark:text-amber-300', bgColor: 'bg-amber-100 dark:bg-amber-900/40' },
-  churned: { color: 'text-rose-900 dark:text-rose-300', bgColor: 'bg-rose-100 dark:bg-rose-900/40' },
+const statusConfig: Record<string, { color: string; bgColor: string; borderColor: string }> = {
+  lead: { color: 'text-slate-600 dark:text-slate-400', bgColor: 'bg-slate-100 dark:bg-slate-800/60', borderColor: 'border-slate-200 dark:border-slate-700' },
+  prospect: { color: 'text-sky-700 dark:text-sky-400', bgColor: 'bg-sky-50 dark:bg-sky-950/50', borderColor: 'border-sky-200 dark:border-sky-800' },
+  active: { color: 'text-emerald-700 dark:text-emerald-400', bgColor: 'bg-emerald-50 dark:bg-emerald-950/50', borderColor: 'border-emerald-200 dark:border-emerald-800' },
+  inactive: { color: 'text-amber-700 dark:text-amber-400', bgColor: 'bg-amber-50 dark:bg-amber-950/50', borderColor: 'border-amber-200 dark:border-amber-800' },
+  churned: { color: 'text-rose-700 dark:text-rose-400', bgColor: 'bg-rose-50 dark:bg-rose-950/50', borderColor: 'border-rose-200 dark:border-rose-800' },
+  unactivated: { color: 'text-orange-700 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-950/50', borderColor: 'border-orange-200 dark:border-orange-800' },
 };
 
 export default function ClientsPage() {
@@ -376,20 +367,20 @@ export default function ClientsPage() {
         selectedClient ? "w-[55%]" : "w-full"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-          <div className="flex items-center gap-5">
-            <h1 className="text-xl font-semibold tracking-tight">Contacts</h1>
-            <div className="flex items-center gap-2 text-[13px]">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/60">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold tracking-tight">Contacts</h1>
+            <div className="flex items-center gap-1.5 text-[11px]">
               {newCount > 0 && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
                   <Sparkles className="h-3 w-3" />
                   {newCount} new
                 </div>
               )}
               <span className="text-muted-foreground">{labelCounts.client || 0} clients</span>
-              <span className="text-muted-foreground/50">·</span>
+              <span className="text-muted-foreground/40">·</span>
               <span className="text-muted-foreground">{labelCounts.contact || 0} contacts</span>
-              <span className="text-muted-foreground/50">·</span>
+              <span className="text-muted-foreground/40">·</span>
               <span className="text-muted-foreground">{labelCounts.vendor || 0} vendors</span>
             </div>
           </div>
@@ -398,31 +389,31 @@ export default function ClientsPage() {
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 text-[13px] font-normal",
+                "h-7 text-[11px] font-normal px-2",
                 showHidden && "bg-muted"
               )}
               onClick={() => setShowHidden(!showHidden)}
             >
-              {showHidden ? <Eye className="h-3.5 w-3.5 mr-1.5" /> : <EyeOff className="h-3.5 w-3.5 mr-1.5" />}
-              {showHidden ? 'Showing hidden' : 'Hidden'}
+              {showHidden ? <Eye className="h-3 w-3 mr-1" /> : <EyeOff className="h-3 w-3 mr-1" />}
+              {showHidden ? 'Hidden' : 'Hidden'}
               {labelCounts.hidden ? ` (${labelCounts.hidden})` : ''}
             </Button>
-            <Button size="sm" className="h-8 text-[13px] font-medium shadow-sm" onClick={() => navigate('/admin/clients/new')}>
-              <Plus className="h-3.5 w-3.5 mr-1.5" />
+            <Button size="sm" className="h-7 text-[11px] font-medium shadow-sm px-2.5" onClick={() => navigate('/admin/clients/new')}>
+              <Plus className="h-3 w-3 mr-1" />
               Add
             </Button>
           </div>
         </div>
 
         {/* Search & Filters */}
-        <div className="flex items-center gap-3 px-5 py-3 border-b border-border/60 bg-muted/30">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+        <div className="flex items-center gap-3 px-4 py-2 border-b border-border/60 bg-muted/20">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
             <Input
-              placeholder="Search contacts..."
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 bg-background border-border/60 focus-visible:ring-1 focus-visible:ring-ring/50"
+              className="pl-8 h-7 text-[12px] bg-background border-border/60 focus-visible:ring-1 focus-visible:ring-ring/50"
             />
           </div>
           <div className="flex items-center">
@@ -432,7 +423,7 @@ export default function ClientsPage() {
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "h-8 text-[13px] font-normal rounded-none border-b-2 border-transparent",
+                  "h-7 text-[11px] font-normal rounded-none border-b-2 border-transparent px-2.5",
                   labelFilter === label
                     ? "border-b-primary text-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -441,10 +432,10 @@ export default function ClientsPage() {
                 )}
                 onClick={() => setLabelFilter(label)}
               >
-                {label === 'all' ? 'All Contacts' : labelConfig[label]?.label}
+                {label === 'all' ? 'All' : labelConfig[label]?.label}
                 <span className={cn(
-                  "ml-1.5 text-[11px]",
-                  labelFilter === label ? "text-muted-foreground" : "text-muted-foreground/60"
+                  "ml-1 text-[10px]",
+                  labelFilter === label ? "text-muted-foreground" : "text-muted-foreground/50"
                 )}>
                   {label === 'all' ? filteredClients.length : labelCounts[label] || 0}
                 </span>
@@ -454,8 +445,8 @@ export default function ClientsPage() {
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-[auto_1fr_1.5fr_120px_80px_70px] gap-4 px-5 py-2.5 border-b border-border/40 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
-          <div className="w-10"></div>
+        <div className="grid grid-cols-[24px_1fr_1.5fr_100px_70px_50px] gap-3 px-4 py-2 border-b border-border/40 text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider bg-muted/20">
+          <div></div>
           <div>Name</div>
           <div>Email</div>
           <div>Label</div>
@@ -478,7 +469,7 @@ export default function ClientsPage() {
               <p className="text-xs text-muted-foreground/70 mt-1">Try adjusting your filters</p>
             </div>
           ) : (
-            <div className="divide-y divide-border/40">
+            <div className="divide-y divide-border/30">
               {filteredClients.map((client) => {
                 const isSelected = selectedClient?.id === client.id;
                 const label = client.label || 'contact';
@@ -491,50 +482,32 @@ export default function ClientsPage() {
                     key={client.id}
                     onClick={() => setSelectedClient(client)}
                     className={cn(
-                      "grid grid-cols-[auto_1fr_1.5fr_120px_80px_70px] gap-4 px-5 py-3 cursor-pointer transition-all duration-150 items-center group",
+                      "grid grid-cols-[24px_1fr_1.5fr_100px_70px_50px] gap-3 px-4 py-1.5 cursor-pointer transition-colors items-center group text-[12px]",
                       isSelected
                         ? "bg-accent/80"
-                        : "hover:bg-muted/50"
+                        : "hover:bg-muted/40"
                     )}
                   >
                     {/* Avatar */}
                     <div className={cn(
-                      "w-10 h-10 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-sm font-medium shadow-sm",
+                      "w-6 h-6 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-[10px] font-medium",
                       getAvatarColor(client.email)
                     )}>
                       {getInitials(client)}
                     </div>
 
                     {/* Name */}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-[14px] truncate">{getDisplayName(client)}</span>
-                        {isNew && (
-                          <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 uppercase tracking-wide border border-amber-300 dark:border-amber-700">
-                            New
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {client.phone && (
-                          <div className="text-[12px] text-muted-foreground/70 truncate">{client.phone}</div>
-                        )}
-                        {client.deal && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/admin/deals/${client.deal.id}`);
-                            }}
-                            className="text-[11px] text-primary hover:text-primary/80 hover:underline truncate"
-                          >
-                            {client.deal.name}
-                          </button>
-                        )}
-                      </div>
+                    <div className="min-w-0 flex items-center gap-2">
+                      <span className="font-medium truncate">{getDisplayName(client)}</span>
+                      {isNew && (
+                        <span className="px-1 py-0.5 text-[9px] font-medium rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 uppercase">
+                          New
+                        </span>
+                      )}
                     </div>
 
                     {/* Email */}
-                    <div className="text-[13px] text-muted-foreground truncate">
+                    <div className="text-muted-foreground truncate">
                       {client.email}
                     </div>
 
@@ -544,13 +517,8 @@ export default function ClientsPage() {
                         value={label}
                         onValueChange={(value) => handleUpdateLabel(client.id, value)}
                       >
-                        <SelectTrigger className={cn(
-                          "h-7 text-[12px] border w-[110px] font-medium",
-                          labelConfig[label]?.bgColor,
-                          labelConfig[label]?.borderColor,
-                          labelConfig[label]?.color
-                        )}>
-                          <div className="flex items-center gap-1.5">
+                        <SelectTrigger className="h-6 text-[11px] border-0 bg-transparent hover:bg-muted/50 w-[85px] font-medium px-1.5 shadow-none">
+                          <div className={cn("flex items-center gap-1", labelConfig[label]?.color)}>
                             <LabelIcon className="h-3 w-3" />
                             <span>{labelConfig[label]?.label}</span>
                           </div>
@@ -558,8 +526,8 @@ export default function ClientsPage() {
                         <SelectContent>
                           {Object.entries(labelConfig).map(([key, config]) => (
                             <SelectItem key={key} value={key}>
-                              <div className="flex items-center gap-2">
-                                <config.icon className="h-3.5 w-3.5" />
+                              <div className={cn("flex items-center gap-2", config.color)}>
+                                <config.icon className="h-3 w-3" />
                                 {config.label}
                               </div>
                             </SelectItem>
@@ -571,7 +539,7 @@ export default function ClientsPage() {
                     {/* Status */}
                     <div>
                       <span className={cn(
-                        "text-[11px] px-2 py-1 rounded font-medium",
+                        "text-[10px] px-1.5 py-0.5 rounded font-medium",
                         statusConfig[status]?.bgColor,
                         statusConfig[status]?.color
                       )}>
@@ -580,25 +548,18 @@ export default function ClientsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.location.href = `mailto:${client.email}`;
-                        }}
-                      >
-                        <Mail className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                          <Button variant="ghost" size="icon" className="h-6 w-6">
                             <MoreHorizontal className="h-3.5 w-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => window.location.href = `mailto:${client.email}`}>
+                            <Mail className="h-3.5 w-3.5 mr-2" />
+                            Email
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/admin/clients/${client.id}/edit`)}>
                             <Pencil className="h-3.5 w-3.5 mr-2" />
                             Edit
@@ -625,7 +586,7 @@ export default function ClientsPage() {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="px-5 py-2.5 border-t border-border/60 text-[12px] text-muted-foreground/70">
+        <div className="px-4 py-1.5 border-t border-border/60 text-[11px] text-muted-foreground/60 bg-muted/20">
           {filteredClients.length} of {clients.length} contacts
         </div>
       </div>
@@ -723,9 +684,7 @@ export default function ClientsPage() {
                       </span>
                     )}
                     <span className={cn(
-                      "px-2 py-1 text-[11px] font-medium rounded-md border",
-                      labelConfig[selectedClient.label || 'contact']?.bgColor,
-                      labelConfig[selectedClient.label || 'contact']?.borderColor,
+                      "px-2 py-1 text-[11px] font-medium rounded-md bg-muted/50",
                       labelConfig[selectedClient.label || 'contact']?.color
                     )}>
                       {labelConfig[selectedClient.label || 'contact']?.label}
@@ -836,18 +795,15 @@ export default function ClientsPage() {
                     return (
                       <Button
                         key={key}
-                        variant={isActive ? "default" : "outline"}
+                        variant={isActive ? "default" : "ghost"}
                         size="sm"
                         className={cn(
-                          "h-8 text-[12px]",
-                          !isActive && "border",
-                          !isActive && config.bgColor,
-                          !isActive && config.borderColor,
+                          "h-7 text-[11px]",
                           !isActive && config.color
                         )}
                         onClick={() => handleUpdateLabel(selectedClient.id, key)}
                       >
-                        <config.icon className="h-3.5 w-3.5 mr-1.5" />
+                        <config.icon className="h-3 w-3 mr-1" />
                         {config.label}
                       </Button>
                     );

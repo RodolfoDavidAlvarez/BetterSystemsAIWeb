@@ -86,6 +86,25 @@ import { getDealStakeholders, addDealStakeholder, updateDealStakeholder, removeD
 
 import { getAllEmailLogs, getEmailLogById, getEmailStats, syncEmailsFromResend, handleResendWebhook, syncEmailsFromGmailController } from "./controllers/emailLogs";
 
+import {
+  getAllCampaigns,
+  getCampaignStats,
+  getCampaignById,
+  addClientToCampaign,
+  updateCampaign,
+  removeCampaign,
+  bulkAddToCampaign,
+} from "./controllers/campaigns";
+
+import {
+  getColdOutreachLeads,
+  getColdOutreachMetrics,
+  updateLeadStatus,
+  toggleAutomation,
+  bulkUpdateLeads,
+  getDailyReport,
+} from "./controllers/coldOutreach";
+
 import { constructWebhookEvent, handleWebhookEvent } from "./services/stripe";
 
 export function registerRoutes(app: Express) {
@@ -709,6 +728,27 @@ export function registerRoutes(app: Express) {
   // Resend Webhook (no auth required - webhook signature verification should be added)
   app.post("/api/webhooks/resend", handleResendWebhook);
 
+  // ==================== EMAIL CAMPAIGNS ROUTES ====================
+
+  // Email Campaigns/Sequences routes (protected)
+  app.get("/api/admin/campaigns", authenticate, isAdmin, getAllCampaigns);
+  app.get("/api/admin/campaigns/stats", authenticate, isAdmin, getCampaignStats);
+  app.get("/api/admin/campaigns/:id", authenticate, isAdmin, getCampaignById);
+  app.post("/api/admin/campaigns", authenticate, isAdmin, addClientToCampaign);
+  app.post("/api/admin/campaigns/bulk", authenticate, isAdmin, bulkAddToCampaign);
+  app.put("/api/admin/campaigns/:id", authenticate, isAdmin, updateCampaign);
+  app.delete("/api/admin/campaigns/:id", authenticate, isAdmin, removeCampaign);
+
+  // ==================== COLD OUTREACH ROUTES ====================
+
+  // Cold Outreach leads and metrics (protected)
+  app.get("/api/admin/cold-outreach/leads", authenticate, isAdmin, getColdOutreachLeads);
+  app.get("/api/admin/cold-outreach/metrics", authenticate, isAdmin, getColdOutreachMetrics);
+  app.get("/api/admin/cold-outreach/report", authenticate, isAdmin, getDailyReport);
+  app.put("/api/admin/cold-outreach/leads/:id", authenticate, isAdmin, updateLeadStatus);
+  app.post("/api/admin/cold-outreach/leads/:id/toggle-automation", authenticate, isAdmin, toggleAutomation);
+  app.post("/api/admin/cold-outreach/bulk-update", authenticate, isAdmin, bulkUpdateLeads);
+
   // ==================== ELEVENLABS VOICE AI ROUTES ====================
 
   // Get signed URL for ElevenLabs Conversational AI
@@ -747,7 +787,232 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // ==================== ELEVENLABS VOICE AGENT TOOLS ====================
+
+  // Tool: Send email to visitor (client confirmation with conversation summary)
+  app.post("/api/elevenlabs/tools/send-client-email", async (req, res) => {
+    console.log("[ElevenLabs Tool] send-client-email called");
+    console.log("[ElevenLabs Tool] Payload:", JSON.stringify(req.body).slice(0, 1000));
+
+    try {
+      const { client_email, client_name, conversation_summary, message } = req.body;
+
+      // Validate required fields
+      if (!client_email) {
+        console.warn("[ElevenLabs Tool] Missing client_email");
+        return res.status(400).json({
+          success: false,
+          error: "client_email is required",
+          code: "MISSING_EMAIL"
+        });
+      }
+
+      // Basic email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(client_email)) {
+        console.warn(`[ElevenLabs Tool] Invalid email format: ${client_email}`);
+        return res.status(400).json({
+          success: false,
+          error: "Invalid email format",
+          code: "INVALID_EMAIL_FORMAT"
+        });
+      }
+
+      // Check API key configuration
+      if (!process.env.RESEND_API_KEY) {
+        console.error("[ElevenLabs Tool] RESEND_API_KEY not configured");
+        return res.status(500).json({
+          success: false,
+          error: "Email service not configured",
+          code: "CONFIG_ERROR"
+        });
+      }
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px;">Thanks for Reaching Out!</h1>
+            <p style="color: #94a3b8; margin-top: 8px;">Better Systems AI</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <p style="color: #fff; margin: 0; line-height: 1.7;">
+              Hi${client_name ? ` ${client_name}` : ''},
+            </p>
+            <p style="color: #fff; margin: 16px 0 0 0; line-height: 1.7;">
+              ${message || "Thanks for chatting with us! We've received your information and someone from our team will follow up shortly."}
+            </p>
+          </div>
+
+          ${conversation_summary ? `
+          <div style="background: rgba(96, 165, 250, 0.1); border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(96, 165, 250, 0.3);">
+            <h2 style="color: #60a5fa; margin: 0 0 12px 0; font-size: 16px;">Conversation Summary</h2>
+            <p style="color: #fff; margin: 0; line-height: 1.7; white-space: pre-wrap;">${conversation_summary}</p>
+          </div>
+          ` : ''}
+
+          <div style="background: rgba(34, 197, 94, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(34, 197, 94, 0.3); text-align: center;">
+            <p style="color: #22c55e; margin: 0; font-size: 14px;">
+              Want to schedule a call? Visit <a href="https://bettersystems.ai/book" style="color: #22c55e; text-decoration: underline;">bettersystems.ai/book</a>
+            </p>
+          </div>
+
+          <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">
+            Better Systems AI | bettersystems.ai
+          </p>
+        </div>
+      `;
+
+      const emailResult = await resend.emails.send({
+        from: "Better Systems AI <info@bettersystems.ai>",
+        to: client_email,
+        subject: "Thanks for contacting Better Systems AI!",
+        html: emailHtml,
+      });
+
+      console.log(`[ElevenLabs Tool] Client email sent to: ${client_email}, ID: ${emailResult.data?.id}`);
+      res.json({
+        success: true,
+        message: `Email sent to ${client_email}`,
+        emailId: emailResult.data?.id
+      });
+    } catch (error: any) {
+      console.error("[ElevenLabs Tool] Error sending client email:", error.message, error.stack);
+
+      // Handle specific error types
+      if (error.message?.includes("rate limit")) {
+        return res.status(429).json({
+          success: false,
+          error: "Rate limit exceeded. Please try again later.",
+          code: "RATE_LIMIT"
+        });
+      }
+
+      if (error.message?.includes("invalid") || error.message?.includes("Invalid")) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid email configuration",
+          code: "INVALID_CONFIG"
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: "Failed to send email. Please try again.",
+        code: "SEND_ERROR",
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
+      });
+    }
+  });
+
+  // Tool: Send lead info to admin (Rodo)
+  app.post("/api/elevenlabs/tools/send-admin-notification", async (req, res) => {
+    console.log("[ElevenLabs Tool] send-admin-notification called");
+    console.log("[ElevenLabs Tool] Payload:", JSON.stringify(req.body).slice(0, 1000));
+
+    try {
+      const { client_name, client_email, client_phone, company, needs, conversation_summary, urgency } = req.body;
+
+      // Require at least some contact info
+      if (!client_email && !client_phone && !client_name) {
+        console.warn("[ElevenLabs Tool] No contact information provided");
+        return res.status(400).json({
+          success: false,
+          error: "At least one of client_name, client_email, or client_phone is required",
+          code: "MISSING_CONTACT_INFO"
+        });
+      }
+
+      // Check API key configuration
+      if (!process.env.RESEND_API_KEY) {
+        console.error("[ElevenLabs Tool] RESEND_API_KEY not configured");
+        return res.status(500).json({
+          success: false,
+          error: "Email service not configured",
+          code: "CONFIG_ERROR"
+        });
+      }
+
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      const urgencyEmoji: Record<string, string> = { high: "🔥", medium: "⚡", low: "📋" };
+      const emoji = urgencyEmoji[urgency?.toLowerCase()] || "📞";
+
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #fff; margin: 0; font-size: 28px;">${emoji} New Lead from Voice Agent</h1>
+            <p style="color: #94a3b8; margin-top: 8px;">Aria collected this information</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">Contact Information</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="color: #94a3b8; padding: 8px 0; width: 100px;">Name:</td><td style="color: #fff; padding: 8px 0;"><strong>${client_name || "Not provided"}</strong></td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Email:</td><td style="color: #fff; padding: 8px 0;">${client_email ? `<a href="mailto:${client_email}" style="color: #60a5fa;">${client_email}</a>` : "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Phone:</td><td style="color: #fff; padding: 8px 0;">${client_phone || "Not provided"}</td></tr>
+              <tr><td style="color: #94a3b8; padding: 8px 0;">Company:</td><td style="color: #fff; padding: 8px 0;">${company || "Not provided"}</td></tr>
+            </table>
+          </div>
+
+          ${needs ? `
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="color: #60a5fa; margin: 0 0 16px 0; font-size: 18px;">What They Need</h2>
+            <p style="color: #fff; margin: 0; line-height: 1.7;">${needs}</p>
+          </div>
+          ` : ''}
+
+          ${conversation_summary ? `
+          <div style="background: rgba(96, 165, 250, 0.1); border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid rgba(96, 165, 250, 0.3);">
+            <h2 style="color: #60a5fa; margin: 0 0 12px 0; font-size: 16px;">Conversation Summary</h2>
+            <p style="color: #fff; margin: 0; line-height: 1.7; white-space: pre-wrap;">${conversation_summary}</p>
+          </div>
+          ` : ''}
+
+          <p style="color: #64748b; font-size: 12px; text-align: center; margin-top: 30px;">
+            Sent from Better Systems AI Voice Agent
+          </p>
+        </div>
+      `;
+
+      const emailResult = await resend.emails.send({
+        from: "Better Systems AI <info@bettersystems.ai>",
+        to: "rodolfo@bettersystems.ai",
+        subject: `${emoji} Voice Agent Lead: ${client_name || "New Visitor"}${company ? ` @ ${company}` : ""}`,
+        html: emailHtml,
+      });
+
+      console.log(`[ElevenLabs Tool] Admin notification sent to rodolfo@bettersystems.ai, ID: ${emailResult.data?.id}`);
+      res.json({
+        success: true,
+        message: "Admin notification sent",
+        emailId: emailResult.data?.id
+      });
+    } catch (error: any) {
+      console.error("[ElevenLabs Tool] Error sending admin notification:", error.message, error.stack);
+
+      // Handle specific error types
+      if (error.message?.includes("rate limit")) {
+        return res.status(429).json({
+          success: false,
+          error: "Rate limit exceeded. Please try again later.",
+          code: "RATE_LIMIT"
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: "Failed to send admin notification",
+        code: "SEND_ERROR",
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
+      });
+    }
+  });
+
   // ElevenLabs Voice Agent Webhook - Post-call notifications with AI analysis
+  // IMPORTANT: Only sends notification if contact information was collected
   app.post("/api/webhooks/elevenlabs", async (req, res) => {
     console.log("[ElevenLabs Webhook] Received post-call data");
     console.log("[ElevenLabs Webhook] Payload keys:", Object.keys(req.body || {}));
@@ -794,9 +1059,36 @@ export function registerRoutes(app: Express) {
       console.log("[ElevenLabs Webhook] Analyzing conversation with AI...");
       const analysis = await analyzeVoiceAgentLead(transcriptText);
       console.log(`[ElevenLabs Webhook] Lead score: ${analysis.qualification.score}`);
+      console.log(`[ElevenLabs Webhook] Contact info found - Email: ${analysis.contactInfo.email || 'none'}, Phone: ${analysis.contactInfo.phone || 'none'}`);
+
+      // CRITICAL: Only send notification if contact information was collected
+      // This ensures we only get notified about qualified leads with contact details
+      const hasContactInfo = !!(analysis.contactInfo.email || analysis.contactInfo.phone);
+
+      if (!hasContactInfo) {
+        console.log("[ElevenLabs Webhook] Skipping - no contact information collected");
+        return res.json({
+          success: true,
+          skipped: true,
+          reason: "no_contact_info",
+          conversationId,
+          leadScore: analysis.qualification.score,
+          message: "No email or phone collected - notification not sent"
+        });
+      }
 
       // Format the email HTML with AI insights
       const emailHtml = formatLeadEmailHtml(analysis, transcriptText, conversationId, duration);
+
+      // Check API key configuration
+      if (!process.env.RESEND_API_KEY) {
+        console.error("[ElevenLabs Webhook] RESEND_API_KEY not configured");
+        return res.status(500).json({
+          success: false,
+          error: "Email service not configured",
+          code: "CONFIG_ERROR"
+        });
+      }
 
       // Send to Rodo's personal email with AI-powered subject line
       const resend = new Resend(process.env.RESEND_API_KEY);
@@ -810,23 +1102,44 @@ export function registerRoutes(app: Express) {
         "- Voice Agent Lead"
       ].filter(Boolean);
 
-      await resend.emails.send({
+      const emailResult = await resend.emails.send({
         from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",
         to: "rodolfo@bettersystems.ai",
         subject: subjectParts.join(" "),
         html: emailHtml,
       });
 
-      console.log(`[ElevenLabs Webhook] AI-enhanced notification sent for conversation ${conversationId}`);
+      console.log(`[ElevenLabs Webhook] AI-enhanced notification sent for conversation ${conversationId}, Email ID: ${emailResult.data?.id}`);
       res.json({
         success: true,
         conversationId,
         leadScore: analysis.qualification.score,
-        contactExtracted: !!(analysis.contactInfo.email || analysis.contactInfo.phone)
+        contactExtracted: true,
+        contactInfo: {
+          hasEmail: !!analysis.contactInfo.email,
+          hasPhone: !!analysis.contactInfo.phone,
+          hasName: !!analysis.contactInfo.name
+        },
+        emailId: emailResult.data?.id
       });
     } catch (error: any) {
-      console.error("[ElevenLabs Webhook] Error:", error.message);
-      res.status(500).json({ error: error.message });
+      console.error("[ElevenLabs Webhook] Error:", error.message, error.stack);
+
+      // Handle specific error types
+      if (error.message?.includes("rate limit")) {
+        return res.status(429).json({
+          success: false,
+          error: "Rate limit exceeded",
+          code: "RATE_LIMIT"
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        error: "Failed to process webhook",
+        code: "PROCESSING_ERROR",
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
+      });
     }
   });
 

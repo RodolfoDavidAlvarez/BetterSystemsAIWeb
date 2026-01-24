@@ -10,9 +10,22 @@ import jwt from 'jsonwebtoken';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
-import { users } from '../db/schema.js';
+import { pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
 
 const app = express();
+
+// Database schema matching production database
+const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  name: text('name').notNull(),
+  role: text('role').notNull(),
+  phone: text('phone'),
+  password_hash: text('password_hash'),
+  approval_status: text('approval_status').notNull().default('pending_approval'),
+  last_seen_at: timestamp('last_seen_at'),
+  created_at: timestamp('created_at').defaultNow()
+});
 
 // Database connection
 const queryClient = postgres(process.env.DATABASE_URL);

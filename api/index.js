@@ -5,8 +5,44 @@ import cookieParser from 'cookie-parser';
 import { Resend } from 'resend';
 import Airtable from 'airtable';
 import OpenAI from 'openai';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { eq } from 'drizzle-orm';
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 const app = express();
+
+// Database schema (simplified for serverless)
+const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  username: text('username').notNull().unique(),
+  password: text('password').notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  role: text('role').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+// Database connection
+const queryClient = postgres(process.env.DATABASE_URL);
+const db = drizzle(queryClient);
+
+// JWT helpers
+const JWT_SECRET = process.env.JWT_SECRET || 'bettersystems-blog-secret-key-dev';
+const createAuthToken = (payload) => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+};
+const setAuthCookie = (res, token) => {
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+};
 
 // Middleware
 app.use(cors({
@@ -29,6 +65,186 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     env: 'production'
   });
+});
+
+// ==================== AUTHENTICATION ROUTES ====================
+
+// Login endpoint
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username and password are required'
+      });
+    }
+
+    // Find user by username
+    const foundUsers = await db.select().from(users).where(eq(users.username, username)).limit(1);
+
+    if (foundUsers.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    const user = foundUsers[0];
+
+    // Compare passwords
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Create JWT token
+    const token = createAuthToken({
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+
+    // Set token in cookie
+    setAuthCookie(res, token);
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to login',
+      error: error.message
+    });
+  }
+});
+
+// Register endpoint
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { username, password, name, email } = req.body;
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Check if user already exists
+    const existingUser = await db.select().from(users).where(eq(users.username, username)).limit(1);
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists'
+      });
+    }
+
+    // Insert new user
+    const newUser = await db.insert(users).values({
+      username,
+      password: hashedPassword,
+      name,
+      email,
+      role: 'admin'
+    }).returning();
+
+    // Create JWT token
+    const token = createAuthToken({
+      id: newUser[0].id,
+      username: newUser[0].username,
+      role: 'admin'
+    });
+
+    // Set token in cookie
+    setAuthCookie(res, token);
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: newUser[0].id,
+        username: newUser[0].username,
+        name: newUser[0].name,
+        email: newUser[0].email,
+        role: 'admin'
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to register user',
+      error: error.message
+    });
+  }
+});
+
+// Get current user endpoint
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    // Get token from header or cookie
+    let token;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Find user by id
+    const foundUsers = await db.select().from(users).where(eq(users.id, decoded.id)).limit(1);
+
+    if (foundUsers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const user = foundUsers[0];
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Get current user error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token'
+    });
+  }
 });
 
 // ElevenLabs signed URL endpoint

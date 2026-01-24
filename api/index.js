@@ -10,21 +10,9 @@ import jwt from 'jsonwebtoken';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
-import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { users } from '../db/schema.js';
 
 const app = express();
-
-// Database schema (simplified for serverless)
-const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  username: text('username').notNull().unique(),
-  password: text('password').notNull(),
-  name: text('name').notNull(),
-  email: text('email').notNull(),
-  role: text('role').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
 
 // Database connection
 const queryClient = postgres(process.env.DATABASE_URL);

@@ -69,8 +69,8 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Find user by username
-    const foundUsers = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    // Find user by email (username field contains email)
+    const foundUsers = await db.select().from(users).where(eq(users.email, username)).limit(1);
 
     if (foundUsers.length === 0) {
       return res.status(401).json({
@@ -81,8 +81,16 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = foundUsers[0];
 
-    // Compare passwords
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Compare passwords (using password_hash field)
+    const passwordHash = user.password_hash || user.password;
+    if (!passwordHash) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, passwordHash);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -94,7 +102,7 @@ app.post('/api/auth/login', async (req, res) => {
     // Create JWT token
     const token = createAuthToken({
       id: user.id,
-      username: user.username,
+      username: user.email,
       role: user.role
     });
 
@@ -107,7 +115,7 @@ app.post('/api/auth/login', async (req, res) => {
       token,
       user: {
         id: user.id,
-        username: user.username,
+        username: user.email,
         name: user.name,
         email: user.email,
         role: user.role

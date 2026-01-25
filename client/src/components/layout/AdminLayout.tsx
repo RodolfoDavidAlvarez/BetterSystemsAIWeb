@@ -91,7 +91,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: Ticket,
     },
     {
-      title: "Billing",
+      title: "Financial",
       url: "/admin/billing",
       icon: CreditCard,
     },

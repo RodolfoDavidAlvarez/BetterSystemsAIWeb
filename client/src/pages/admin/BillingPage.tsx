@@ -33,6 +33,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
 import ClientPreview from "../../components/admin/ClientPreview";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface BillingDashboardData {
   invoices: any[];
@@ -133,6 +134,7 @@ export default function BillingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [dashboardData, setDashboardData] = useState<BillingDashboardData | null>(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<Array<{month: string; revenue: number}>>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [deals, setDeals] = useState<any[]>([]);
   const [filterClientId, setFilterClientId] = useState<string>("");
@@ -436,7 +438,7 @@ export default function BillingPage() {
       }
 
       // Ensure data structure is safe
-      setDashboardData({
+      const dashData = {
         invoices: data.data.invoices || [],
         paymentIntents: data.data.paymentIntents || [],
         subscriptions: data.data.subscriptions || [],
@@ -451,7 +453,9 @@ export default function BillingPage() {
           totalSubscriptions: 0,
           totalClients: 0,
         },
-      });
+      };
+      setDashboardData(dashData);
+      calculateMonthlyRevenue(dashData);
       // #region agent log
       fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
         method: "POST",
@@ -708,6 +712,40 @@ export default function BillingPage() {
     } catch (error: any) {
       console.error("Error loading clients:", error);
     }
+  };
+
+  const calculateMonthlyRevenue = (data: BillingDashboardData | null) => {
+    if (!data) return;
+
+    // Calculate revenue for past 5 months from invoices
+    const monthsData: Record<string, number> = {};
+    const now = new Date();
+
+    // Initialize last 5 months with 0
+    for (let i = 4; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      monthsData[monthKey] = 0;
+    }
+
+    // Sum up paid invoices by month
+    data.invoices?.forEach((invoice: any) => {
+      if (invoice.status === 'paid' && invoice.paidAt) {
+        const paidDate = new Date(invoice.paidAt);
+        const monthKey = paidDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+        if (monthKey in monthsData) {
+          monthsData[monthKey] += parseFloat(invoice.total || 0);
+        }
+      }
+    });
+
+    // Convert to array format for chart
+    const revenueData = Object.entries(monthsData).map(([month, revenue]) => ({
+      month,
+      revenue: Math.round(revenue * 100) / 100
+    }));
+
+    setMonthlyRevenue(revenueData);
   };
 
   const syncAllStripeData = async () => {
@@ -1416,7 +1454,7 @@ export default function BillingPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
         <div className="flex items-center gap-5">
-          <h1 className="text-xl font-semibold tracking-tight">Billing & Invoices</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Financial</h1>
           <div className="flex items-center gap-2 text-[13px]">
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">
               {formatCurrency(safeDashboardData?.summary?.totalRevenue || 0)} revenue
@@ -2012,6 +2050,49 @@ export default function BillingPage() {
         }
         return null;
       })()}
+
+      {/* Monthly Revenue Chart */}
+      {monthlyRevenue.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue (Last 5 Months)</CardTitle>
+            <CardDescription>Monthly income from paid invoices</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis
+                    dataKey="month"
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      color: 'hsl(var(--card-foreground))'
+                    }}
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                  />
+                  <Bar
+                    dataKey="revenue"
+                    fill="hsl(var(--primary))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Client Billing Groups */}
       {safeDashboardData.clientGroups && Array.isArray(safeDashboardData.clientGroups) && safeDashboardData.clientGroups.length > 0 && (

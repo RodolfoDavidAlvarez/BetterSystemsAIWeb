@@ -44,7 +44,13 @@ const getDatabaseConnection = () => {
     }
   }
 
-  return process.env.DATABASE_URL;
+  // Append search_path to connection string for Supabase bettersystems schema
+  let dbUrl = process.env.DATABASE_URL;
+  if (dbUrl && !dbUrl.includes('search_path')) {
+    const separator = dbUrl.includes('?') ? '&' : '?';
+    dbUrl = `${dbUrl}${separator}options=-c%20search_path=bettersystems,public`;
+  }
+  return dbUrl;
 };
 
 // Initialize database with enhanced error handling

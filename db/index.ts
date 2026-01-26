@@ -79,6 +79,11 @@ try {
       max: 20, // Maximum number of clients in the pool
     });
 
+    // Set search_path to bettersystems schema for production Supabase
+    pool.on("connect", (client) => {
+      client.query("SET search_path TO bettersystems, public");
+    });
+
     // Handle pool errors
     pool.on("error", (err) => {
       console.error("[Database] Unexpected pool error:", err);

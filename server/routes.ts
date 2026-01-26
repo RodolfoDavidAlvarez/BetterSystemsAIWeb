@@ -31,6 +31,8 @@ import {
   getFreshStripeData,
   getClientBillingSummary,
   getDealBillingSummary,
+  getMonthlyRevenue,
+  getPaymentHistory,
 } from "./controllers/billing";
 
 import {
@@ -617,6 +619,8 @@ export function registerRoutes(app: Express) {
 
   // Billing Dashboard
   app.get("/api/admin/billing/dashboard", authenticate, isAdmin, getBillingDashboard);
+  app.get("/api/admin/billing/monthly-revenue", authenticate, isAdmin, getMonthlyRevenue);
+  app.get("/api/admin/billing/payments", authenticate, isAdmin, getPaymentHistory);
   app.get("/api/admin/billing/fresh", authenticate, isAdmin, getFreshStripeData);
   app.get("/api/admin/billing/client/:clientId", authenticate, isAdmin, getClientBillingSummary);
   app.get("/api/admin/billing/deal/:dealId", authenticate, isAdmin, getDealBillingSummary);

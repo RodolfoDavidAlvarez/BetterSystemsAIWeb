@@ -313,6 +313,104 @@ export async function getPaymentLink(paymentLinkId: string) {
   return await stripe.paymentLinks.retrieve(paymentLinkId);
 }
 
+// ==================== CHARGES ====================
+
+/**
+ * Get ALL Stripe charges with pagination
+ * Fetches all charges including historical data - this shows actual money received
+ */
+export async function getAllStripeCharges(limit?: number) {
+  const allCharges: Stripe.Charge[] = [];
+  let hasMore = true;
+  let startingAfter: string | undefined = undefined;
+
+  while (hasMore) {
+    const params: Stripe.ChargeListParams = {
+      limit: 100, // Maximum per request
+    };
+
+    if (startingAfter) {
+      params.starting_after = startingAfter;
+    }
+
+    const charges = await stripe.charges.list(params);
+    allCharges.push(...charges.data);
+
+    hasMore = charges.has_more;
+    if (charges.data.length > 0) {
+      startingAfter = charges.data[charges.data.length - 1].id;
+    }
+  }
+
+  return allCharges;
+}
+
+/**
+ * Get all successful payments with details
+ * Returns formatted payment history
+ */
+export async function getPaymentHistory() {
+  const allCharges = await getAllStripeCharges();
+
+  const payments = allCharges
+    .filter((c) => c.status === "succeeded" && !c.refunded)
+    .map((charge) => {
+      const description = charge.description || "";
+      let category = "Payment Link";
+
+      if (charge.invoice || description.includes("Payment for Invoice")) {
+        category = "Invoice";
+      }
+
+      return {
+        id: charge.id,
+        date: new Date(charge.created * 1000).toISOString(),
+        amount: charge.amount / 100,
+        email: charge.receipt_email || charge.billing_details?.email || "",
+        description: description,
+        category: category,
+      };
+    });
+
+  return payments;
+}
+
+/**
+ * Get monthly revenue from Stripe charges
+ * Returns last N months of actual revenue data
+ */
+export async function getMonthlyRevenueFromStripe(months: number = 6) {
+  const allCharges = await getAllStripeCharges();
+
+  // Initialize months data
+  const monthsData: Record<string, number> = {};
+  const now = new Date();
+
+  for (let i = months - 1; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthKey = date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+    monthsData[monthKey] = 0;
+  }
+
+  // Sum up successful charges by month
+  for (const charge of allCharges) {
+    if (charge.status === "succeeded" && !charge.refunded) {
+      const chargeDate = new Date(charge.created * 1000);
+      const monthKey = chargeDate.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+
+      if (monthKey in monthsData) {
+        // Amount is in cents, convert to dollars
+        monthsData[monthKey] += charge.amount / 100;
+      }
+    }
+  }
+
+  return Object.entries(monthsData).map(([month, revenue]) => ({
+    month,
+    revenue: Math.round(revenue * 100) / 100,
+  }));
+}
+
 // ==================== WEBHOOK HANDLING ====================
 
 export function constructWebhookEvent(payload: string | Buffer, signature: string, secret: string) {

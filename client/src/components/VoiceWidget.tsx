@@ -11,20 +11,74 @@ interface Message {
   timestamp: Date;
 }
 
+// Session storage keys for persistence
+const STORAGE_KEYS = {
+  messages: 'voice-widget-messages',
+  chatMode: 'voice-widget-mode',
+  isOpen: 'voice-widget-open',
+};
+
 export function VoiceWidget() {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [chatMode, setChatMode] = useState<ChatMode | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [showLabel, setShowLabel] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const [showModeSelector, setShowModeSelector] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false); // Shows voice/text icons
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
+  const [showChatPanel, setShowChatPanel] = useState(false);
+  const [isCallEnding, setIsCallEnding] = useState(false); // For end call animation
+  const [liveSubtitle, setLiveSubtitle] = useState<string>(''); // Live transcript
+  const [subtitleSource, setSubtitleSource] = useState<'agent' | 'user' | null>(null);
+  const [displayedWords, setDisplayedWords] = useState<string[]>([]); // Words currently displayed
+  const [isSubtitleVisible, setIsSubtitleVisible] = useState(false);
+  const subtitleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wordAnimationRef = useRef<NodeJS.Timeout | null>(null);
+  const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const conversationRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Restore session on mount
+  useEffect(() => {
+    const savedMessages = sessionStorage.getItem(STORAGE_KEYS.messages);
+    const savedMode = sessionStorage.getItem(STORAGE_KEYS.chatMode);
+    const wasOpen = sessionStorage.getItem(STORAGE_KEYS.isOpen);
+
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })));
+      } catch (e) {
+        console.error('Failed to restore messages:', e);
+      }
+    }
+
+    if (savedMode && wasOpen === 'true') {
+      setChatMode(savedMode as ChatMode);
+      if (savedMode === 'text') {
+        setShowChatPanel(true);
+      }
+    }
+  }, []);
+
+  // Save messages to session storage
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // Save chat state
+  useEffect(() => {
+    if (chatMode) {
+      sessionStorage.setItem(STORAGE_KEYS.chatMode, chatMode);
+      sessionStorage.setItem(STORAGE_KEYS.isOpen, String(showChatPanel || status === 'connected'));
+    }
+  }, [chatMode, showChatPanel, status]);
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -65,7 +119,7 @@ export function VoiceWidget() {
 
     setChatMode('voice');
     setStatus('connecting');
-    setShowModeSelector(false);
+    setIsExpanded(false);
 
     try {
       const { Conversation } = await import('@11labs/client');
@@ -78,10 +132,26 @@ export function VoiceWidget() {
           console.log('[VoiceWidget] Voice connected');
         },
         onDisconnect: () => {
-          setStatus('disconnected');
-          conversationRef.current = null;
-          setChatMode(null);
-          console.log('[VoiceWidget] Disconnected');
+          // Trigger the end call animation
+          setIsCallEnding(true);
+          setVoiceState('idle');
+          setLiveSubtitle('');
+          setSubtitleSource(null);
+          setDisplayedWords([]);
+          setIsSubtitleVisible(false);
+          // Clear any subtitle animations
+          if (wordAnimationRef.current) clearTimeout(wordAnimationRef.current);
+          if (subtitleTimeoutRef.current) clearTimeout(subtitleTimeoutRef.current);
+          if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
+          console.log('[VoiceWidget] Disconnected - playing end animation');
+
+          // After animation completes, reset state
+          setTimeout(() => {
+            setIsCallEnding(false);
+            setStatus('disconnected');
+            conversationRef.current = null;
+            setChatMode(null);
+          }, 600); // Match animation duration
         },
         onError: (error: any) => {
           console.error('[VoiceWidget] Error:', error);
@@ -91,13 +161,70 @@ export function VoiceWidget() {
         },
         onModeChange: (mode: any) => {
           console.log('[VoiceWidget] Mode:', mode.mode);
-          // Update voice state for dynamic animation
           if (mode.mode === 'speaking') {
             setVoiceState('speaking');
           } else if (mode.mode === 'listening') {
             setVoiceState('listening');
           } else {
             setVoiceState('idle');
+          }
+        },
+        onMessage: (message: any) => {
+          console.log('[VoiceWidget] Voice message:', message);
+          const text = message.message || message.text || message.content;
+          const source = message.source || message.role;
+
+          if (text) {
+            // Clear any existing animations
+            if (wordAnimationRef.current) {
+              clearTimeout(wordAnimationRef.current);
+            }
+            if (subtitleTimeoutRef.current) {
+              clearTimeout(subtitleTimeoutRef.current);
+            }
+            if (fadeTimeoutRef.current) {
+              clearTimeout(fadeTimeoutRef.current);
+            }
+
+            // Set the source
+            const newSource = source === 'ai' || source === 'agent' || source === 'assistant' ? 'agent' : 'user';
+            setSubtitleSource(newSource);
+            setLiveSubtitle(text);
+            setIsSubtitleVisible(true);
+
+            // Split text into words for typewriter effect
+            const words = text.split(' ').filter((w: string) => w.trim());
+
+            // Animate words appearing one by one
+            let wordIndex = 0;
+            setDisplayedWords([]);
+
+            const animateWords = () => {
+              if (wordIndex < words.length) {
+                setDisplayedWords(prev => [...prev, words[wordIndex]]);
+                wordIndex++;
+                // Faster for short responses, slightly slower for longer ones
+                const delay = words.length <= 3 ? 120 : words.length <= 8 ? 100 : 80;
+                wordAnimationRef.current = setTimeout(animateWords, delay);
+              } else {
+                // All words displayed - calculate hold time based on length
+                // Minimum 2s, add ~150ms per word, max 6s
+                const holdTime = Math.min(6000, Math.max(2000, words.length * 150 + 1500));
+
+                subtitleTimeoutRef.current = setTimeout(() => {
+                  // Start fade out
+                  setIsSubtitleVisible(false);
+                  fadeTimeoutRef.current = setTimeout(() => {
+                    setLiveSubtitle('');
+                    setSubtitleSource(null);
+                    setDisplayedWords([]);
+                  }, 500); // Match CSS fade duration
+                }, holdTime);
+              }
+            };
+
+            // Start animation immediately
+            animateWords();
           }
         },
       });
@@ -113,12 +240,18 @@ export function VoiceWidget() {
 
   // Start text conversation
   const startTextConversation = useCallback(async () => {
-    if (status !== 'disconnected') return;
-
+    setIsExpanded(false);
     setChatMode('text');
-    setStatus('connecting');
-    setShowModeSelector(false);
-    setMessages([]);
+    setShowChatPanel(true);
+
+    // If we have existing messages, just show the panel (restored session)
+    if (messages.length > 0 && status === 'disconnected') {
+      // Reconnect to continue conversation
+      setStatus('connecting');
+    } else if (status === 'disconnected') {
+      setStatus('connecting');
+      setMessages([]);
+    }
 
     try {
       const { Conversation } = await import('@11labs/client');
@@ -129,24 +262,20 @@ export function VoiceWidget() {
         onConnect: () => {
           setStatus('connected');
           console.log('[VoiceWidget] Text chat connected');
-          // Focus input after connection
           setTimeout(() => inputRef.current?.focus(), 100);
         },
         onDisconnect: () => {
           setStatus('disconnected');
           conversationRef.current = null;
-          setChatMode(null);
           console.log('[VoiceWidget] Disconnected');
         },
         onError: (error: any) => {
           console.error('[VoiceWidget] Error:', error);
           setStatus('disconnected');
           conversationRef.current = null;
-          setChatMode(null);
         },
         onMessage: (message: any) => {
           console.log('[VoiceWidget] Message received:', JSON.stringify(message, null, 2));
-          // Handle different message formats from ElevenLabs
           const content = message.message || message.text || message.content;
           const source = message.source || message.role || 'unknown';
 
@@ -158,9 +287,6 @@ export function VoiceWidget() {
               content: content,
               timestamp: new Date()
             }]);
-          } else if (content && source === 'user') {
-            // User message echo - ignore as we already added it
-            console.log('[VoiceWidget] User message echo, ignoring');
           }
         },
         onModeChange: (mode: any) => {
@@ -171,21 +297,18 @@ export function VoiceWidget() {
         },
       });
 
-      // Mute the audio output for text mode (we don't want voice)
       conv.setVolume({ volume: 0 });
       conversationRef.current = conv;
     } catch (error) {
       console.error('[VoiceWidget] Failed to start text chat:', error);
       setStatus('disconnected');
-      setChatMode(null);
       alert('Failed to start chat. Please try again.');
     }
-  }, [status]);
+  }, [status, messages.length]);
 
   // Send text message
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || !conversationRef.current) {
-      console.log('[VoiceWidget] Cannot send: no input or no conversation');
       return;
     }
 
@@ -202,14 +325,10 @@ export function VoiceWidget() {
     setIsTyping(true);
 
     try {
-      console.log('[VoiceWidget] Sending message:', messageText);
-      // Use sendUserMessage - the correct ElevenLabs SDK method for text input
       conversationRef.current.sendUserMessage(messageText);
-      console.log('[VoiceWidget] Message sent successfully');
     } catch (error) {
       console.error('[VoiceWidget] Failed to send message:', error);
       setIsTyping(false);
-      // Add error message to chat
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
@@ -232,13 +351,32 @@ export function VoiceWidget() {
     if (conversationRef.current) {
       await conversationRef.current.endSession();
       conversationRef.current = null;
-      setStatus('disconnected');
-      setChatMode(null);
-      setMessages([]);
     }
+    setStatus('disconnected');
+    setChatMode(null);
+    setShowChatPanel(false);
+    setVoiceState('idle');
+    // Clear stored session
+    sessionStorage.removeItem(STORAGE_KEYS.messages);
+    sessionStorage.removeItem(STORAGE_KEYS.chatMode);
+    sessionStorage.removeItem(STORAGE_KEYS.isOpen);
+    setMessages([]);
   }, []);
 
-  // Toggle mute (voice mode only)
+  // Minimize chat panel (keep conversation alive)
+  const minimizeChat = useCallback(() => {
+    setShowChatPanel(false);
+  }, []);
+
+  // Reopen chat panel
+  const reopenChat = useCallback(() => {
+    if (chatMode === 'text') {
+      setShowChatPanel(true);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [chatMode]);
+
+  // Toggle mute
   const toggleMute = useCallback(() => {
     if (conversationRef.current && chatMode === 'voice') {
       if (isMuted) {
@@ -250,22 +388,16 @@ export function VoiceWidget() {
     }
   }, [isMuted, chatMode]);
 
-  // Show mode selector - handles both click and touch
-  const handleWidgetClick = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (status === 'disconnected') {
-      setShowModeSelector(true);
-    }
+  // Toggle expanded state (show voice/text icons)
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
   };
 
-  // Close mode selector
-  const closeModeSelector = (e?: React.MouseEvent | React.TouchEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  // Close expanded when clicking outside
+  const handleClickOutside = () => {
+    if (isExpanded) {
+      setIsExpanded(false);
     }
-    setShowModeSelector(false);
   };
 
   // Cleanup on unmount
@@ -298,82 +430,36 @@ export function VoiceWidget() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Mode selector popup */}
-      {showModeSelector && status === 'disconnected' && (
-        <>
-          <div
-            className="voice-widget-overlay"
-            onClick={closeModeSelector}
-            onTouchEnd={closeModeSelector}
-          ></div>
-          <div className="voice-widget-mode-selector" onClick={(e) => e.stopPropagation()}>
-            <div className="voice-widget-mode-header">
-              <span>Chat with our AI</span>
-              <button
-                className="voice-widget-close"
-                onClick={closeModeSelector}
-                onTouchEnd={closeModeSelector}
-              >
+      {/* Text chat side panel - non-blocking */}
+      {showChatPanel && chatMode === 'text' && (
+        <div className="voice-widget-side-panel">
+          <div className="voice-widget-chat-header">
+            <div className="voice-widget-chat-title">
+              <span className={`voice-widget-live-dot ${status === 'connected' ? 'active' : ''}`}></span>
+              <span>AI Assistant</span>
+            </div>
+            <div className="voice-widget-header-actions">
+              <button className="voice-widget-minimize" onClick={minimizeChat} aria-label="Minimize">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 13H5v-2h14v2z"/>
+                </svg>
+              </button>
+              <button className="voice-widget-chat-close" onClick={endConversation} aria-label="Close">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
                 </svg>
               </button>
             </div>
-            <div className="voice-widget-mode-options">
-              <button
-                className="voice-widget-mode-option voice-widget-mode-recommended"
-                onClick={(e) => { e.stopPropagation(); startVoiceConversation(); }}
-                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); startVoiceConversation(); }}
-              >
-                <div className="voice-widget-mode-badge">Recommended</div>
-                <div className="voice-widget-mode-icon voice-mode">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1 1.93c-3.94-.49-7-3.85-7-7.93h2c0 3.31 2.69 6 6 6s6-2.69 6-6h2c0 4.08-3.06 7.44-7 7.93V19h4v2H8v-2h4v-3.07z"/>
-                  </svg>
-                </div>
-                <div className="voice-widget-mode-content">
-                  <span className="voice-widget-mode-label">Voice Call</span>
-                  <span className="voice-widget-mode-desc">Talk directly with our AI assistant</span>
-                </div>
-              </button>
-              <button
-                className="voice-widget-mode-option"
-                onClick={(e) => { e.stopPropagation(); startTextConversation(); }}
-                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); startTextConversation(); }}
-              >
-                <div className="voice-widget-mode-icon text-mode">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                  </svg>
-                </div>
-                <div className="voice-widget-mode-content">
-                  <span className="voice-widget-mode-label">Text Chat</span>
-                  <span className="voice-widget-mode-desc">Prefer typing? Chat here</span>
-                </div>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Text chat window */}
-      {chatMode === 'text' && status === 'connected' && (
-        <div className="voice-widget-chat-window">
-          <div className="voice-widget-chat-header">
-            <div className="voice-widget-chat-title">
-              <span className="voice-widget-live-dot"></span>
-              <span>AI Assistant</span>
-            </div>
-            <button className="voice-widget-chat-close" onClick={endConversation}>
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-              </svg>
-            </button>
           </div>
           <div className="voice-widget-chat-messages">
-            {messages.length === 0 && !isTyping && (
+            {messages.length === 0 && !isTyping && status === 'connecting' && (
               <div className="voice-widget-chat-welcome">
                 <p>Connecting to AI assistant...</p>
+              </div>
+            )}
+            {messages.length === 0 && !isTyping && status === 'connected' && (
+              <div className="voice-widget-chat-welcome">
+                <p>Hi! How can I help you today?</p>
               </div>
             )}
             {messages.map((msg) => (
@@ -402,10 +488,11 @@ export function VoiceWidget() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
+              disabled={status !== 'connected'}
             />
             <button
               onClick={sendMessage}
-              disabled={!inputText.trim()}
+              disabled={!inputText.trim() || status !== 'connected'}
               className="voice-widget-send-btn"
             >
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -416,20 +503,48 @@ export function VoiceWidget() {
         </div>
       )}
 
-      {/* Floating label hook */}
-      {status === 'disconnected' && !showModeSelector && (
+      {/* Floating label */}
+      {status === 'disconnected' && !isExpanded && !(chatMode === 'text' && messages.length > 0) && (
         <div className={`voice-widget-label ${showLabel ? 'visible' : ''}`}>
           <span className="voice-widget-label-text">Talk to AI</span>
           <div className="voice-widget-label-arrow"></div>
         </div>
       )}
 
-      {/* Main button - disconnected state */}
-      {status === 'disconnected' && !showModeSelector && (
+      {/* Inline icon selector - appears when main button is clicked */}
+      {isExpanded && status === 'disconnected' && (
+        <>
+          <div className="voice-widget-backdrop" onClick={handleClickOutside}></div>
+          <div className="voice-widget-inline-options">
+            <button
+              className="voice-widget-inline-btn voice-btn"
+              onClick={startVoiceConversation}
+              aria-label="Start voice call"
+            >
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1 1.93c-3.94-.49-7-3.85-7-7.93h2c0 3.31 2.69 6 6 6s6-2.69 6-6h2c0 4.08-3.06 7.44-7 7.93V19h4v2H8v-2h4v-3.07z"/>
+              </svg>
+              <span className="voice-widget-inline-tooltip">Voice</span>
+            </button>
+            <button
+              className="voice-widget-inline-btn text-btn"
+              onClick={startTextConversation}
+              aria-label="Start text chat"
+            >
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+              </svg>
+              <span className="voice-widget-inline-tooltip">Chat</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Main button - disconnected state (only show if no minimized chat) */}
+      {status === 'disconnected' && !isExpanded && !showChatPanel && !(chatMode === 'text' && messages.length > 0) && (
         <button
           className="voice-widget-button voice-widget-idle"
-          onClick={handleWidgetClick}
-          onTouchEnd={handleWidgetClick}
+          onClick={toggleExpanded}
           aria-label="Start conversation"
         >
           <div className="voice-widget-ring voice-widget-ring-1"></div>
@@ -441,8 +556,22 @@ export function VoiceWidget() {
         </button>
       )}
 
+      {/* Minimized chat indicator - click to reopen */}
+      {chatMode === 'text' && !showChatPanel && messages.length > 0 && (
+        <button
+          className="voice-widget-button voice-widget-minimized"
+          onClick={reopenChat}
+          aria-label="Reopen chat"
+        >
+          <span className="voice-widget-unread-badge">{messages.length}</span>
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+          </svg>
+        </button>
+      )}
+
       {/* Connecting state */}
-      {status === 'connecting' && (
+      {status === 'connecting' && !showChatPanel && (
         <button
           className="voice-widget-button voice-widget-connecting"
           disabled
@@ -452,25 +581,53 @@ export function VoiceWidget() {
         </button>
       )}
 
-      {/* Voice mode - connected state */}
-      {chatMode === 'voice' && status === 'connected' && (
-        <div className="voice-widget-active">
-          <div className={`voice-widget-live-label ${voiceState}`}>
-            <span className="voice-widget-live-dot"></span>
-            <span>{voiceState === 'speaking' ? 'Speaking' : voiceState === 'listening' ? 'Listening' : 'Live'}</span>
+      {/* Live subtitles - cinematic typewriter effect */}
+      {chatMode === 'voice' && status === 'connected' && displayedWords.length > 0 && !isCallEnding && (
+        <div className={`voice-widget-subtitle ${subtitleSource === 'agent' ? 'agent' : 'user'} ${!isSubtitleVisible ? 'fading-out' : ''}`}>
+          <div className="voice-widget-subtitle-text">
+            {displayedWords.map((word, index) => (
+              <span
+                key={`${index}-${word}`}
+                className="voice-widget-word"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                {word}{' '}
+              </span>
+            ))}
+            <span className="voice-widget-cursor"></span>
           </div>
+        </div>
+      )}
+
+      {/* Voice mode - connected state or ending animation */}
+      {chatMode === 'voice' && (status === 'connected' || isCallEnding) && (
+        <div className={`voice-widget-active ${isCallEnding ? 'call-ending' : ''}`}>
+          {!isCallEnding && (
+            <div className={`voice-widget-live-label ${voiceState}`}>
+              <span className="voice-widget-live-dot active"></span>
+              <span>{voiceState === 'speaking' ? 'Speaking' : voiceState === 'listening' ? 'Listening' : 'Live'}</span>
+            </div>
+          )}
           <button
-            className={`voice-widget-button voice-widget-live ${voiceState}`}
-            onClick={endConversation}
+            className={`voice-widget-button voice-widget-live ${voiceState} ${isCallEnding ? 'ending' : ''}`}
+            onClick={isCallEnding ? undefined : endConversation}
             aria-label="End call"
           >
-            <div className={`voice-widget-soundwave ${voiceState}`}>
-              <div className="voice-widget-bar"></div>
-              <div className="voice-widget-bar"></div>
-              <div className="voice-widget-bar"></div>
-              <div className="voice-widget-bar"></div>
-              <div className="voice-widget-bar"></div>
-            </div>
+            {voiceState === 'listening' ? (
+              <div className="voice-widget-ear-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white">
+                  <path d="M17 20c-.29 0-.56-.06-.76-.15-.71-.37-1.21-.88-1.71-2.38-.51-1.56-1.47-2.29-2.39-3-.79-.61-1.61-1.24-2.32-2.53C9.29 10.98 9 9.93 9 9c0-2.8 2.2-5 5-5s5 2.2 5 5h2c0-3.93-3.07-7-7-7S7 5.07 7 9c0 1.26.38 2.65 1.07 3.9.91 1.65 1.98 2.48 2.85 3.15.81.62 1.39 1.07 1.71 2.05.6 1.82 1.37 2.84 2.73 3.55.51.23 1.07.35 1.64.35 2.21 0 4-1.79 4-4h-2c0 1.1-.9 2-2 2zM7.64 2.64L6.22 1.22C4.23 3.21 3 5.96 3 9s1.23 5.79 3.22 7.78l1.41-1.41C6.01 13.74 5 11.49 5 9s1.01-4.74 2.64-6.36zM11.5 9c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5-2.5 1.12-2.5 2.5z"/>
+                </svg>
+              </div>
+            ) : (
+              <div className={`voice-widget-soundwave ${voiceState}`}>
+                <div className="voice-widget-bar"></div>
+                <div className="voice-widget-bar"></div>
+                <div className="voice-widget-bar"></div>
+                <div className="voice-widget-bar"></div>
+                <div className="voice-widget-bar"></div>
+              </div>
+            )}
           </button>
           <button
             className={`voice-widget-mute ${isMuted ? 'muted' : ''}`}
@@ -490,12 +647,12 @@ export function VoiceWidget() {
         </div>
       )}
 
-      {/* Text mode - minimized button when chat is open */}
-      {chatMode === 'text' && status === 'connected' && (
+      {/* Text mode - minimized button when chat panel is open */}
+      {chatMode === 'text' && showChatPanel && (
         <button
           className="voice-widget-button voice-widget-text-active"
-          onClick={() => {}}
-          aria-label="Chat active"
+          onClick={minimizeChat}
+          aria-label="Minimize chat"
         >
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>

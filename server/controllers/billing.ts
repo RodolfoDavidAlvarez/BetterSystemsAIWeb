@@ -4,6 +4,59 @@ import { stripeCustomers, invoices, paymentIntents, subscriptions, quotes, payme
 import { eq, and, or, isNull } from "drizzle-orm";
 import * as stripeService from "../services/stripe";
 
+// ==================== MONTHLY REVENUE ====================
+
+/**
+ * Get monthly revenue directly from Stripe charges
+ * This shows actual money that has entered the Stripe account
+ */
+export async function getMonthlyRevenue(req: Request, res: Response) {
+  try {
+    const months = parseInt(req.query.months as string) || 6;
+    const monthlyRevenue = await stripeService.getMonthlyRevenueFromStripe(months);
+
+    // Calculate total revenue
+    const totalRevenue = monthlyRevenue.reduce((sum, m) => sum + m.revenue, 0);
+
+    res.json({
+      success: true,
+      data: {
+        monthlyRevenue,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error fetching monthly revenue from Stripe:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch monthly revenue from Stripe",
+      error: error.message,
+    });
+  }
+}
+
+/**
+ * Get payment history from Stripe
+ * Returns all successful payments with details
+ */
+export async function getPaymentHistory(req: Request, res: Response) {
+  try {
+    const payments = await stripeService.getPaymentHistory();
+
+    res.json({
+      success: true,
+      data: payments,
+    });
+  } catch (error: any) {
+    console.error("Error fetching payment history from Stripe:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch payment history",
+      error: error.message,
+    });
+  }
+}
+
 // ==================== SYNC OPERATIONS ====================
 
 /**

@@ -544,10 +544,10 @@ elevenlabs-convai::part(widget):active {
   animation: widget-slide-in 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
 }
 
-/* Base button style */
+/* Base button style - 20% larger for better visibility */
 .voice-widget-button {
-  width: 64px;
-  height: 64px;
+  width: 77px;
+  height: 77px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -559,8 +559,8 @@ elevenlabs-convai::part(widget):active {
 }
 
 .voice-widget-button svg {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   fill: white;
   position: relative;
   z-index: 1;
@@ -654,10 +654,10 @@ elevenlabs-convai::part(widget):active {
   align-items: center;
 }
 
-/* Mute button */
+/* Mute button - 20% larger */
 .voice-widget-mute {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.2);
@@ -670,8 +670,8 @@ elevenlabs-convai::part(widget):active {
 }
 
 .voice-widget-mute svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   fill: white;
 }
 
@@ -702,14 +702,14 @@ elevenlabs-convai::part(widget):active {
 
 .voice-widget-label {
   position: absolute;
-  right: 72px;
+  right: 87px; /* Adjusted for 20% larger button */
   top: 50%;
   transform: translateY(-50%) translateX(10px);
   background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
   color: white;
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
   box-shadow:
@@ -777,27 +777,52 @@ elevenlabs-convai::part(widget):active {
   }
 }
 
-/* Sound wave animation for live state */
+/* Ear icon for listening state */
+.voice-widget-ear-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: ear-pulse 1.5s ease-in-out infinite;
+}
+
+.voice-widget-ear-icon svg {
+  width: 32px;
+  height: 32px;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+@keyframes ear-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* Sound wave animation for live state - 20% larger */
 .voice-widget-soundwave {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  height: 28px;
+  gap: 4px;
+  height: 34px;
 }
 
 .voice-widget-bar {
-  width: 4px;
+  width: 5px;
   background: white;
   border-radius: 2px;
   animation: soundwave 1s ease-in-out infinite;
 }
 
-.voice-widget-bar:nth-child(1) { animation-delay: 0s; height: 8px; }
-.voice-widget-bar:nth-child(2) { animation-delay: 0.1s; height: 16px; }
-.voice-widget-bar:nth-child(3) { animation-delay: 0.2s; height: 24px; }
-.voice-widget-bar:nth-child(4) { animation-delay: 0.3s; height: 16px; }
-.voice-widget-bar:nth-child(5) { animation-delay: 0.4s; height: 8px; }
+.voice-widget-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+.voice-widget-bar:nth-child(2) { animation-delay: 0.1s; height: 19px; }
+.voice-widget-bar:nth-child(3) { animation-delay: 0.2s; height: 29px; }
+.voice-widget-bar:nth-child(4) { animation-delay: 0.3s; height: 19px; }
+.voice-widget-bar:nth-child(5) { animation-delay: 0.4s; height: 10px; }
 
 @keyframes soundwave {
   0%, 100% {
@@ -1438,49 +1463,50 @@ elevenlabs-convai::part(widget):active {
     right: 20px;
   }
 
+  /* 20% larger: 56px → 67px */
   .voice-widget-button {
-    width: 56px;
-    height: 56px;
+    width: 67px;
+    height: 67px;
   }
 
   .voice-widget-button svg {
-    width: 24px;
-    height: 24px;
+    width: 29px;
+    height: 29px;
   }
 
   .voice-widget-mute {
-    width: 36px;
-    height: 36px;
+    width: 43px;
+    height: 43px;
   }
 
   .voice-widget-mute svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 
   .voice-widget-label {
-    right: 64px;
-    padding: 8px 14px;
-    font-size: 13px;
+    right: 77px;
+    padding: 10px 16px;
+    font-size: 14px;
   }
 
   .voice-widget-soundwave {
-    height: 24px;
+    height: 29px;
   }
 
   .voice-widget-bar {
-    width: 3px;
+    width: 4px;
   }
 
-  .voice-widget-bar:nth-child(1) { height: 6px; }
-  .voice-widget-bar:nth-child(2) { height: 12px; }
-  .voice-widget-bar:nth-child(3) { height: 20px; }
-  .voice-widget-bar:nth-child(4) { height: 12px; }
-  .voice-widget-bar:nth-child(5) { height: 6px; }
+  .voice-widget-bar:nth-child(1) { height: 7px; }
+  .voice-widget-bar:nth-child(2) { height: 14px; }
+  .voice-widget-bar:nth-child(3) { height: 24px; }
+  .voice-widget-bar:nth-child(4) { height: 14px; }
+  .voice-widget-bar:nth-child(5) { height: 7px; }
 
   .voice-widget-live-label {
-    padding: 5px 10px;
-    font-size: 11px;
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   /* Chat window mobile */
@@ -1506,20 +1532,21 @@ elevenlabs-convai::part(widget):active {
     right: 16px;
   }
 
+  /* 20% larger: 52px → 62px */
   .voice-widget-button {
-    width: 52px;
-    height: 52px;
+    width: 62px;
+    height: 62px;
   }
 
   .voice-widget-button svg {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
   }
 
   .voice-widget-label {
-    right: 58px;
-    padding: 6px 12px;
-    font-size: 12px;
+    right: 72px;
+    padding: 8px 14px;
+    font-size: 13px;
     border-radius: 10px;
   }
 
@@ -1544,5 +1571,613 @@ elevenlabs-convai::part(widget):active {
 
   .voice-widget-chat-bubble {
     max-width: 85%;
+  }
+}
+
+/* ============================================
+   Inline Icon Selector (Speed Dial Style)
+   ============================================ */
+
+.voice-widget-backdrop {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 9997;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.voice-widget-inline-options {
+  position: absolute;
+  bottom: 89px; /* Adjusted for 20% larger button */
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 9999;
+  animation: inline-options-appear 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes inline-options-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.voice-widget-inline-btn {
+  width: 62px; /* 20% larger: 52px → 62px */
+  height: 62px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.voice-widget-inline-btn svg {
+  width: 29px;
+  height: 29px;
+  fill: white;
+}
+
+.voice-widget-inline-btn.voice-btn {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  animation: inline-option-slide-1 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.voice-widget-inline-btn.text-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  animation: inline-option-slide-2 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.05s;
+}
+
+@keyframes inline-option-slide-1 {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes inline-option-slide-2 {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.voice-widget-inline-btn:hover {
+  transform: scale(1.1);
+}
+
+.voice-widget-inline-btn.voice-btn:hover {
+  box-shadow: 0 6px 25px rgba(5, 150, 105, 0.5);
+}
+
+.voice-widget-inline-btn.text-btn:hover {
+  box-shadow: 0 6px 25px rgba(37, 99, 235, 0.5);
+}
+
+.voice-widget-inline-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tooltips for inline buttons */
+.voice-widget-inline-tooltip {
+  position: absolute;
+  right: 72px; /* Adjusted for larger buttons */
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(30, 41, 59, 0.95);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.voice-widget-inline-btn:hover .voice-widget-inline-tooltip {
+  opacity: 1;
+}
+
+.voice-widget-inline-tooltip::after {
+  content: '';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left: 6px solid rgba(30, 41, 59, 0.95);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+/* ============================================
+   Non-Blocking Side Panel Chat
+   ============================================ */
+
+.voice-widget-side-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 90px;
+  width: 380px;
+  height: 520px;
+  max-height: calc(100vh - 48px);
+  background: white;
+  border-radius: 16px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: side-panel-slide-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 9998;
+}
+
+@keyframes side-panel-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Header actions container */
+.voice-widget-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Minimize button */
+.voice-widget-minimize {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  min-height: auto;
+}
+
+.voice-widget-minimize:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.voice-widget-minimize svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
+/* Minimized state button with badge */
+.voice-widget-minimized {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow:
+    0 4px 20px rgba(37, 99, 235, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: pulse-attention 2s ease-in-out infinite;
+}
+
+.voice-widget-minimized:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 8px 30px rgba(37, 99, 235, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pulse-attention {
+  0%, 100% {
+    box-shadow:
+      0 4px 20px rgba(37, 99, 235, 0.4),
+      0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 4px 20px rgba(37, 99, 235, 0.6),
+      0 0 0 8px rgba(37, 99, 235, 0);
+  }
+}
+
+/* ============================================
+   Call Ending Animation - Boom effect
+   ============================================ */
+
+.voice-widget-active.call-ending {
+  pointer-events: none;
+}
+
+.voice-widget-button.voice-widget-live.ending {
+  animation: call-end-boom 0.6s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
+}
+
+@keyframes call-end-boom {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow:
+      0 4px 20px rgba(5, 150, 105, 0.4),
+      0 0 0 0 rgba(5, 150, 105, 0.4);
+  }
+  30% {
+    transform: scale(1.3);
+    opacity: 1;
+    box-shadow:
+      0 8px 40px rgba(5, 150, 105, 0.6),
+      0 0 0 15px rgba(5, 150, 105, 0.3),
+      0 0 60px rgba(5, 150, 105, 0.4);
+  }
+  60% {
+    transform: scale(1.4);
+    opacity: 0.8;
+    box-shadow:
+      0 0 60px rgba(5, 150, 105, 0.5),
+      0 0 0 30px rgba(5, 150, 105, 0.1),
+      0 0 100px rgba(5, 150, 105, 0.3);
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+    box-shadow:
+      0 0 0 0 transparent,
+      0 0 0 50px rgba(5, 150, 105, 0),
+      0 0 0 0 transparent;
+  }
+}
+
+/* Ripple effect that expands outward */
+.voice-widget-button.voice-widget-live.ending::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(5, 150, 105, 0.3);
+  animation: ending-ripple 0.6s ease-out forwards;
+}
+
+@keyframes ending-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* ===========================================
+   CINEMATIC SUBTITLES - Typewriter Effect
+   =========================================== */
+
+.voice-widget-subtitle {
+  position: fixed; /* Changed from absolute to fixed for viewport positioning */
+  bottom: 215px; /* Position from viewport bottom - adjusted for 20% larger button */
+  right: 24px; /* Match the container's right offset */
+  /* Much wider on desktop for better readability */
+  min-width: 320px;
+  max-width: min(550px, calc(100vw - 48px));
+  padding: 18px 26px;
+  border-radius: 22px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  animation: subtitle-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 9999;
+  pointer-events: none;
+  transform-origin: bottom right;
+}
+
+.voice-widget-subtitle.agent {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.95) 0%, rgba(4, 120, 87, 0.95) 100%);
+  box-shadow:
+    0 8px 32px rgba(5, 150, 105, 0.4),
+    0 0 60px rgba(5, 150, 105, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.voice-widget-subtitle.user {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.95) 0%, rgba(29, 78, 216, 0.95) 100%);
+  box-shadow:
+    0 8px 32px rgba(37, 99, 235, 0.4),
+    0 0 60px rgba(37, 99, 235, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Fade out animation */
+.voice-widget-subtitle.fading-out {
+  animation: subtitle-fade-out 0.5s ease-out forwards;
+}
+
+.voice-widget-subtitle-text {
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+}
+
+/* Individual word animation */
+.voice-widget-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: word-pop-in 0.25s ease-out forwards;
+}
+
+/* Blinking cursor */
+.voice-widget-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 20px;
+  background: white;
+  margin-left: 2px;
+  animation: cursor-blink 0.8s ease-in-out infinite;
+  vertical-align: middle;
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+/* Animations */
+@keyframes subtitle-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes subtitle-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.95);
+  }
+}
+
+@keyframes word-pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cursor-blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Hide cursor when fading out */
+.voice-widget-subtitle.fading-out .voice-widget-cursor {
+  display: none;
+}
+
+/* ===========================================
+   Mobile Responsive - Subtitles
+   =========================================== */
+
+@media (max-width: 768px) {
+  .voice-widget-subtitle {
+    bottom: 190px; /* Adjusted for larger button */
+    /* Dynamic width: take more space on mobile */
+    max-width: calc(100vw - 32px);
+    width: auto;
+    padding: 14px 20px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: center bottom;
+    /* Ensure content doesn't overflow */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .voice-widget-subtitle-text {
+    font-size: 16px;
+    font-weight: 700;
+    justify-content: center;
+    text-align: center;
+    /* Improve word wrapping */
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  .voice-widget-cursor {
+    height: 18px;
+  }
+
+  /* Fix animation for centered mobile */
+  @keyframes subtitle-slide-in {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px) scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+  }
+
+  @keyframes subtitle-fade-out {
+    0% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-15px) scale(0.95);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .voice-widget-subtitle {
+    bottom: 180px; /* Adjusted for larger button */
+    /* Full width minus minimal padding on smallest screens */
+    max-width: calc(100vw - 24px);
+    padding: 12px 16px;
+    border-radius: 16px;
+  }
+
+  .voice-widget-subtitle-text {
+    font-size: 15px;
+    gap: 3px;
+  }
+
+  .voice-widget-cursor {
+    height: 16px;
+  }
+}
+
+/* Unread badge */
+.voice-widget-unread-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  animation: badge-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badge-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Live dot in chat header */
+.voice-widget-chat-header .voice-widget-live-dot {
+  width: 8px;
+  height: 8px;
+  background: #94a3b8;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.voice-widget-chat-header .voice-widget-live-dot.active {
+  background: #22c55e;
+  animation: blink-dot 1s ease-in-out infinite;
+}
+
+/* Mobile side panel - MUST be fullscreen */
+@media (max-width: 768px) {
+  .voice-widget-side-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    z-index: 99999 !important;
+  }
+
+  /* 20% larger: 66px → 79px */
+  .voice-widget-inline-options {
+    bottom: 79px;
+  }
+
+  /* 20% larger: 48px → 58px */
+  .voice-widget-inline-btn {
+    width: 58px;
+    height: 58px;
+  }
+
+  .voice-widget-inline-btn svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .voice-widget-inline-tooltip {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 20% larger: 62px → 74px */
+  .voice-widget-inline-options {
+    bottom: 74px;
+  }
+
+  /* 20% larger: 44px → 53px */
+  .voice-widget-inline-btn {
+    width: 53px;
+    height: 53px;
+  }
+
+  .voice-widget-inline-btn svg {
+    width: 24px;
+    height: 24px;
   }
 }

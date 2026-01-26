@@ -1,27 +1,15 @@
-import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { useToast } from "../../hooks/use-toast";
-import { usePersistedState } from "../../hooks/usePersistedState";
-import { useScrollToTop } from "../../hooks/useScrollToTop";
 import { getApiBaseUrl } from "../../lib/queryClient";
 import {
   RefreshCw,
-  DollarSign,
-  FileText,
-  CreditCard,
-  Users,
   Plus,
   ExternalLink,
-  Download,
   Clock,
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
   Archive,
-  Filter,
-  Trash2,
   Undo2,
   X,
 } from "lucide-react";
@@ -31,9 +19,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
-import ClientPreview from "../../components/admin/ClientPreview";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from "recharts";
 
 interface BillingDashboardData {
   invoices: any[];
@@ -62,6 +48,62 @@ interface BillingDashboardData {
     totalClients: number;
   };
 }
+
+interface StripePayment {
+  id: string;
+  date: string;
+  amount: number;
+  email: string;
+  description: string;
+  category: string;
+}
+
+interface ClientRevenue {
+  client: string;
+  email: string;
+  total: number;
+  projected: number;
+  payments: StripePayment[];
+}
+
+// Active clients list
+const ACTIVE_CLIENTS = [
+  { name: "Desert Moon Lighting", email: "mmazick@nssaz.com", status: "active" },
+  { name: "Brian Mitchell", email: "brian.mitchell38@gmail.com", status: "active" },
+  { name: "Agave Environmental", email: "victoria.rosales@agave-inc.com", status: "active" },
+  { name: "CGCC Presentation", email: "theresa.whitney@cgc.edu", status: "active" },
+];
+
+// Email aliases - maps alternate emails to primary client email
+const EMAIL_ALIASES: Record<string, string> = {
+  "jeraush@emdivision.com": "brian.mitchell38@gmail.com", // Brian's business email
+};
+
+// Projected revenue data - update manually as deals progress
+const PROJECTED_REVENUE: Record<string, { amount: number; month: string; note: string }[]> = {
+  // Brian Mitchell - remaining 50% ($898.50) + add-ons ($780) = $1,678.50
+  "brian.mitchell38@gmail.com": [
+    { amount: 1678.50, month: "Feb 2026", note: "Final balance + add-ons (pins/perimeter)" },
+  ],
+  // Desert Moon Lighting - outstanding balance
+  "mmazick@nssaz.com": [
+    { amount: 2752, month: "Feb 2026", note: "Outstanding balance" },
+  ],
+  // Agave Environmental - outstanding invoice + subscription
+  "victoria.rosales@agave-inc.com": [
+    { amount: 242.20, month: "Feb 2026", note: "Outstanding invoice (Dec - one-time + 1st month)" },
+    { amount: 154.92, month: "Mar 2026", note: "Monthly subscription + tax" },
+    { amount: 154.92, month: "Apr 2026", note: "Monthly subscription + tax" },
+    { amount: 154.92, month: "May 2026", note: "Monthly subscription + tax" },
+  ],
+};
+
+// One-time projected revenue by month (not tied to existing clients)
+const MONTHLY_PROJECTED: Record<string, { amount: number; note: string }[]> = {
+  "Apr 2026": [
+    { amount: 500, note: "CGCC Presentation" },
+  ],
+};
 
 interface Client {
   id: number;
@@ -99,1994 +141,940 @@ const loadArchivedFromStorage = (): ArchivedItemsState => {
   }
 
   try {
-    const raw = localStorage.getItem(ARCHIVE_STORAGE_KEY);
-    if (!raw) return { invoices: new Set(), subscriptions: new Set(), paymentLinks: new Set() };
+    const stored = localStorage.getItem(ARCHIVE_STORAGE_KEY);
+    if (!stored) {
+      return { invoices: new Set(), subscriptions: new Set(), paymentLinks: new Set() };
+    }
 
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(stored);
     return {
       invoices: new Set(parsed.invoices || []),
       subscriptions: new Set(parsed.subscriptions || []),
       paymentLinks: new Set(parsed.paymentLinks || []),
     };
-  } catch {
+  } catch (error) {
+    console.error("Error loading archived items from localStorage:", error);
     return { invoices: new Set(), subscriptions: new Set(), paymentLinks: new Set() };
   }
 };
 
-const persistArchivedToStorage = (state: ArchivedItemsState) => {
+const saveArchivedToStorage = (archivedItems: ArchivedItemsState) => {
   if (typeof window === "undefined") return;
-  const serialized = {
-    invoices: Array.from(state.invoices),
-    subscriptions: Array.from(state.subscriptions),
-    paymentLinks: Array.from(state.paymentLinks),
-  };
+
   try {
-    localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(serialized));
+    const toStore = {
+      invoices: Array.from(archivedItems.invoices),
+      subscriptions: Array.from(archivedItems.subscriptions),
+      paymentLinks: Array.from(archivedItems.paymentLinks),
+    };
+    localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(toStore));
   } catch (error) {
-    console.warn("Could not persist archived billing items", error);
+    console.error("Error saving archived items to localStorage:", error);
   }
 };
 
 export default function BillingPage() {
-  useScrollToTop();
+  const [data, setData] = useState<BillingDashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [dashboardData, setDashboardData] = useState<BillingDashboardData | null>(null);
-  const [monthlyRevenue, setMonthlyRevenue] = useState<Array<{month: string; revenue: number}>>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [deals, setDeals] = useState<any[]>([]);
-  const [filterClientId, setFilterClientId] = useState<string>("");
-  const [filterDealId, setFilterDealId] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"all" | "client" | "deal">("all");
-  const [archivedItems, setArchivedItems] = useState<ArchivedItemsState>(() => loadArchivedFromStorage());
+  // Monthly revenue for chart
+  const [monthlyRevenue, setMonthlyRevenue] = useState<Array<{ month: string; revenue: number; projected: number }>>([]);
+  const [stripeTotalRevenue, setStripeTotalRevenue] = useState<number | null>(null);
+  const [projectedTotal, setProjectedTotal] = useState<number>(0);
+  const [revenueTimeRange, setRevenueTimeRange] = useState<string>("12"); // Default to 12 months
 
-  // Quick filters - persisted to localStorage
-  const [paymentStatusFilter, setPaymentStatusFilter] = usePersistedState<"all" | "paid" | "unpaid" | "draft">("admin:billing:paymentStatus", "all");
-  const [typeFilter, setTypeFilter] = usePersistedState<"all" | "invoice" | "subscription" | "paymentLink">("admin:billing:type", "all");
-  const [timeFilter, setTimeFilter] = usePersistedState<"all" | "thisYear" | "thisMonth" | "lastMonth" | "lastYear" | "custom">("admin:billing:time", "all");
-  const [yearFilter, setYearFilter] = usePersistedState<string>("admin:billing:year", "all");
-  const [customDateRange, setCustomDateRange] = useState<{ start: string; end: string }>({ start: "", end: "" });
+  // Payment history
+  const [payments, setPayments] = useState<StripePayment[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [clientRevenue, setClientRevenue] = useState<ClientRevenue[]>([]);
+  const [firstPaymentDate, setFirstPaymentDate] = useState<Date | null>(null);
 
-  // Client preview
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-  const [showClientPreview, setShowClientPreview] = useState(false);
-
-  // Filter expansion states
-  const [expandedFilters, setExpandedFilters] = useState<{
-    quickFilters: boolean;
-    advancedFilters: boolean;
-  }>({
-    quickFilters: false,
-    advancedFilters: false,
-  });
-
-  // Active tab state - synced with typeFilter and persisted
-  const [activeTab, setActiveTab] = usePersistedState<string>("admin:billing:tab", "all");
-
-  const updateArchivedItems = (updater: (prev: ArchivedItemsState) => ArchivedItemsState) => {
-    setArchivedItems((prev) => {
-      const next = updater(prev);
-      persistArchivedToStorage(next);
-      return next;
-    });
+  // Calculate average monthly income
+  const calculateAverageIncome = () => {
+    if (!payments.length || !firstPaymentDate) return { avg: 0, months: 0 };
+    const now = new Date();
+    const monthsDiff = Math.max(1,
+      (now.getFullYear() - firstPaymentDate.getFullYear()) * 12 +
+      (now.getMonth() - firstPaymentDate.getMonth()) + 1
+    );
+    const total = payments.reduce((sum, p) => sum + p.amount, 0);
+    return { avg: total / monthsDiff, months: monthsDiff };
   };
 
-  // Prevent duplicate API calls from React StrictMode
-  const hasLoadedRef = useRef(false);
-  const isLoadingRef = useRef(false);
+  const avgIncomeData = calculateAverageIncome();
 
-  // Track if tab change is triggering typeFilter update (to prevent loops)
-  const isTabChangingRef = useRef(false);
-
-  // Sync tab with typeFilter when typeFilter changes manually (not from tab click)
-  useEffect(() => {
-    // Skip sync if tab change triggered this (to avoid loops)
-    if (isTabChangingRef.current) {
-      isTabChangingRef.current = false;
-      return;
-    }
-
-    const tabMap: Record<string, string> = {
-      all: "all",
-      invoice: "invoices",
-      subscription: "subscriptions",
-      paymentLink: "paymentLinks",
-      quote: "quotes",
-      other: "other",
-    };
-    const expectedTab = tabMap[typeFilter] || "all";
-    if (activeTab !== expectedTab) {
-      setActiveTab(expectedTab);
-    }
-  }, [typeFilter, activeTab]);
+  // Archive state
+  const [archivedItems, setArchivedItems] = useState<ArchivedItemsState>(loadArchivedFromStorage);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Dialog states
+  const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
+  const [viewInvoiceOpen, setViewInvoiceOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [createSubscriptionOpen, setCreateSubscriptionOpen] = useState(false);
+  const [createPaymentLinkOpen, setCreatePaymentLinkOpen] = useState(false);
+  const [createQuoteOpen, setCreateQuoteOpen] = useState(false);
+  const [viewQuoteOpen, setViewQuoteOpen] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [billableTicketsOpen, setBillableTicketsOpen] = useState(false);
+  const [billableTickets, setBillableTickets] = useState<BillableTicket[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
 
-  // Dialog states
-  const [showCreateInvoiceDialog, setShowCreateInvoiceDialog] = useState(false);
-  const [showCreatePaymentLinkDialog, setShowCreatePaymentLinkDialog] = useState(false);
-
-  // Invoice form state
+  // Form states
   const [invoiceForm, setInvoiceForm] = useState({
     clientId: "",
-    dealId: "",
+    amount: "",
     description: "",
-    lineItems: [{ description: "", amount: "", quantity: "1", tax: "" }],
     dueDate: "",
-    sendImmediately: false,
-    notes: "",
-    taxRate: "",
   });
 
-  // Payment link form state
-  const [paymentLinkForm, setPaymentLinkForm] = useState({
+  const [subscriptionForm, setSubscriptionForm] = useState({
     clientId: "",
+    amount: "",
+    description: "",
+    interval: "monthly",
+  });
+
+  const [paymentLinkForm, setPaymentLinkForm] = useState({
     amount: "",
     description: "",
   });
 
-  // Billable tickets state for invoice creation
-  const [billableTickets, setBillableTickets] = useState<BillableTicket[]>([]);
-  const [selectedTicketIds, setSelectedTicketIds] = useState<number[]>([]);
-  const [loadingTickets, setLoadingTickets] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({
+    clientId: "",
+    items: [{ description: "", quantity: 1, rate: 0 }],
+    notes: "",
+  });
 
-  useEffect(() => {
-    // Prevent duplicate calls from React StrictMode double-invocation
-    if (hasLoadedRef.current || isLoadingRef.current) {
-      return;
-    }
+  const [clients, setClients] = useState<Client[]>([]);
 
-    isLoadingRef.current = true;
-    hasLoadedRef.current = true;
-
-    loadDashboard();
-    loadClients();
-    loadDeals();
-  }, []);
-
-  const loadDeals = async () => {
+  const fetchData = async () => {
     try {
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
+      setLoading(true);
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
 
-      const response = await fetch(`${baseUrl}/admin/deals`, {
+      // Fetch dashboard data
+      const dashboardRes = await fetch(`${getApiBaseUrl()}/admin/billing/dashboard`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("Failed to load deals");
-
-      const data = await response.json();
-      setDeals(data.deals || []);
-    } catch (error: any) {
-      console.error("Error loading deals:", error);
-    }
-  };
-
-  // Load billable tickets for a specific client/deal
-  const loadBillableTickets = async (clientId?: string, dealId?: string) => {
-    if (!clientId) {
-      setBillableTickets([]);
-      setSelectedTicketIds([]);
-      return;
-    }
-
-    try {
-      setLoadingTickets(true);
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      const params = new URLSearchParams();
-      params.append("clientId", clientId);
-      if (dealId) params.append("dealId", dealId);
-
-      const response = await fetch(`${baseUrl}/admin/tickets/billable?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to load billable tickets");
-
-      const data = await response.json();
-      setBillableTickets(data.tickets || []);
-      setSelectedTicketIds([]); // Reset selection when tickets change
-    } catch (error: any) {
-      console.error("Error loading billable tickets:", error);
-      setBillableTickets([]);
-    } finally {
-      setLoadingTickets(false);
-    }
-  };
-
-  // Toggle ticket selection
-  const toggleTicketSelection = (ticketId: number) => {
-    setSelectedTicketIds((prev) =>
-      prev.includes(ticketId) ? prev.filter((id) => id !== ticketId) : [...prev, ticketId]
-    );
-  };
-
-  // Add selected tickets as line items
-  const addTicketsAsLineItems = () => {
-    const selectedTickets = billableTickets.filter((t) => selectedTicketIds.includes(t.id));
-
-    if (selectedTickets.length === 0) {
-      toast({
-        title: "No tickets selected",
-        description: "Please select at least one ticket to add",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newLineItems = selectedTickets.map((ticket) => {
-      const hours = parseFloat(ticket.timeSpent) || 0;
-      const rate = parseFloat(ticket.hourlyRate || "65"); // Default $65/hr
-      return {
-        description: `[Ticket #${ticket.id}] ${ticket.title}`,
-        amount: rate.toString(),
-        quantity: hours.toString(),
-        tax: "",
-      };
-    });
-
-    // Add to existing line items (filter out empty ones first)
-    const existingItems = invoiceForm.lineItems.filter(
-      (item) => item.description || item.amount
-    );
-    setInvoiceForm({
-      ...invoiceForm,
-      lineItems: [...existingItems, ...newLineItems].length > 0
-        ? [...existingItems, ...newLineItems]
-        : [{ description: "", amount: "", quantity: "1", tax: "" }],
-    });
-
-    toast({
-      title: "Tickets Added",
-      description: `Added ${selectedTickets.length} ticket(s) as line items`,
-    });
-  };
-
-  // Mark tickets as billed after invoice creation
-  const markTicketsAsBilled = async (ticketIds: number[]) => {
-    if (ticketIds.length === 0) return;
-
-    try {
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      await fetch(`${baseUrl}/admin/tickets/mark-billed`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ticketIds }),
-      });
-    } catch (error: any) {
-      console.error("Error marking tickets as billed:", error);
-    }
-  };
-
-  const loadDashboard = async () => {
-    try {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:110",
-          message: "loadDashboard entry",
-          data: { hasToken: !!(localStorage.getItem("authToken") || localStorage.getItem("token")) },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "B",
-        }),
-      }).catch(() => {});
-      // #endregion
-      setIsLoading(true);
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      const response = await fetch(`${baseUrl}/admin/billing/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:118",
-          message: "After fetch response",
-          data: { status: response.status, statusText: response.statusText, ok: response.ok },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "B",
-        }),
-      }).catch(() => {});
-      // #endregion
-
-      if (!response.ok) {
-        throw new Error(`Failed to load billing dashboard: ${response.status} ${response.statusText}`);
+      if (!dashboardRes.ok) {
+        throw new Error("Failed to fetch billing data");
       }
 
-      const data = await response.json();
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:124",
-          message: "Before setDashboardData",
-          data: {
-            success: data.success,
-            hasData: !!data.data,
-            invoicesCount: data.data?.invoices?.length || 0,
-            clientGroupsCount: data.data?.clientGroups?.length || 0,
-          },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "C",
-        }),
-      }).catch(() => {});
-      // #endregion
+      const dashboardResult = await dashboardRes.json();
+      setData(dashboardResult);
 
-      if (!data.success || !data.data) {
-        throw new Error("Invalid response from billing dashboard");
-      }
-
-      // Ensure data structure is safe
-      const dashData = {
-        invoices: data.data.invoices || [],
-        paymentIntents: data.data.paymentIntents || [],
-        subscriptions: data.data.subscriptions || [],
-        quotes: data.data.quotes || [],
-        paymentLinks: data.data.paymentLinks || [],
-        clientGroups: data.data.clientGroups || [],
-        summary: data.data.summary || {
-          totalRevenue: 0,
-          totalOutstanding: 0,
-          totalDraft: 0,
-          totalInvoices: 0,
-          totalSubscriptions: 0,
-          totalClients: 0,
-        },
-      };
-      setDashboardData(dashData);
-      calculateMonthlyRevenue(dashData);
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:146",
-          message: "After setDashboardData success",
-          data: { invoicesCount: data.data.invoices?.length || 0 },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "C",
-        }),
-      }).catch(() => {});
-      // #endregion
+      // Fetch revenue data with current time range
+      await fetchRevenueData(revenueTimeRange);
     } catch (error: any) {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:147",
-          message: "loadDashboard error",
-          data: { errorMessage: error?.message, errorType: error?.constructor?.name },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "D",
-        }),
-      }).catch(() => {});
-      // #endregion
-      console.error("Error loading billing dashboard:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to load billing dashboard",
+        description: error.message || "Failed to load billing data",
         variant: "destructive",
       });
-      // Set empty data structure to prevent crashes
-      setDashboardData({
-        invoices: [],
-        paymentIntents: [],
-        subscriptions: [],
-        quotes: [],
-        paymentLinks: [],
-        clientGroups: [],
-        summary: {
-          totalRevenue: 0,
-          totalOutstanding: 0,
-          totalDraft: 0,
-          totalInvoices: 0,
-          totalSubscriptions: 0,
-          totalClients: 0,
-        },
-      });
     } finally {
-      setIsLoading(false);
-      isLoadingRef.current = false;
+      setLoading(false);
     }
   };
 
-  // Function for manual refresh (called by button)
-  const loadFreshStripeData = async () => {
+  const fetchRevenueData = async (months: string) => {
     try {
-      // #region agent log
-      fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: "BillingPage.tsx:177",
-          message: "loadFreshStripeData entry",
-          data: { clientsLength: clients.length, isLoading: isLoadingRef.current },
-          timestamp: Date.now(),
-          sessionId: "debug-session",
-          runId: "run1",
-          hypothesisId: "E",
-        }),
-      }).catch(() => {});
-      // #endregion
-
-      // Don't load if we don't have clients yet
-      if (clients.length === 0) {
-        return;
-      }
-
-      // Prevent concurrent calls
-      if (isLoadingRef.current) {
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: "BillingPage.tsx:195",
-            message: "loadFreshStripeData - skipping concurrent call",
-            data: { timestamp: Date.now() },
-            timestamp: Date.now(),
-            sessionId: "debug-session",
-            runId: "run1",
-            hypothesisId: "E",
-          }),
-        }).catch(() => {});
-        // #endregion
-        return;
-      }
-
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      const response = await fetch(`${baseUrl}/admin/billing/fresh`, {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const revenueRes = await fetch(`${getApiBaseUrl()}/admin/billing/monthly-revenue?months=${months}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) {
-        // Silently fail - we'll still show database data
-        return;
-      }
+      if (revenueRes.ok) {
+        const revenueResult = await revenueRes.json();
+        if (revenueResult.success && revenueResult.data?.monthlyRevenue) {
+          // Get all projected months
+          const projectedMonths = new Set<string>();
+          Object.values(PROJECTED_REVENUE).forEach((projections) => {
+            projections.forEach((p) => projectedMonths.add(p.month));
+          });
+          Object.keys(MONTHLY_PROJECTED).forEach((month) => projectedMonths.add(month));
 
-      const data = await response.json();
+          // Start with existing data
+          const existingMonths = new Set(revenueResult.data.monthlyRevenue.map((m: { month: string }) => m.month));
 
-      if (!data.success || !data.data) {
-        return;
-      }
-
-      // Match Stripe customers with database clients by email
-      const clientMap = new Map<string, number>();
-      for (const client of clients) {
-        if (client.email) {
-          clientMap.set(client.email.toLowerCase(), client.id);
-        }
-      }
-
-      // Merge fresh Stripe data with existing dashboard data
-      setDashboardData((prevData: any) => {
-        try {
-          // #region agent log
-          fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              location: "BillingPage.tsx:211",
-              message: "loadFreshStripeData setState callback entry",
-              data: {
-                hasPrevData: !!prevData,
-                prevInvoicesCount: prevData?.invoices?.length || 0,
-                freshInvoicesCount: data.data?.invoices?.length || 0,
-              },
-              timestamp: Date.now(),
-              sessionId: "debug-session",
-              runId: "run1",
-              hypothesisId: "E",
-            }),
-          }).catch(() => {});
-          // #endregion
-          if (!prevData) {
-            // If no previous data, return fresh data structure
-            const invoices = (data.data.invoices || []).map((inv: any) => {
-              const matchingCustomer = data.data.customers?.find((c: any) => c.id === inv.customer);
-              const email = matchingCustomer?.email;
-              const clientId = email ? clientMap.get(email.toLowerCase()) : null;
-
-              return {
-                ...inv,
-                clientId: clientId || null,
-                invoiceNumber: inv.invoiceNumber || inv.id,
-                total: typeof inv.total === "number" ? inv.total : parseFloat(inv.total || 0),
-                amountDue: typeof inv.amountDue === "number" ? inv.amountDue : parseFloat(inv.amountDue || 0),
-                amountPaid: typeof inv.amountPaid === "number" ? inv.amountPaid : parseFloat(inv.amountPaid || 0),
-              };
-            });
-
-            return {
-              invoices: invoices,
-              subscriptions: data.data.subscriptions || [],
-              paymentIntents: [],
-              quotes: [],
-              paymentLinks: [],
-              clientGroups: [],
-              summary: data.data.summary || {
-                totalRevenue: 0,
-                totalOutstanding: 0,
-                totalDraft: 0,
-                totalInvoices: 0,
-                totalSubscriptions: 0,
-              },
-            };
+          // Add future months that have projections
+          const now = new Date();
+          const futureMonths: { month: string; revenue: number }[] = [];
+          for (let i = 1; i <= 6; i++) {
+            const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
+            const monthKey = futureDate.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+            if (projectedMonths.has(monthKey) && !existingMonths.has(monthKey)) {
+              futureMonths.push({ month: monthKey, revenue: 0 });
+            }
           }
 
-          const freshInvoices = (data.data.invoices || []).map((inv: any) => {
-            const matchingCustomer = data.data.customers?.find((c: any) => c.id === inv.customer);
-            const email = matchingCustomer?.email;
-            const clientId = email ? clientMap.get(email.toLowerCase()) : null;
+          // Combine historical and future data
+          const allMonthsData = [...revenueResult.data.monthlyRevenue, ...futureMonths];
 
-            return {
-              ...inv,
-              clientId: clientId || null,
-              invoiceNumber: inv.invoiceNumber || inv.id,
-              total: typeof inv.total === "number" ? inv.total : parseFloat(inv.total || 0),
-              amountDue: typeof inv.amountDue === "number" ? inv.amountDue : parseFloat(inv.amountDue || 0),
-              amountPaid: typeof inv.amountPaid === "number" ? inv.amountPaid : parseFloat(inv.amountPaid || 0),
-            };
+          // Add projected amounts to the data
+          const revenueWithProjected = allMonthsData.map((item: { month: string; revenue: number }) => {
+            let projected = 0;
+
+            // Add monthly projected revenue
+            if (MONTHLY_PROJECTED[item.month]) {
+              projected += MONTHLY_PROJECTED[item.month].reduce((sum, p) => sum + p.amount, 0);
+            }
+
+            // Add client projected revenue for this month
+            Object.values(PROJECTED_REVENUE).forEach((projections) => {
+              projections.forEach((p) => {
+                if (p.month === item.month) {
+                  projected += p.amount;
+                }
+              });
+            });
+
+            return { ...item, projected };
           });
 
-          const freshSubscriptions = (data.data.subscriptions || []).map((sub: any) => {
-            const matchingCustomer = data.data.customers?.find((c: any) => c.id === sub.customer);
-            const email = matchingCustomer?.email;
-            const clientId = email ? clientMap.get(email.toLowerCase()) : null;
-            return {
-              ...sub,
-              clientId: clientId || null,
-            };
+          setMonthlyRevenue(revenueWithProjected);
+
+          // Calculate total projected
+          let totalProjected = 0;
+          Object.values(PROJECTED_REVENUE).forEach((projections) => {
+            projections.forEach((p) => totalProjected += p.amount);
           });
+          Object.values(MONTHLY_PROJECTED).forEach((projections) => {
+            projections.forEach((p) => totalProjected += p.amount);
+          });
+          setProjectedTotal(totalProjected);
 
-          // Merge: combine database invoices with Stripe invoices, avoiding duplicates
-          const existingInvoiceIds = new Set((prevData.invoices || []).map((inv: any) => inv.stripeInvoiceId || inv.id));
-          const newInvoices = freshInvoices.filter((inv: any) => !existingInvoiceIds.has(inv.id));
-
-          return {
-            ...prevData,
-            invoices: [...(prevData.invoices || []), ...newInvoices],
-            subscriptions: freshSubscriptions.length > 0 ? freshSubscriptions : prevData.subscriptions || [],
-            summary: {
-              ...prevData.summary,
-              // Update summary with fresh totals if they're higher (more complete)
-              totalRevenue: Math.max(prevData.summary?.totalRevenue || 0, data.data.summary?.totalRevenue || 0),
-              totalOutstanding: Math.max(prevData.summary?.totalOutstanding || 0, data.data.summary?.totalOutstanding || 0),
-              totalDraft: Math.max(prevData.summary?.totalDraft || 0, data.data.summary?.totalDraft || 0),
-            },
-          };
-        } catch (mergeError: any) {
-          console.error("Error merging fresh Stripe data:", mergeError);
-          // Return previous data on error to prevent crashes
-          return prevData;
+          if (revenueResult.data.totalRevenue !== undefined) {
+            setStripeTotalRevenue(revenueResult.data.totalRevenue);
+          }
         }
-      });
-    } catch (error: any) {
-      // Silently fail - we'll still show database data
-      console.error("Could not load fresh Stripe data:", error);
-      throw error; // Re-throw so the useEffect can catch it
+      }
+    } catch (error) {
+      console.error("Error fetching revenue data:", error);
     }
   };
 
-  const loadClients = async () => {
-    try {
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
+  const handleTimeRangeChange = (newRange: string) => {
+    setRevenueTimeRange(newRange);
+    fetchRevenueData(newRange);
+  };
 
-      const response = await fetch(`${baseUrl}/admin/clients`, {
+  const fetchPayments = async () => {
+    try {
+      setLoadingPayments(true);
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/billing/payments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error("Failed to load clients");
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          // Filter out test payments (under $5)
+          const realPayments = result.data.filter((p: StripePayment) => p.amount >= 5);
+          setPayments(realPayments);
 
-      const data = await response.json();
-      setClients(data.clients || []);
-    } catch (error: any) {
-      console.error("Error loading clients:", error);
+          // Find first payment date
+          if (realPayments.length > 0) {
+            const dates = realPayments.map((p: StripePayment) => new Date(p.date));
+            const oldest = new Date(Math.min(...dates.map(d => d.getTime())));
+            setFirstPaymentDate(oldest);
+          }
+
+          // Aggregate by client email (using aliases)
+          const clientMap = new Map<string, ClientRevenue>();
+          realPayments.forEach((payment: StripePayment) => {
+            const rawEmail = payment.email || "Unknown";
+            // Check for email alias
+            const key = EMAIL_ALIASES[rawEmail.toLowerCase()] || rawEmail;
+            if (clientMap.has(key)) {
+              const existing = clientMap.get(key)!;
+              existing.total += payment.amount;
+              existing.payments.push(payment);
+            } else {
+              // Check if this is a known active client first
+              const activeClient = ACTIVE_CLIENTS.find(c => c.email === key);
+              let clientName = activeClient?.name || key;
+
+              // If not found in active clients, create readable name from email
+              if (!activeClient && key.includes("@")) {
+                const namePart = key.split("@")[0];
+                clientName = namePart
+                  .replace(/[._]/g, " ")
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
+              }
+              // Get projected amount for this client
+              const clientProjected = PROJECTED_REVENUE[key]
+                ? PROJECTED_REVENUE[key].reduce((sum, p) => sum + p.amount, 0)
+                : 0;
+
+              clientMap.set(key, {
+                client: clientName,
+                email: key,
+                total: payment.amount,
+                projected: clientProjected,
+                payments: [payment],
+              });
+            }
+          });
+
+          // Add clients who have projections but no payments yet
+          Object.entries(PROJECTED_REVENUE).forEach(([email, projections]) => {
+            if (!clientMap.has(email)) {
+              const totalProjected = projections.reduce((sum, p) => sum + p.amount, 0);
+              // Get client name from ACTIVE_CLIENTS
+              const activeClient = ACTIVE_CLIENTS.find(c => c.email === email);
+              const clientName = activeClient?.name || email.split("@")[0];
+              clientMap.set(email, {
+                client: clientName,
+                email: email,
+                total: 0,
+                projected: totalProjected,
+                payments: [],
+              });
+            }
+          });
+
+          // Sort by combined total (paid + projected, highest first)
+          const sortedClients = Array.from(clientMap.values()).sort((a, b) => (b.total + b.projected) - (a.total + a.projected));
+          setClientRevenue(sortedClients);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/clients`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const clientsData = await response.json();
+        // Handle both array response and object with clients property
+        const clientsArray = Array.isArray(clientsData) ? clientsData : (clientsData.clients || []);
+        setClients(clientsArray);
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
     }
   };
 
   const calculateMonthlyRevenue = (data: BillingDashboardData | null) => {
-    if (!data) return;
-
-    // Calculate revenue for past 5 months from invoices
     const monthsData: Record<string, number> = {};
     const now = new Date();
 
-    // Initialize last 5 months with 0
+    // Initialize last 5 months
     for (let i = 4; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      const monthKey = date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
       monthsData[monthKey] = 0;
     }
 
-    // Sum up paid invoices by month
-    data.invoices?.forEach((invoice: any) => {
-      if (invoice.status === 'paid' && invoice.paidAt) {
-        const paidDate = new Date(invoice.paidAt);
-        const monthKey = paidDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-        if (monthKey in monthsData) {
-          monthsData[monthKey] += parseFloat(invoice.total || 0);
+    // Calculate revenue from paid invoices
+    if (data?.invoices) {
+      data.invoices.forEach((invoice: any) => {
+        if (invoice.status === "paid" && invoice.paidAt) {
+          const paidDate = new Date(invoice.paidAt);
+          const monthKey = paidDate.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+          if (monthKey in monthsData) {
+            monthsData[monthKey] += parseFloat(invoice.total || 0);
+          }
         }
-      }
-    });
+      });
+    }
 
-    // Convert to array format for chart
     const revenueData = Object.entries(monthsData).map(([month, revenue]) => ({
       month,
-      revenue: Math.round(revenue * 100) / 100
+      revenue: Math.round(revenue * 100) / 100,
     }));
 
     setMonthlyRevenue(revenueData);
   };
 
-  const syncAllStripeData = async () => {
+  useEffect(() => {
+    fetchData();
+    fetchClients();
+    fetchPayments();
+  }, []);
+
+  const handleCreateInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     try {
-      setIsSyncing(true);
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      toast({
-        title: "Syncing...",
-        description: "Downloading all data from Stripe. This may take a moment.",
-      });
-
-      const response = await fetch(`${baseUrl}/admin/billing/sync/all`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to sync Stripe data");
-
-      const data = await response.json();
-
-      toast({
-        title: "Sync Complete",
-        description: `Synced ${(data.results.customers.stripeCustomersCreated || 0) + (data.results.customers.stripeCustomersUpdated || 0)} Stripe customers, ${(data.results.customers.crmClientsCreated || 0) + (data.results.customers.crmClientsUpdated || 0)} CRM clients, ${data.results.invoices.created + data.results.invoices.updated} invoices. ${data.note || ""}`,
-      });
-
-      // Reload dashboard
-      await loadDashboard();
-    } catch (error: any) {
-      toast({
-        title: "Sync Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const fetchFreshStripeData = async () => {
-    try {
-      setIsSyncing(true);
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      toast({
-        title: "Fetching...",
-        description: "Getting latest data directly from Stripe.",
-      });
-
-      const response = await fetch(`${baseUrl}/admin/billing/fresh`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch fresh Stripe data");
-
-      const data = await response.json();
-
-      // Update dashboard with fresh data (note: this is view-only, not synced to DB)
-      if (data.success && data.data) {
-        // Match Stripe customer IDs with our database customers
-        const customerMap = new Map();
-        for (const client of clients) {
-          // We'll need to match by email for now since fresh data has customer objects
-          if (client.email) {
-            customerMap.set(client.email.toLowerCase(), client.id);
-          }
-        }
-
-        // Merge fresh data with existing dashboard data
-        setDashboardData(
-          (prevData) =>
-            ({
-              ...prevData,
-              invoices: data.data.invoices.map((inv: any) => {
-                // Try to find matching client by customer email from Stripe customers list
-                const matchingCustomer = data.data.customers?.find((c: any) => c.id === inv.customer);
-                const clientId = matchingCustomer?.email ? customerMap.get(matchingCustomer.email.toLowerCase()) : null;
-
-                return {
-                  ...inv,
-                  clientId: clientId,
-                  customer: matchingCustomer?.name || matchingCustomer?.email || inv.customer,
-                };
-              }),
-              subscriptions: data.data.subscriptions.map((sub: any) => {
-                const matchingCustomer = data.data.customers?.find((c: any) => c.id === sub.customer);
-                const clientId = matchingCustomer?.email ? customerMap.get(matchingCustomer.email.toLowerCase()) : null;
-                return {
-                  ...sub,
-                  clientId: clientId,
-                };
-              }),
-              summary: data.data.summary,
-            }) as any
-        );
-
-        toast({
-          title: "Data Refreshed",
-          description: `Found ${data.data.invoices.length} invoices, ${data.data.subscriptions.length} subscriptions from Stripe`,
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Fetch Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const createInvoice = async () => {
-    try {
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      // Validate form
-      if (!invoiceForm.clientId || !invoiceForm.description) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill in all required fields",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate line items
-      const validLineItems = invoiceForm.lineItems
-        .filter((item) => item.description && item.amount)
-        .map((item) => ({
-          description: item.description,
-          amount: parseFloat(item.amount),
-          quantity: parseInt(item.quantity) || 1,
-          tax: item.tax ? parseFloat(item.tax) : undefined,
-          taxRateId: invoiceForm.taxRate || undefined,
-        }));
-
-      if (validLineItems.length === 0) {
-        toast({
-          title: "Validation Error",
-          description: "Please add at least one line item",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const response = await fetch(`${baseUrl}/admin/billing/invoices`, {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/billing/invoices`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          clientId: parseInt(invoiceForm.clientId),
-          dealId: invoiceForm.dealId ? parseInt(invoiceForm.dealId) : undefined,
-          description: invoiceForm.description,
-          lineItems: validLineItems,
-          dueDate: invoiceForm.dueDate || undefined,
-          sendImmediately: invoiceForm.sendImmediately,
-          notes: invoiceForm.notes || undefined,
-          taxRate: invoiceForm.taxRate || undefined,
-        }),
+        body: JSON.stringify(invoiceForm),
       });
 
-      if (!response.ok) throw new Error("Failed to create invoice");
-
-      await response.json();
-
-      // Extract ticket IDs from line items that were added from tickets
-      const ticketIdsFromLineItems = validLineItems
-        .map((item) => {
-          const match = item.description.match(/\[Ticket #(\d+)\]/);
-          return match ? parseInt(match[1]) : null;
-        })
-        .filter((id): id is number => id !== null);
-
-      // Mark those tickets as billed
-      if (ticketIdsFromLineItems.length > 0) {
-        await markTicketsAsBilled(ticketIdsFromLineItems);
+      if (!response.ok) {
+        throw new Error("Failed to create invoice");
       }
 
       toast({
-        title: "Invoice Created",
-        description: invoiceForm.sendImmediately
-          ? `Invoice sent to client successfully${ticketIdsFromLineItems.length > 0 ? ` (${ticketIdsFromLineItems.length} ticket(s) marked as billed)` : ""}`
-          : `Invoice created successfully${ticketIdsFromLineItems.length > 0 ? ` (${ticketIdsFromLineItems.length} ticket(s) marked as billed)` : ""}`,
+        title: "Success",
+        description: "Invoice created successfully",
       });
 
-      setShowCreateInvoiceDialog(false);
-      setInvoiceForm({
+      setCreateInvoiceOpen(false);
+      setInvoiceForm({ clientId: "", amount: "", description: "", dueDate: "" });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateSubscription = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/billing/subscriptions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(subscriptionForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create subscription");
+      }
+
+      toast({
+        title: "Success",
+        description: "Subscription created successfully",
+      });
+
+      setCreateSubscriptionOpen(false);
+      setSubscriptionForm({ clientId: "", amount: "", description: "", interval: "monthly" });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create subscription",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreatePaymentLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/billing/payment-links`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(paymentLinkForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create payment link");
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "Success",
+        description: "Payment link created successfully",
+      });
+
+      setCreatePaymentLinkOpen(false);
+      setPaymentLinkForm({ amount: "", description: "" });
+      fetchData();
+
+      if (result.url) {
+        window.open(result.url, "_blank");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create payment link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateQuote = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/billing/quotes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(quoteForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create quote");
+      }
+
+      toast({
+        title: "Success",
+        description: "Quote created successfully",
+      });
+
+      setCreateQuoteOpen(false);
+      setQuoteForm({
         clientId: "",
-        dealId: "",
-        description: "",
-        lineItems: [{ description: "", amount: "", quantity: "1", tax: "" }],
-        dueDate: "",
-        sendImmediately: false,
+        items: [{ description: "", quantity: 1, rate: 0 }],
         notes: "",
-        taxRate: "",
       });
-      // Reset billable tickets state
-      setBillableTickets([]);
-      setSelectedTicketIds([]);
-
-      await loadDashboard();
+      fetchData();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create quote",
         variant: "destructive",
       });
     }
   };
 
-  const createPaymentLink = async () => {
+  const handleArchiveItem = (type: BillingItemType, id: string) => {
+    setArchivedItems((prev) => {
+      const updated = {
+        ...prev,
+        [type === "invoice" ? "invoices" : type === "subscription" ? "subscriptions" : "paymentLinks"]: new Set(
+          prev[type === "invoice" ? "invoices" : type === "subscription" ? "subscriptions" : "paymentLinks"]
+        ).add(id),
+      };
+      saveArchivedToStorage(updated);
+      return updated;
+    });
+
+    toast({
+      title: "Archived",
+      description: `${type.charAt(0).toUpperCase() + type.slice(1)} archived successfully`,
+    });
+  };
+
+  const handleUnarchiveItem = (type: BillingItemType, id: string) => {
+    setArchivedItems((prev) => {
+      const typeKey = type === "invoice" ? "invoices" : type === "subscription" ? "subscriptions" : "paymentLinks";
+      const newSet = new Set(prev[typeKey]);
+      newSet.delete(id);
+
+      const updated = {
+        ...prev,
+        [typeKey]: newSet,
+      };
+      saveArchivedToStorage(updated);
+      return updated;
+    });
+
+    toast({
+      title: "Unarchived",
+      description: `${type.charAt(0).toUpperCase() + type.slice(1)} restored successfully`,
+    });
+  };
+
+  const fetchBillableTickets = async () => {
     try {
-      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
-      const baseUrl = getApiBaseUrl();
-
-      if (!paymentLinkForm.clientId || !paymentLinkForm.amount || !paymentLinkForm.description) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill in all fields",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const response = await fetch(`${baseUrl}/admin/billing/payment-links`, {
-        method: "POST",
+      setLoadingTickets(true);
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const response = await fetch(`${getApiBaseUrl()}/admin/tickets/billable`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          clientId: parseInt(paymentLinkForm.clientId),
-          amount: parseFloat(paymentLinkForm.amount),
-          description: paymentLinkForm.description,
-        }),
       });
 
-      if (!response.ok) throw new Error("Failed to create payment link");
+      if (!response.ok) {
+        throw new Error("Failed to fetch billable tickets");
+      }
 
-      await response.json();
-
-      toast({
-        title: "Payment Link Created",
-        description: "Payment link has been generated successfully",
-      });
-
-      setShowCreatePaymentLinkDialog(false);
-      setPaymentLinkForm({
-        clientId: "",
-        amount: "",
-        description: "",
-      });
-
-      await loadDashboard();
+      const tickets = await response.json();
+      setBillableTickets(tickets);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to load billable tickets",
         variant: "destructive",
       });
+    } finally {
+      setLoadingTickets(false);
     }
   };
 
-  const addLineItem = () => {
-    setInvoiceForm({
-      ...invoiceForm,
-      lineItems: [...invoiceForm.lineItems, { description: "", amount: "", quantity: "1", tax: "" }],
-    });
+  const handleBillableTicketsClick = () => {
+    setBillableTicketsOpen(true);
+    fetchBillableTickets();
   };
 
-  const removeLineItem = (index: number) => {
-    setInvoiceForm({
-      ...invoiceForm,
-      lineItems: invoiceForm.lineItems.filter((_, i) => i !== index),
-    });
-  };
-
-  const updateLineItem = (index: number, field: string, value: string) => {
-    const newLineItems = [...invoiceForm.lineItems];
-    newLineItems[index] = { ...newLineItems[index], [field]: value };
-    setInvoiceForm({ ...invoiceForm, lineItems: newLineItems });
-  };
-
-  const formatCurrency = (amount: number | string) => {
-    const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-    }).format(num);
+    }).format(amount);
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const formatDateTime = (date: string | Date | null) => {
-    if (!date) return "—";
-    const d = new Date(date);
-    return d.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getInvoiceKey = (invoice: any) => (invoice?.stripeInvoiceId || invoice?.id || invoice?.invoiceNumber)?.toString();
-  const getSubscriptionKey = (subscription: any) => (subscription?.stripeSubscriptionId || subscription?.id)?.toString();
-  const getPaymentLinkKey = (link: any) => (link?.stripePaymentLinkId || link?.id)?.toString();
-
-  const isArchived = (type: BillingItemType, id?: string | null) => {
-    if (!id) return false;
-    if (type === "invoice") return archivedItems.invoices.has(id);
-    if (type === "subscription") return archivedItems.subscriptions.has(id);
-    if (type === "paymentLink") return archivedItems.paymentLinks.has(id);
-    return false;
-  };
-
-  const compactHeaderClass = "py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
-  const compactCellClass = "py-2 align-middle text-sm";
-
-  // Helper to get client info (name, email) from invoice data
-  const getClientInfo = (invoice: any) => {
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "BillingPage.tsx:816",
-        message: "getClientInfo called",
-        data: {
-          invoiceId: invoice.id,
-          hasClientId: !!invoice.clientId,
-          hasCustomerName: !!invoice.customerName,
-          hasCustomerEmail: !!invoice.customerEmail,
-          hasCustomer: !!invoice.customer,
-          clientsArrayLength: clients.length,
-        },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "F",
-      }),
-    }).catch(() => {});
-    // #endregion
-
-    // First try to find in clients array by clientId
-    if (invoice.clientId) {
-      const client = clients.find((c: any) => c.id === invoice.clientId);
-      if (client) {
-        return {
-          id: client.id,
-          name: client.name,
-          email: client.email,
-        };
-      }
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "overdue":
+        return "destructive";
+      case "draft":
+        return "outline";
+      default:
+        return "outline";
     }
-
-    // If we have customerName/customerEmail from server (from Stripe customer data)
-    // This is the most reliable source after clientId
-    if (invoice.customerName || invoice.customerEmail) {
-      return {
-        id: invoice.clientId || null,
-        name: invoice.customerName || invoice.customerEmail || "Unknown",
-        email: invoice.customerEmail || null,
-      };
-    }
-
-    // Last resort: check stripeData for customer info
-    if (invoice.stripeData?.customer) {
-      const customerData = invoice.stripeData.customer;
-      if (typeof customerData === "object" && customerData !== null) {
-        return {
-          id: null,
-          name: customerData.name || customerData.email || "Unknown",
-          email: customerData.email || null,
-        };
-      }
-      if (typeof customerData === "string") {
-        // It's a Stripe customer ID string, try to find matching client
-        // This would require additional lookup, but for now return what we can
-      }
-    }
-
-    // Final fallback
-    return {
-      id: null,
-      name: "Unknown",
-      email: null,
-    };
   };
 
-  // Helper function to check if item is paid
-  const isPaid = (item: any, type: "invoice" | "subscription" | "paymentLink"): boolean => {
-    if (type === "invoice") {
-      return item.status === "paid" || parseFloat(item.amountPaid || 0) >= parseFloat(item.total || 0);
-    }
-    if (type === "subscription") {
-      return item.status === "active" && parseFloat(item.amount || 0) > 0;
-    }
-    if (type === "paymentLink") {
-      // Payment links are considered "paid" if they have been used (we'd need to track this)
-      return item.active === true;
-    }
-    return false;
-  };
+  const activeInvoices = (data?.invoices || []).filter((inv) => !archivedItems.invoices.has(inv.id.toString()));
+  const archivedInvoices = (data?.invoices || []).filter((inv) => archivedItems.invoices.has(inv.id.toString()));
 
-  // Helper function to check if date is within filter range
-  const isInDateRange = (date: string | Date | null): boolean => {
-    if (!date) return false;
-    const itemDate = new Date(date);
-    const now = new Date();
+  const activeSubscriptions = (data?.subscriptions || []).filter((sub) => !archivedItems.subscriptions.has(sub.id.toString()));
+  const archivedSubscriptions = (data?.subscriptions || []).filter((sub) => archivedItems.subscriptions.has(sub.id.toString()));
 
-    // Year filter takes precedence if set
-    if (yearFilter !== "all") {
-      return itemDate.getFullYear() === parseInt(yearFilter);
-    }
+  const activePaymentLinks = (data?.paymentLinks || []).filter((link) => !archivedItems.paymentLinks.has(link.id.toString()));
+  const archivedPaymentLinks = (data?.paymentLinks || []).filter((link) => archivedItems.paymentLinks.has(link.id.toString()));
 
-    if (timeFilter === "all") return true;
-    if (timeFilter === "thisYear") {
-      return itemDate.getFullYear() === now.getFullYear();
-    }
-    if (timeFilter === "thisMonth") {
-      return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-    }
-    if (timeFilter === "lastMonth") {
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-      return itemDate.getMonth() === lastMonth.getMonth() && itemDate.getFullYear() === lastMonth.getFullYear();
-    }
-    if (timeFilter === "lastYear") {
-      return itemDate.getFullYear() === now.getFullYear() - 1;
-    }
-    if (timeFilter === "custom") {
-      if (!customDateRange.start || !customDateRange.end) return true;
-      const start = new Date(customDateRange.start);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(customDateRange.end);
-      end.setHours(23, 59, 59, 999);
-      itemDate.setHours(12, 0, 0, 0);
-      return itemDate >= start && itemDate <= end;
-    }
-    return true;
-  };
-
-  // Filter invoices based on all active filters
-  const getFilteredInvoices = () => {
-    return (safeDashboardData.invoices || []).filter((inv: any) => {
-      const invoiceKey = getInvoiceKey(inv);
-      if (isArchived("invoice", invoiceKey)) return false;
-
-      // Client/Deal filter
-      if (filterClientId && inv.clientId !== parseInt(filterClientId)) return false;
-      if (filterDealId && inv.dealId && inv.dealId.toString() !== filterDealId) return false;
-      if (filterDealId && !inv.dealId) return false;
-
-      // Payment status filter
-      if (paymentStatusFilter === "paid" && !isPaid(inv, "invoice")) return false;
-      if (paymentStatusFilter === "unpaid" && isPaid(inv, "invoice")) return false;
-      if (paymentStatusFilter === "draft" && inv.status !== "draft") return false;
-
-      // Type filter (invoices are always "invoice" type)
-      if (typeFilter !== "all" && typeFilter !== "invoice") return false;
-
-      // Date filter
-      const invoiceDate = inv.createdAt || inv.dueDate || inv.paidAt;
-      if (!isInDateRange(invoiceDate)) return false;
-
-      return true;
-    });
-  };
-
-  // Filter subscriptions
-  const getFilteredSubscriptions = () => {
-    return (safeDashboardData.subscriptions || []).filter((sub: any) => {
-      const subscriptionKey = getSubscriptionKey(sub);
-      if (isArchived("subscription", subscriptionKey)) return false;
-
-      // Client filter
-      if (filterClientId && sub.clientId !== parseInt(filterClientId)) return false;
-
-      // Payment status filter
-      if (paymentStatusFilter === "paid" && !isPaid(sub, "subscription")) return false;
-      if (paymentStatusFilter === "unpaid" && isPaid(sub, "subscription")) return false;
-
-      // Type filter
-      if (typeFilter !== "all" && typeFilter !== "subscription") return false;
-
-      // Date filter
-      const subDate = sub.createdAt || sub.currentPeriodStart;
-      if (!isInDateRange(subDate)) return false;
-
-      return true;
-    });
-  };
-
-  // Filter payment links
-  const getFilteredPaymentLinks = () => {
-    return (safeDashboardData.paymentLinks || []).filter((link: any) => {
-      const linkKey = getPaymentLinkKey(link);
-      if (isArchived("paymentLink", linkKey)) return false;
-
-      // Client filter
-      if (filterClientId && link.clientId !== parseInt(filterClientId)) return false;
-
-      // Payment status filter
-      if (paymentStatusFilter === "paid" && !isPaid(link, "paymentLink")) return false;
-      if (paymentStatusFilter === "unpaid" && isPaid(link, "paymentLink")) return false;
-
-      // Type filter
-      if (typeFilter !== "all" && typeFilter !== "paymentLink") return false;
-
-      // Date filter
-      const linkDate = link.createdAt;
-      if (!isInDateRange(linkDate)) return false;
-
-      return true;
-    });
-  };
-
-  // Calculate filtered totals
-  const getFilteredTotals = () => {
-    const filteredInvoices = getFilteredInvoices();
-    const filteredSubscriptions = getFilteredSubscriptions();
-    const filteredPaymentLinks = getFilteredPaymentLinks();
-
-    const totalRevenue =
-      filteredInvoices.filter((inv: any) => isPaid(inv, "invoice")).reduce((sum: number, inv: any) => sum + parseFloat(inv.total || 0), 0) +
-      filteredSubscriptions
-        .filter((sub: any) => isPaid(sub, "subscription"))
-        .reduce((sum: number, sub: any) => sum + parseFloat(sub.amount || 0), 0) +
-      filteredPaymentLinks
-        .filter((link: any) => isPaid(link, "paymentLink"))
-        .reduce((sum: number, link: any) => sum + parseFloat(link.amount || 0), 0);
-
-    const totalOutstanding = filteredInvoices
-      .filter((inv: any) => !isPaid(inv, "invoice") && inv.status !== "draft")
-      .reduce((sum: number, inv: any) => sum + parseFloat(inv.amountDue || 0), 0);
-
-    return {
-      totalRevenue,
-      totalOutstanding,
-      invoiceCount: filteredInvoices.length,
-      subscriptionCount: filteredSubscriptions.length,
-      paymentLinkCount: filteredPaymentLinks.length,
-    };
-  };
-
-  // Get available years from data
-  const getAvailableYears = (): number[] => {
-    const years = new Set<number>();
-    const visibleItems = [
-      ...(safeDashboardData.invoices || []).filter((inv: any) => !isArchived("invoice", getInvoiceKey(inv))),
-      ...(safeDashboardData.subscriptions || []).filter((sub: any) => !isArchived("subscription", getSubscriptionKey(sub))),
-      ...(safeDashboardData.paymentLinks || []).filter((link: any) => !isArchived("paymentLink", getPaymentLinkKey(link))),
-    ];
-
-    visibleItems.forEach((item: any) => {
-      const date = item.createdAt || item.dueDate || item.paidAt || item.currentPeriodStart;
-      if (date) {
-        years.add(new Date(date).getFullYear());
-      }
-    });
-    return Array.from(years).sort((a, b) => b - a);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; variant: any }> = {
-      paid: { label: "Paid", variant: "default" },
-      open: { label: "Open", variant: "secondary" },
-      draft: { label: "Draft", variant: "outline" },
-      void: { label: "Void", variant: "destructive" },
-      uncollectible: { label: "Uncollectible", variant: "destructive" },
-      succeeded: { label: "Succeeded", variant: "default" },
-      processing: { label: "Processing", variant: "secondary" },
-      requires_payment_method: { label: "Awaiting Payment", variant: "outline" },
-      active: { label: "Active", variant: "default" },
-      past_due: { label: "Past Due", variant: "destructive" },
-      canceled: { label: "Canceled", variant: "outline" },
-    };
-
-    const config = statusMap[status] || { label: status, variant: "outline" };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const archiveItem = (type: BillingItemType, id?: string | null) => {
-    if (!id) {
-      toast({
-        title: "Cannot archive",
-        description: "This item is missing an identifier.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateArchivedItems((prev) => {
-      const next: ArchivedItemsState = {
-        invoices: new Set(prev.invoices),
-        subscriptions: new Set(prev.subscriptions),
-        paymentLinks: new Set(prev.paymentLinks),
-      };
-      if (type === "invoice") next.invoices.add(id);
-      if (type === "subscription") next.subscriptions.add(id);
-      if (type === "paymentLink") next.paymentLinks.add(id);
-      return next;
-    });
-
-    toast({
-      title: "Item archived",
-      description: "It will stay hidden even after refreshing from Stripe.",
-    });
-  };
-
-  const restoreArchivedItems = () => {
-    const totalHidden = archivedItems.invoices.size + archivedItems.subscriptions.size + archivedItems.paymentLinks.size;
-    updateArchivedItems(() => ({
-      invoices: new Set(),
-      subscriptions: new Set(),
-      paymentLinks: new Set(),
-    }));
-    toast({
-      title: "Archive cleared",
-      description: totalHidden > 0 ? `Restored ${totalHidden} hidden item${totalHidden === 1 ? "" : "s"}.` : "No hidden items to restore.",
-    });
-  };
-
-  const archiveFilteredItems = () => {
-    const invoicesToArchive = getFilteredInvoices().map((inv) => getInvoiceKey(inv)).filter(Boolean) as string[];
-    const subscriptionsToArchive = getFilteredSubscriptions().map((sub) => getSubscriptionKey(sub)).filter(Boolean) as string[];
-    const linksToArchive = getFilteredPaymentLinks().map((link) => getPaymentLinkKey(link)).filter(Boolean) as string[];
-
-    const total = invoicesToArchive.length + subscriptionsToArchive.length + linksToArchive.length;
-    if (total === 0) {
-      toast({
-        title: "Nothing to archive",
-        description: "No visible billing items match your current filters.",
-      });
-      return;
-    }
-
-    updateArchivedItems((prev) => {
-      const next: ArchivedItemsState = {
-        invoices: new Set(prev.invoices),
-        subscriptions: new Set(prev.subscriptions),
-        paymentLinks: new Set(prev.paymentLinks),
-      };
-      invoicesToArchive.forEach((id) => next.invoices.add(id));
-      subscriptionsToArchive.forEach((id) => next.subscriptions.add(id));
-      linksToArchive.forEach((id) => next.paymentLinks.add(id));
-      return next;
-    });
-
-    toast({
-      title: "Cleaned up",
-      description: `Archived ${invoicesToArchive.length} invoice${invoicesToArchive.length === 1 ? "" : "s"}, ${subscriptionsToArchive.length} subscription${subscriptionsToArchive.length === 1 ? "" : "s"}, ${linksToArchive.length} link${linksToArchive.length === 1 ? "" : "s"}.`,
-    });
-  };
-
-  if (isLoading) {
+  if (loading || !data) {
     return (
-      <div className="container flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-          <p className="text-lg text-muted-foreground">Loading billing dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Safety check - ensure dashboardData exists, but allow rendering with empty data
-  const safeDashboardData = dashboardData || {
-    invoices: [],
-    paymentIntents: [],
-    subscriptions: [],
-    quotes: [],
-    paymentLinks: [],
-    clientGroups: [],
-    summary: {
-      totalRevenue: 0,
-      totalOutstanding: 0,
-      totalDraft: 0,
-      totalInvoices: 0,
-      totalSubscriptions: 0,
-      totalClients: 0,
-    },
-  };
-
-  const archivedTotals = {
-    invoices: archivedItems.invoices.size,
-    subscriptions: archivedItems.subscriptions.size,
-    paymentLinks: archivedItems.paymentLinks.size,
-  };
-
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-        <div className="flex items-center gap-5">
-          <h1 className="text-xl font-semibold tracking-tight">Financial</h1>
-          <div className="flex items-center gap-2 text-[13px]">
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-              {formatCurrency(safeDashboardData?.summary?.totalRevenue || 0)} revenue
-            </span>
-            <span className="text-muted-foreground/50">·</span>
-            <span className="text-amber-600 dark:text-amber-400">
-              {formatCurrency(safeDashboardData?.summary?.totalOutstanding || 0)} outstanding
-            </span>
-            <span className="text-muted-foreground/50">·</span>
-            <span className="text-muted-foreground">{safeDashboardData?.summary?.totalInvoices || 0} invoices</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={fetchFreshStripeData} disabled={isSyncing}>
-            <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-            Sync Stripe
-          </Button>
-          <Button size="sm" className="h-8 text-[13px] shadow-sm" onClick={() => setShowCreateInvoiceDialog(true)}>
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Invoice
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 text-[13px]" onClick={() => setShowCreatePaymentLinkDialog(true)}>
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Payment Link
-          </Button>
-        </div>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Financial</h1>
+        <Button onClick={fetchData} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto p-5 space-y-5">
-
-      {/* Archive / Cleanup */}
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
-        <span className="text-foreground font-medium">Cleanup</span>
-        <span>
-          Hidden — {archivedTotals.invoices} invoices, {archivedTotals.subscriptions} subs, {archivedTotals.paymentLinks} links
-        </span>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={archiveFilteredItems}>
-            <Archive className="h-4 w-4" />
-            Archive filtered
-          </Button>
-          <Button variant="ghost" size="sm" className="gap-2" onClick={restoreArchivedItems} disabled={archivedTotals.invoices + archivedTotals.subscriptions + archivedTotals.paymentLinks === 0}>
-            <Undo2 className="h-4 w-4" />
-            Restore hidden
-          </Button>
-        </div>
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Total Revenue</div>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(stripeTotalRevenue !== null ? stripeTotalRevenue : (data?.summary?.totalRevenue || 0))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Projected</div>
+            <div className="text-2xl font-bold text-amber-500">{formatCurrency(projectedTotal)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Avg Monthly</div>
+            <div className="text-2xl font-bold text-blue-600">{formatCurrency(avgIncomeData.avg)}</div>
+            <div className="text-xs text-muted-foreground mt-1">{avgIncomeData.months} months</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Outstanding</div>
+            <div className="text-2xl font-bold text-orange-600">{formatCurrency(242.20 + 2752)}</div>
+            <div className="text-xs text-muted-foreground mt-1">Agave + DML</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Open Invoices</div>
+            <div className="text-2xl font-bold">2</div>
+            <div className="text-xs text-muted-foreground mt-1">Agave (1) + DML (1)</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Active Clients</div>
+            <div className="text-2xl font-bold">{ACTIVE_CLIENTS.length}</div>
+            <div className="text-xs text-muted-foreground mt-1">DML, Brian, Agave, CGCC</div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Compact Filters Bar */}
+      {/* Revenue Chart */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Active Filters Display */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Filters:</span>
-
-              {paymentStatusFilter !== "all" && (
-                <Badge variant="secondary" className="gap-1">
-                  {paymentStatusFilter === "paid" ? "Paid" : paymentStatusFilter === "unpaid" ? "Unpaid" : "Draft"}
-                  <button onClick={() => setPaymentStatusFilter("all")} className="ml-1 hover:bg-destructive/20 rounded-full p-0.5">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Revenue</CardTitle>
+            <Select value={revenueTimeRange} onValueChange={handleTimeRangeChange}>
+              <SelectTrigger className="w-[140px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">Last 3 months</SelectItem>
+                <SelectItem value="6">Last 6 months</SelectItem>
+                <SelectItem value="12">Last 12 months</SelectItem>
+                <SelectItem value="24">Last 2 years</SelectItem>
+                <SelectItem value="36">Last 3 years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-sm text-muted-foreground mt-1 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-sm bg-green-500"></span>
+                Collected: <span className="font-semibold text-green-600">{formatCurrency(stripeTotalRevenue || 0)}</span>
+              </span>
+              {projectedTotal > 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm bg-amber-500"></span>
+                  Projected: <span className="font-semibold text-amber-500">{formatCurrency(projectedTotal)}</span>
+                </span>
               )}
-
-              {typeFilter !== "all" && (
-                <Badge variant="secondary" className="gap-1">
-                  {typeFilter === "invoice"
-                    ? "Invoices"
-                    : typeFilter === "subscription"
-                      ? "Subscriptions"
-                      : typeFilter === "paymentLink"
-                        ? "Payment Links"
-                        : typeFilter === "quote"
-                          ? "Quotes"
-                          : "Other"}
-                  <button
-                    onClick={() => {
-                      setTypeFilter("all");
-                      setActiveTab("all");
-                    }}
-                    className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {timeFilter !== "all" && (
-                <Badge variant="secondary" className="gap-1">
-                  {timeFilter === "thisYear"
-                    ? "This Year"
-                    : timeFilter === "thisMonth"
-                      ? "This Month"
-                      : timeFilter === "lastMonth"
-                        ? "Last Month"
-                        : timeFilter === "lastYear"
-                          ? "Last Year"
-                          : yearFilter !== "all"
-                            ? yearFilter
-                            : "Custom"}
-                  <button
-                    onClick={() => {
-                      setTimeFilter("all");
-                      setYearFilter("all");
-                    }}
-                    className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {filterClientId && (
-                <Badge variant="secondary" className="gap-1">
-                  Client: {clients.find((c) => c.id === parseInt(filterClientId))?.name || filterClientId}
-                  <button
-                    onClick={() => {
-                      setFilterClientId("");
-                      setFilterDealId("");
-                    }}
-                    className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {filterDealId && (
-                <Badge variant="secondary" className="gap-1">
-                  Deal: {deals.find((d) => d.id === parseInt(filterDealId))?.name || filterDealId}
-                  <button onClick={() => setFilterDealId("")} className="ml-1 hover:bg-destructive/20 rounded-full p-0.5">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-
-              {paymentStatusFilter === "all" && typeFilter === "all" && timeFilter === "all" && !filterClientId && !filterDealId && (
-                <span className="text-sm text-muted-foreground">No filters active</span>
-              )}
-            </div>
-
-            <div className="flex-1" />
-
-            {/* Expand/Collapse Buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setExpandedFilters({ ...expandedFilters, quickFilters: !expandedFilters.quickFilters })}
-                className="gap-2"
-              >
-                {expandedFilters.quickFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                Quick Filters
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setExpandedFilters({ ...expandedFilters, advancedFilters: !expandedFilters.advancedFilters })}
-                className="gap-2"
-              >
-                {expandedFilters.advancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                Advanced
-              </Button>
             </div>
           </div>
+        </CardHeader>
+        <CardContent>
+          <div style={{ width: '100%', height: 280 }}>
+            <ResponsiveContainer>
+              <BarChart data={monthlyRevenue} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 10 }}
+                  tickLine={false}
+                  axisLine={false}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const collected = payload.find(p => p.dataKey === "revenue")?.value as number || 0;
+                      const projected = payload.find(p => p.dataKey === "projected")?.value as number || 0;
 
-          {/* Quick Filters - Collapsible */}
-          {expandedFilters.quickFilters && (
-            <div className="mt-4 pt-4 border-t space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Payment Status */}
-                <div>
-                  <Label className="mb-2 block text-sm">Payment Status</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant={paymentStatusFilter === "all" ? "default" : "outline"} size="sm" onClick={() => setPaymentStatusFilter("all")}>
-                      All
-                    </Button>
-                    <Button variant={paymentStatusFilter === "paid" ? "default" : "outline"} size="sm" onClick={() => setPaymentStatusFilter("paid")}>
-                      Paid
-                    </Button>
-                    <Button
-                      variant={paymentStatusFilter === "unpaid" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setPaymentStatusFilter("unpaid")}
-                    >
-                      Unpaid
-                    </Button>
-                    <Button
-                      variant={paymentStatusFilter === "draft" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setPaymentStatusFilter("draft")}
-                    >
-                      Draft
-                    </Button>
-                  </div>
-                </div>
+                      // Get client breakdown for this month's projections
+                      const clientBreakdown: { client: string; amount: number; note: string }[] = [];
 
-                {/* Type */}
-                <div>
-                  <Label className="mb-2 block text-sm">Type</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant={typeFilter === "all" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTypeFilter("all");
-                        setActiveTab("all");
-                      }}
-                    >
-                      All
-                    </Button>
-                    <Button
-                      variant={typeFilter === "invoice" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTypeFilter("invoice");
-                        setActiveTab("invoices");
-                      }}
-                    >
-                      Invoices
-                    </Button>
-                    <Button
-                      variant={typeFilter === "subscription" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTypeFilter("subscription");
-                        setActiveTab("subscriptions");
-                      }}
-                    >
-                      Subscriptions
-                    </Button>
-                    <Button
-                      variant={typeFilter === "paymentLink" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTypeFilter("paymentLink");
-                        setActiveTab("paymentLinks");
-                      }}
-                    >
-                      Links
-                    </Button>
-                  </div>
-                </div>
+                      // Check PROJECTED_REVENUE for client projections
+                      Object.entries(PROJECTED_REVENUE).forEach(([email, projections]) => {
+                        projections.forEach((p) => {
+                          if (p.month === label) {
+                            const activeClient = ACTIVE_CLIENTS.find(c => c.email === email);
+                            clientBreakdown.push({
+                              client: activeClient?.name || email,
+                              amount: p.amount,
+                              note: p.note,
+                            });
+                          }
+                        });
+                      });
 
-                {/* Time Period */}
-                <div>
-                  <Label className="mb-2 block text-sm">Time Period</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant={timeFilter === "all" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTimeFilter("all");
-                        setYearFilter("all");
-                      }}
-                    >
-                      All
-                    </Button>
-                    <Button
-                      variant={timeFilter === "thisYear" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTimeFilter("thisYear");
-                        setYearFilter(new Date().getFullYear().toString());
-                      }}
-                    >
-                      This Year
-                    </Button>
-                    <Button variant={timeFilter === "thisMonth" ? "default" : "outline"} size="sm" onClick={() => setTimeFilter("thisMonth")}>
-                      This Month
-                    </Button>
-                    <Button variant={timeFilter === "lastMonth" ? "default" : "outline"} size="sm" onClick={() => setTimeFilter("lastMonth")}>
-                      Last Month
-                    </Button>
-                    <Button
-                      variant={timeFilter === "lastYear" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setTimeFilter("lastYear");
-                        setYearFilter((new Date().getFullYear() - 1).toString());
-                      }}
-                    >
-                      Last Year
-                    </Button>
-                  </div>
-                  <div className="mt-2">
-                    <Select
-                      value={yearFilter}
-                      onValueChange={(value) => {
-                        setYearFilter(value);
-                        if (value !== "all") {
-                          setTimeFilter("custom");
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Years</SelectItem>
-                        {getAvailableYears().map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
+                      // Check MONTHLY_PROJECTED for non-client projections
+                      if (MONTHLY_PROJECTED[label]) {
+                        MONTHLY_PROJECTED[label].forEach((p) => {
+                          clientBreakdown.push({
+                            client: "New",
+                            amount: p.amount,
+                            note: p.note,
+                          });
+                        });
+                      }
 
-              {/* Custom Date Range */}
-              {timeFilter === "custom" && (
-                <div className="grid gap-2 md:grid-cols-2 pt-2 border-t">
-                  <div>
-                    <Label className="text-sm">Start Date</Label>
-                    <Input
-                      type="date"
-                      value={customDateRange.start}
-                      onChange={(e) => setCustomDateRange({ ...customDateRange, start: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm">End Date</Label>
-                    <Input
-                      type="date"
-                      value={customDateRange.end}
-                      onChange={(e) => setCustomDateRange({ ...customDateRange, end: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Advanced Filters - Collapsible */}
-          {expandedFilters.advancedFilters && (
-            <div className="mt-4 pt-4 border-t">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="filterClient" className="text-sm">
-                    Filter by Client
-                  </Label>
-                  <Select
-                    value={filterClientId || "all"}
-                    onValueChange={(value) => {
-                      const actualValue = value === "all" ? "" : value;
-                      setFilterClientId(actualValue);
-                      setViewMode(actualValue ? "client" : viewMode === "client" ? "all" : viewMode);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All clients" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All clients</SelectItem>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="filterDeal" className="text-sm">
-                    Filter by Deal
-                  </Label>
-                  <Select
-                    value={filterDealId || "all"}
-                    onValueChange={(value) => {
-                      const actualValue = value === "all" ? "" : value;
-                      setFilterDealId(actualValue);
-                      setViewMode(actualValue ? "deal" : viewMode === "deal" ? "all" : viewMode);
-                    }}
-                    disabled={!filterClientId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={filterClientId ? "All deals" : "Select client first"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All deals</SelectItem>
-                      {deals
-                        .filter((deal) => !filterClientId || deal.clientId === parseInt(filterClientId))
-                        .map((deal) => (
-                          <SelectItem key={deal.id} value={deal.id.toString()}>
-                            {deal.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label className="text-sm">View Mode</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={viewMode === "all" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setViewMode("all");
-                        setFilterClientId("");
-                        setFilterDealId("");
-                      }}
-                    >
-                      All
-                    </Button>
-                    <Button
-                      variant={viewMode === "client" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setViewMode("client");
-                        if (!filterClientId && clients.length > 0) {
-                          setFilterClientId(clients[0].id.toString());
-                        }
-                      }}
-                    >
-                      Per Client
-                    </Button>
-                    <Button
-                      variant={viewMode === "deal" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setViewMode("deal");
-                        if (!filterDealId && deals.length > 0) {
-                          setFilterDealId(deals[0].id.toString());
-                        }
-                      }}
-                    >
-                      Per Deal
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+                      return (
+                        <div className="bg-background border rounded-lg shadow-lg p-3 min-w-[200px]">
+                          <div className="font-semibold text-sm mb-2">{label}</div>
+                          <div className="space-y-1 mb-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-green-600">Collected</span>
+                              <span className="font-medium text-green-600">{formatCurrency(collected)}</span>
+                            </div>
+                            {projected > 0 && (
+                              <div className="flex justify-between text-sm">
+                                <span className="text-amber-500">Projected</span>
+                                <span className="font-medium text-amber-500">{formatCurrency(projected)}</span>
+                              </div>
+                            )}
+                          </div>
+                          {clientBreakdown.length > 0 && (
+                            <div className="border-t pt-2 mt-2">
+                              <div className="text-xs font-medium text-muted-foreground mb-1">Breakdown:</div>
+                              {clientBreakdown.map((item, i) => (
+                                <div key={i} className="flex justify-between text-xs text-amber-600/80 mb-0.5">
+                                  <span className="truncate mr-2" title={item.note}>{item.client}</span>
+                                  <span className="font-medium">{formatCurrency(item.amount)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="revenue" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} name="revenue" />
+                <Bar dataKey="projected" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} name="projected">
+                  <LabelList
+                    dataKey="projected"
+                    position="top"
+                    formatter={(value: number) => value > 0 ? `+$${value.toLocaleString()}` : ''}
+                    style={{ fontSize: 9, fill: '#d97706' }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Summary Stats - Filtered */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+      {/* Revenue by Client - Horizontal Bar Chart */}
+      {clientRevenue.length > 0 && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(getFilteredTotals().totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              {paymentStatusFilter === "all" ? "All paid items" : paymentStatusFilter === "paid" ? "Paid items" : "Filtered"}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(getFilteredTotals().totalOutstanding)}</div>
-            <p className="text-xs text-muted-foreground">Unpaid invoices</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Draft</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(safeDashboardData.summary?.totalDraft || 0)}</div>
-            <p className="text-xs text-muted-foreground">Draft invoices</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Filtered Items</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {getFilteredTotals().invoiceCount + getFilteredTotals().subscriptionCount + getFilteredTotals().paymentLinkCount}
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Revenue by Client</CardTitle>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>Ranked by total revenue • Hover for breakdown</span>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm bg-blue-500"></span> Collected
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm bg-amber-500"></span> Projected
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {getFilteredTotals().invoiceCount} invoices, {getFilteredTotals().subscriptionCount} subs, {getFilteredTotals().paymentLinkCount} links
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{safeDashboardData.summary?.totalClients || 0}</div>
-            <p className="text-xs text-muted-foreground">With billing</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{safeDashboardData.summary?.totalSubscriptions || 0}</div>
-            <p className="text-xs text-muted-foreground">Recurring</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* What to Charge Next - Prominent Section */}
-      {safeDashboardData.clientGroups && Array.isArray(safeDashboardData.clientGroups) && safeDashboardData.clientGroups.length > 0 && (() => {
-        const clientsWithChargeable = safeDashboardData.clientGroups.filter((g) => (g.nextCharge || 0) > 0);
-        const totalNextCharge = clientsWithChargeable.reduce((sum, g) => sum + (g.nextCharge || 0), 0);
-        const totalUnbilled = safeDashboardData.clientGroups.reduce((sum, g) => sum + (g.unbilledWork || 0), 0);
-
-        if (clientsWithChargeable.length > 0) {
-          return (
-            <Card className="border-2 border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-amber-600" />
-                      What to Charge Next
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      Outstanding balances and unbilled work ready to invoice
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-amber-600">{formatCurrency(totalNextCharge)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatCurrency(totalUnbilled)} unbilled work
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {clientsWithChargeable
-                    .sort((a, b) => (b.nextCharge || 0) - (a.nextCharge || 0))
-                    .slice(0, 5)
-                    .map((group) => (
-                      <div
-                        key={group.clientId}
-                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
-                        onClick={() => {
-                          setInvoiceForm((prev) => ({ ...prev, clientId: group.clientId.toString() }));
-                          setShowCreateInvoiceDialog(true);
-                        }}
-                      >
-                        <div className="flex-1">
-                          <div className="font-semibold">{group.clientName}</div>
-                          <div className="text-xs text-muted-foreground flex gap-3 mt-1">
-                            <span>
-                              Balance: <span className="font-medium text-amber-600">{formatCurrency(group.balance || 0)}</span>
-                            </span>
-                            {group.unbilledWork > 0 && (
-                              <span>
-                                Unbilled: <span className="font-medium text-violet-600">{formatCurrency(group.unbilledWork)}</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-amber-600">{formatCurrency(group.nextCharge || 0)}</div>
-                          <Button size="sm" variant="outline" className="mt-1 text-xs" onClick={(e) => {
-                            e.stopPropagation();
-                            setInvoiceForm((prev) => ({ ...prev, clientId: group.clientId.toString() }));
-                            setShowCreateInvoiceDialog(true);
-                          }}>
-                            Create Invoice
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  {clientsWithChargeable.length > 5 && (
-                    <div className="text-center text-sm text-muted-foreground pt-2">
-                      +{clientsWithChargeable.length - 5} more clients with chargeable amounts
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        }
-        return null;
-      })()}
-
-      {/* Monthly Revenue Chart */}
-      {monthlyRevenue.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue (Last 5 Months)</CardTitle>
-            <CardDescription>Monthly income from paid invoices</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyRevenue} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis
-                    dataKey="month"
-                    className="text-xs"
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                  />
-                  <YAxis
-                    className="text-xs"
-                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    tickFormatter={(value) => `$${value.toLocaleString()}`}
-                  />
+            <div style={{ width: '100%', height: Math.max(200, clientRevenue.length * 50) }}>
+              <ResponsiveContainer>
+                <BarChart
+                  data={clientRevenue}
+                  layout="vertical"
+                  margin={{ top: 5, right: 80, left: 100, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis type="number" tickFormatter={(v) => `$${v.toLocaleString()}`} />
+                  <YAxis type="category" dataKey="client" width={100} tick={{ fontSize: 12 }} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                      color: 'hsl(var(--card-foreground))'
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload as ClientRevenue;
+                        return (
+                          <div className="bg-background border rounded-lg shadow-lg p-3 max-w-xs">
+                            <div className="font-semibold text-sm mb-2">{data.client}</div>
+                            <div className="text-xs text-muted-foreground mb-2">{data.email}</div>
+                            <div className="flex gap-3 mb-2">
+                              <div>
+                                <div className="text-xs text-muted-foreground">Collected</div>
+                                <div className="text-lg font-bold text-green-600">{formatCurrency(data.total)}</div>
+                              </div>
+                              {data.projected > 0 && (
+                                <div>
+                                  <div className="text-xs text-muted-foreground">Projected</div>
+                                  <div className="text-lg font-bold text-amber-500">{formatCurrency(data.projected)}</div>
+                                </div>
+                              )}
+                            </div>
+                            {data.projected > 0 && PROJECTED_REVENUE[data.email] && (
+                              <div className="mb-2 text-xs">
+                                <div className="font-medium mb-1 text-amber-600">Upcoming:</div>
+                                {PROJECTED_REVENUE[data.email].map((p, i) => (
+                                  <div key={i} className="flex justify-between text-amber-600/80">
+                                    <span>{p.note}</span>
+                                    <span>{formatCurrency(p.amount)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <div className="text-xs font-medium mb-1">Payments:</div>
+                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                              {data.payments.map((p, i) => (
+                                <div key={i} className="flex justify-between text-xs border-b border-border/50 pb-1">
+                                  <span className="text-muted-foreground">
+                                    {new Date(p.date).toLocaleDateString()}
+                                  </span>
+                                  <span className="font-medium">{formatCurrency(p.amount)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
                   />
-                  <Bar
-                    dataKey="revenue"
-                    fill="hsl(var(--primary))"
-                    radius={[8, 8, 0, 0]}
-                  />
+                  <Bar dataKey="total" stackId="a" fill="#3b82f6" radius={[0, 0, 0, 0]} name="Collected">
+                    <LabelList
+                      position="right"
+                      content={({ x, y, width, height, value, index }) => {
+                        if (typeof index !== 'number') return null;
+                        const item = clientRevenue[index];
+                        if (!item) return null;
+                        const combined = item.total + item.projected;
+                        const hasProjected = item.projected > 0;
+                        // Only show label on the rightmost bar
+                        if (hasProjected) return null;
+                        return (
+                          <text
+                            x={(x as number) + (width as number) + 5}
+                            y={(y as number) + (height as number) / 2 + 4}
+                            fill="#666"
+                            fontSize={11}
+                          >
+                            ${combined.toLocaleString()}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Bar>
+                  <Bar dataKey="projected" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} name="Projected">
+                    <LabelList
+                      position="right"
+                      content={({ x, y, width, height, value, index }) => {
+                        if (typeof index !== 'number') return null;
+                        const item = clientRevenue[index];
+                        if (!item || item.projected === 0) return null;
+                        const combined = item.total + item.projected;
+                        return (
+                          <text
+                            x={(x as number) + (width as number) + 5}
+                            y={(y as number) + (height as number) / 2 + 4}
+                            fill="#666"
+                            fontSize={11}
+                          >
+                            ${combined.toLocaleString()}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -2094,886 +1082,201 @@ export default function BillingPage() {
         </Card>
       )}
 
-      {/* Client Billing Groups */}
-      {safeDashboardData.clientGroups && Array.isArray(safeDashboardData.clientGroups) && safeDashboardData.clientGroups.length > 0 && (
+      {/* Payment History */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Payment History (Stripe)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingPayments ? (
+            <div className="flex items-center justify-center py-4">
+              <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No payments found</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Email</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-medium text-green-600">{formatCurrency(payment.amount)}</TableCell>
+                    <TableCell>
+                      <Badge variant={payment.category === "Invoice" ? "default" : "secondary"}>
+                        {payment.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{payment.email}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Projected Payments */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm bg-amber-500"></span>
+                Projected Payments
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Upcoming expected revenue</p>
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-muted-foreground">Annual Subscription Revenue</div>
+              <div className="text-lg font-bold text-purple-600">{formatCurrency(142 * 12)}/yr</div>
+              <div className="text-xs text-muted-foreground">Agave @ $142/mo</div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Month</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Client</TableHead>
+                <TableHead>Note</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {/* Client projections */}
+              {Object.entries(PROJECTED_REVENUE).flatMap(([email, projections]) => {
+                const client = ACTIVE_CLIENTS.find(c => c.email === email);
+                return projections.map((p, i) => (
+                  <TableRow key={`${email}-${i}`}>
+                    <TableCell>{p.month}</TableCell>
+                    <TableCell className="font-medium text-amber-600">{formatCurrency(p.amount)}</TableCell>
+                    <TableCell>{client?.name || email}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.note}</TableCell>
+                  </TableRow>
+                ));
+              })}
+              {/* Monthly projections (not tied to existing clients) */}
+              {Object.entries(MONTHLY_PROJECTED).flatMap(([month, projections]) =>
+                projections.map((p, i) => (
+                  <TableRow key={`monthly-${month}-${i}`}>
+                    <TableCell>{month}</TableCell>
+                    <TableCell className="font-medium text-amber-600">{formatCurrency(p.amount)}</TableCell>
+                    <TableCell>New</TableCell>
+                    <TableCell className="text-muted-foreground">{p.note}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => setCreateInvoiceOpen(true)} size="sm">
+          <Plus className="h-4 w-4 mr-1" />
+          Invoice
+        </Button>
+        <Button onClick={() => setCreateQuoteOpen(true)} variant="outline" size="sm">
+          <Plus className="h-4 w-4 mr-1" />
+          Quote
+        </Button>
+        <Button onClick={() => setCreateSubscriptionOpen(true)} variant="outline" size="sm">
+          <Plus className="h-4 w-4 mr-1" />
+          Subscription
+        </Button>
+        <Button onClick={() => setCreatePaymentLinkOpen(true)} variant="outline" size="sm">
+          <Plus className="h-4 w-4 mr-1" />
+          Payment Link
+        </Button>
+        <Button onClick={handleBillableTicketsClick} variant="outline" size="sm">
+          <Clock className="h-4 w-4 mr-1" />
+          Billable Tickets
+        </Button>
+      </div>
+
+      {/* Client Summary */}
+      {data?.clientGroups && data.clientGroups.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Client Billing Summary</CardTitle>
-            <CardDescription>Financial overview by client ({safeDashboardData.clientGroups.length} clients)</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Clients</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
-                  <TableHead className="text-right">Total Billed</TableHead>
+                  <TableHead className="text-right">Billed</TableHead>
                   <TableHead className="text-right">Paid</TableHead>
-                  <TableHead className="text-right">Balance Due</TableHead>
-                  <TableHead className="text-right">Unbilled Work</TableHead>
-                  <TableHead className="text-right">Next Charge</TableHead>
-                  <TableHead className="text-center">Invoices</TableHead>
-                  <TableHead className="text-center">Subscriptions</TableHead>
-                  <TableHead>Last Invoice</TableHead>
+                  <TableHead className="text-right">Balance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {safeDashboardData.clientGroups
-                  .sort((a, b) => (b.nextCharge || 0) - (a.nextCharge || 0))
-                  .map((group) => (
-                    <TableRow key={group.clientId}>
-                      <TableCell className="font-medium">{group.clientName}</TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(group.totalBilled)}</TableCell>
-                      <TableCell className="text-right text-emerald-600 font-semibold">{formatCurrency(group.totalPaid)}</TableCell>
-                      <TableCell className="text-right">
-                        {group.balance > 0 ? (
-                          <span className="font-bold text-amber-600">{formatCurrency(group.balance)}</span>
-                        ) : (
-                          <span className="text-muted-foreground">$0.00</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {group.unbilledWork > 0 ? (
-                          <span className="font-semibold text-violet-600">{formatCurrency(group.unbilledWork)}</span>
-                        ) : (
-                          <span className="text-muted-foreground">$0.00</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {group.nextCharge > 0 ? (
-                          <span className="font-bold text-amber-600 dark:text-amber-400">{formatCurrency(group.nextCharge)}</span>
-                        ) : (
-                          <span className="text-muted-foreground">$0.00</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline">{group.invoiceCount}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {group.subscriptionCount > 0 ? <Badge>{group.subscriptionCount}</Badge> : <span className="text-muted-foreground">—</span>}
-                      </TableCell>
-                      <TableCell>{group.lastInvoiceDate ? formatDate(group.lastInvoiceDate) : "—"}</TableCell>
-                    </TableRow>
-                  ))}
+                {data.clientGroups.map((group) => (
+                  <TableRow key={group.clientId}>
+                    <TableCell className="font-medium">{group.clientName}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(group.totalBilled)}</TableCell>
+                    <TableCell className="text-right text-green-600">{formatCurrency(group.totalPaid)}</TableCell>
+                    <TableCell className="text-right text-orange-600">{formatCurrency(group.balance)}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
       )}
 
-      {/* Billing Items Tabs */}
+      {/* Invoices */}
       <Card>
-        <CardHeader>
-          <CardTitle>Billing Items</CardTitle>
-          <CardDescription>View and manage invoices, subscriptions, payment links, and more</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => {
-              isTabChangingRef.current = true; // Flag that tab is changing typeFilter
-              setActiveTab(value);
-              // Auto-set type filter when tab changes
-              if (value !== "all") {
-                const typeMap: Record<string, "all" | "invoice" | "subscription" | "paymentLink"> = {
-                  invoices: "invoice",
-                  subscriptions: "subscription",
-                  paymentLinks: "paymentLink",
-                };
-                if (typeMap[value]) {
-                  setTypeFilter(typeMap[value]);
-                }
-              } else {
-                setTypeFilter("all");
-              }
-            }}
-          >
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="all">
-                All
-                {typeFilter === "all" && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
-                    {getFilteredInvoices().length + getFilteredSubscriptions().length + getFilteredPaymentLinks().length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="invoices">
-                Invoices
-                {getFilteredInvoices().length > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
-                    {getFilteredInvoices().length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="subscriptions">
-                Subscriptions
-                {getFilteredSubscriptions().length > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
-                    {getFilteredSubscriptions().length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="paymentLinks">
-                Payment Links
-                {getFilteredPaymentLinks().length > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
-                    {getFilteredPaymentLinks().length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="quotes">
-                Quotes
-                {(safeDashboardData.quotes || []).length > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
-                    {(safeDashboardData.quotes || []).length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="other">
-                Other
-                {(safeDashboardData.paymentIntents || []).length > 0 && (
-                  <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs">
-                    {(safeDashboardData.paymentIntents || []).length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
-
-            {/* All Tab */}
-            <TabsContent value="all" className="mt-6 space-y-6">
-              {/* Invoices Section */}
-              {getFilteredInvoices().length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Invoices</h3>
-                    <Badge variant="outline">{getFilteredInvoices().length}</Badge>
-                  </div>
-                  <div className="border rounded-lg">
-                    <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className={compactHeaderClass}>Invoice #</TableHead>
-                          <TableHead className={compactHeaderClass}>Client</TableHead>
-                          <TableHead className={compactHeaderClass}>Deal</TableHead>
-                          <TableHead className={compactHeaderClass}>Description</TableHead>
-                          <TableHead className={`${compactHeaderClass} text-right`}>Total</TableHead>
-                          <TableHead className={`${compactHeaderClass} text-right`}>Paid</TableHead>
-                          <TableHead className={`${compactHeaderClass} text-right`}>Due</TableHead>
-                          <TableHead className={compactHeaderClass}>Status</TableHead>
-                          <TableHead className={compactHeaderClass}>Due Date</TableHead>
-                          <TableHead className={`${compactHeaderClass} text-right`}>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {getFilteredInvoices()
-                          .slice(0, 10)
-                          .map((invoice) => (
-                            <TableRow key={invoice.id} className="hover:bg-muted/40 transition-colors">
-                              <TableCell className={`${compactCellClass} font-mono text-sm`}>{invoice.invoiceNumber || `#${invoice.id}`}</TableCell>
-                              <TableCell className={compactCellClass}>
-                                {(() => {
-                                  const clientInfo = getClientInfo(invoice);
-                                  if (clientInfo.id) {
-                                    return (
-                                      <button
-                                        onClick={() => {
-                                          setSelectedClientId(clientInfo.id);
-                                          setShowClientPreview(true);
-                                        }}
-                                        className="text-left hover:underline text-primary font-medium"
-                                      >
-                                        {clientInfo.name}
-                                        {clientInfo.email && <span className="text-muted-foreground text-xs block">{clientInfo.email}</span>}
-                                      </button>
-                                    );
-                                  } else {
-                                    return (
-                                      <div>
-                                        <span className="font-medium">{clientInfo.name}</span>
-                                        {clientInfo.email && <span className="text-muted-foreground text-xs block">{clientInfo.email}</span>}
-                                      </div>
-                                    );
-                                  }
-                                })()}
-                              </TableCell>
-                              <TableCell className={compactCellClass}>
-                                {invoice.dealId
-                                  ? deals.find((d) => d.id === parseInt(invoice.dealId.toString()))?.name || `Deal #${invoice.dealId}`
-                                  : "—"}
-                              </TableCell>
-                              <TableCell className={`${compactCellClass} max-w-xs truncate`}>{invoice.description || "-"}</TableCell>
-                              <TableCell className={`${compactCellClass} text-right font-semibold`}>{formatCurrency(invoice.total)}</TableCell>
-                              <TableCell
-                                className={`${compactCellClass} text-right font-semibold ${isPaid(invoice, "invoice") ? "text-emerald-600" : "text-muted-foreground"}`}
-                              >
-                                {formatCurrency(invoice.amountPaid || 0)}
-                              </TableCell>
-                              <TableCell className={`${compactCellClass} text-right font-semibold text-orange-600`}>
-                                {formatCurrency(invoice.amountDue)}
-                              </TableCell>
-                              <TableCell className={compactCellClass}>{getStatusBadge(invoice.status)}</TableCell>
-                              <TableCell className={compactCellClass}>
-                                {invoice.dueDate ? formatDateTime(invoice.dueDate) : "-"}
-                                {invoice.createdAt && (
-                                  <span className="text-xs text-muted-foreground block">Created: {formatDateTime(invoice.createdAt)}</span>
-                                )}
-                                {invoice.paidAt && <span className="text-xs text-emerald-600 block">Paid: {formatDateTime(invoice.paidAt)}</span>}
-                              </TableCell>
-                              <TableCell className={`${compactCellClass} text-right`}>
-                                <div className="flex gap-1 justify-end">
-                                  <Button variant="ghost" size="sm" onClick={() => archiveItem("invoice", getInvoiceKey(invoice))} title="Archive">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                  {invoice.hostedInvoiceUrl && (
-                                    <Button variant="ghost" size="sm" onClick={() => window.open(invoice.hostedInvoiceUrl, "_blank")}>
-                                      <ExternalLink className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                  {invoice.invoicePdf && (
-                                    <Button variant="ghost" size="sm" onClick={() => window.open(invoice.invoicePdf, "_blank")}>
-                                      <Download className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                    {getFilteredInvoices().length > 10 && (
-                      <div className="p-4 text-center text-sm text-muted-foreground border-t">
-                        Showing 10 of {getFilteredInvoices().length} invoices. Use filters to narrow results.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Subscriptions Section */}
-              {getFilteredSubscriptions().length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Subscriptions</h3>
-                    <Badge variant="outline">{getFilteredSubscriptions().length}</Badge>
-                  </div>
-                  <div className="border rounded-lg">
-                    <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Paid Status</TableHead>
-                          <TableHead>Interval</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Current Period</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {getFilteredSubscriptions()
-                          .slice(0, 10)
-                          .map((subscription) => (
-                            <TableRow key={subscription.id}>
-                              <TableCell>
-                                {(() => {
-                                  const client = clients.find((c) => c.id === subscription.clientId);
-                                  if (client) {
-                                    return (
-                                      <button
-                                        onClick={() => {
-                                          setSelectedClientId(client.id);
-                                          setShowClientPreview(true);
-                                        }}
-                                        className="text-left hover:underline text-primary font-medium"
-                                      >
-                                        {client.name}
-                                        <span className="text-muted-foreground text-xs block">{client.email}</span>
-                                      </button>
-                                    );
-                                  } else {
-                                    return <span className="text-muted-foreground">—</span>;
-                                  }
-                                })()}
-                              </TableCell>
-                              <TableCell className="font-semibold">{formatCurrency(subscription.amount)}</TableCell>
-                              <TableCell>
-                                {isPaid(subscription, "subscription") ? (
-                                  <Badge variant="default">Paid</Badge>
-                                ) : (
-                                  <Badge variant="outline">Unpaid</Badge>
-                                )}
-                              </TableCell>
-                              <TableCell>{subscription.interval || "—"}</TableCell>
-                              <TableCell>{getStatusBadge(subscription.status)}</TableCell>
-                              <TableCell>
-                                {subscription.currentPeriodStart && subscription.currentPeriodEnd ? (
-                                  <div>
-                                    <div>{formatDateTime(subscription.currentPeriodStart)}</div>
-                                    <div className="text-xs text-muted-foreground">to {formatDateTime(subscription.currentPeriodEnd)}</div>
-                                  </div>
-                                ) : (
-                                  "-"
-                                )}
-                                {subscription.createdAt && (
-                                  <span className="text-xs text-muted-foreground block mt-1">Created: {formatDateTime(subscription.createdAt)}</span>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="sm" onClick={() => archiveItem("subscription", getSubscriptionKey(subscription))} title="Archive">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                    {getFilteredSubscriptions().length > 10 && (
-                      <div className="p-4 text-center text-sm text-muted-foreground border-t">
-                        Showing 10 of {getFilteredSubscriptions().length} subscriptions. Use filters to narrow results.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Payment Links Section */}
-              {getFilteredPaymentLinks().length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Payment Links</h3>
-                    <Badge variant="outline">{getFilteredPaymentLinks().length}</Badge>
-                  </div>
-                  <div className="border rounded-lg">
-                    <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Paid Status</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Created</TableHead>
-                          <TableHead>Link</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {getFilteredPaymentLinks()
-                          .slice(0, 10)
-                          .map((link) => (
-                            <TableRow key={link.id}>
-                              <TableCell>
-                                {(() => {
-                                  const client = clients.find((c) => c.id === link.clientId);
-                                  if (client) {
-                                    return (
-                                      <button
-                                        onClick={() => {
-                                          setSelectedClientId(client.id);
-                                          setShowClientPreview(true);
-                                        }}
-                                        className="text-left hover:underline text-primary font-medium"
-                                      >
-                                        {client.name}
-                                        <span className="text-muted-foreground text-xs block">{client.email}</span>
-                                      </button>
-                                    );
-                                  } else {
-                                    return <span className="text-muted-foreground">—</span>;
-                                  }
-                                })()}
-                              </TableCell>
-                              <TableCell>{link.description || "-"}</TableCell>
-                              <TableCell className="font-semibold">{formatCurrency(link.amount)}</TableCell>
-                              <TableCell>
-                                {isPaid(link, "paymentLink") ? <Badge variant="default">Used/Paid</Badge> : <Badge variant="outline">Pending</Badge>}
-                              </TableCell>
-                              <TableCell>{link.active ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>}</TableCell>
-                              <TableCell>
-                                {formatDateTime(link.createdAt)}
-                                {link.updatedAt && link.updatedAt !== link.createdAt && (
-                                  <span className="text-xs text-muted-foreground block">Updated: {formatDateTime(link.updatedAt)}</span>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
-                                  <ExternalLink className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="sm" onClick={() => archiveItem("paymentLink", getPaymentLinkKey(link))} title="Archive">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                    {getFilteredPaymentLinks().length > 10 && (
-                      <div className="p-4 text-center text-sm text-muted-foreground border-t">
-                        Showing 10 of {getFilteredPaymentLinks().length} payment links. Use filters to narrow results.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Empty State */}
-              {getFilteredInvoices().length === 0 && getFilteredSubscriptions().length === 0 && getFilteredPaymentLinks().length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold mb-2">No billing items found</p>
-                  <p className="text-sm text-muted-foreground mb-4">Sync your Stripe data or create your first invoice</p>
-                  <Button onClick={() => setShowCreateInvoiceDialog(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Invoice
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Invoices Tab */}
-            <TabsContent value="invoices" className="mt-6">
-              {getFilteredInvoices().length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold mb-2">No invoices found</p>
-                  <p className="text-sm text-muted-foreground mb-4">Sync your Stripe data or create your first invoice</p>
-                  <Button onClick={() => setShowCreateInvoiceDialog(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Invoice
-                  </Button>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Invoice #</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Deal</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead>Paid</TableHead>
-                        <TableHead>Due</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Due Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {getFilteredInvoices().map((invoice) => (
-                        <TableRow key={invoice.id}>
-                          <TableCell className="font-mono text-sm">{invoice.invoiceNumber || `#${invoice.id}`}</TableCell>
-                          <TableCell>
-                            {(() => {
-                              const clientInfo = getClientInfo(invoice);
-                              if (clientInfo.id) {
-                                return (
-                                  <button
-                                    onClick={() => {
-                                      setSelectedClientId(clientInfo.id);
-                                      setShowClientPreview(true);
-                                    }}
-                                    className="text-left hover:underline text-primary font-medium"
-                                  >
-                                    {clientInfo.name}
-                                    {clientInfo.email && <span className="text-muted-foreground text-xs block">{clientInfo.email}</span>}
-                                  </button>
-                                );
-                              } else {
-                                return (
-                                  <div>
-                                    <span className="font-medium">{clientInfo.name}</span>
-                                    {clientInfo.email && <span className="text-muted-foreground text-xs block">{clientInfo.email}</span>}
-                                  </div>
-                                );
-                              }
-                            })()}
-                          </TableCell>
-                          <TableCell>
-                            {invoice.dealId
-                              ? deals.find((d) => d.id === parseInt(invoice.dealId.toString()))?.name || `Deal #${invoice.dealId}`
-                              : "—"}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">{invoice.description || "-"}</TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(invoice.total)}</TableCell>
-                          <TableCell className={`font-semibold ${isPaid(invoice, "invoice") ? "text-emerald-600" : "text-muted-foreground"}`}>
-                            {formatCurrency(invoice.amountPaid || 0)}
-                          </TableCell>
-                          <TableCell className="font-semibold text-orange-600">{formatCurrency(invoice.amountDue)}</TableCell>
-                          <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                          <TableCell>
-                            {invoice.dueDate ? formatDateTime(invoice.dueDate) : "-"}
-                            {invoice.createdAt && (
-                              <span className="text-xs text-muted-foreground block">Created: {formatDateTime(invoice.createdAt)}</span>
-                            )}
-                            {invoice.paidAt && <span className="text-xs text-emerald-600 block">Paid: {formatDateTime(invoice.paidAt)}</span>}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => archiveItem("invoice", getInvoiceKey(invoice))} title="Archive">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                              {invoice.hostedInvoiceUrl && (
-                                <Button variant="ghost" size="sm" onClick={() => window.open(invoice.hostedInvoiceUrl, "_blank")}>
-                                  <ExternalLink className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {invoice.invoicePdf && (
-                                <Button variant="ghost" size="sm" onClick={() => window.open(invoice.invoicePdf, "_blank")}>
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Subscriptions Tab */}
-            <TabsContent value="subscriptions" className="mt-6">
-              {getFilteredSubscriptions().length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold mb-2">No subscriptions found</p>
-                  <p className="text-sm text-muted-foreground">No subscriptions match your current filters</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Amount</TableHead>
-                      <TableHead>Paid Status</TableHead>
-                      <TableHead>Interval</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Current Period</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getFilteredSubscriptions().map((subscription) => (
-                      <TableRow key={subscription.id}>
-                          <TableCell>
-                            {(() => {
-                              const client = clients.find((c) => c.id === subscription.clientId);
-                              if (client) {
-                                return (
-                                  <button
-                                    onClick={() => {
-                                      setSelectedClientId(client.id);
-                                      setShowClientPreview(true);
-                                    }}
-                                    className="text-left hover:underline text-primary font-medium"
-                                  >
-                                    {client.name}
-                                    <span className="text-muted-foreground text-xs block">{client.email}</span>
-                                  </button>
-                                );
-                              } else {
-                                return <span className="text-muted-foreground">—</span>;
-                              }
-                            })()}
-                          </TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(subscription.amount)}</TableCell>
-                          <TableCell>
-                            {isPaid(subscription, "subscription") ? <Badge variant="default">Paid</Badge> : <Badge variant="outline">Unpaid</Badge>}
-                          </TableCell>
-                          <TableCell>{subscription.interval || "—"}</TableCell>
-                          <TableCell>{getStatusBadge(subscription.status)}</TableCell>
-                        <TableCell>
-                          {subscription.currentPeriodStart && subscription.currentPeriodEnd ? (
-                            <div>
-                              <div>{formatDateTime(subscription.currentPeriodStart)}</div>
-                              <div className="text-xs text-muted-foreground">to {formatDateTime(subscription.currentPeriodEnd)}</div>
-                              </div>
-                            ) : (
-                              "-"
-                            )}
-                          {subscription.createdAt && (
-                            <span className="text-xs text-muted-foreground block mt-1">Created: {formatDateTime(subscription.createdAt)}</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" onClick={() => archiveItem("subscription", getSubscriptionKey(subscription))} title="Archive">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Payment Links Tab */}
-            <TabsContent value="paymentLinks" className="mt-6">
-              {getFilteredPaymentLinks().length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold mb-2">No payment links found</p>
-                  <p className="text-sm text-muted-foreground mb-4">Create a payment link to get started</p>
-                  <Button onClick={() => setShowCreatePaymentLinkDialog(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Payment Link
-                  </Button>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table className="text-sm [&_th]:py-2 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wide [&_td]:py-2 [&_td]:align-middle">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Amount</TableHead>
-                      <TableHead>Paid Status</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Link</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {getFilteredPaymentLinks().map((link) => (
-                      <TableRow key={link.id}>
-                          <TableCell>
-                            {(() => {
-                              const client = clients.find((c) => c.id === link.clientId);
-                              if (client) {
-                                return (
-                                  <button
-                                    onClick={() => {
-                                      setSelectedClientId(client.id);
-                                      setShowClientPreview(true);
-                                    }}
-                                    className="text-left hover:underline text-primary font-medium"
-                                  >
-                                    {client.name}
-                                    <span className="text-muted-foreground text-xs block">{client.email}</span>
-                                  </button>
-                                );
-                              } else {
-                                return <span className="text-muted-foreground">—</span>;
-                              }
-                            })()}
-                          </TableCell>
-                          <TableCell>{link.description || "-"}</TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(link.amount)}</TableCell>
-                          <TableCell>
-                            {isPaid(link, "paymentLink") ? <Badge variant="default">Used/Paid</Badge> : <Badge variant="outline">Pending</Badge>}
-                          </TableCell>
-                          <TableCell>{link.active ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>}</TableCell>
-                          <TableCell>
-                            {formatDateTime(link.createdAt)}
-                            {link.updatedAt && link.updatedAt !== link.createdAt && (
-                              <span className="text-xs text-muted-foreground block">Updated: {formatDateTime(link.updatedAt)}</span>
-                            )}
-                          </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" onClick={() => archiveItem("paymentLink", getPaymentLinkKey(link))} title="Archive">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Quotes Tab */}
-            <TabsContent value="quotes" className="mt-6">
-              {(safeDashboardData.quotes || []).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold mb-2">No quotes found</p>
-                  <p className="text-sm text-muted-foreground">Quotes will appear here when created</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Quote #</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(safeDashboardData.quotes || []).map((quote: any) => (
-                        <TableRow key={quote.id}>
-                          <TableCell className="font-mono text-sm">{quote.quoteNumber || `#${quote.id}`}</TableCell>
-                          <TableCell>
-                            {quote.clientId
-                              ? (() => {
-                                  const client = clients.find((c) => c.id === quote.clientId);
-                                  return client ? client.name : "—";
-                                })()
-                              : "—"}
-                          </TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(quote.amount || 0)}</TableCell>
-                          <TableCell>{getStatusBadge(quote.status || "draft")}</TableCell>
-                          <TableCell>{quote.createdAt ? formatDateTime(quote.createdAt) : "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Other Tab (Payment Intents, etc.) */}
-            <TabsContent value="other" className="mt-6">
-              {(safeDashboardData.paymentIntents || []).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-semibold mb-2">No other items found</p>
-                  <p className="text-sm text-muted-foreground">Payment intents and other billing items will appear here</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(safeDashboardData.paymentIntents || []).map((intent: any) => (
-                        <TableRow key={intent.id}>
-                          <TableCell>
-                            <Badge variant="outline">Payment Intent</Badge>
-                          </TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(intent.amount || 0)}</TableCell>
-                          <TableCell>{getStatusBadge(intent.status || "pending")}</TableCell>
-                          <TableCell>{intent.createdAt ? formatDateTime(intent.createdAt) : "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Legacy Invoices Table - Remove after testing */}
-      {/* Invoices Table */}
-      <Card className="hidden">
-        <CardHeader>
-          <CardTitle>Invoices</CardTitle>
-          <CardDescription>
-            Showing {getFilteredInvoices().length} of {(safeDashboardData.invoices || []).length} invoices
-            {paymentStatusFilter !== "all" && ` (${paymentStatusFilter})`}
-            {typeFilter !== "all" && ` - ${typeFilter}s only`}
-            {timeFilter !== "all" && ` - ${timeFilter === "custom" ? "custom range" : timeFilter}`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {getFilteredInvoices().length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-semibold mb-2">No invoices found</p>
-              <p className="text-sm text-muted-foreground mb-4">Sync your Stripe data or create your first invoice</p>
-              <Button onClick={() => setShowCreateInvoiceDialog(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Invoice
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Invoices</CardTitle>
+            {archivedInvoices.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setShowArchived(!showArchived)}>
+                {showArchived ? "Show Active" : `Archived (${archivedInvoices.length})`}
               </Button>
-            </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {(showArchived ? archivedInvoices : activeInvoices).length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No invoices</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Invoice #</TableHead>
                   <TableHead>Client</TableHead>
-                  <TableHead>Deal</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Paid</TableHead>
-                  <TableHead>Due</TableHead>
+                  <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {getFilteredInvoices().map((invoice) => (
+                {(showArchived ? archivedInvoices : activeInvoices).map((invoice) => (
                   <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">{invoice.clientName}</TableCell>
+                    <TableCell>{invoice.description}</TableCell>
+                    <TableCell>{formatCurrency(parseFloat(invoice.total))}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">Invoice</Badge>
+                      <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
                     </TableCell>
-                    <TableCell className="font-mono text-sm">{invoice.invoiceNumber || `#${invoice.id}`}</TableCell>
-                    <TableCell>
-                      {(() => {
-                        const clientInfo = getClientInfo(invoice);
-                        if (clientInfo.id) {
-                          return (
-                            <button
-                              onClick={() => {
-                                setSelectedClientId(clientInfo.id);
-                                setShowClientPreview(true);
-                              }}
-                              className="text-left hover:underline text-primary font-medium"
-                            >
-                              {clientInfo.name}
-                              {clientInfo.email && <span className="text-muted-foreground text-xs block">{clientInfo.email}</span>}
-                            </button>
-                          );
-                        } else {
-                          return (
-                            <div>
-                              <span className="font-medium">{clientInfo.name}</span>
-                              {clientInfo.email && <span className="text-muted-foreground text-xs block">{clientInfo.email}</span>}
-                            </div>
-                          );
-                        }
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      {invoice.dealId ? deals.find((d) => d.id === parseInt(invoice.dealId.toString()))?.name || `Deal #${invoice.dealId}` : "—"}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">{invoice.description || "-"}</TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(invoice.total)}</TableCell>
-                    <TableCell className={`font-semibold ${isPaid(invoice, "invoice") ? "text-emerald-600" : "text-muted-foreground"}`}>
-                      {formatCurrency(invoice.amountPaid || 0)}
-                    </TableCell>
-                    <TableCell className="font-semibold text-orange-600">{formatCurrency(invoice.amountDue)}</TableCell>
-                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                    <TableCell>
-                      {invoice.dueDate ? formatDateTime(invoice.dueDate) : "-"}
-                      {invoice.createdAt && <span className="text-xs text-muted-foreground block">Created: {formatDateTime(invoice.createdAt)}</span>}
-                      {invoice.paidAt && <span className="text-xs text-emerald-600 block">Paid: {formatDateTime(invoice.paidAt)}</span>}
-                    </TableCell>
-                    <TableCell>
-                      {invoice.hostedInvoiceUrl && (
-                        <Button variant="ghost" size="sm" onClick={() => window.open(invoice.hostedInvoiceUrl, "_blank")}>
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {invoice.invoicePdf && (
-                        <Button variant="ghost" size="sm" onClick={() => window.open(invoice.invoicePdf, "_blank")}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      )}
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => { setSelectedInvoice(invoice); setViewInvoiceOpen(true); }}>
+                        View
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => showArchived ? handleUnarchiveItem("invoice", invoice.id.toString()) : handleArchiveItem("invoice", invoice.id.toString())}>
+                        {showArchived ? <Undo2 className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -2982,358 +1285,575 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
-      </div>
+
+      {/* Quotes */}
+      {data?.quotes && data.quotes.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Quotes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.quotes.map((quote) => (
+                  <TableRow key={quote.id}>
+                    <TableCell className="font-medium">{quote.clientName}</TableCell>
+                    <TableCell>{formatCurrency(parseFloat(quote.total))}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" onClick={() => { setSelectedQuote(quote); setViewQuoteOpen(true); }}>
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Subscriptions */}
+      {(activeSubscriptions.length > 0 || archivedSubscriptions.length > 0) && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Subscriptions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Interval</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeSubscriptions.map((sub) => (
+                  <TableRow key={sub.id}>
+                    <TableCell className="font-medium">{sub.clientName}</TableCell>
+                    <TableCell>{formatCurrency(parseFloat(sub.amount))}</TableCell>
+                    <TableCell className="capitalize">{sub.interval}</TableCell>
+                    <TableCell>
+                      <Badge variant={sub.status === "active" ? "default" : "secondary"}>{sub.status}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payment Links */}
+      {(activePaymentLinks.length > 0 || archivedPaymentLinks.length > 0) && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Payment Links</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Link</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activePaymentLinks.map((link) => (
+                  <TableRow key={link.id}>
+                    <TableCell className="font-medium">{link.description}</TableCell>
+                    <TableCell>{formatCurrency(parseFloat(link.amount))}</TableCell>
+                    <TableCell>
+                      <Badge variant={link.status === "active" ? "default" : "secondary"}>{link.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {link.url && (
+                        <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create Invoice Dialog */}
-      <Dialog open={showCreateInvoiceDialog} onOpenChange={setShowCreateInvoiceDialog}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={createInvoiceOpen} onOpenChange={setCreateInvoiceOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Invoice</DialogTitle>
-            <DialogDescription>Create and send an invoice to a client via Stripe</DialogDescription>
+            <DialogTitle>Create Invoice</DialogTitle>
+            <DialogDescription>Create a new invoice for a client</DialogDescription>
           </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="client">Client *</Label>
-              <Select
-                value={invoiceForm.clientId}
-                onValueChange={(value) => {
-                  setInvoiceForm({ ...invoiceForm, clientId: value, dealId: "" });
-                  loadBillableTickets(value); // Load billable tickets for this client
-                }}
-              >
+          <form onSubmit={handleCreateInvoice} className="space-y-4">
+            <div>
+              <Label htmlFor="clientId">Client</Label>
+              <Select value={invoiceForm.clientId} onValueChange={(value) => setInvoiceForm({ ...invoiceForm, clientId: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client) => (
+                  {(clients || []).map((client) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
-                      {client.name} ({client.email})
+                      {client.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="deal">Deal (Optional)</Label>
-              <Select
-                value={invoiceForm.dealId || "none"}
-                onValueChange={(value) => {
-                  const actualValue = value === "none" ? "" : value;
-                  setInvoiceForm({ ...invoiceForm, dealId: actualValue });
-                  loadBillableTickets(invoiceForm.clientId, actualValue); // Reload tickets filtered by deal
-                }}
-                disabled={!invoiceForm.clientId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={invoiceForm.clientId ? "Select a deal (optional)" : "Select client first"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No deal</SelectItem>
-                  {deals
-                    .filter((deal) => deal.clientId === parseInt(invoiceForm.clientId))
-                    .map((deal) => (
-                      <SelectItem key={deal.id} value={deal.id.toString()}>
-                        {deal.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={invoiceForm.amount}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+                required
+              />
             </div>
-
-            {/* Billable Tickets Section */}
-            {invoiceForm.clientId && (
-              <div className="grid gap-2">
-                <Label className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Billable Tickets
-                  {billableTickets.length > 0 && (
-                    <Badge variant="secondary" className="ml-1">
-                      {billableTickets.length}
-                    </Badge>
-                  )}
-                </Label>
-                {loadingTickets ? (
-                  <div className="text-sm text-muted-foreground p-3 border rounded-lg">
-                    Loading billable tickets...
-                  </div>
-                ) : billableTickets.length === 0 ? (
-                  <div className="text-sm text-muted-foreground p-3 border rounded-lg">
-                    No billable tickets found for this {invoiceForm.dealId ? "deal" : "client"}
-                  </div>
-                ) : (
-                  <div className="border rounded-lg p-2 max-h-48 overflow-y-auto space-y-2">
-                    {billableTickets.map((ticket) => (
-                      <div
-                        key={ticket.id}
-                        className={`flex items-center gap-3 p-2 rounded cursor-pointer hover:bg-muted transition-colors ${
-                          selectedTicketIds.includes(ticket.id) ? "bg-muted" : ""
-                        }`}
-                        onClick={() => toggleTicketSelection(ticket.id)}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedTicketIds.includes(ticket.id)}
-                          onChange={() => toggleTicketSelection(ticket.id)}
-                          className="rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">
-                            #{ticket.id} - {ticket.title}
-                          </div>
-                          <div className="text-xs text-muted-foreground flex gap-2">
-                            <span>{parseFloat(ticket.timeSpent).toFixed(2)}h</span>
-                            <span>×</span>
-                            <span>${parseFloat(ticket.hourlyRate || "65").toFixed(0)}/hr</span>
-                            <span>=</span>
-                            <span className="font-semibold text-foreground">
-                              ${(parseFloat(ticket.timeSpent) * parseFloat(ticket.hourlyRate || "65")).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {ticket.applicationSource}
-                        </Badge>
-                      </div>
-                    ))}
-                    <div className="flex justify-between items-center pt-2 border-t mt-2">
-                      <span className="text-sm text-muted-foreground">
-                        {selectedTicketIds.length} selected
-                      </span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={addTicketsAsLineItems}
-                        disabled={selectedTicketIds.length === 0}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add to Invoice
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description *</Label>
+            <div>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={invoiceForm.description}
                 onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })}
-                placeholder="Invoice description..."
+                required
               />
             </div>
-
-            <div className="grid gap-2">
-              <Label>Line Items *</Label>
-              {invoiceForm.lineItems.map((item, index) => {
-                const itemTotal = (parseFloat(item.amount) || 0) * (parseInt(item.quantity) || 1);
-                const itemWithTax = itemTotal + (parseFloat(item.tax) || 0);
-                return (
-                  <div key={index} className="grid grid-cols-12 gap-2 items-end p-3 border rounded-lg">
-                    <Input
-                      className="col-span-4"
-                      placeholder="Item description"
-                      value={item.description}
-                      onChange={(e) => updateLineItem(index, "description", e.target.value)}
-                    />
-                    <div className="col-span-2">
-                      <Label className="text-xs text-muted-foreground mb-1 block">Amount</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={item.amount}
-                        onChange={(e) => updateLineItem(index, "amount", e.target.value)}
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <Label className="text-xs text-muted-foreground mb-1 block">Qty</Label>
-                      <Input
-                        type="number"
-                        placeholder="1"
-                        value={item.quantity}
-                        onChange={(e) => updateLineItem(index, "quantity", e.target.value)}
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Label className="text-xs text-muted-foreground mb-1 block">Tax</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={item.tax}
-                        onChange={(e) => updateLineItem(index, "tax", e.target.value)}
-                      />
-                    </div>
-                    <div className="col-span-2 text-right">
-                      <Label className="text-xs text-muted-foreground mb-1 block">Total</Label>
-                      <div className="font-semibold">{formatCurrency(itemWithTax)}</div>
-                    </div>
-                    <Button
-                      className="col-span-1"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeLineItem(index)}
-                      disabled={invoiceForm.lineItems.length === 1}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                );
-              })}
-              <Button variant="outline" size="sm" onClick={addLineItem}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Line Item
-              </Button>
-              <div className="mt-2 p-2 bg-muted rounded text-sm">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span className="font-semibold">
-                    {formatCurrency(
-                      invoiceForm.lineItems.reduce((sum, item) => {
-                        const itemTotal = (parseFloat(item.amount) || 0) * (parseInt(item.quantity) || 1);
-                        return sum + itemTotal;
-                      }, 0)
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span>Tax:</span>
-                  <span className="font-semibold">
-                    {formatCurrency(invoiceForm.lineItems.reduce((sum, item) => sum + (parseFloat(item.tax) || 0), 0))}
-                  </span>
-                </div>
-                <div className="flex justify-between mt-2 pt-2 border-t font-bold">
-                  <span>Total:</span>
-                  <span>
-                    {formatCurrency(
-                      invoiceForm.lineItems.reduce((sum, item) => {
-                        const itemTotal = (parseFloat(item.amount) || 0) * (parseInt(item.quantity) || 1);
-                        const itemTax = parseFloat(item.tax) || 0;
-                        return sum + itemTotal + itemTax;
-                      }, 0)
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-2">
+            <div>
               <Label htmlFor="dueDate">Due Date</Label>
               <Input
                 id="dueDate"
                 type="date"
                 value={invoiceForm.dueDate}
                 onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                required
               />
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Internal Notes (optional)</Label>
-              <Textarea
-                id="notes"
-                value={invoiceForm.notes}
-                onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
-                placeholder="Add any internal notes about this invoice..."
-                rows={3}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="sendImmediately"
-                checked={invoiceForm.sendImmediately}
-                onChange={(e) => setInvoiceForm({ ...invoiceForm, sendImmediately: e.target.checked })}
-              />
-              <Label htmlFor="sendImmediately" className="cursor-pointer">
-                Send invoice to client immediately via email
-              </Label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateInvoiceDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={createInvoice}>Create Invoice</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreateInvoiceOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Invoice</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
-      {/* Create Payment Link Dialog */}
-      <Dialog open={showCreatePaymentLinkDialog} onOpenChange={setShowCreatePaymentLinkDialog}>
+      {/* View Invoice Dialog */}
+      <Dialog open={viewInvoiceOpen} onOpenChange={setViewInvoiceOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Invoice Details</DialogTitle>
+          </DialogHeader>
+          {selectedInvoice && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Client</Label>
+                  <div className="font-medium">{selectedInvoice.clientName}</div>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <div>
+                    <Badge variant={getStatusBadgeVariant(selectedInvoice.status)}>{selectedInvoice.status}</Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label>Amount</Label>
+                  <div className="font-medium text-lg">{formatCurrency(parseFloat(selectedInvoice.total))}</div>
+                </div>
+                <div>
+                  <Label>Created</Label>
+                  <div>{new Date(selectedInvoice.createdAt).toLocaleDateString()}</div>
+                </div>
+              </div>
+              <div>
+                <Label>Description</Label>
+                <div className="mt-1 p-3 bg-muted rounded">{selectedInvoice.description}</div>
+              </div>
+              {selectedInvoice.stripeInvoiceId && (
+                <div>
+                  <Label>Stripe Invoice ID</Label>
+                  <div className="font-mono text-sm">{selectedInvoice.stripeInvoiceId}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Subscription Dialog */}
+      <Dialog open={createSubscriptionOpen} onOpenChange={setCreateSubscriptionOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Payment Link</DialogTitle>
-            <DialogDescription>Generate a one-time payment link for a client</DialogDescription>
+            <DialogTitle>Create Subscription</DialogTitle>
+            <DialogDescription>Set up recurring billing for a client</DialogDescription>
           </DialogHeader>
-
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="paymentClient">Client *</Label>
-              <Select value={paymentLinkForm.clientId} onValueChange={(value) => setPaymentLinkForm({ ...paymentLinkForm, clientId: value })}>
+          <form onSubmit={handleCreateSubscription} className="space-y-4">
+            <div>
+              <Label htmlFor="sub-clientId">Client</Label>
+              <Select value={subscriptionForm.clientId} onValueChange={(value) => setSubscriptionForm({ ...subscriptionForm, clientId: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client) => (
+                  {(clients || []).map((client) => (
                     <SelectItem key={client.id} value={client.id.toString()}>
-                      {client.name} ({client.email})
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="sub-amount">Amount</Label>
+              <Input
+                id="sub-amount"
+                type="number"
+                step="0.01"
+                value={subscriptionForm.amount}
+                onChange={(e) => setSubscriptionForm({ ...subscriptionForm, amount: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="sub-description">Description</Label>
+              <Textarea
+                id="sub-description"
+                value={subscriptionForm.description}
+                onChange={(e) => setSubscriptionForm({ ...subscriptionForm, description: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="sub-interval">Billing Interval</Label>
+              <Select value={subscriptionForm.interval} onValueChange={(value) => setSubscriptionForm({ ...subscriptionForm, interval: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreateSubscriptionOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Subscription</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Payment Link Dialog */}
+      <Dialog open={createPaymentLinkOpen} onOpenChange={setCreatePaymentLinkOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Payment Link</DialogTitle>
+            <DialogDescription>Generate a one-time payment link</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreatePaymentLink} className="space-y-4">
+            <div>
+              <Label htmlFor="link-amount">Amount</Label>
+              <Input
+                id="link-amount"
+                type="number"
+                step="0.01"
+                value={paymentLinkForm.amount}
+                onChange={(e) => setPaymentLinkForm({ ...paymentLinkForm, amount: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="link-description">Description</Label>
+              <Textarea
+                id="link-description"
+                value={paymentLinkForm.description}
+                onChange={(e) => setPaymentLinkForm({ ...paymentLinkForm, description: e.target.value })}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreatePaymentLinkOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Link</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Quote Dialog */}
+      <Dialog open={createQuoteOpen} onOpenChange={setCreateQuoteOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Create Quote</DialogTitle>
+            <DialogDescription>Create a detailed quote for a client</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateQuote} className="space-y-4">
+            <div>
+              <Label htmlFor="quote-clientId">Client</Label>
+              <Select value={quoteForm.clientId} onValueChange={(value) => setQuoteForm({ ...quoteForm, clientId: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(clients || []).map((client) => (
+                    <SelectItem key={client.id} value={client.id.toString()}>
+                      {client.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="paymentAmount">Amount *</Label>
-              <Input
-                id="paymentAmount"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={paymentLinkForm.amount}
-                onChange={(e) => setPaymentLinkForm({ ...paymentLinkForm, amount: e.target.value })}
-              />
+            <div className="space-y-3">
+              <Label>Line Items</Label>
+              {quoteForm.items.map((item, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-6">
+                    <Input
+                      placeholder="Description"
+                      value={item.description}
+                      onChange={(e) => {
+                        const newItems = [...quoteForm.items];
+                        newItems[index].description = e.target.value;
+                        setQuoteForm({ ...quoteForm, items: newItems });
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const newItems = [...quoteForm.items];
+                        newItems[index].quantity = parseInt(e.target.value) || 0;
+                        setQuoteForm({ ...quoteForm, items: newItems });
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Rate"
+                      value={item.rate}
+                      onChange={(e) => {
+                        const newItems = [...quoteForm.items];
+                        newItems[index].rate = parseFloat(e.target.value) || 0;
+                        setQuoteForm({ ...quoteForm, items: newItems });
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    {quoteForm.items.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newItems = quoteForm.items.filter((_, i) => i !== index);
+                          setQuoteForm({ ...quoteForm, items: newItems });
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setQuoteForm({
+                    ...quoteForm,
+                    items: [...quoteForm.items, { description: "", quantity: 1, rate: 0 }],
+                  });
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Line Item
+              </Button>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="paymentDescription">Description *</Label>
+            <div>
+              <Label htmlFor="quote-notes">Notes (Optional)</Label>
               <Textarea
-                id="paymentDescription"
-                value={paymentLinkForm.description}
-                onChange={(e) => setPaymentLinkForm({ ...paymentLinkForm, description: e.target.value })}
-                placeholder="What is this payment for?"
+                id="quote-notes"
+                value={quoteForm.notes}
+                onChange={(e) => setQuoteForm({ ...quoteForm, notes: e.target.value })}
+                placeholder="Additional notes or terms"
               />
             </div>
-          </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreatePaymentLinkDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={createPaymentLink}>Create Link</Button>
-          </DialogFooter>
+            <div className="pt-4 border-t">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Total:</span>
+                <span className="text-2xl font-bold">
+                  {formatCurrency(quoteForm.items.reduce((sum, item) => sum + item.quantity * item.rate, 0))}
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreateQuoteOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Quote</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
-      {/* Client Preview */}
-      {selectedClientId && (
-        <ClientPreview
-          open={showClientPreview}
-          onOpenChange={setShowClientPreview}
-          clientId={selectedClientId}
-          onClientUpdated={() => {
-            loadClients();
-            loadDashboard();
-          }}
-        />
-      )}
+      {/* View Quote Dialog */}
+      <Dialog open={viewQuoteOpen} onOpenChange={setViewQuoteOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Quote Details</DialogTitle>
+          </DialogHeader>
+          {selectedQuote && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Client</Label>
+                  <div className="font-medium">{selectedQuote.clientName}</div>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <div>
+                    <Badge variant={getStatusBadgeVariant(selectedQuote.status)}>{selectedQuote.status}</Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Line Items</Label>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Quantity</TableHead>
+                      <TableHead className="text-right">Rate</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {JSON.parse(selectedQuote.items).map((item: any, index: number) => (
+                      <TableRow key={index}>
+                        <TableCell>{item.description}</TableCell>
+                        <TableCell className="text-right">{item.quantity}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(item.rate)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(item.quantity * item.rate)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {selectedQuote.notes && (
+                <div>
+                  <Label>Notes</Label>
+                  <div className="mt-1 p-3 bg-muted rounded whitespace-pre-wrap">{selectedQuote.notes}</div>
+                </div>
+              )}
+
+              <div className="pt-4 border-t flex justify-between items-center">
+                <span className="font-semibold text-lg">Total:</span>
+                <span className="text-2xl font-bold">{formatCurrency(parseFloat(selectedQuote.total))}</span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Billable Tickets Dialog */}
+      <Dialog open={billableTicketsOpen} onOpenChange={setBillableTicketsOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Billable Tickets</DialogTitle>
+            <DialogDescription>Resolved tickets with billable time and suggested amounts</DialogDescription>
+          </DialogHeader>
+
+          {loadingTickets ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : billableTickets.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">No billable tickets found</div>
+          ) : (
+            <div className="space-y-4">
+              {billableTickets.map((ticket) => (
+                <Card key={ticket.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{ticket.title}</CardTitle>
+                        <CardDescription className="mt-1">{ticket.description}</CardDescription>
+                      </div>
+                      <Badge variant="secondary">{ticket.applicationSource}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Deal:</span>
+                        <div className="font-medium">{ticket.dealName || "No deal"}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Time Spent:</span>
+                        <div className="font-medium">{ticket.timeSpent}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Hourly Rate:</span>
+                        <div className="font-medium">{ticket.hourlyRate ? formatCurrency(parseFloat(ticket.hourlyRate)) : "N/A"}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Suggested Amount:</span>
+                        <div className="font-bold text-green-600">
+                          {ticket.billableAmount ? formatCurrency(parseFloat(ticket.billableAmount)) : "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                    {ticket.resolvedAt && (
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        Resolved: {new Date(ticket.resolvedAt).toLocaleDateString()}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

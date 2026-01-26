@@ -193,8 +193,8 @@ export async function sendAdminNotification(data: EmailData) {
   }
 
   try {
-    // Send admin notifications to developer@bettersystems.ai
-    const recipientEmail = "developer@bettersystems.ai";
+    // Send admin notifications to info@bettersystems.ai
+    const recipientEmail = "info@bettersystems.ai";
 
     const result = await resend.emails.send({
       from: process.env.EMAIL_FROM || "Better Systems AI <noreply@bettersystemsai.com>",

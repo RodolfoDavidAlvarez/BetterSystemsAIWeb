@@ -207,62 +207,59 @@ export default function BookingPage() {
         <meta name="description" content="Schedule a free 15-minute discovery call to discuss how we can automate your business." />
       </Helmet>
 
-      <section className="min-h-screen pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-background to-muted/20">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+      <section className="min-h-screen pt-8 pb-16 md:pt-16 md:pb-24 bg-background relative z-0">
+        <div className="container mx-auto px-4 max-w-xl md:max-w-4xl">
+          {/* Header - Compact on mobile */}
+          <div className="text-center mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">
               Book a Discovery Call
             </h1>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Schedule a 15-minute call to discuss your business automation needs.
-              We'll explore how we can help you save time and scale.
+            <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
+              Schedule a free 15-minute call to explore how we can help you save time and scale.
             </p>
           </div>
 
-          {/* Personal Introduction */}
-          <div className="flex flex-col sm:flex-row items-center gap-6 bg-white rounded-xl p-6 shadow-sm border mb-10 max-w-2xl mx-auto">
+          {/* Personal Introduction - Simplified for mobile */}
+          <div className="flex items-center gap-4 bg-card rounded-xl p-4 md:p-6 shadow-sm border mb-6 md:mb-10">
             <img
               src="/Professional Headshot Rodolfo compressed.jpg"
               alt="Rodo Alvarez"
-              className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+              className="w-14 h-14 md:w-20 md:h-20 rounded-full object-cover border-2 border-primary/20 flex-shrink-0"
             />
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium mb-1">Looking forward to meeting you!</p>
-              <p className="text-muted-foreground text-sm">
-                I'm Rodo, founder of Better Systems AI. In our call, we'll talk about your business,
-                identify automation opportunities, and see if we're a good fit to work together.
+            <div>
+              <p className="font-medium text-sm md:text-lg mb-1">Looking forward to meeting you!</p>
+              <p className="text-muted-foreground text-xs md:text-sm leading-snug">
+                I'm Rodo, founder of Better Systems AI. Let's talk about your business and find automation opportunities.
               </p>
-              <p className="text-primary text-sm font-medium mt-2">— Rodo Alvarez</p>
             </div>
           </div>
 
-          {/* Progress Steps */}
-          <div className="flex justify-center mb-8">
-            <div className="flex items-center gap-2 text-sm">
+          {/* Progress Steps - Clean mobile design */}
+          <div className="flex justify-center mb-4 md:mb-8">
+            <div className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
               <div className={`flex items-center gap-1 ${step === "date" ? "text-primary font-medium" : step === "time" || step === "details" || step === "confirmation" ? "text-green-500" : "text-muted-foreground"}`}>
-                <CalendarDays className="w-4 h-4" />
-                <span>Date</span>
+                <CalendarDays className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Date</span>
               </div>
-              <span className="text-muted-foreground">→</span>
+              <span className="text-muted-foreground/50">→</span>
               <div className={`flex items-center gap-1 ${step === "time" ? "text-primary font-medium" : step === "details" || step === "confirmation" ? "text-green-500" : "text-muted-foreground"}`}>
-                <Clock className="w-4 h-4" />
-                <span>Time</span>
+                <Clock className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Time</span>
               </div>
-              <span className="text-muted-foreground">→</span>
+              <span className="text-muted-foreground/50">→</span>
               <div className={`flex items-center gap-1 ${step === "details" ? "text-primary font-medium" : step === "confirmation" ? "text-green-500" : "text-muted-foreground"}`}>
                 <span>Details</span>
               </div>
-              <span className="text-muted-foreground">→</span>
+              <span className="text-muted-foreground/50">→</span>
               <div className={`flex items-center gap-1 ${step === "confirmation" ? "text-green-500 font-medium" : "text-muted-foreground"}`}>
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Done</span>
+                <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Done</span>
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="bg-card rounded-xl border shadow-lg p-6 md:p-8">
+          <div className="bg-card rounded-xl border shadow-sm p-4 md:p-8">
             {/* Step 1: Date Selection */}
             {step === "date" && (
               <div className="flex flex-col items-center">
@@ -323,16 +320,16 @@ export default function BookingPage() {
                   {formatSelectedDate()} • 15-minute call
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-2 md:gap-3">
                   {timeSlots.map((slot) => (
                     <button
                       key={slot.time}
                       onClick={() => slot.available && handleTimeSelect(slot.time)}
                       disabled={!slot.available}
-                      className={`py-3 px-4 rounded-lg border text-sm font-medium transition-colors ${
+                      className={`py-3 px-3 rounded-lg border text-sm font-medium transition-all active:scale-95 ${
                         slot.available
                           ? "hover:border-primary hover:bg-primary/5 cursor-pointer"
-                          : "opacity-40 cursor-not-allowed line-through bg-muted/50"
+                          : "opacity-30 cursor-not-allowed line-through bg-muted/30"
                       } ${
                         selectedTime === slot.time
                           ? "border-primary bg-primary text-primary-foreground"
@@ -362,52 +359,54 @@ export default function BookingPage() {
                   {formatSelectedDate()} at {getSelectedTimeDisplay()}
                 </p>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="John Smith"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="john@company.com"
-                        required
-                      />
-                    </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name" className="text-sm">Full Name *</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="John Smith"
+                      required
+                      className="h-11"
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Company Name</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-sm">Email *</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="john@company.com"
+                      required
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="company" className="text-sm">Company Name</Label>
                     <Input
                       id="company"
                       name="company"
                       value={formData.company}
                       onChange={handleInputChange}
                       placeholder="Acme Corp"
+                      className="h-11"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="interest">What are you interested in?</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="interest" className="text-sm">What are you interested in?</Label>
                     <select
                       id="interest"
                       name="interest"
                       value={formData.interest}
                       onChange={handleInputChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="">Select an option...</option>
                       <option value="lead-nurturing">Lead Nurturing System</option>
@@ -421,19 +420,19 @@ export default function BookingPage() {
                     </select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Tell us about your business (optional)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="notes" className="text-sm">Tell us about your business (optional)</Label>
                     <Textarea
                       id="notes"
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
-                      placeholder="What problems are you looking to solve? What does your business do?"
-                      rows={4}
+                      placeholder="What problems are you looking to solve?"
+                      rows={3}
                     />
                   </div>
 
-                  <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                  <Button type="submit" className="w-full h-12 text-base font-semibold mt-2" disabled={isSubmitting}>
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -474,28 +473,28 @@ export default function BookingPage() {
             )}
           </div>
 
-          {/* Info Section */}
+          {/* Info Section - Compact on mobile */}
           {step !== "confirmation" && (
-            <div className="mt-10 flex flex-wrap justify-center gap-4 md:gap-8">
-              <div className="flex items-center gap-2 bg-card border rounded-full px-5 py-2.5 shadow-sm">
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">15-minute call</span>
+            <div className="mt-6 md:mt-10 flex flex-wrap justify-center gap-2 md:gap-4">
+              <div className="flex items-center gap-1.5 bg-card border rounded-full px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm">
+                <Clock className="w-3 h-3 md:w-4 md:h-4 text-primary" />
+                <span className="font-medium">15 min</span>
               </div>
-              <div className="flex items-center gap-2 bg-card border rounded-full px-5 py-2.5 shadow-sm">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">100% free</span>
+              <div className="flex items-center gap-1.5 bg-card border rounded-full px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm">
+                <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 text-primary" />
+                <span className="font-medium">Free</span>
               </div>
-              <div className="flex items-center gap-2 bg-card border rounded-full px-5 py-2.5 shadow-sm">
-                <CalendarDays className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">48hr follow-up</span>
+              <div className="flex items-center gap-1.5 bg-card border rounded-full px-3 py-1.5 md:px-5 md:py-2.5 text-xs md:text-sm">
+                <CalendarDays className="w-3 h-3 md:w-4 md:h-4 text-primary" />
+                <span className="font-medium">48hr follow-up</span>
               </div>
             </div>
           )}
 
           {/* Timezone note */}
           {step !== "confirmation" && (
-            <p className="text-center text-xs text-muted-foreground mt-6">
-              All times shown in Phoenix, Arizona time (MST)
+            <p className="text-center text-[10px] md:text-xs text-muted-foreground mt-4 md:mt-6">
+              Times shown in Phoenix, AZ (MST)
             </p>
           )}
         </div>

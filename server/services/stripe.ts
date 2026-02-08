@@ -442,6 +442,12 @@ export async function handleWebhookEvent(event: Stripe.Event) {
     case "customer.subscription.deleted":
       return { type: "subscription", data: event.data.object as Stripe.Subscription };
 
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      console.log(`[Stripe Webhook] Checkout completed: ${session.id}, amount: ${session.amount_total}, metadata:`, session.metadata);
+      return { type: "checkout_completed", data: session };
+    }
+
     default:
       console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
       return { type: "unhandled", data: event.data.object };

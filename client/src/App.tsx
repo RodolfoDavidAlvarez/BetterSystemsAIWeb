@@ -1,11 +1,11 @@
 // React imports
-import { Router, Route, Switch, useLocation } from "wouter";
+import { Router, Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import RootLayout from "./components/layout/RootLayout";
-import VoiceWidget from "./components/VoiceWidget";
+
 import HomePage from "./pages/HomePage";
 import ServicesPage from "./pages/ServicesPage";
 import AboutPage from "./pages/AboutPage";
@@ -37,12 +37,6 @@ import CampaignsPage from "./pages/admin/CampaignsPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 
-// Only show VoiceWidget on home page
-function HomePageVoiceWidget() {
-  const [location] = useLocation();
-  if (location !== "/") return null;
-  return <VoiceWidget />;
-}
 
 function App() {
   useScrollToTop();
@@ -198,7 +192,6 @@ function App() {
               </Route>
             </Switch>
             <Toaster />
-            <HomePageVoiceWidget />
           </RootLayout>
         </Router>
       </QueryClientProvider>

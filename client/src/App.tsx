@@ -16,6 +16,7 @@ import OnboardPage from "./pages/OnboardPage";
 import PartnersPage from "./pages/PartnersPage";
 import SocialPage from "./pages/SocialPage";
 import BookingPage from "./pages/BookingPage";
+import InvoicePaymentPage from "./pages/InvoicePaymentPage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
 // Admin imports
@@ -64,6 +65,7 @@ function App() {
               <Route path="/start" component={OnboardPage} />
               <Route path="/rodolfo" component={SocialPage} />
               <Route path="/book" component={BookingPage} />
+              <Route path="/pay/:invoiceNumber" component={InvoicePaymentPage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />

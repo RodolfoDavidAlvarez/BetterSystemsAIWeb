@@ -110,6 +110,99 @@ import {
 import { constructWebhookEvent, handleWebhookEvent } from "./services/stripe";
 
 export function registerRoutes(app: Express) {
+
+  // ==================== INVOICE PAYMENT PAGES ====================
+
+  // Payment page config — server-side date check determines which Stripe link to show
+  const INVOICE_PAYMENTS: Record<string, {
+    invoiceNumber: string;
+    clientName: string;
+    projectName: string;
+    issuedDate: string;
+    dueDate: string;
+    subtotal: number;
+    fullTotal: number;
+    discountPercent: number;
+    discountDeadline: string; // ISO date — after this, full price kicks in
+    discountPaymentUrl: string;
+    fullPaymentUrl: string;
+    lineItems: { description: string; detail: string; amount: number }[];
+  }> = {
+    "BSA-2026-004": {
+      invoiceNumber: "BSA-2026-004",
+      clientName: "Brian Mitchell",
+      projectName: "Bubba's New Home Guide — Interactive Property Map",
+      issuedDate: "February 7, 2026",
+      dueDate: "March 9, 2026",
+      subtotal: 2003.50,
+      fullTotal: 2003.50,
+      discountPercent: 5,
+      discountDeadline: "2026-02-14T23:59:59-07:00", // Feb 14, 2026 end of day AZ time
+      discountPaymentUrl: "https://buy.stripe.com/28EdRa6WK3KBbCn5Pac3m0c",
+      fullPaymentUrl: "https://buy.stripe.com/6oU00ka8W0yp7m7b9uc3m0b",
+      lineItems: [
+        { description: "Application Delivery", detail: "Final 50% balance per contract (Dec 30, 2025)", amount: 898.50 },
+        { description: "Multi-Model Builder Pins", detail: "Add-on scope change — 7 hrs @ $65/hr (Jan 13, 2026)", amount: 455.00 },
+        { description: "Perimeter / Boundary Feature", detail: "Add-on scope change — 5 hrs @ $65/hr (Jan 13, 2026)", amount: 325.00 },
+        { description: "Zillow-Style Thumbnail Map Pins", detail: "Community photo + price label on map markers — 3.5 hrs @ $65/hr", amount: 227.50 },
+        { description: "Multicolored Boundary Line Styling", detail: "Custom boundary colors + always-visible mode — 1.5 hrs @ $65/hr", amount: 97.50 },
+      ],
+    },
+  };
+
+  app.get("/api/pay/:invoiceNumber", async (req, res) => {
+    const config = INVOICE_PAYMENTS[req.params.invoiceNumber];
+    if (!config) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    const now = new Date();
+    const deadline = new Date(config.discountDeadline);
+    const isDiscounted = now <= deadline;
+
+    const savings = Math.round(config.fullTotal * (config.discountPercent / 100) * 100) / 100;
+    const discountedTotal = Math.round((config.fullTotal - savings) * 100) / 100;
+
+    // Format the discount deadline for display
+    const deadlineDisplay = new Date(config.discountDeadline).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    // Check if invoice is paid (from database)
+    let isPaid = false;
+    try {
+      const result = await db.execute(
+        sql`SELECT status, amount_paid FROM invoices WHERE invoice_number = ${config.invoiceNumber} LIMIT 1`
+      );
+      const row = (result as any).rows?.[0];
+      if (row && (row.status === "paid" || Number(row.amount_paid) > 0)) {
+        isPaid = true;
+      }
+    } catch (e) {
+      console.error("[Payment Page] DB check failed:", e);
+    }
+
+    res.json({
+      invoiceNumber: config.invoiceNumber,
+      clientName: config.clientName,
+      projectName: config.projectName,
+      issuedDate: config.issuedDate,
+      dueDate: config.dueDate,
+      subtotal: config.subtotal,
+      total: isDiscounted ? discountedTotal : config.fullTotal,
+      paymentUrl: isDiscounted ? config.discountPaymentUrl : config.fullPaymentUrl,
+      isDiscounted,
+      discountPercent: config.discountPercent,
+      discountDeadline: deadlineDisplay,
+      originalTotal: config.fullTotal,
+      savings: isDiscounted ? savings : 0,
+      lineItems: config.lineItems,
+      isPaid,
+    });
+  });
+
   // Public API routes
   app.post("/api/contact", async (req, res) => {
     console.log("Contact API endpoint hit");
@@ -1168,6 +1261,56 @@ export function registerRoutes(app: Express) {
       const result = await handleWebhookEvent(event);
 
       console.log(`[Stripe Webhook] Processed ${event.type}:`, result);
+
+      // Handle payment link checkout completions — update invoice + notify admin
+      if (result.type === "checkout_completed") {
+        const session = result.data as any;
+        const invoiceNumber = session.metadata?.invoice_number;
+        const amountPaid = (session.amount_total || 0) / 100;
+        const customerEmail = session.customer_details?.email || session.customer_email || "unknown";
+
+        console.log(`[Stripe Webhook] Payment received: ${invoiceNumber}, $${amountPaid}, ${customerEmail}`);
+
+        // Update invoice in database
+        if (invoiceNumber) {
+          try {
+            await db.execute(
+              sql`UPDATE invoices SET status = 'paid', amount_paid = ${amountPaid}, amount_due = 0, paid_at = NOW(), updated_at = NOW() WHERE invoice_number = ${invoiceNumber}`
+            );
+            console.log(`[Stripe Webhook] Invoice ${invoiceNumber} marked as paid`);
+          } catch (dbErr) {
+            console.error(`[Stripe Webhook] Failed to update invoice:`, dbErr);
+          }
+        }
+
+        // Send admin notification
+        try {
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          await resend.emails.send({
+            from: "Better Systems AI <info@bettersystems.ai>",
+            to: "rodolfo@bettersystems.ai",
+            subject: `💰 Payment Received: $${amountPaid.toFixed(2)} — ${invoiceNumber || "Unknown Invoice"}`,
+            html: `
+              <div style="font-family: -apple-system, sans-serif; max-width: 500px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 32px; border-radius: 12px;">
+                <h1 style="color: #22c55e; margin: 0 0 20px; font-size: 24px; text-align: center;">Payment Received</h1>
+                <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 20px;">
+                  <p style="color: #22c55e; font-size: 32px; font-weight: bold; margin: 0;">$${amountPaid.toFixed(2)}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr><td style="color: #94a3b8; padding: 8px 0;">Invoice</td><td style="color: #fff; text-align: right;">${invoiceNumber || "N/A"}</td></tr>
+                  <tr><td style="color: #94a3b8; padding: 8px 0;">Customer Email</td><td style="color: #fff; text-align: right;">${customerEmail}</td></tr>
+                  <tr><td style="color: #94a3b8; padding: 8px 0;">Payment Type</td><td style="color: #fff; text-align: right;">${session.metadata?.type === "early_discount" ? "Early Payment (5% discount)" : "Full Price"}</td></tr>
+                  <tr><td style="color: #94a3b8; padding: 8px 0;">Date</td><td style="color: #fff; text-align: right;">${new Date().toLocaleString("en-US", { timeZone: "America/Phoenix" })}</td></tr>
+                </table>
+                <p style="color: #64748b; font-size: 11px; text-align: center; margin-top: 20px;">Stripe Checkout Session: ${session.id}</p>
+              </div>
+            `,
+          });
+          console.log(`[Stripe Webhook] Admin payment notification sent`);
+        } catch (emailErr) {
+          console.error(`[Stripe Webhook] Failed to send admin notification:`, emailErr);
+        }
+      }
 
       res.json({ received: true, type: result.type });
     } catch (error: any) {

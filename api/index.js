@@ -256,6 +256,81 @@ app.get('/api/auth/me', async (req, res) => {
   }
 });
 
+// ==================== INVOICE PAYMENT PAGES ====================
+
+const INVOICE_PAYMENTS = {
+  "BSA-2026-004": {
+    invoiceNumber: "BSA-2026-004",
+    clientName: "Brian Mitchell",
+    projectName: "Bubba's New Home Guide — Interactive Property Map",
+    issuedDate: "February 7, 2026",
+    dueDate: "March 9, 2026",
+    subtotal: 2003.50,
+    fullTotal: 2003.50,
+    discountPercent: 5,
+    discountDeadline: "2026-02-14T23:59:59-07:00",
+    discountPaymentUrl: "https://buy.stripe.com/28EdRa6WK3KBbCn5Pac3m0c",
+    fullPaymentUrl: "https://buy.stripe.com/6oU00ka8W0yp7m7b9uc3m0b",
+    lineItems: [
+      { description: "Application Delivery", detail: "Final 50% balance per contract (Dec 30, 2025)", amount: 898.50 },
+      { description: "Multi-Model Builder Pins", detail: "Add-on scope change — 7 hrs @ $65/hr (Jan 13, 2026)", amount: 455.00 },
+      { description: "Perimeter / Boundary Feature", detail: "Add-on scope change — 5 hrs @ $65/hr (Jan 13, 2026)", amount: 325.00 },
+      { description: "Zillow-Style Thumbnail Map Pins", detail: "Community photo + price label on map markers — 3.5 hrs @ $65/hr", amount: 227.50 },
+      { description: "Multicolored Boundary Line Styling", detail: "Custom boundary colors + always-visible mode — 1.5 hrs @ $65/hr", amount: 97.50 },
+    ],
+  },
+};
+
+app.get('/api/pay/:invoiceNumber', async (req, res) => {
+  const config = INVOICE_PAYMENTS[req.params.invoiceNumber];
+  if (!config) {
+    return res.status(404).json({ error: "Invoice not found" });
+  }
+
+  const now = new Date();
+  const deadline = new Date(config.discountDeadline);
+  const isDiscounted = now <= deadline;
+
+  const savings = Math.round(config.fullTotal * (config.discountPercent / 100) * 100) / 100;
+  const discountedTotal = Math.round((config.fullTotal - savings) * 100) / 100;
+
+  const deadlineDisplay = new Date(config.discountDeadline).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  // Check if invoice is paid (from database)
+  let isPaid = false;
+  try {
+    const rows = await queryClient`SELECT status, amount_paid FROM invoices WHERE invoice_number = ${config.invoiceNumber} LIMIT 1`;
+    const row = rows[0];
+    if (row && (row.status === 'paid' || Number(row.amount_paid) > 0)) {
+      isPaid = true;
+    }
+  } catch (e) {
+    console.error("[Payment Page] DB check failed:", e);
+  }
+
+  res.json({
+    invoiceNumber: config.invoiceNumber,
+    clientName: config.clientName,
+    projectName: config.projectName,
+    issuedDate: config.issuedDate,
+    dueDate: config.dueDate,
+    subtotal: config.subtotal,
+    total: isDiscounted ? discountedTotal : config.fullTotal,
+    paymentUrl: isDiscounted ? config.discountPaymentUrl : config.fullPaymentUrl,
+    isDiscounted,
+    discountPercent: config.discountPercent,
+    discountDeadline: deadlineDisplay,
+    originalTotal: config.fullTotal,
+    savings: isDiscounted ? savings : 0,
+    lineItems: config.lineItems,
+    isPaid,
+  });
+});
+
 // ElevenLabs signed URL endpoint
 app.get('/api/elevenlabs/signed-url', async (req, res) => {
   try {

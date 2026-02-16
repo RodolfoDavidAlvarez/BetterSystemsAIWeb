@@ -125,8 +125,8 @@ END:VCARD`;
         description="Connect with Rodolfo Alvarez, CEO & Founder of Better Systems AI. Get in touch via email, phone, or schedule a meeting."
         path="/rodolfo"
       />
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center py-16 px-4">
-        <Card className="w-full max-w-md shadow-xl border-border/50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-background to-slate-200 flex flex-col items-center justify-center py-16 px-4">
+        <Card className="w-full max-w-md shadow-2xl border-slate-300/60 bg-white/95 backdrop-blur">
           <CardContent className="space-y-6 p-8">
             {/* Logo */}
             <div className="flex justify-center pb-2">
@@ -139,11 +139,11 @@ END:VCARD`;
 
             {/* Profile Section */}
             <div className="text-center space-y-4">
-              <Avatar className="h-32 w-32 mx-auto ring-4 ring-primary/10">
+              <Avatar className="h-32 w-32 mx-auto ring-4 ring-primary/20 shadow-lg">
                 <AvatarImage 
-                  src="/Professional Headshot Rodolfo compressed.jpg" 
+                  src="/Professional Portrait Rodolfo.jpg" 
                   alt="Rodolfo Alvarez"
-                  className="object-cover object-top"
+                  className="object-cover object-top saturate-90 contrast-105"
                 />
                 <AvatarFallback>RA</AvatarFallback>
               </Avatar>

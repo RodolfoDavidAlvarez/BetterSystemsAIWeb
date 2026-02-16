@@ -94,13 +94,13 @@ function useAnimatedCounter(end: number, duration: number = 2000, startOnView: b
 const technologies = [
   { name: "Twilio SMS", icon: Smartphone, category: "Communication", color: "#F22F46" },
   { name: "Resend Email", icon: Mail, category: "Communication", color: "#00D4FF" },
-  { name: "ElevenLabs AI", icon: Mic, category: "AI/Voice", color: "#8B5CF6" },
+  { name: "ElevenLabs AI", icon: Mic, category: "AI/Voice", color: "#6D28D9" },
   { name: "OpenAI", icon: Brain, category: "AI/Voice", color: "#00A67E" },
   { name: "Supabase", icon: Database, category: "Database", color: "#3ECF8E" },
   { name: "PostgreSQL", icon: Database, category: "Database", color: "#336791" },
   { name: "Stripe", icon: CreditCard, category: "Payments", color: "#635BFF" },
   { name: "QuickBooks", icon: Receipt, category: "Payments", color: "#2CA01C" },
-  { name: "Next.js", icon: Zap, category: "Frontend", color: "#FFFFFF" },
+  { name: "Next.js", icon: Zap, category: "Frontend", color: "#0F172A" },
   { name: "React", icon: Cpu, category: "Frontend", color: "#61DAFB" },
   { name: "TypeScript", icon: FileText, category: "Backend", color: "#3178C6" },
   { name: "Node.js", icon: Cloud, category: "Backend", color: "#539E43" },
@@ -214,7 +214,7 @@ export default function HomePage() {
       title: "Proposal CRM System",
       subtitle: "Quote-to-Contract Automation",
       icon: FileText,
-      color: "#FF6B6B",
+      color: "#DC2626",
       description: "Generate professional proposals with aerial photo annotations, automatic calculations, and one-click PDF generation.",
       problem: "Hours spent creating proposals manually, inconsistent pricing, lost deals due to slow turnaround",
       solution: "Interactive proposal builder with real-time calculations, aerial view markup, and instant PDF delivery.",
@@ -239,7 +239,7 @@ export default function HomePage() {
   const currentCase = caseStudies[activeCase];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
       <SEO
         title="Better Systems AI - Enterprise Automation That Actually Works"
         description="Transform your operations with AI-powered systems. SMS integration, intelligent automation, and custom solutions that save 150+ hours monthly."
@@ -248,11 +248,11 @@ export default function HomePage() {
       {/* Google Fonts */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
 
       <style>{`
-        .font-display { font-family: 'Syne', sans-serif; }
-        .font-body { font-family: 'DM Sans', sans-serif; }
+        .font-display { font-family: 'Manrope', sans-serif; }
+        .font-body { font-family: 'Inter', sans-serif; }
 
         @keyframes float {
           0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -295,19 +295,20 @@ export default function HomePage() {
         .animate-tech-float { animation: tech-float 4s ease-in-out infinite; }
 
         .glass-card {
-          background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.1);
+          background: linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(148,163,184,0.2);
+          box-shadow: 0 8px 30px rgba(15,23,42,0.06);
         }
 
-        .glow-cyan { text-shadow: 0 0 30px #00d4ff, 0 0 60px #00d4ff40; }
-        .glow-amber { text-shadow: 0 0 30px #ffb800, 0 0 60px #ffb80040; }
-        .glow-green { text-shadow: 0 0 30px #00ff88, 0 0 60px #00ff8840; }
+        .glow-cyan { text-shadow: 0 8px 24px #2563eb24; }
+        .glow-amber { text-shadow: 0 8px 24px #b4530920; }
+        .glow-green { text-shadow: 0 8px 24px #0f766e20; }
 
         .grid-bg {
           background-image:
-            linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+            linear-gradient(rgba(37,99,235,0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(37,99,235,0.08) 1px, transparent 1px);
           background-size: 60px 60px;
         }
 
@@ -329,43 +330,43 @@ export default function HomePage() {
       {/* ==================== HERO SECTION ==================== */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-4 grid-bg noise-overlay overflow-hidden">
         {/* Animated background elements */}
-        <div className="absolute top-20 left-10 w-96 h-96 bg-[#00d4ff]/10 rounded-full blur-[100px] animate-float" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#ffb800]/10 rounded-full blur-[80px] animate-float" style={{ animationDelay: '-3s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00ff88]/5 rounded-full blur-[120px]" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-[#2563eb]/10 rounded-full blur-[100px] animate-float" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#b45309]/10 rounded-full blur-[80px] animate-float" style={{ animationDelay: '-3s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#0f766e]/5 rounded-full blur-[120px]" />
 
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="text-center max-w-5xl mx-auto">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#00d4ff]/20 to-[#00ff88]/20 border border-[#00d4ff]/30 mb-8">
-              <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
-              <span className="font-body text-sm font-medium text-[#00d4ff]">Enterprise-Grade AI Automation</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#2563eb]/20 to-[#0f766e]/20 border border-[#2563eb]/30 mb-8">
+              <span className="w-2 h-2 rounded-full bg-[#0f766e] animate-pulse" />
+              <span className="font-body text-sm font-medium text-[#2563eb]">Enterprise-Grade AI Automation</span>
             </div>
 
             {/* Main headline */}
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[0.95]">
-              <span className="text-white">SYSTEMS THAT</span>
+              <span className="text-slate-900">SYSTEMS THAT</span>
               <br />
-              <span className="bg-gradient-to-r from-[#00d4ff] via-[#00ff88] to-[#ffb800] bg-clip-text text-transparent animate-gradient">
+              <span className="bg-gradient-to-r from-[#2563eb] via-[#0f766e] to-[#b45309] bg-clip-text text-transparent animate-gradient">
                 ACTUALLY WORK
               </span>
             </h1>
 
-            <p className="font-body text-xl sm:text-2xl text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Custom AI automation that integrates <span className="text-[#00d4ff] font-semibold">SMS</span>,
-              <span className="text-[#00ff88] font-semibold"> email</span>,
-              <span className="text-[#ffb800] font-semibold"> voice AI</span>, and
-              <span className="text-[#ff6b6b] font-semibold"> payments</span> into one seamless system.
-              <span className="block mt-2 text-white font-semibold">Save 150+ hours monthly.</span>
+            <p className="font-body text-xl sm:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Custom AI automation that integrates <span className="text-[#2563eb] font-semibold">SMS</span>,
+              <span className="text-[#0f766e] font-semibold"> email</span>,
+              <span className="text-[#b45309] font-semibold"> voice AI</span>, and
+              <span className="text-[#dc2626] font-semibold"> payments</span> into one seamless system.
+              <span className="block mt-2 text-slate-900 font-semibold">Save 150+ hours monthly.</span>
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Button asChild size="lg" className="bg-gradient-to-r from-[#00d4ff] to-[#00ff88] text-[#0a0a0f] font-display font-bold text-lg px-8 py-6 h-14 hover:shadow-[0_0_40px_rgba(0,212,255,0.4)] transition-all duration-300 hover:scale-105">
+              <Button asChild size="lg" className="bg-gradient-to-r from-[#2563eb] to-[#0f766e] text-white font-display font-bold text-lg px-8 py-6 h-14 hover:shadow-[0_10px_30px_rgba(37,99,235,0.35)] transition-all duration-300 hover:scale-105">
                 <Link href="/book">
                   BOOK CONSULTATION <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-2 border-white/20 text-white font-display font-bold text-lg px-8 py-6 h-14 hover:bg-white/10 hover:border-white/40 transition-all duration-300 bg-transparent">
+              <Button asChild variant="outline" size="lg" className="border-2 border-slate-300 text-slate-900 font-display font-bold text-lg px-8 py-6 h-14 hover:bg-white/90 hover:border-slate-400 transition-all duration-300 bg-transparent">
                 <Link href="#case-studies">
                   VIEW CASE STUDIES
                 </Link>
@@ -375,22 +376,36 @@ export default function HomePage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
               {[
-                { value: "150+", label: "Hours Saved Monthly", color: "#00d4ff" },
-                { value: "99%", label: "System Uptime", color: "#00ff88" },
-                { value: "24/7", label: "AI Working For You", color: "#ffb800" },
-                { value: "5x", label: "Faster Operations", color: "#ff6b6b" },
+                { value: "150+", label: "Hours Saved Monthly", color: "#2563eb" },
+                { value: "99%", label: "System Uptime", color: "#0f766e" },
+                { value: "24/7", label: "AI Working For You", color: "#b45309" },
+                { value: "5x", label: "Faster Operations", color: "#dc2626" },
               ].map((stat, i) => (
                 <div key={i} className="glass-card rounded-xl p-4 text-center hover:scale-105 transition-transform duration-300">
                   <div className="font-display text-3xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
-                  <div className="font-body text-sm text-gray-400">{stat.label}</div>
+                  <div className="font-body text-sm text-slate-600">{stat.label}</div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-12 flex justify-center">
+              <Link href="/rodolfo" className="glass-card rounded-2xl px-5 py-4 flex items-center gap-4 max-w-md w-full sm:w-auto hover:shadow-xl transition-shadow">
+                <img
+                  src="/Professional Portrait Rodolfo.jpg"
+                  alt="Rodolfo Alvarez, CEO and Founder"
+                  className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-[#2563eb]/20"
+                />
+                <div className="text-left">
+                  <p className="font-display text-sm font-semibold text-slate-900 leading-tight">Rodolfo Alvarez</p>
+                  <p className="font-body text-xs text-slate-600">CEO & Founder, Better Systems AI</p>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-500">
           <span className="font-body text-xs uppercase tracking-widest">Scroll to explore</span>
           <ArrowDownRight className="h-5 w-5 animate-bounce" />
         </div>
@@ -398,15 +413,15 @@ export default function HomePage() {
 
       {/* ==================== TECHNOLOGY CONSTELLATION ==================== */}
       <section className="relative py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0f] via-[#0f1419] to-[#0a0a0f]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-slate-100 to-slate-50" />
 
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
-              <span className="text-white">TECHNOLOGY</span>
-              <span className="text-[#00d4ff] glow-cyan"> STACK</span>
+              <span className="text-slate-900">TECHNOLOGY</span>
+              <span className="text-[#2563eb] glow-cyan"> STACK</span>
             </h2>
-            <p className="font-body text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="font-body text-xl text-slate-600 max-w-2xl mx-auto">
               Enterprise integrations that power real-world automation
             </p>
           </div>
@@ -433,8 +448,8 @@ export default function HomePage() {
                 >
                   <tech.icon className="h-6 w-6" style={{ color: tech.color }} />
                 </div>
-                <div className="font-body text-xs font-medium text-white truncate">{tech.name}</div>
-                <div className="font-body text-[10px] text-gray-500 mt-1">{tech.category}</div>
+                <div className="font-body text-xs font-medium text-slate-900 truncate">{tech.name}</div>
+                <div className="font-body text-[10px] text-slate-500 mt-1">{tech.category}</div>
               </div>
             ))}
           </div>
@@ -442,8 +457,8 @@ export default function HomePage() {
           {/* Category Legend */}
           <div className="flex flex-wrap justify-center gap-6 text-sm font-body">
             {["Communication", "AI/Voice", "Database", "Payments", "Frontend", "Backend"].map((cat) => (
-              <div key={cat} className="flex items-center gap-2 text-gray-400">
-                <span className="w-2 h-2 rounded-full bg-gradient-to-r from-[#00d4ff] to-[#00ff88]" />
+              <div key={cat} className="flex items-center gap-2 text-slate-600">
+                <span className="w-2 h-2 rounded-full bg-gradient-to-r from-[#2563eb] to-[#0f766e]" />
                 {cat}
               </div>
             ))}
@@ -456,10 +471,10 @@ export default function HomePage() {
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
-              <span className="text-white">REAL</span>
-              <span className="text-[#ffb800] glow-amber"> SYSTEMS</span>
+              <span className="text-slate-900">REAL</span>
+              <span className="text-[#b45309] glow-amber"> SYSTEMS</span>
             </h2>
-            <p className="font-body text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="font-body text-xl text-slate-600 max-w-2xl mx-auto">
               Production solutions delivering measurable ROI
             </p>
           </div>
@@ -472,8 +487,8 @@ export default function HomePage() {
                 onClick={() => setActiveCase(index)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-full font-body font-medium transition-all duration-300 ${
                   activeCase === index
-                    ? 'text-[#0a0a0f]'
-                    : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'
+                    ? 'text-slate-900'
+                    : 'text-slate-600 hover:text-slate-900 bg-white/80 hover:bg-white/90'
                 }`}
                 style={{
                   backgroundColor: activeCase === index ? study.color : undefined,
@@ -505,12 +520,12 @@ export default function HomePage() {
                     <currentCase.icon className="h-8 w-8" style={{ color: currentCase.color }} />
                   </div>
                   <div>
-                    <h3 className="font-display text-2xl font-bold text-white">{currentCase.title}</h3>
-                    <p className="font-body text-gray-400">{currentCase.subtitle}</p>
+                    <h3 className="font-display text-2xl font-bold text-slate-900">{currentCase.title}</h3>
+                    <p className="font-body text-slate-600">{currentCase.subtitle}</p>
                   </div>
                 </div>
 
-                <p className="font-body text-gray-300 mb-6 leading-relaxed">
+                <p className="font-body text-slate-700 mb-6 leading-relaxed">
                   {currentCase.description}
                 </p>
 
@@ -518,11 +533,11 @@ export default function HomePage() {
                 <div className="space-y-4 mb-8">
                   <div className="glass-card rounded-xl p-4 border-l-4 border-red-500/50">
                     <div className="font-body text-xs uppercase tracking-wider text-red-400 mb-1">Problem</div>
-                    <div className="font-body text-gray-300 text-sm">{currentCase.problem}</div>
+                    <div className="font-body text-slate-700 text-sm">{currentCase.problem}</div>
                   </div>
                   <div className="glass-card rounded-xl p-4 border-l-4" style={{ borderColor: currentCase.color }}>
                     <div className="font-body text-xs uppercase tracking-wider mb-1" style={{ color: currentCase.color }}>Solution</div>
-                    <div className="font-body text-gray-300 text-sm">{currentCase.solution}</div>
+                    <div className="font-body text-slate-700 text-sm">{currentCase.solution}</div>
                   </div>
                 </div>
 
@@ -531,8 +546,8 @@ export default function HomePage() {
                   {currentCase.metrics.map((metric, i) => (
                     <div key={i} className="glass-card rounded-xl p-4 text-center hover:scale-105 transition-transform duration-300">
                       <metric.icon className="h-5 w-5 mx-auto mb-2" style={{ color: currentCase.color }} />
-                      <div className="font-display text-2xl font-bold text-white">{metric.value}<span className="text-sm text-gray-400">{metric.unit}</span></div>
-                      <div className="font-body text-xs text-gray-400">{metric.label}</div>
+                      <div className="font-display text-2xl font-bold text-slate-900">{metric.value}<span className="text-sm text-slate-600">{metric.unit}</span></div>
+                      <div className="font-body text-xs text-slate-600">{metric.label}</div>
                     </div>
                   ))}
                 </div>
@@ -540,7 +555,7 @@ export default function HomePage() {
 
               {/* Right: Flow Diagram */}
               <div className="relative">
-                <div className="font-display text-sm uppercase tracking-wider text-gray-500 mb-6 flex items-center gap-2">
+                <div className="font-display text-sm uppercase tracking-wider text-slate-500 mb-6 flex items-center gap-2">
                   <Workflow className="h-4 w-4" />
                   System Flow
                 </div>
@@ -550,7 +565,7 @@ export default function HomePage() {
                     <div key={i} className="flex items-center gap-4 group">
                       {/* Step number */}
                       <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-[#0a0a0f] shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        className="w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-slate-900 shrink-0 group-hover:scale-110 transition-transform duration-300"
                         style={{ backgroundColor: currentCase.color }}
                       >
                         {step.step}
@@ -558,24 +573,24 @@ export default function HomePage() {
 
                       {/* Arrow connector */}
                       {i < currentCase.flow.length - 1 && (
-                        <div className="absolute left-6 h-4 w-0.5 bg-gradient-to-b from-transparent via-gray-600 to-transparent" style={{ top: `${(i * 68) + 60}px` }} />
+                        <div className="absolute left-6 h-4 w-0.5 bg-gradient-to-b from-transparent via-slate-300 to-transparent" style={{ top: `${(i * 68) + 60}px` }} />
                       )}
 
                       {/* Step content */}
-                      <div className="glass-card rounded-xl p-4 flex-1 flex items-center gap-3 group-hover:bg-white/10 transition-all duration-300">
-                        <step.icon className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" />
-                        <span className="font-body text-gray-300 group-hover:text-white transition-colors">{step.label}</span>
+                      <div className="glass-card rounded-xl p-4 flex-1 flex items-center gap-3 group-hover:bg-white/90 transition-all duration-300">
+                        <step.icon className="h-5 w-5 text-slate-600 group-hover:text-slate-900 transition-colors" />
+                        <span className="font-body text-slate-700 group-hover:text-slate-900 transition-colors">{step.label}</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Tech Stack Used */}
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <div className="font-body text-xs uppercase tracking-wider text-gray-500 mb-3">Technologies Used</div>
+                <div className="mt-8 pt-6 border-t border-slate-200">
+                  <div className="font-body text-xs uppercase tracking-wider text-slate-500 mb-3">Technologies Used</div>
                   <div className="flex flex-wrap gap-2">
                     {currentCase.tech.map((tech, i) => (
-                      <span key={i} className="px-3 py-1 rounded-full bg-white/5 font-body text-xs text-gray-300 border border-white/10">
+                      <span key={i} className="px-3 py-1 rounded-full bg-white/80 font-body text-xs text-slate-700 border border-slate-200">
                         {tech}
                       </span>
                     ))}
@@ -589,15 +604,15 @@ export default function HomePage() {
 
       {/* ==================== ROI CALCULATOR SECTION ==================== */}
       <section className="relative py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00d4ff]/5 via-[#0a0a0f] to-[#00ff88]/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb]/5 via-slate-100 to-[#0f766e]/5" />
 
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
-              <span className="text-white">PROJECTED</span>
-              <span className="text-[#00ff88] glow-green"> SAVINGS</span>
+              <span className="text-slate-900">PROJECTED</span>
+              <span className="text-[#0f766e] glow-green"> SAVINGS</span>
             </h2>
-            <p className="font-body text-xl text-gray-400">
+            <p className="font-body text-xl text-slate-600">
               Based on average client results from the Weight Ticket System
             </p>
           </div>
@@ -605,49 +620,49 @@ export default function HomePage() {
           <div className="glass-card rounded-3xl p-8 md:p-12">
             {/* Scenario Description */}
             <div className="text-center mb-12 max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00ff88]/10 border border-[#00ff88]/20 mb-4">
-                <Scale className="h-4 w-4 text-[#00ff88]" />
-                <span className="font-body text-sm text-[#00ff88]">Realistic Scenario</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0f766e]/10 border border-[#0f766e]/20 mb-4">
+                <Scale className="h-4 w-4 text-[#0f766e]" />
+                <span className="font-body text-sm text-[#0f766e]">Realistic Scenario</span>
               </div>
-              <p className="font-body text-gray-300 leading-relaxed">
-                A waste management company processing <span className="text-white font-semibold">200 weight tickets per week</span> with
-                <span className="text-white font-semibold"> 3 operators</span> in the field. Manual entry takes
-                <span className="text-white font-semibold"> 3 minutes per ticket</span>, with
-                <span className="text-[#ff6b6b] font-semibold"> 8% error rate</span> causing invoice delays.
+              <p className="font-body text-slate-700 leading-relaxed">
+                A waste management company processing <span className="text-slate-900 font-semibold">200 weight tickets per week</span> with
+                <span className="text-slate-900 font-semibold"> 3 operators</span> in the field. Manual entry takes
+                <span className="text-slate-900 font-semibold"> 3 minutes per ticket</span>, with
+                <span className="text-[#dc2626] font-semibold"> 8% error rate</span> causing invoice delays.
               </p>
             </div>
 
             {/* Big Numbers */}
             <div className="grid md:grid-cols-3 gap-8 mb-12">
-              <div ref={hoursCounter.ref} className="text-center p-8 rounded-2xl bg-gradient-to-br from-[#00d4ff]/10 to-transparent border border-[#00d4ff]/20">
-                <Clock className="h-10 w-10 mx-auto mb-4 text-[#00d4ff]" />
-                <div className="font-display text-6xl font-bold text-[#00d4ff] mb-2">
+              <div ref={hoursCounter.ref} className="text-center p-8 rounded-2xl bg-gradient-to-br from-[#2563eb]/10 to-transparent border border-[#2563eb]/20">
+                <Clock className="h-10 w-10 mx-auto mb-4 text-[#2563eb]" />
+                <div className="font-display text-6xl font-bold text-[#2563eb] mb-2">
                   {hoursCounter.count}<span className="text-2xl">hrs</span>
                 </div>
-                <div className="font-body text-gray-400">Saved Monthly</div>
-                <div className="font-body text-sm text-gray-500 mt-2">
+                <div className="font-body text-slate-600">Saved Monthly</div>
+                <div className="font-body text-sm text-slate-500 mt-2">
                   From 40hrs/week → 4hrs/week data entry
                 </div>
               </div>
 
-              <div ref={costCounter.ref} className="text-center p-8 rounded-2xl bg-gradient-to-br from-[#00ff88]/10 to-transparent border border-[#00ff88]/20">
-                <DollarSign className="h-10 w-10 mx-auto mb-4 text-[#00ff88]" />
-                <div className="font-display text-6xl font-bold text-[#00ff88] mb-2">
+              <div ref={costCounter.ref} className="text-center p-8 rounded-2xl bg-gradient-to-br from-[#0f766e]/10 to-transparent border border-[#0f766e]/20">
+                <DollarSign className="h-10 w-10 mx-auto mb-4 text-[#0f766e]" />
+                <div className="font-display text-6xl font-bold text-[#0f766e] mb-2">
                   ${hoursCounter.count * 27}<span className="text-2xl">/mo</span>
                 </div>
-                <div className="font-body text-gray-400">Cost Reduction</div>
-                <div className="font-body text-sm text-gray-500 mt-2">
+                <div className="font-body text-slate-600">Cost Reduction</div>
+                <div className="font-body text-sm text-slate-500 mt-2">
                   At $27/hr admin labor cost
                 </div>
               </div>
 
-              <div ref={accuracyCounter.ref} className="text-center p-8 rounded-2xl bg-gradient-to-br from-[#ffb800]/10 to-transparent border border-[#ffb800]/20">
-                <Target className="h-10 w-10 mx-auto mb-4 text-[#ffb800]" />
-                <div className="font-display text-6xl font-bold text-[#ffb800] mb-2">
+              <div ref={accuracyCounter.ref} className="text-center p-8 rounded-2xl bg-gradient-to-br from-[#b45309]/10 to-transparent border border-[#b45309]/20">
+                <Target className="h-10 w-10 mx-auto mb-4 text-[#b45309]" />
+                <div className="font-display text-6xl font-bold text-[#b45309] mb-2">
                   {accuracyCounter.count}<span className="text-2xl">%</span>
                 </div>
-                <div className="font-body text-gray-400">Data Accuracy</div>
-                <div className="font-body text-sm text-gray-500 mt-2">
+                <div className="font-body text-slate-600">Data Accuracy</div>
+                <div className="font-body text-sm text-slate-500 mt-2">
                   AI validation eliminates human error
                 </div>
               </div>
@@ -660,7 +675,7 @@ export default function HomePage() {
                   <span className="w-3 h-3 rounded-full bg-red-500" />
                   <span className="font-display font-bold text-red-400">BEFORE</span>
                 </div>
-                <ul className="space-y-3 font-body text-gray-400">
+                <ul className="space-y-3 font-body text-slate-600">
                   <li className="flex items-start gap-2">
                     <span className="text-red-500 mt-1">✕</span>
                     Paper tickets lost in trucks
@@ -680,26 +695,26 @@ export default function HomePage() {
                 </ul>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[#00ff88]/5 border border-[#00ff88]/20">
+              <div className="p-6 rounded-2xl bg-[#0f766e]/5 border border-[#0f766e]/20">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="w-3 h-3 rounded-full bg-[#00ff88]" />
-                  <span className="font-display font-bold text-[#00ff88]">AFTER</span>
+                  <span className="w-3 h-3 rounded-full bg-[#0f766e]" />
+                  <span className="font-display font-bold text-[#0f766e]">AFTER</span>
                 </div>
-                <ul className="space-y-3 font-body text-gray-300">
+                <ul className="space-y-3 font-body text-slate-700">
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-[#00ff88] mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-[#0f766e] mt-0.5 shrink-0" />
                     SMS entry from anywhere in the field
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-[#00ff88] mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-[#0f766e] mt-0.5 shrink-0" />
                     Real-time database sync
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-[#00ff88] mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-[#0f766e] mt-0.5 shrink-0" />
                     Same-day invoice generation
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-[#00ff88] mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-[#0f766e] mt-0.5 shrink-0" />
                     AI-validated accuracy
                   </li>
                 </ul>
@@ -711,15 +726,15 @@ export default function HomePage() {
 
       {/* ==================== PARTNERS CAROUSEL ==================== */}
       <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0f1419] to-[#0a0a0f]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50" />
 
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4">
-              <Star className="h-4 w-4 text-[#ffb800]" />
-              <span className="font-body text-sm text-gray-400">Trusted Partners</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-slate-200 mb-4">
+              <Star className="h-4 w-4 text-[#b45309]" />
+              <span className="font-body text-sm text-slate-600">Trusted Partners</span>
             </div>
-            <h2 className="font-display text-3xl font-bold text-white">
+            <h2 className="font-display text-3xl font-bold text-slate-900">
               Powering Real Businesses
             </h2>
           </div>
@@ -730,7 +745,7 @@ export default function HomePage() {
                 onClick={() => scrollCarousel('left')}
                 variant="outline"
                 size="icon"
-                className="rounded-full w-10 h-10 border-white/20 hover:border-white/40 bg-transparent"
+                className="rounded-full w-10 h-10 border-slate-300 hover:border-slate-400 bg-transparent"
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -738,7 +753,7 @@ export default function HomePage() {
                 onClick={toggleScrolling}
                 variant="outline"
                 size="icon"
-                className="rounded-full w-10 h-10 border-white/20 hover:border-white/40 bg-transparent"
+                className="rounded-full w-10 h-10 border-slate-300 hover:border-slate-400 bg-transparent"
               >
                 {isScrolling ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </Button>
@@ -746,7 +761,7 @@ export default function HomePage() {
                 onClick={() => scrollCarousel('right')}
                 variant="outline"
                 size="icon"
-                className="rounded-full w-10 h-10 border-white/20 hover:border-white/40 bg-transparent"
+                className="rounded-full w-10 h-10 border-slate-300 hover:border-slate-400 bg-transparent"
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -775,10 +790,10 @@ export default function HomePage() {
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
-              <span className="text-white">WHAT WE</span>
-              <span className="bg-gradient-to-r from-[#00d4ff] to-[#00ff88] bg-clip-text text-transparent"> BUILD</span>
+              <span className="text-slate-900">WHAT WE</span>
+              <span className="bg-gradient-to-r from-[#2563eb] to-[#0f766e] bg-clip-text text-transparent"> BUILD</span>
             </h2>
-            <p className="font-body text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="font-body text-xl text-slate-600 max-w-2xl mx-auto">
               End-to-end automation solutions tailored to your operations
             </p>
           </div>
@@ -789,7 +804,7 @@ export default function HomePage() {
                 icon: MessageSquare,
                 title: "SMS Automation",
                 description: "Two-way texting for field operations, appointment reminders, and customer notifications.",
-                color: "#00d4ff",
+                color: "#2563eb",
                 features: ["Twilio Integration", "Auto-Responses", "Bulk Messaging"]
               },
               {
@@ -803,7 +818,7 @@ export default function HomePage() {
                 icon: Mail,
                 title: "Email Systems",
                 description: "Transactional emails, automated sequences, and intelligent routing.",
-                color: "#ff6b6b",
+                color: "#dc2626",
                 features: ["Resend API", "Custom Templates", "Analytics"]
               },
               {
@@ -824,7 +839,7 @@ export default function HomePage() {
                 icon: BarChart3,
                 title: "Analytics Dashboards",
                 description: "Beautiful visualizations that turn your data into actionable insights.",
-                color: "#ffb800",
+                color: "#b45309",
                 features: ["Recharts", "Custom Reports", "KPI Tracking"]
               },
             ].map((service, i) => (
@@ -841,11 +856,11 @@ export default function HomePage() {
                 >
                   <service.icon className="h-7 w-7" style={{ color: service.color }} />
                 </div>
-                <h3 className="font-display text-xl font-bold text-white mb-2">{service.title}</h3>
-                <p className="font-body text-gray-400 text-sm mb-4">{service.description}</p>
+                <h3 className="font-display text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
+                <p className="font-body text-slate-600 text-sm mb-4">{service.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {service.features.map((feature, j) => (
-                    <span key={j} className="px-2 py-1 rounded-full bg-white/5 font-body text-xs text-gray-400">
+                    <span key={j} className="px-2 py-1 rounded-full bg-white/80 font-body text-xs text-slate-600">
                       {feature}
                     </span>
                   ))}
@@ -859,34 +874,34 @@ export default function HomePage() {
       {/* ==================== CTA SECTION ==================== */}
       <section className="relative py-24 px-4 overflow-hidden">
         {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00d4ff]/20 via-[#0a0a0f] to-[#00ff88]/20 animate-gradient" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb]/15 via-slate-100 to-[#0f766e]/15 animate-gradient" />
         <div className="absolute inset-0 grid-bg opacity-50" />
 
         <div className="container mx-auto max-w-4xl text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 border border-white/20 mb-8">
-            <Rocket className="h-4 w-4 text-[#00ff88]" />
-            <span className="font-body text-sm text-white">Ready to automate?</span>
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/90 border border-slate-300 mb-8">
+            <Rocket className="h-4 w-4 text-[#0f766e]" />
+            <span className="font-body text-sm text-slate-900">Ready to automate?</span>
           </div>
 
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-            <span className="text-white">LET'S BUILD YOUR</span>
+            <span className="text-slate-900">LET'S BUILD YOUR</span>
             <br />
-            <span className="bg-gradient-to-r from-[#00d4ff] via-[#00ff88] to-[#ffb800] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#2563eb] via-[#0f766e] to-[#b45309] bg-clip-text text-transparent">
               PERFECT SYSTEM
             </span>
           </h2>
 
-          <p className="font-body text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+          <p className="font-body text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
             Book a free consultation. We'll analyze your operations and show you exactly how automation can transform your business.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-white text-[#0a0a0f] font-display font-bold text-lg px-10 py-6 h-16 hover:shadow-[0_0_60px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-105">
+            <Button asChild size="lg" className="bg-slate-900 text-white font-display font-bold text-lg px-10 py-6 h-16 hover:shadow-[0_12px_28px_rgba(15,23,42,0.3)] transition-all duration-300 hover:scale-105">
               <Link href="/book">
                 BOOK CONSULTATION <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-2 border-white/30 text-white font-display font-bold text-lg px-10 py-6 h-16 hover:bg-white/10 transition-all duration-300 bg-transparent">
+            <Button asChild variant="outline" size="lg" className="border-2 border-slate-300 text-slate-900 font-display font-bold text-lg px-10 py-6 h-16 hover:bg-white/90 transition-all duration-300 bg-transparent">
               <Link href="/contact">
                 CONTACT US
               </Link>
@@ -894,7 +909,7 @@ export default function HomePage() {
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-gray-500 font-body text-sm">
+          <div className="mt-12 flex flex-wrap justify-center gap-8 text-slate-500 font-body text-sm">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Enterprise Security

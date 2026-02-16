@@ -10,6 +10,7 @@ export default function AboutPage() {
       name: "Rodolfo Alvarez",
       role: "CEO & Founder",
       bio: "AI strategist with 15+ years transforming businesses through smart automation",
+      avatar: "/Professional Portrait Rodolfo.jpg",
       linkedin: "https://linkedin.com/in/rodolfoalvarez",
       email: "ralvarez@bettersystems.ai"
     },
@@ -127,11 +128,21 @@ export default function AboutPage() {
             {team.map((member, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all group">
                 <CardContent className="p-8 text-center">
-                  <div className="w-28 h-28 bg-gradient-to-br from-primary to-secondary rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <span className="text-3xl font-bold text-white">
-                      {member.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
+                  {member.avatar ? (
+                    <div className="w-28 h-28 rounded-full mx-auto mb-6 overflow-hidden ring-2 ring-primary/20 shadow-md group-hover:scale-105 transition-transform">
+                      <img
+                        src={member.avatar}
+                        alt={member.name}
+                        className="h-full w-full object-cover object-top"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-28 h-28 bg-gradient-to-br from-primary to-secondary rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <span className="text-3xl font-bold text-white">
+                        {member.name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                  )}
                   <h3 className="text-2xl font-bold mb-2">{member.name}</h3>
                   <p className="text-primary font-semibold mb-4">{member.role}</p>
                   <p className="text-muted-foreground mb-6">{member.bio}</p>

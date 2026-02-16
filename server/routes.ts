@@ -106,6 +106,7 @@ import {
   bulkUpdateLeads,
   getDailyReport,
 } from "./controllers/coldOutreach";
+import { submitReview, getAllReviews, getReviewStats, updateReview, deleteReview } from "./controllers/reviews";
 
 import { constructWebhookEvent, handleWebhookEvent } from "./services/stripe";
 
@@ -204,6 +205,8 @@ export function registerRoutes(app: Express) {
   });
 
   // Public API routes
+  app.post("/api/reviews", submitReview);
+
   app.post("/api/contact", async (req, res) => {
     console.log("Contact API endpoint hit");
     try {
@@ -707,6 +710,13 @@ export function registerRoutes(app: Express) {
   app.post("/api/admin/client-tasks", authenticate, isAdmin, createClientTask);
   app.put("/api/admin/client-tasks/:id", authenticate, isAdmin, updateClientTask);
   app.delete("/api/admin/client-tasks/:id", authenticate, isAdmin, deleteClientTask);
+
+  // ==================== REVIEWS ROUTES ====================
+
+  app.get("/api/admin/reviews", authenticate, isAdmin, getAllReviews);
+  app.get("/api/admin/reviews/stats", authenticate, isAdmin, getReviewStats);
+  app.put("/api/admin/reviews/:id", authenticate, isAdmin, updateReview);
+  app.delete("/api/admin/reviews/:id", authenticate, isAdmin, deleteReview);
 
   // ==================== BILLING & STRIPE ROUTES ====================
 

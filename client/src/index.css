@@ -397,7 +397,7 @@
   }
   
   .animate-scroll-x {
-    animation: scroll-x 18s linear infinite;
+    animation: scroll-x 14s linear infinite;
   }
   
   .animate-scroll-x:hover {
@@ -424,6 +424,70 @@
     min-height: 44px;
     display: flex;
     align-items: center;
+  }
+}
+
+/* ============================================
+   Admin UI - Compact and Aligned
+   ============================================ */
+
+.admin-ui {
+  --admin-radius: 0.7rem;
+}
+
+.admin-ui h1 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.admin-ui h2 {
+  font-size: 1.35rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.admin-ui h3 {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.admin-ui p {
+  margin-bottom: 0;
+  line-height: 1.45;
+}
+
+.admin-ui button {
+  min-height: 2.25rem;
+}
+
+.admin-ui input,
+.admin-ui textarea {
+  min-height: 2.35rem;
+  font-size: 0.95rem;
+}
+
+.admin-ui .border.bg-card {
+  border-width: 1px;
+  border-color: hsl(var(--border));
+  border-radius: var(--admin-radius);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.admin-ui th,
+.admin-ui td {
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+.admin-ui .admin-content-shell > * {
+  margin-inline: auto;
+}
+
+@media (max-width: 768px) {
+  .admin-ui .admin-content-shell {
+    max-width: 100%;
   }
 }
 

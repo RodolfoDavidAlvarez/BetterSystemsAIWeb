@@ -34,8 +34,12 @@ import ChangelogPage from "./pages/admin/ChangelogPage";
 import UpdatesPage from "./pages/admin/UpdatesPage";
 import EmailsPage from "./pages/admin/EmailsPage";
 import CampaignsPage from "./pages/admin/CampaignsPage";
+import MissionControlPage from "./pages/admin/MissionControlPage";
+import BrainStormPage from "./pages/admin/BrainStormPage";
+import ReviewsPage from "./pages/admin/ReviewsPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
+import ReviewSurveyPage from "./pages/ReviewSurveyPage";
 
 
 function App() {
@@ -59,6 +63,7 @@ function App() {
               <Route path="/start" component={OnboardPage} />
               <Route path="/rodolfo" component={SocialPage} />
               <Route path="/book" component={BookingPage} />
+              <Route path="/review" component={ReviewSurveyPage} />
               <Route path="/pay/:invoiceNumber" component={InvoicePaymentPage} />
 
               {/* Admin Routes */}
@@ -174,6 +179,27 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <CampaignsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/admin/mission-control">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <MissionControlPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/admin/brain-storm">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <BrainStormPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/admin/reviews">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <ReviewsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

@@ -607,6 +607,39 @@ export const emailTemplates = pgTable("email_templates", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Reviews - post-project phase client feedback
+export const reviews = pgTable("reviews", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Optional relationships
+  clientId: integer("client_id").references(() => clients.id),
+  projectId: integer("project_id").references(() => projects.id),
+
+  // Survey context
+  phase: text("phase"),
+
+  // Reviewer details
+  reviewerName: text("reviewer_name").notNull(),
+  reviewerEmail: text("reviewer_email").notNull(),
+  companyName: text("company_name"),
+
+  // Review content
+  rating: integer("rating").notNull(), // 1-5
+  comment: text("comment").notNull(),
+
+  // Moderation
+  status: text("status").default("new").notNull(), // new, approved, hidden
+  isPublic: boolean("is_public").default(false).notNull(),
+
+  // Metadata
+  source: text("source").default("phase-survey").notNull(),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ==================== RELATIONS ====================
 
 export const clientsRelations = relations(clients, ({ many }) => ({
@@ -618,6 +651,7 @@ export const clientsRelations = relations(clients, ({ many }) => ({
   subscriptions: many(subscriptions),
   deals: many(deals),
   supportTickets: many(supportTickets),
+  reviews: many(reviews),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -630,6 +664,18 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     references: [users.id],
   }),
   updates: many(projectUpdates),
+  reviews: many(reviews),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  client: one(clients, {
+    fields: [reviews.clientId],
+    references: [clients.id],
+  }),
+  project: one(projects, {
+    fields: [reviews.projectId],
+    references: [projects.id],
+  }),
 }));
 
 export const projectUpdatesRelations = relations(projectUpdates, ({ one }) => ({
@@ -1069,3 +1115,9 @@ export const insertBookingSchema = createInsertSchema(bookings);
 export const selectBookingSchema = createSelectSchema(bookings);
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Booking = z.infer<typeof selectBookingSchema>;
+
+// Reviews Schemas
+export const insertReviewSchema = createInsertSchema(reviews);
+export const selectReviewSchema = createSelectSchema(reviews);
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Review = z.infer<typeof selectReviewSchema>;

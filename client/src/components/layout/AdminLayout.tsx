@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { useLocation } from "wouter";
-import { Home, Users, CreditCard, Briefcase, LogOut, ChevronRight, GitBranch, Megaphone, Ticket, Mail, Send } from "lucide-react";
+import { Home, Users, CreditCard, Briefcase, LogOut, ChevronRight, GitBranch, Megaphone, Ticket, Mail, Send, Rocket, Lightbulb, Star } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -110,6 +110,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       url: "/admin/campaigns",
       icon: Send,
     },
+    {
+      title: "Mission Control",
+      url: "/admin/mission-control",
+      icon: Rocket,
+    },
+    {
+      title: "Brain Storm",
+      url: "/admin/brain-storm",
+      icon: Lightbulb,
+    },
+    {
+      title: "Reviews",
+      url: "/admin/reviews",
+      icon: Star,
+    },
   ];
 
   const changelogItem: NavItem = {
@@ -148,8 +163,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <SidebarProvider>
-      <Sidebar collapsible="icon" className="bg-background border-r">
+    <div className="admin-ui">
+      <SidebarProvider>
+        <Sidebar collapsible="icon" className="bg-background border-r">
         <SidebarHeader className="border-b px-4 py-4">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">BS</div>
@@ -232,10 +248,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <SidebarRail />
       </Sidebar>
 
-      <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="h-6" />
+        <SidebarInset>
+          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur-sm">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="h-6" />
 
           {/* Breadcrumbs */}
           <div className="flex items-center gap-2 text-sm">
@@ -252,10 +268,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               ))
             )}
           </div>
-        </header>
+          </header>
 
-        <main className="flex-1 overflow-auto">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+          <main className="flex-1 overflow-auto bg-muted/20">
+            <div className="admin-content-shell mx-auto w-full max-w-[1440px]">{children}</div>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }

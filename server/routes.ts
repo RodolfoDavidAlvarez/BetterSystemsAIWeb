@@ -108,7 +108,24 @@ import {
 } from "./controllers/coldOutreach";
 import { submitReview, getAllReviews, getReviewStats, updateReview, deleteReview } from "./controllers/reviews";
 
+import {
+  handlePlaudWebhook,
+  getAllRecordings,
+  getRecordingById,
+  updateRecording,
+  retranscribeRecording,
+  deleteRecording,
+} from "./controllers/recordings";
+
 import { constructWebhookEvent, handleWebhookEvent } from "./services/stripe";
+import { getOpenClawConfigSnapshot, getOpenClawStatusSnapshot } from "./services/openclaw";
+import { createOperatorRealtimeSession, finalizeOperatorSession, getOperatorSession } from "./services/operatorRealtime";
+import { createOperatorActionEvent, executeOperatorTool } from "./services/operatorTools";
+import type { OperatorActionEvent, OperatorTranscriptLine } from "./services/operatorTypes";
+import { generateOperatorReply } from "./services/operatorResponder";
+import { handleVoiceTurn } from "./services/operatorVoiceChat";
+import multer from "multer";
+const voiceUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 export function registerRoutes(app: Express) {
 
@@ -133,20 +150,38 @@ export function registerRoutes(app: Express) {
       invoiceNumber: "BSA-2026-004",
       clientName: "Brian Mitchell",
       projectName: "Bubba's New Home Guide — Interactive Property Map",
-      issuedDate: "February 7, 2026",
-      dueDate: "March 9, 2026",
-      subtotal: 2003.50,
-      fullTotal: 2003.50,
-      discountPercent: 5,
-      discountDeadline: "2026-02-14T23:59:59-07:00", // Feb 14, 2026 end of day AZ time
-      discountPaymentUrl: "https://buy.stripe.com/28EdRa6WK3KBbCn5Pac3m0c",
-      fullPaymentUrl: "https://buy.stripe.com/6oU00ka8W0yp7m7b9uc3m0b",
+      issuedDate: "February 8, 2026",
+      dueDate: "March 31, 2026",
+      subtotal: 2393.50,
+      fullTotal: 2393.50,
+      discountPercent: 0,
+      discountDeadline: "2026-02-15T23:59:59-07:00", // expired
+      discountPaymentUrl: "https://buy.stripe.com/cNi6oIdl8bd3bCn4L6c3m0j",
+      fullPaymentUrl: "https://buy.stripe.com/cNi6oIdl8bd3bCn4L6c3m0j",
       lineItems: [
         { description: "Application Delivery", detail: "Final 50% balance per contract (Dec 30, 2025)", amount: 898.50 },
         { description: "Multi-Model Builder Pins", detail: "Add-on scope change — 7 hrs @ $65/hr (Jan 13, 2026)", amount: 455.00 },
         { description: "Perimeter / Boundary Feature", detail: "Add-on scope change — 5 hrs @ $65/hr (Jan 13, 2026)", amount: 325.00 },
         { description: "Zillow-Style Thumbnail Map Pins", detail: "Community photo + price label on map markers — 3.5 hrs @ $65/hr", amount: 227.50 },
         { description: "Multicolored Boundary Line Styling", detail: "Custom boundary colors + always-visible mode — 1.5 hrs @ $65/hr", amount: 97.50 },
+        { description: "Additional Development (Feb 10–25)", detail: "Amenity thumbnails, builder flow improvements, community view refinements — 6 hrs @ $65/hr", amount: 390.00 },
+      ],
+    },
+    "BSA-2026-005": {
+      invoiceNumber: "BSA-2026-005",
+      clientName: "Desert Moon Lighting",
+      projectName: "CRM Web Application - Phase 1 Final Balance",
+      issuedDate: "February 17, 2026",
+      dueDate: "March 19, 2026",
+      subtotal: 2979.50,
+      fullTotal: 2979.50,
+      discountPercent: 5,
+      discountDeadline: "2026-02-24T23:59:59-07:00", // Feb 24, 2026 end of day AZ time
+      discountPaymentUrl: process.env.DESERT_MOON_DISCOUNT_PAYMENT_URL || "https://buy.stripe.com/REPLACE_DESERT_MOON_DISCOUNT",
+      fullPaymentUrl: process.env.DESERT_MOON_FULL_PAYMENT_URL || "https://buy.stripe.com/REPLACE_DESERT_MOON_FULL",
+      lineItems: [
+        { description: "Phase 1 Delivery", detail: "Final balance for delivered CRM web application scope", amount: 2752.00 },
+        { description: "Additional Agreed Scope", detail: "SMS, installation confirmation, payment confirmation, and related updates — 3.5 hrs @ $65/hr", amount: 227.50 },
       ],
     },
   };
@@ -169,6 +204,7 @@ export function registerRoutes(app: Express) {
       month: "long",
       day: "numeric",
       year: "numeric",
+      timeZone: "America/Phoenix",
     });
 
     // Check if invoice is paid (from database)
@@ -856,6 +892,220 @@ export function registerRoutes(app: Express) {
   app.post("/api/admin/cold-outreach/leads/:id/toggle-automation", authenticate, isAdmin, toggleAutomation);
   app.post("/api/admin/cold-outreach/bulk-update", authenticate, isAdmin, bulkUpdateLeads);
 
+  // ==================== OPENCLAW MISSION CONTROL ====================
+  app.get("/api/admin/openclaw/config", authenticate, isAdmin, (_req, res) => {
+    const config = getOpenClawConfigSnapshot();
+    res.json({ success: true, config });
+  });
+
+  app.get("/api/admin/openclaw/status", authenticate, isAdmin, async (_req, res) => {
+    try {
+      const status = await getOpenClawStatusSnapshot();
+      res.json({ success: true, status });
+    } catch (error: any) {
+      console.error("[OpenClaw] Status check failed:", error?.message || error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to read OpenClaw status",
+        error: process.env.NODE_ENV === "development" ? error?.message : undefined,
+      });
+    }
+  });
+
+  // ==================== OPERATOR VOICE (OPENCLAW + REALTIME) ====================
+  app.post("/api/admin/operator/realtime/session", authenticate, isAdmin, async (_req, res) => {
+    try {
+      if (process.env.OPERATOR_VOICE_ENABLED === "false") {
+        return res.status(403).json({ success: false, message: "Operator voice disabled by OPERATOR_VOICE_ENABLED=false" });
+      }
+      const session = await createOperatorRealtimeSession();
+      res.json({ success: true, session });
+    } catch (error: any) {
+      console.error("[Operator] Failed to create realtime session:", error?.message || error);
+      res.status(500).json({ success: false, message: error?.message || "Failed to create realtime session" });
+    }
+  });
+
+  app.post("/api/admin/operator/tools/execute", authenticate, isAdmin, async (req, res) => {
+    try {
+      const sessionId = String(req.body?.sessionId || "");
+      const utteranceId = String(req.body?.utteranceId || "");
+      const toolName = String(req.body?.toolName || "");
+      const args = (req.body?.arguments || {}) as Record<string, unknown>;
+
+      if (!sessionId || !utteranceId || !toolName) {
+        return res.status(400).json({
+          success: false,
+          message: "sessionId, utteranceId, and toolName are required",
+        });
+      }
+
+      const result = await executeOperatorTool({
+        sessionId,
+        utteranceId,
+        toolName,
+        arguments: args,
+      });
+
+      const actionEvent = createOperatorActionEvent({
+        sessionId,
+        utteranceId,
+        toolName,
+        arguments: args,
+        success: result.success,
+        result: result.result,
+        error: result.error,
+        durationMs: result.durationMs,
+      });
+
+      console.log("[Operator][Tool]", {
+        sessionId,
+        toolName,
+        success: result.success,
+        durationMs: result.durationMs,
+      });
+
+      return res.json({
+        success: result.success,
+        result: result.result,
+        error: result.error,
+        durationMs: result.durationMs,
+        actionEvent,
+      });
+    } catch (error: any) {
+      console.error("[Operator] Tool execution failed:", error?.message || error);
+      res.status(500).json({
+        success: false,
+        message: error?.message || "Tool execution failed",
+      });
+    }
+  });
+
+  app.post("/api/admin/operator/session/finalize", authenticate, isAdmin, async (req, res) => {
+    try {
+      const payload = {
+        sessionId: String(req.body?.sessionId || ""),
+        transcript: Array.isArray(req.body?.transcript) ? (req.body.transcript as OperatorTranscriptLine[]) : [],
+        actions: Array.isArray(req.body?.actions) ? (req.body.actions as OperatorActionEvent[]) : [],
+        summary: typeof req.body?.summary === "string" ? req.body.summary : "",
+        checkpoint: Boolean(req.body?.checkpoint),
+      };
+
+      if (!payload.sessionId) {
+        return res.status(400).json({ success: false, message: "sessionId is required" });
+      }
+
+      const result = await finalizeOperatorSession(payload);
+      res.json({ success: true, ...result });
+    } catch (error: any) {
+      console.error("[Operator] Failed to finalize session:", error?.message || error);
+      res.status(500).json({
+        success: false,
+        message: error?.message || "Failed to finalize session",
+      });
+    }
+  });
+
+  app.get("/api/admin/operator/session/:id", authenticate, isAdmin, async (req, res) => {
+    const sessionId = String(req.params?.id || "");
+    const session = getOperatorSession(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Session not found" });
+    }
+    return res.json({ success: true, session });
+  });
+
+  app.post("/api/admin/operator/respond", authenticate, isAdmin, async (req, res) => {
+    try {
+      const message = String(req.body?.message || "").trim();
+      const sessionId = String(req.body?.sessionId || "");
+      const transcript = Array.isArray(req.body?.transcript) ? (req.body.transcript as OperatorTranscriptLine[]) : [];
+
+      if (!message) {
+        return res.status(400).json({ success: false, message: "message is required" });
+      }
+
+      const generated = await generateOperatorReply(message, transcript);
+      const actions: OperatorActionEvent[] = [];
+
+      const taskMatch = message.match(/(?:create|add|make).{0,16}task(?: called| named)?[: ]+(.+)$/i);
+      if (sessionId && taskMatch?.[1]) {
+        const title = taskMatch[1].trim().replace(/^["']|["']$/g, "");
+        if (title.length >= 2) {
+          const toolResult = await executeOperatorTool({
+            sessionId,
+            utteranceId: `utt_${Date.now()}`,
+            toolName: "tasks_upsert",
+            arguments: { title, status: "todo", details: "captured-from-voice-fallback" },
+          });
+          actions.push(
+            createOperatorActionEvent({
+              sessionId,
+              utteranceId: `utt_${Date.now()}`,
+              toolName: "tasks_upsert",
+              arguments: { title, status: "todo", details: "captured-from-voice-fallback" },
+              success: toolResult.success,
+              result: toolResult.result,
+              error: toolResult.error,
+              durationMs: toolResult.durationMs,
+            })
+          );
+        }
+      }
+
+      return res.json({
+        success: true,
+        assistantText: generated,
+        actions,
+      });
+    } catch (error: any) {
+      console.error("[Operator] respond failed:", error?.message || error);
+      return res.status(500).json({
+        success: false,
+        message: error?.message || "Failed to generate reply",
+      });
+    }
+  });
+
+  // ==================== OPERATOR VOICE CHAT (Whisper + GPT-4o + TTS) ====================
+
+  app.post("/api/admin/operator/voice/turn", authenticate, isAdmin, voiceUpload.single("audio"), async (req, res) => {
+    try {
+      const sessionId = String(req.body?.sessionId || `vs_${Date.now()}`);
+      const textMessage = String(req.body?.textMessage || "").trim();
+      let transcript: OperatorTranscriptLine[] = [];
+      try { transcript = JSON.parse(req.body?.transcript || "[]"); } catch {}
+
+      const audioBuffer = req.file?.buffer;
+      const mimeType = req.file?.mimetype || "audio/webm";
+
+      if (!audioBuffer && !textMessage) {
+        return res.status(400).json({ success: false, message: "Audio or text message is required" });
+      }
+
+      const result = await handleVoiceTurn({
+        audioBuffer: audioBuffer || undefined,
+        mimeType,
+        textMessage: textMessage || undefined,
+        transcript,
+        sessionId,
+      });
+
+      console.log("[Operator][VoiceTurn]", {
+        sessionId,
+        userText: result.userText.slice(0, 60),
+        assistantLen: result.assistantText.length,
+        audioBytes: result.audioBase64.length,
+        actions: result.actions.length,
+      });
+
+      return res.json({ success: true, ...result });
+    } catch (error: any) {
+      console.error("[Operator] voice turn failed:", error?.message || error);
+      return res.status(500).json({ success: false, message: error?.message || "Voice turn failed" });
+    }
+  });
+
   // ==================== ELEVENLABS VOICE AI ROUTES ====================
 
   // Get signed URL for ElevenLabs Conversational AI
@@ -1247,6 +1497,239 @@ export function registerRoutes(app: Express) {
         code: "PROCESSING_ERROR",
         details: process.env.NODE_ENV === "development" ? error.message : undefined
       });
+    }
+  });
+
+  // ==================== PLAUD WEBHOOK & RECORDINGS ====================
+
+  // Plaud webhook (no auth required - HMAC signature verification)
+  app.post("/api/webhooks/plaud", handlePlaudWebhook);
+
+  // Recordings CRUD (protected)
+  app.get("/api/admin/recordings", authenticate, isAdmin, getAllRecordings);
+  app.get("/api/admin/recordings/:id", authenticate, isAdmin, getRecordingById);
+  app.put("/api/admin/recordings/:id", authenticate, isAdmin, updateRecording);
+  app.post("/api/admin/recordings/:id/retranscribe", authenticate, isAdmin, retranscribeRecording);
+  app.delete("/api/admin/recordings/:id", authenticate, isAdmin, deleteRecording);
+
+  // ==================== KNOWLEDGE BASE ENDPOINTS ====================
+
+  // Knowledge Base entries
+  app.get("/api/admin/knowledge-base/entries", authenticate, isAdmin, async (req, res) => {
+    try {
+      const entries = await db.execute(sql`
+        SELECT kb.*, c.name as client_name, d.name as deal_name
+        FROM knowledge_base kb
+        LEFT JOIN clients c ON kb.client_id = c.id
+        LEFT JOIN deals d ON kb.deal_id = d.id
+        WHERE kb.status != 'archived'
+        ORDER BY kb.pinned DESC, kb.created_at DESC
+        LIMIT 200
+      `);
+      res.json(entries.rows);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/admin/knowledge-base/entries", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { title, content, content_type, company, project, category, tags, client_id, deal_id, event_date, source } = req.body;
+      const result = await db.execute(sql`
+        INSERT INTO knowledge_base (title, content, content_type, company, project, category, tags, client_id, deal_id, event_date, source)
+        VALUES (${title}, ${content}, ${content_type || 'note'}, ${company || 'bsa'}, ${project || null}, ${category || null},
+          ${tags || null}, ${client_id || null}, ${deal_id || null}, ${event_date || null}, ${source || 'manual'})
+        RETURNING *
+      `);
+      res.json(result.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.put("/api/admin/knowledge-base/entries/:id", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, content, content_type, company, project, category, status, pinned } = req.body;
+      const result = await db.execute(sql`
+        UPDATE knowledge_base SET
+          title = COALESCE(${title}, title),
+          content = COALESCE(${content}, content),
+          content_type = COALESCE(${content_type}, content_type),
+          company = COALESCE(${company}, company),
+          project = COALESCE(${project}, project),
+          category = COALESCE(${category}, category),
+          status = COALESCE(${status}, status),
+          pinned = COALESCE(${pinned}, pinned),
+          updated_at = NOW()
+        WHERE id = ${parseInt(id)}
+        RETURNING *
+      `);
+      res.json(result.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Action Items
+  app.get("/api/admin/knowledge-base/actions", authenticate, isAdmin, async (req, res) => {
+    try {
+      const items = await db.execute(sql`
+        SELECT * FROM action_items
+        ORDER BY
+          CASE status WHEN 'pending' THEN 0 WHEN 'in_progress' THEN 1 WHEN 'snoozed' THEN 2 WHEN 'completed' THEN 3 WHEN 'dismissed' THEN 4 ELSE 5 END,
+          CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+          due_date ASC NULLS LAST,
+          created_at DESC
+        LIMIT 200
+      `);
+      res.json(items.rows);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/admin/knowledge-base/actions", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { title, description, assigned_to, company, project, priority, due_date, client_id, deal_id, source } = req.body;
+      const result = await db.execute(sql`
+        INSERT INTO action_items (title, description, assigned_to, company, project, priority, due_date, client_id, deal_id, source)
+        VALUES (${title}, ${description || null}, ${assigned_to || null}, ${company || 'bsa'}, ${project || null},
+          ${priority || 'medium'}, ${due_date || null}, ${client_id || null}, ${deal_id || null}, ${source || 'manual'})
+        RETURNING *
+      `);
+      res.json(result.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.put("/api/admin/knowledge-base/actions/:id", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, description, status, priority, assigned_to, due_date } = req.body;
+      const completedAt = status === 'completed' ? sql`NOW()` : null;
+      const result = await db.execute(sql`
+        UPDATE action_items SET
+          title = COALESCE(${title}, title),
+          description = COALESCE(${description}, description),
+          status = COALESCE(${status}, status),
+          priority = COALESCE(${priority}, priority),
+          assigned_to = COALESCE(${assigned_to}, assigned_to),
+          due_date = COALESCE(${due_date}, due_date),
+          completed_at = ${completedAt},
+          updated_at = NOW()
+        WHERE id = ${parseInt(id)}
+        RETURNING *
+      `);
+      res.json(result.rows[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Context Snapshots
+  app.get("/api/admin/knowledge-base/snapshots", authenticate, isAdmin, async (req, res) => {
+    try {
+      const snapshots = await db.execute(sql`
+        SELECT * FROM context_snapshots ORDER BY generated_at DESC LIMIT 30
+      `);
+      res.json(snapshots.rows);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // ─── Context Retrieval API (for Claude Code / OpenClaw startup) ───
+  // Uses simple bearer token auth (CONTEXT_API_KEY in .env) so it's callable from scripts
+  app.get("/api/context/briefing", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const expectedKey = process.env.CONTEXT_API_KEY || process.env.JWT_SECRET;
+    if (!authHeader || authHeader !== `Bearer ${expectedKey}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      // Get latest snapshot
+      const latestSnapshot = await db.execute(sql`
+        SELECT briefing, generated_at FROM context_snapshots
+        ORDER BY generated_at DESC LIMIT 1
+      `);
+
+      // Get live pending actions
+      const pendingActions = await db.execute(sql`
+        SELECT id, title, description, assigned_to, company, project, priority, due_date
+        FROM action_items WHERE status IN ('pending', 'in_progress')
+        ORDER BY
+          CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+          due_date ASC NULLS LAST
+      `);
+
+      // Get recent recordings (last 7 days)
+      const recentRecordings = await db.execute(sql`
+        SELECT id, title, summary, recorded_at, duration_seconds, metadata
+        FROM recordings
+        WHERE transcription_status = 'completed'
+        AND recorded_at > NOW() - INTERVAL '7 days'
+        ORDER BY recorded_at DESC
+      `);
+
+      // Get pinned KB entries
+      const pinnedKB = await db.execute(sql`
+        SELECT title, content, company, project, category
+        FROM knowledge_base WHERE pinned = true AND status = 'published'
+        ORDER BY updated_at DESC
+      `);
+
+      res.json({
+        briefing: latestSnapshot.rows[0]?.briefing || null,
+        briefing_generated: latestSnapshot.rows[0]?.generated_at || null,
+        pending_actions: pendingActions.rows,
+        recent_recordings: recentRecordings.rows,
+        pinned_knowledge: pinnedKB.rows,
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Context: Get project-specific context
+  app.get("/api/context/project/:project", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const expectedKey = process.env.CONTEXT_API_KEY || process.env.JWT_SECRET;
+    if (!authHeader || authHeader !== `Bearer ${expectedKey}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const project = decodeURIComponent(req.params.project);
+
+      const kbEntries = await db.execute(sql`
+        SELECT title, content, content_type, category, updated_at
+        FROM knowledge_base WHERE project = ${project} AND status = 'published'
+        ORDER BY pinned DESC, updated_at DESC
+      `);
+
+      const actions = await db.execute(sql`
+        SELECT id, title, description, status, priority, due_date
+        FROM action_items WHERE project = ${project}
+        ORDER BY status ASC, priority ASC, due_date ASC NULLS LAST
+      `);
+
+      const recordings = await db.execute(sql`
+        SELECT id, title, summary, recorded_at, duration_seconds
+        FROM recordings WHERE metadata->>'topics' ILIKE ${`%${project}%`}
+        ORDER BY recorded_at DESC LIMIT 5
+      `);
+
+      res.json({
+        project,
+        knowledge: kbEntries.rows,
+        actions: actions.rows,
+        related_recordings: recordings.rows,
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 

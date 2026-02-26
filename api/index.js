@@ -263,20 +263,38 @@ const INVOICE_PAYMENTS = {
     invoiceNumber: "BSA-2026-004",
     clientName: "Brian Mitchell",
     projectName: "Bubba's New Home Guide — Interactive Property Map",
-    issuedDate: "February 7, 2026",
-    dueDate: "March 9, 2026",
-    subtotal: 2003.50,
-    fullTotal: 2003.50,
-    discountPercent: 5,
-    discountDeadline: "2026-02-14T23:59:59-07:00",
-    discountPaymentUrl: "https://buy.stripe.com/28EdRa6WK3KBbCn5Pac3m0c",
-    fullPaymentUrl: "https://buy.stripe.com/6oU00ka8W0yp7m7b9uc3m0b",
+    issuedDate: "February 8, 2026",
+    dueDate: "March 31, 2026",
+    subtotal: 2393.50,
+    fullTotal: 2393.50,
+    discountPercent: 0,
+    discountDeadline: "2026-02-15T23:59:59-07:00",
+    discountPaymentUrl: "https://buy.stripe.com/cNi6oIdl8bd3bCn4L6c3m0j",
+    fullPaymentUrl: "https://buy.stripe.com/cNi6oIdl8bd3bCn4L6c3m0j",
     lineItems: [
       { description: "Application Delivery", detail: "Final 50% balance per contract (Dec 30, 2025)", amount: 898.50 },
       { description: "Multi-Model Builder Pins", detail: "Add-on scope change — 7 hrs @ $65/hr (Jan 13, 2026)", amount: 455.00 },
       { description: "Perimeter / Boundary Feature", detail: "Add-on scope change — 5 hrs @ $65/hr (Jan 13, 2026)", amount: 325.00 },
       { description: "Zillow-Style Thumbnail Map Pins", detail: "Community photo + price label on map markers — 3.5 hrs @ $65/hr", amount: 227.50 },
       { description: "Multicolored Boundary Line Styling", detail: "Custom boundary colors + always-visible mode — 1.5 hrs @ $65/hr", amount: 97.50 },
+      { description: "Additional Development (Feb 10–25)", detail: "Amenity thumbnails, builder flow improvements, community view refinements — 6 hrs @ $65/hr", amount: 390.00 },
+    ],
+  },
+  "BSA-2026-005": {
+    invoiceNumber: "BSA-2026-005",
+    clientName: "Desert Moon Lighting",
+    projectName: "CRM Web Application - Phase 1 Final Balance",
+    issuedDate: "February 17, 2026",
+    dueDate: "March 19, 2026",
+    subtotal: 2979.50,
+    fullTotal: 2979.50,
+    discountPercent: 5,
+    discountDeadline: "2026-02-24T23:59:59-07:00",
+    discountPaymentUrl: process.env.DESERT_MOON_DISCOUNT_PAYMENT_URL || "https://buy.stripe.com/REPLACE_DESERT_MOON_DISCOUNT",
+    fullPaymentUrl: process.env.DESERT_MOON_FULL_PAYMENT_URL || "https://buy.stripe.com/REPLACE_DESERT_MOON_FULL",
+    lineItems: [
+      { description: "Phase 1 Delivery", detail: "Final balance for delivered CRM web application scope", amount: 2752.00 },
+      { description: "Additional Agreed Scope", detail: "SMS, installation confirmation, payment confirmation, and related updates — 3.5 hrs @ $65/hr", amount: 227.50 },
     ],
   },
 };
@@ -298,6 +316,7 @@ app.get('/api/pay/:invoiceNumber', async (req, res) => {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "America/Phoenix",
   });
 
   // Check if invoice is paid (from database)
@@ -901,6 +920,159 @@ function formatLeadEmailHtml(analysis, transcript, conversationId, duration) {
 </html>`.trim();
 }
 
+// ==================== ADMIN BILLING (COMPAT ROUTES) ====================
+// Keep admin billing UI functional in production serverless API.
+app.get('/api/admin/billing/dashboard', async (req, res) => {
+  try {
+    res.json({
+      invoices: [],
+      paymentIntents: [],
+      subscriptions: [],
+      quotes: [],
+      paymentLinks: [],
+      clientGroups: [],
+      summary: {
+        totalRevenue: 0,
+        totalOutstanding: 0,
+        totalDraft: 0,
+        totalInvoices: 0,
+        totalSubscriptions: 0,
+        totalClients: 0
+      }
+    });
+  } catch (error) {
+    console.error('Billing dashboard error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch billing dashboard' });
+  }
+});
+
+app.get('/api/admin/billing/monthly-revenue', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: {
+        monthlyRevenue: [],
+        totalRevenue: 0
+      }
+    });
+  } catch (error) {
+    console.error('Monthly revenue error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch monthly revenue' });
+  }
+});
+
+app.get('/api/admin/billing/payments', async (req, res) => {
+  try {
+    res.json({ success: true, data: [] });
+  } catch (error) {
+    console.error('Payment history error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+  }
+});
+
+// ==================== ADMIN TASKS (COMPAT ROUTES) ====================
+const defaultTasksByClient = {
+  'Desert Moon Lighting': [
+    { id: 1, task: 'SMS Notification for E-signature', status: 'NOT DONE', priority: 'Quick win', clientName: 'Desert Moon Lighting' },
+    { id: 2, task: 'Finalize payment collection system', status: 'NOT DONE', priority: 'Revenue', clientName: 'Desert Moon Lighting' }
+  ],
+  'Agave Fleet': [
+    { id: 3, task: 'Make sure that the mechanics are able to properly submit the service', status: 'NOT DONE', priority: 'Fiex', clientName: 'Agave Fleet' }
+  ]
+};
+
+app.get('/api/admin/client-tasks', async (req, res) => {
+  try {
+    res.json({ success: true, tasksByClient: defaultTasksByClient });
+  } catch (error) {
+    console.error('Client tasks fetch error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch client tasks' });
+  }
+});
+
+app.get('/api/admin/clients/latest', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit || '8', 10), 20);
+
+    const rows = await queryClient`
+      select id, name, email, phone, status, source, created_at as "createdAt"
+      from bettersystems.clients
+      order by created_at desc
+      limit ${limit}
+    `;
+
+    res.json({ success: true, clients: rows || [] });
+  } catch (error) {
+    console.error('Latest clients fetch error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch latest clients' });
+  }
+});
+
+app.get('/api/admin/ops-status', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      latestEvents: [
+        {
+          date: '2026-02-18',
+          title: 'Water Solutions Phase II proposal sent',
+          detail: 'Sent to Linda + Desert Moon team. Investment: $3,250 + $65/hr.'
+        },
+        {
+          date: '2026-02-17',
+          title: 'Phase 1 closeout summary sent',
+          detail: 'Final closeout and payment page delivered to the team.'
+        },
+        {
+          date: '2026-02-17',
+          title: 'Phase 1 final balance sent',
+          detail: 'Early pay: $2,830.52 by Feb 24. Standard: $2,979.50. Final due Mar 19.'
+        }
+      ],
+      waitingOn: [
+        'Linda/team approval for Water Solutions Phase II',
+        'Answers to 3 kickoff items (legal wording, required packet pages, QB account path)',
+        'Phase 1 payment completion via BSA-2026-005 payment page'
+      ],
+      links: {
+        paymentPage: 'https://www.bettersystems.ai/pay/BSA-2026-005'
+      }
+    });
+  } catch (error) {
+    console.error('Ops status fetch error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch ops status' });
+  }
+});
+
+app.post('/api/admin/client-tasks', async (req, res) => {
+  try {
+    // Compat success response for UI init flow.
+    res.json({ success: true, task: req.body || null });
+  } catch (error) {
+    console.error('Client task create error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to create client task' });
+  }
+});
+
+app.put('/api/admin/client-tasks/:id', async (req, res) => {
+  try {
+    // Compat success response for UI status updates.
+    res.json({ success: true, id: req.params.id, updates: req.body || {} });
+  } catch (error) {
+    console.error('Client task update error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to update client task' });
+  }
+});
+
+app.delete('/api/admin/client-tasks/:id', async (req, res) => {
+  try {
+    res.json({ success: true, id: req.params.id });
+  } catch (error) {
+    console.error('Client task delete error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to delete client task' });
+  }
+});
+
 // ElevenLabs Voice Agent Webhook - Post-call notifications with AI analysis
 app.post('/api/webhooks/elevenlabs', async (req, res) => {
   console.log('[ElevenLabs Webhook] Received post-call data');
@@ -976,6 +1148,428 @@ app.post('/api/webhooks/elevenlabs', async (req, res) => {
   } catch (error) {
     console.error('[ElevenLabs Webhook] Error:', error.message);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== PLAUD WEBHOOK & RECORDINGS ====================
+
+import crypto from 'crypto';
+
+// Plaud Webhook - receives recording data, stores in DB, kicks off transcription
+app.post('/api/webhooks/plaud', async (req, res) => {
+  console.log('[Plaud Webhook] Received data');
+  console.log('[Plaud Webhook] Payload keys:', Object.keys(req.body || {}));
+
+  try {
+    const payload = req.body;
+
+    // Verify HMAC-SHA256 signature if secret is configured
+    const secret = process.env.PLAUD_WEBHOOK_SECRET;
+    if (secret) {
+      const signature = req.headers['x-signature'];
+      if (!signature) {
+        return res.status(401).json({ error: 'Missing signature' });
+      }
+      const sortedKeys = Object.keys(payload).sort();
+      const sourceString = sortedKeys.map(k => `${k}=${typeof payload[k] === 'object' ? JSON.stringify(payload[k]) : payload[k]}`).join('&');
+      const computed = crypto.createHmac('sha256', secret).update(sourceString).digest('hex');
+      if (!crypto.timingSafeEqual(Buffer.from(computed), Buffer.from(signature))) {
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+    }
+
+    // Extract recording data from Plaud payload
+    const eventData = payload.event_data || payload.data || payload;
+    const plaudRecordingId = eventData.recording_id || eventData.id || eventData.transcription_id || null;
+    const audioUrl = eventData.audio_url || eventData.file_url || eventData.url || null;
+    const title = eventData.title || eventData.name || eventData.summary || `Plaud Recording ${new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' })}`;
+    const duration = eventData.duration || eventData.duration_seconds || null;
+    const recordedAt = eventData.recorded_at || eventData.created_at || eventData.timestamp || null;
+    const plaudTranscript = eventData.transcript || eventData.text || null;
+
+    console.log(`[Plaud Webhook] Recording: ${plaudRecordingId}, Audio: ${audioUrl ? 'present' : 'missing'}`);
+
+    // Store in database
+    const rows = await queryClient`
+      INSERT INTO recordings (
+        plaud_recording_id, plaud_task_id, title, audio_url,
+        duration_seconds, transcription_status, transcript, transcribed_at,
+        recording_type, metadata, recorded_at, created_at, updated_at
+      ) VALUES (
+        ${plaudRecordingId},
+        ${eventData.task_id || eventData.transcription_id || null},
+        ${title},
+        ${audioUrl},
+        ${duration ? Math.round(Number(duration)) : null},
+        ${audioUrl ? 'pending' : (plaudTranscript ? 'completed' : 'pending')},
+        ${plaudTranscript || null},
+        ${plaudTranscript ? new Date() : null},
+        ${eventData.type || 'meeting'},
+        ${JSON.stringify(payload)},
+        ${recordedAt ? new Date(recordedAt) : new Date()},
+        NOW(), NOW()
+      ) RETURNING id, transcription_status
+    `;
+
+    const newRecording = rows[0];
+    console.log(`[Plaud Webhook] Stored recording ${newRecording.id}`);
+
+    // Kick off background transcription (non-blocking)
+    if (audioUrl && !plaudTranscript && process.env.OPENAI_API_KEY) {
+      transcribeRecordingAsync(newRecording.id, audioUrl).catch(err => {
+        console.error(`[Plaud Webhook] Background transcription failed:`, err.message);
+      });
+    }
+
+    res.json({
+      success: true,
+      recordingId: newRecording.id,
+      transcriptionStatus: newRecording.transcription_status,
+    });
+  } catch (error) {
+    console.error('[Plaud Webhook] Error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Background transcription function for Vercel serverless
+async function transcribeRecordingAsync(recordingId, audioUrl) {
+  console.log(`[Transcription] Starting for recording ${recordingId}`);
+
+  await queryClient`UPDATE recordings SET transcription_status = 'processing', updated_at = NOW() WHERE id = ${recordingId}`;
+
+  try {
+    // Download audio
+    const audioResponse = await fetch(audioUrl);
+    if (!audioResponse.ok) throw new Error(`Download failed: ${audioResponse.status}`);
+
+    const audioBuffer = await audioResponse.arrayBuffer();
+    const sizeMB = audioBuffer.byteLength / (1024 * 1024);
+    console.log(`[Transcription] Audio size: ${sizeMB.toFixed(1)}MB`);
+
+    if (sizeMB > 25) throw new Error(`Audio too large: ${sizeMB.toFixed(1)}MB (limit 25MB)`);
+
+    // Determine extension
+    const ext = audioUrl.match(/\.(mp3|mp4|mpeg|mpga|m4a|wav|webm)$/i)?.[1] || 'mp3';
+
+    // Call OpenAI Whisper
+    const formData = new FormData();
+    formData.append('file', new Blob([audioBuffer]), `recording.${ext}`);
+    formData.append('model', 'whisper-1');
+    formData.append('response_format', 'verbose_json');
+
+    const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: formData,
+    });
+
+    if (!whisperResponse.ok) {
+      const errText = await whisperResponse.text();
+      throw new Error(`Whisper API error: ${whisperResponse.status} ${errText}`);
+    }
+
+    const result = await whisperResponse.json();
+    const transcript = result.text;
+    const duration = result.duration ? Math.round(result.duration) : null;
+
+    console.log(`[Transcription] Complete: ${transcript.length} chars`);
+
+    await queryClient`
+      UPDATE recordings SET
+        transcript = ${transcript},
+        transcription_status = 'completed',
+        transcribed_at = NOW(),
+        duration_seconds = COALESCE(${duration}, duration_seconds),
+        updated_at = NOW()
+      WHERE id = ${recordingId}
+    `;
+  } catch (error) {
+    console.error(`[Transcription] Failed for ${recordingId}:`, error.message);
+    await queryClient`
+      UPDATE recordings SET
+        transcription_status = 'failed',
+        transcription_error = ${error.message},
+        updated_at = NOW()
+      WHERE id = ${recordingId}
+    `;
+  }
+}
+
+// Admin recordings endpoints
+app.get('/api/admin/recordings', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit || '50', 10), 200);
+    const rows = await queryClient`
+      SELECT id, plaud_recording_id, title, audio_url, duration_seconds,
+             transcription_status, transcript, client_id, deal_id,
+             recording_type, tags, recorded_at, transcribed_at, created_at
+      FROM recordings
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `;
+    res.json({ success: true, recordings: rows });
+  } catch (error) {
+    console.error('[Recordings] List error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch recordings' });
+  }
+});
+
+app.get('/api/admin/recordings/:id', async (req, res) => {
+  try {
+    const rows = await queryClient`SELECT * FROM recordings WHERE id = ${req.params.id} LIMIT 1`;
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({ success: true, recording: rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch recording' });
+  }
+});
+
+app.put('/api/admin/recordings/:id', async (req, res) => {
+  try {
+    const { title, clientId, dealId, tags, recordingType } = req.body;
+    const rows = await queryClient`
+      UPDATE recordings SET
+        title = COALESCE(${title}, title),
+        client_id = COALESCE(${clientId}, client_id),
+        deal_id = COALESCE(${dealId}, deal_id),
+        tags = COALESCE(${tags}, tags),
+        recording_type = COALESCE(${recordingType}, recording_type),
+        updated_at = NOW()
+      WHERE id = ${req.params.id}
+      RETURNING *
+    `;
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+    res.json({ success: true, recording: rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to update recording' });
+  }
+});
+
+app.post('/api/admin/recordings/:id/retranscribe', async (req, res) => {
+  try {
+    const rows = await queryClient`SELECT id, audio_url FROM recordings WHERE id = ${req.params.id} LIMIT 1`;
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+    if (!rows[0].audio_url) return res.status(400).json({ success: false, message: 'No audio URL' });
+
+    await queryClient`UPDATE recordings SET transcription_status = 'pending', transcription_error = NULL, updated_at = NOW() WHERE id = ${req.params.id}`;
+
+    transcribeRecordingAsync(rows[0].id, rows[0].audio_url).catch(err => {
+      console.error(`[Retranscribe] Failed:`, err.message);
+    });
+
+    res.json({ success: true, message: 'Transcription restarted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to restart transcription' });
+  }
+});
+
+// ==================== KNOWLEDGE BASE ENDPOINTS ====================
+
+app.get('/api/admin/knowledge-base/entries', async (req, res) => {
+  try {
+    const entries = await queryClient`
+      SELECT kb.*, c.name as client_name, d.name as deal_name
+      FROM knowledge_base kb
+      LEFT JOIN clients c ON kb.client_id = c.id
+      LEFT JOIN deals d ON kb.deal_id = d.id
+      WHERE kb.status != 'archived'
+      ORDER BY kb.pinned DESC, kb.created_at DESC
+      LIMIT 200
+    `;
+    res.json(entries);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/admin/knowledge-base/entries', async (req, res) => {
+  try {
+    const { title, content, content_type, company, project, category, tags, client_id, deal_id, event_date, source } = req.body;
+    const [entry] = await queryClient`
+      INSERT INTO knowledge_base (title, content, content_type, company, project, category, tags, client_id, deal_id, event_date, source)
+      VALUES (${title}, ${content}, ${content_type || 'note'}, ${company || 'bsa'}, ${project || null}, ${category || null},
+        ${tags || null}, ${client_id || null}, ${deal_id || null}, ${event_date || null}, ${source || 'manual'})
+      RETURNING *
+    `;
+    res.json(entry);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/admin/knowledge-base/entries/:id', async (req, res) => {
+  try {
+    const { title, content, content_type, company, project, category, status, pinned } = req.body;
+    const [entry] = await queryClient`
+      UPDATE knowledge_base SET
+        title = COALESCE(${title || null}, title),
+        content = COALESCE(${content || null}, content),
+        content_type = COALESCE(${content_type || null}, content_type),
+        company = COALESCE(${company || null}, company),
+        project = COALESCE(${project || null}, project),
+        category = COALESCE(${category || null}, category),
+        status = COALESCE(${status || null}, status),
+        pinned = COALESCE(${pinned ?? null}, pinned),
+        updated_at = NOW()
+      WHERE id = ${parseInt(req.params.id)}
+      RETURNING *
+    `;
+    res.json(entry);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/admin/knowledge-base/actions', async (req, res) => {
+  try {
+    const items = await queryClient`
+      SELECT * FROM action_items
+      ORDER BY
+        CASE status WHEN 'pending' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
+        CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+        due_date ASC NULLS LAST,
+        created_at DESC
+      LIMIT 200
+    `;
+    res.json(items);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/admin/knowledge-base/actions', async (req, res) => {
+  try {
+    const { title, description, assigned_to, company, project, priority, due_date, client_id, deal_id, source } = req.body;
+    const [item] = await queryClient`
+      INSERT INTO action_items (title, description, assigned_to, company, project, priority, due_date, client_id, deal_id, source)
+      VALUES (${title}, ${description || null}, ${assigned_to || null}, ${company || 'bsa'}, ${project || null},
+        ${priority || 'medium'}, ${due_date || null}, ${client_id || null}, ${deal_id || null}, ${source || 'manual'})
+      RETURNING *
+    `;
+    res.json(item);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/admin/knowledge-base/actions/:id', async (req, res) => {
+  try {
+    const { title, description, status, priority, assigned_to, due_date } = req.body;
+    const [item] = await queryClient`
+      UPDATE action_items SET
+        title = COALESCE(${title || null}, title),
+        description = COALESCE(${description || null}, description),
+        status = COALESCE(${status || null}, status),
+        priority = COALESCE(${priority || null}, priority),
+        assigned_to = COALESCE(${assigned_to || null}, assigned_to),
+        due_date = COALESCE(${due_date || null}, due_date),
+        completed_at = CASE WHEN ${status || null} = 'completed' THEN NOW() ELSE completed_at END,
+        updated_at = NOW()
+      WHERE id = ${parseInt(req.params.id)}
+      RETURNING *
+    `;
+    res.json(item);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/admin/knowledge-base/snapshots', async (req, res) => {
+  try {
+    const snapshots = await queryClient`
+      SELECT * FROM context_snapshots ORDER BY generated_at DESC LIMIT 30
+    `;
+    res.json(snapshots);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── Context Retrieval API (for Claude Code / OpenClaw startup) ───
+app.get('/api/context/briefing', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const expectedKey = process.env.CONTEXT_API_KEY || process.env.JWT_SECRET;
+  if (!authHeader || authHeader !== `Bearer ${expectedKey}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const latestSnapshot = await queryClient`
+      SELECT briefing, generated_at FROM context_snapshots
+      ORDER BY generated_at DESC LIMIT 1
+    `;
+
+    const pendingActions = await queryClient`
+      SELECT id, title, description, assigned_to, company, project, priority, due_date
+      FROM action_items WHERE status = 'pending'
+      ORDER BY
+        CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+        due_date ASC NULLS LAST
+    `;
+
+    const recentRecordings = await queryClient`
+      SELECT id, title, summary, recorded_at, duration_seconds, metadata
+      FROM recordings
+      WHERE transcription_status = 'completed'
+      AND recorded_at > NOW() - INTERVAL '7 days'
+      ORDER BY recorded_at DESC
+    `;
+
+    const pinnedKB = await queryClient`
+      SELECT title, content, company, project, category
+      FROM knowledge_base WHERE pinned = true AND status = 'published'
+      ORDER BY updated_at DESC
+    `;
+
+    res.json({
+      briefing: latestSnapshot[0]?.briefing || null,
+      briefing_generated: latestSnapshot[0]?.generated_at || null,
+      pending_actions: pendingActions,
+      recent_recordings: recentRecordings,
+      pinned_knowledge: pinnedKB,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/context/project/:project', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const expectedKey = process.env.CONTEXT_API_KEY || process.env.JWT_SECRET;
+  if (!authHeader || authHeader !== `Bearer ${expectedKey}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const project = decodeURIComponent(req.params.project);
+
+    const kbEntries = await queryClient`
+      SELECT title, content, content_type, category, updated_at
+      FROM knowledge_base WHERE project = ${project} AND status = 'published'
+      ORDER BY pinned DESC, updated_at DESC
+    `;
+
+    const actions = await queryClient`
+      SELECT id, title, description, status, priority, due_date
+      FROM action_items WHERE project = ${project}
+      ORDER BY status ASC, priority ASC, due_date ASC NULLS LAST
+    `;
+
+    const recordings = await queryClient`
+      SELECT id, title, summary, recorded_at, duration_seconds
+      FROM recordings WHERE metadata->>'topics' ILIKE ${'%' + project + '%'}
+      ORDER BY recorded_at DESC LIMIT 5
+    `;
+
+    res.json({
+      project,
+      knowledge: kbEntries,
+      actions,
+      related_recordings: recordings,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 

@@ -17,6 +17,7 @@ import PartnersPage from "./pages/PartnersPage";
 import SocialPage from "./pages/SocialPage";
 import BookingPage from "./pages/BookingPage";
 import InvoicePaymentPage from "./pages/InvoicePaymentPage";
+import KBMobilePrototypePage from "./pages/KBMobilePrototypePage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
 // Admin imports
@@ -65,6 +66,7 @@ function App() {
               <Route path="/book" component={BookingPage} />
               <Route path="/review" component={ReviewSurveyPage} />
               <Route path="/pay/:invoiceNumber" component={InvoicePaymentPage} />
+              <Route path="/kb-mobile" component={KBMobilePrototypePage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />

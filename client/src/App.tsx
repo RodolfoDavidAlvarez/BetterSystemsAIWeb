@@ -35,7 +35,6 @@ import ChangelogPage from "./pages/admin/ChangelogPage";
 import UpdatesPage from "./pages/admin/UpdatesPage";
 import EmailsPage from "./pages/admin/EmailsPage";
 import CampaignsPage from "./pages/admin/CampaignsPage";
-import MissionControlPage from "./pages/admin/MissionControlPage";
 import BrainStormPage from "./pages/admin/BrainStormPage";
 import ReviewsPage from "./pages/admin/ReviewsPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -181,13 +180,6 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <CampaignsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/mission-control">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <MissionControlPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

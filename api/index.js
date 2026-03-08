@@ -11,9 +11,9 @@ import postgres from 'postgres';
 // drizzle removed — using raw postgres.js (queryClient) for all queries
 const app = express();
 
-// Database connection — add search_path for bettersystems schema (users table lives there)
-const dbUrl = process.env.DATABASE_URL + (process.env.DATABASE_URL.includes('?') ? '&' : '?') + 'options=-c%20search_path=bettersystems,public';
-const queryClient = postgres(dbUrl);
+// Database connection (postgres.js for raw SQL)
+// Note: Supabase pooler ignores search_path options, so auth queries use bettersystems.users explicitly
+const queryClient = postgres(process.env.DATABASE_URL);
 
 // JWT helpers
 const JWT_SECRET = process.env.JWT_SECRET || 'bettersystems-blog-secret-key-dev';
@@ -67,7 +67,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Find user by username (raw SQL — no Drizzle schema needed)
-    const foundUsers = await queryClient`SELECT id, username, password, name, email, role FROM users WHERE username = ${username} LIMIT 1`;
+    const foundUsers = await queryClient`SELECT id, username, password, name, email, role FROM bettersystems.users WHERE username = ${username} LIMIT 1`;
 
     if (foundUsers.length === 0) {
       return res.status(401).json({
@@ -136,7 +136,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Check if user already exists
-    const existingUser = await queryClient`SELECT id FROM users WHERE username = ${username} LIMIT 1`;
+    const existingUser = await queryClient`SELECT id FROM bettersystems.users WHERE username = ${username} LIMIT 1`;
 
     if (existingUser.length > 0) {
       return res.status(400).json({
@@ -147,7 +147,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Insert new user
     const newUser = await queryClient`
-      INSERT INTO users (username, password, name, email, role)
+      INSERT INTO bettersystems.users (username, password, name, email, role)
       VALUES (${username}, ${hashedPassword}, ${name}, ${email}, 'admin')
       RETURNING id, username, name, email, role
     `;
@@ -207,7 +207,7 @@ app.get('/api/auth/me', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Find user by id
-    const foundUsers = await queryClient`SELECT id, username, name, email, role FROM users WHERE id = ${decoded.id} LIMIT 1`;
+    const foundUsers = await queryClient`SELECT id, username, name, email, role FROM bettersystems.users WHERE id = ${decoded.id} LIMIT 1`;
 
     if (foundUsers.length === 0) {
       return res.status(404).json({

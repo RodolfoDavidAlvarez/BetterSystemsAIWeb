@@ -76,6 +76,19 @@ function cleanTitle(title: string | null): string {
     .trim() || "Untitled Recording";
 }
 
+// Detect company from title/metadata
+function getCompanyLabel(rec: Recording): { label: string; color: string } | null {
+  const company = rec.metadata?.company;
+  const title = (rec.title || "").toLowerCase();
+  if (company === "SSW" || /\bssw\b|soil|compost|mulch|delivery|farm|blend|extract/i.test(title))
+    return { label: "SSW", color: "bg-green-500/15 text-green-600 dark:text-green-400" };
+  if (company === "BSA" || /\bbsa\b|agave|fleet|crm|website|outreach|desert moon/i.test(title))
+    return { label: "BSA", color: "bg-blue-500/15 text-blue-600 dark:text-blue-400" };
+  if (/personal|family|political|ufc/i.test(title))
+    return { label: "Pers", color: "bg-gray-500/15 text-gray-500" };
+  return null;
+}
+
 function priorityColor(priority: string): string {
   switch (priority) {
     case "urgent": return "text-red-500";
@@ -605,6 +618,7 @@ export default function ConversationsPage() {
               const recActions = getRecordingActions(rec.id);
               const hasTranscript = rec.transcript && rec.transcript.length > 0;
               const hasSummary = rec.summary && rec.summary.length > 0;
+              const companyLabel = getCompanyLabel(rec);
 
               return (
                 <div
@@ -618,9 +632,16 @@ export default function ConversationsPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base leading-tight truncate">
-                          {cleanTitle(rec.title)}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-base leading-tight truncate">
+                            {cleanTitle(rec.title)}
+                          </h3>
+                          {companyLabel && (
+                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${companyLabel.color}`}>
+                              {companyLabel.label}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />

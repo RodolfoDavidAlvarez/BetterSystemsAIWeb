@@ -403,6 +403,29 @@ export default function ConversationsPage() {
   const [showTranscript, setShowTranscript] = useState<number | null>(null);
   const [actionsExpanded, setActionsExpanded] = useState(false);
   const [dismissingIds, setDismissingIds] = useState<Set<number>>(new Set());
+  const [highlightedRecId, setHighlightedRecId] = useState<number | null>(null);
+  const recordingRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  // Jump to a recording card from an action item
+  const jumpToRecording = (recordingId: number | null) => {
+    if (!recordingId) return;
+    // Clear search so the recording is visible
+    setSearchQuery("");
+    // Expand the recording
+    setExpandedId(recordingId);
+    // Collapse actions panel
+    setActionsExpanded(false);
+    // Highlight with animation
+    setHighlightedRecId(recordingId);
+    setTimeout(() => setHighlightedRecId(null), 2000);
+    // Scroll to it after a tick (DOM needs to update)
+    setTimeout(() => {
+      const el = recordingRefs.current[recordingId];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -555,9 +578,17 @@ export default function ConversationsPage() {
                         <Circle className="h-5 w-5 text-yellow-500" />
                       </button>
 
-                      {/* Content */}
+                      {/* Content — tap title to jump to recording */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-tight">{a.title}</p>
+                        <button
+                          onClick={() => a.recording_id && jumpToRecording(a.recording_id)}
+                          className={`text-left text-sm font-medium leading-tight ${a.recording_id ? "active:text-primary" : ""}`}
+                        >
+                          {a.title}
+                          {a.recording_id && (
+                            <Mic className="inline-block h-3 w-3 ml-1.5 text-muted-foreground/50" />
+                          )}
+                        </button>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
                           {a.priority && a.priority !== "medium" && (
                             <span className={`text-xs font-semibold ${priorityColor(a.priority)}`}>
@@ -623,7 +654,10 @@ export default function ConversationsPage() {
               return (
                 <div
                   key={rec.id}
-                  className="rounded-xl border bg-card shadow-sm overflow-hidden"
+                  ref={(el) => { recordingRefs.current[rec.id] = el; }}
+                  className={`rounded-xl border bg-card shadow-sm overflow-hidden transition-all duration-700 ${
+                    highlightedRecId === rec.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+                  }`}
                 >
                   {/* Card Header — tappable */}
                   <button

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   MessageSquare, Search, Clock, ChevronDown, ChevronUp,
   Calendar, Mic, CheckCircle2, Circle, AlertCircle,
-  Play, Pause, FileText, Loader2, RefreshCw, X, Check
+  Play, Pause, FileText, Loader2, RefreshCw, X, Check, Copy, ClipboardCheck
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -328,6 +328,46 @@ function WaveformPlayer({ audioUrl, duration }: { audioUrl: string; duration?: n
   );
 }
 
+// ─── Copy Button ────────────────────────────────────────────────────
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`sticky top-0 float-right ml-2 mb-1 p-2 rounded-lg transition-colors z-10 ${
+        copied
+          ? "bg-green-500/20 text-green-600 dark:text-green-400"
+          : "bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-foreground active:bg-muted"
+      }`}
+      title={copied ? "Copied!" : "Copy transcript"}
+    >
+      {copied ? <ClipboardCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+    </button>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────
 
 export default function ConversationsPage() {
@@ -646,7 +686,8 @@ export default function ConversationsPage() {
                       {/* Transcript */}
                       {isTranscriptOpen && hasTranscript && (
                         <div className="px-4 pb-4">
-                          <div className="rounded-xl bg-muted/50 p-4 max-h-[60vh] overflow-y-auto">
+                          <div className="relative rounded-xl bg-muted/50 p-4 max-h-[60vh] overflow-y-auto">
+                            <CopyButton text={rec.transcript || ""} />
                             <pre className="text-sm whitespace-pre-wrap font-sans leading-relaxed text-foreground/80">
                               {rec.transcript}
                             </pre>

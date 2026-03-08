@@ -660,8 +660,8 @@ export default function ConversationsPage() {
                             </span>
                           )}
                         </div>
-                        {hasSummary && (
-                          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        {hasSummary && !isExpanded && (
+                          <p className="mt-2 text-sm text-muted-foreground line-clamp-1 leading-relaxed">
                             {rec.summary}
                           </p>
                         )}
@@ -699,6 +699,15 @@ export default function ConversationsPage() {
                   {/* Expanded Content */}
                   {isExpanded && (
                     <div className="border-t">
+                      {/* Full Summary */}
+                      {hasSummary && (
+                        <div className="px-4 pt-4">
+                          <p className="text-sm text-foreground/80 leading-relaxed">
+                            {rec.summary}
+                          </p>
+                        </div>
+                      )}
+
                       {/* Action Buttons */}
                       <div className="p-4 space-y-3">
                         {hasTranscript && (

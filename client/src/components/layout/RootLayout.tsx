@@ -10,14 +10,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const [location] = useLocation();
   const isContactCard = location === "/rodolfo";
   const isPaymentPage = location.startsWith("/pay/");
+  const isAdmin = location.startsWith("/admin");
+  const hideChrome = isContactCard || isPaymentPage || isAdmin;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {!isContactCard && !isPaymentPage && <Navigation />}
-      <main className={isContactCard || isPaymentPage ? "flex-1" : "flex-1 pt-16"}>
+      {!hideChrome && <Navigation />}
+      <main className={hideChrome ? "flex-1" : "flex-1 pt-16"}>
         {children}
       </main>
-      {!isContactCard && !isPaymentPage && <Footer />}
+      {!hideChrome && <Footer />}
     </div>
   );
 }

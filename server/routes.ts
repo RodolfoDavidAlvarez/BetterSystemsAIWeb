@@ -1,5 +1,6 @@
 import "./loadEnv";
 import type { Express } from "express";
+import express from "express";
 import { login, register, getCurrentUser } from "./controllers/auth";
 import { authenticate, isAdmin } from "./middleware/auth";
 import { sendCustomerEmail, sendAdminNotification } from "./services/email";
@@ -695,6 +696,64 @@ export function registerRoutes(app: Express) {
     });
   });
 
+  // ==================== OUTREACH LEADS API ROUTES ====================
+
+  // PATCH lead — update status, notes, outreach_step
+  app.patch("/api/admin/leads/:id", authenticate, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, notes, outreach_step } = req.body;
+
+      if (status === undefined && notes === undefined && outreach_step === undefined) {
+        return res.status(400).json({ success: false, message: "No fields to update" });
+      }
+
+      const result = await db.execute(
+        sql`UPDATE leads SET
+          status = COALESCE(${status ?? null}, status),
+          notes = COALESCE(${notes ?? null}, notes),
+          outreach_step = COALESCE(${outreach_step !== undefined ? outreach_step : null}, outreach_step),
+          updated_at = NOW()
+        WHERE id = ${Number(id)}
+        RETURNING *`
+      );
+
+      if (!result.rows || result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Lead not found" });
+      }
+
+      res.json({ success: true, lead: result.rows[0] });
+    } catch (error: any) {
+      console.error("[Leads PATCH] Error:", error.message);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  // GET lead activity — today's sends + queued next
+  app.get("/api/admin/leads/activity", authenticate, isAdmin, async (req, res) => {
+    try {
+      const sentToday = await db.execute(
+        sql`SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent
+        FROM leads
+        WHERE last_email_sent::date = CURRENT_DATE
+        ORDER BY last_email_sent DESC`
+      );
+
+      const queuedNext = await db.execute(
+        sql`SELECT id, first_name, last_name, email, company, state, outreach_step
+        FROM leads
+        WHERE status = 'new' AND outreach_step = 0
+        ORDER BY created_at ASC
+        LIMIT 10`
+      );
+
+      res.json({ success: true, sent_today: sentToday.rows, queued_next: queuedNext.rows });
+    } catch (error: any) {
+      console.error("[Leads Activity] Error:", error.message);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
   // ==================== CRM API ROUTES ====================
 
   // Client routes (protected)
@@ -855,8 +914,12 @@ export function registerRoutes(app: Express) {
 
   // Serve uploaded files
   app.use("/uploads", authenticate, isAdmin, (req, res, next) => {
-    const express = require("express");
     express.static("uploads")(req, res, next);
+  });
+
+  // Serve Plaud audio recordings
+  app.use("/data/plaud-audio", authenticate, isAdmin, (req, res, next) => {
+    express.static("data/plaud-audio")(req, res, next);
   });
 
   // ==================== EMAIL LOGS ROUTES ====================
@@ -891,6 +954,106 @@ export function registerRoutes(app: Express) {
   app.put("/api/admin/cold-outreach/leads/:id", authenticate, isAdmin, updateLeadStatus);
   app.post("/api/admin/cold-outreach/leads/:id/toggle-automation", authenticate, isAdmin, toggleAutomation);
   app.post("/api/admin/cold-outreach/bulk-update", authenticate, isAdmin, bulkUpdateLeads);
+
+  // ==================== NEW LEADS PIPELINE (outreach-engine leads table) ====================
+  app.get("/api/admin/cold-outreach/new-leads", authenticate, isAdmin, async (_req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT id, first_name, last_name, email, phone, title, company, company_website,
+               industry, city, state, employee_count, source, status, outreach_step,
+               last_email_sent, tags, created_at, updated_at
+        FROM leads
+        ORDER BY
+          CASE
+            WHEN status = 'replied' THEN 1
+            WHEN status = 'contacted' AND outreach_step < 3 THEN 2
+            WHEN status = 'new' THEN 3
+            WHEN status = 'bounced' THEN 4
+            ELSE 5
+          END,
+          last_email_sent DESC NULLS LAST,
+          created_at DESC
+      `);
+      res.json({ success: true, leads: result.rows });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  app.get("/api/admin/cold-outreach/new-leads/metrics", authenticate, isAdmin, async (_req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'new') as new_leads,
+          COUNT(*) FILTER (WHERE status = 'contacted') as contacted,
+          COUNT(*) FILTER (WHERE status = 'replied') as replied,
+          COUNT(*) FILTER (WHERE status = 'bounced') as bounced,
+          COUNT(*) FILTER (WHERE outreach_step = 0) as not_emailed,
+          COUNT(*) FILTER (WHERE outreach_step = 1) as step_1,
+          COUNT(*) FILTER (WHERE outreach_step = 2) as step_2,
+          COUNT(*) FILTER (WHERE outreach_step >= 3) as step_3_complete,
+          COUNT(*) FILTER (WHERE last_email_sent::date = CURRENT_DATE) as sent_today
+        FROM leads
+      `);
+      res.json({ success: true, metrics: result.rows[0] });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  // ==================== CONTRACTOR INQUIRY ====================
+  app.post("/api/contractor-inquiry", async (req, res) => {
+    try {
+      const { name, email, company, phone, message } = req.body;
+      if (!name || !email) {
+        return res.status(400).json({ success: false, message: "Name and email required" });
+      }
+
+      await db.execute(sql`
+        INSERT INTO leads (first_name, last_name, email, phone, company, source, status, tags)
+        VALUES (
+          ${name.split(" ")[0] || name},
+          ${name.split(" ").slice(1).join(" ") || null},
+          ${email},
+          ${phone || null},
+          ${company || null},
+          'website',
+          'new',
+          ARRAY['contractor_page']
+        )
+        ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+      `);
+
+      res.json({ success: true, message: "Inquiry received" });
+    } catch (error: any) {
+      console.error("[Contractor Inquiry] Error:", error.message);
+      res.status(500).json({ success: false, message: "Failed to process inquiry" });
+    }
+  });
+
+  // ==================== RESEND WEBHOOK ====================
+  app.post("/api/webhooks/resend", async (req, res) => {
+    try {
+      const { type, data } = req.body;
+      const recipient = data?.to?.[0] || data?.email || null;
+      console.log(`[Resend Webhook] ${type} for ${recipient}`);
+
+      if (!recipient) return res.json({ success: true, skipped: true });
+
+      if (type === "email.bounced" || type === "email.complained") {
+        await db.execute(sql`
+          UPDATE leads SET status = 'bounced', updated_at = NOW()
+          WHERE email = ${recipient} AND status != 'bounced'
+        `);
+      }
+
+      res.json({ success: true, type, recipient });
+    } catch (error: any) {
+      console.error("[Resend Webhook] Error:", error.message);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
 
   // ==================== OPENCLAW MISSION CONTROL ====================
   app.get("/api/admin/openclaw/config", authenticate, isAdmin, (_req, res) => {
@@ -1576,6 +1739,7 @@ export function registerRoutes(app: Express) {
     try {
       const items = await db.execute(sql`
         SELECT * FROM action_items
+        WHERE status NOT IN ('needs_review')
         ORDER BY
           CASE status WHEN 'pending' THEN 0 WHEN 'in_progress' THEN 1 WHEN 'snoozed' THEN 2 WHEN 'completed' THEN 3 WHEN 'dismissed' THEN 4 ELSE 5 END,
           CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
@@ -1608,20 +1772,23 @@ export function registerRoutes(app: Express) {
     try {
       const { id } = req.params;
       const { title, description, status, priority, assigned_to, due_date } = req.body;
-      const completedAt = status === 'completed' ? sql`NOW()` : null;
+      const completedClause = status === 'completed' ? sql`completed_at = NOW(),` : sql``;
       const result = await db.execute(sql`
         UPDATE action_items SET
-          title = COALESCE(${title}, title),
-          description = COALESCE(${description}, description),
-          status = COALESCE(${status}, status),
-          priority = COALESCE(${priority}, priority),
-          assigned_to = COALESCE(${assigned_to}, assigned_to),
-          due_date = COALESCE(${due_date}, due_date),
-          completed_at = ${completedAt},
+          title = COALESCE(${title || null}, title),
+          description = COALESCE(${description || null}, description),
+          status = COALESCE(${status || null}, status),
+          priority = COALESCE(${priority || null}, priority),
+          assigned_to = COALESCE(${assigned_to || null}, assigned_to),
+          due_date = COALESCE(${due_date || null}, due_date),
           updated_at = NOW()
         WHERE id = ${parseInt(id)}
         RETURNING *
       `);
+      // Set completed_at separately if completing
+      if (status === 'completed') {
+        await db.execute(sql`UPDATE action_items SET completed_at = NOW() WHERE id = ${parseInt(id)}`);
+      }
       res.json(result.rows[0]);
     } catch (e: any) {
       res.status(500).json({ error: e.message });

@@ -1,43 +1,39 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { useLocation } from "wouter";
-import { Home, Users, CreditCard, Briefcase, LogOut, ChevronRight, GitBranch, Megaphone, Ticket, Mail, Send, Rocket, Lightbulb, Star } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-  SidebarRail,
-} from "../ui/sidebar";
-import { Separator } from "../ui/separator";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { MessageSquare, CreditCard, Target, LogOut } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-interface NavItem {
+interface TabItem {
   title: string;
   url: string;
-  icon: typeof Home;
-  isActive?: boolean;
+  icon: typeof MessageSquare;
 }
+
+const tabs: TabItem[] = [
+  {
+    title: "Conversations",
+    url: "/admin/conversations",
+    icon: MessageSquare,
+  },
+  {
+    title: "Outreach",
+    url: "/admin/outreach",
+    icon: Target,
+  },
+  {
+    title: "Financial",
+    url: "/admin/billing",
+    icon: CreditCard,
+  },
+];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
-
-  // Check if changelogs should be visible (stored in localStorage)
-  const [showChangelogs, setShowChangelogs] = useState(() => {
-    const stored = localStorage.getItem("showChangelogs");
-    return stored !== null ? stored === "true" : false; // Hidden by default
-  });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -50,231 +46,53 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     navigate("/admin/login");
   };
 
-  // Get user data from localStorage
-  const userDataStr = localStorage.getItem("user");
-  let userData: { name?: string; email?: string; username?: string } = {};
-  if (userDataStr) {
-    try {
-      userData = JSON.parse(userDataStr);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-    }
-  }
-
-  const userName = userData.name || userData.username || "Admin";
-  const userInitials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  const baseNavItems: NavItem[] = [
-    {
-      title: "Dashboard",
-      url: "/admin/dashboard",
-      icon: Home,
-    },
-    {
-      title: "Contacts & Clients",
-      url: "/admin/clients",
-      icon: Users,
-    },
-    {
-      title: "Deals",
-      url: "/admin/deals",
-      icon: Briefcase,
-    },
-    {
-      title: "Tickets",
-      url: "/admin/tickets",
-      icon: Ticket,
-    },
-    {
-      title: "Financial",
-      url: "/admin/billing",
-      icon: CreditCard,
-    },
-    {
-      title: "Emails",
-      url: "/admin/emails",
-      icon: Mail,
-    },
-    {
-      title: "Updates",
-      url: "/admin/updates",
-      icon: Megaphone,
-    },
-    {
-      title: "Email Campaigns",
-      url: "/admin/campaigns",
-      icon: Send,
-    },
-    {
-      title: "Mission Control",
-      url: "/admin/mission-control",
-      icon: Rocket,
-    },
-    {
-      title: "Brain Storm",
-      url: "/admin/brain-storm",
-      icon: Lightbulb,
-    },
-    {
-      title: "Reviews",
-      url: "/admin/reviews",
-      icon: Star,
-    },
-  ];
-
-  const changelogItem: NavItem = {
-    title: "Git Commits",
-    url: "/admin/changelogs",
-    icon: GitBranch,
-  };
-
-  // Conditionally include changelogs based on toggle
-  const navItems = showChangelogs ? [...baseNavItems, changelogItem] : baseNavItems;
-
-  // Simple breadcrumb logic
-  const getBreadcrumbs = () => {
-    const parts = location.split("/").filter(Boolean);
-    const breadcrumbs: { label: string; path: string }[] = [];
-
-    let currentPath = "";
-    parts.forEach((part) => {
-      currentPath += `/${part}`;
-
-      // Skip 'admin' in breadcrumb display
-      if (part === "admin") return;
-
-      // Capitalize and format the part
-      const label = part
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-
-      breadcrumbs.push({ label, path: currentPath });
-    });
-
-    return breadcrumbs;
-  };
-
-  const breadcrumbs = getBreadcrumbs();
-
   return (
-    <div className="admin-ui">
-      <SidebarProvider>
-        <Sidebar collapsible="icon" className="bg-background border-r">
-        <SidebarHeader className="border-b px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">BS</div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold group-data-[collapsible=icon]:hidden">Better Systems</span>
-              <span className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">CRM Control Center</span>
-            </div>
-          </div>
-        </SidebarHeader>
+    <div className="admin-ui flex flex-col min-h-screen bg-background">
+      {/* Top Bar — minimal */}
+      <header className="sticky top-0 z-30 flex items-center justify-between h-12 px-4 border-b bg-background/95 backdrop-blur-sm">
+        <span className="text-sm font-bold tracking-tight">Better Systems</span>
+        <button
+          onClick={handleLogout}
+          className="p-2 -mr-2 rounded-full hover:bg-muted active:bg-muted/80 transition-colors"
+          title="Logout"
+        >
+          <LogOut className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </header>
 
-        <SidebarContent className="px-2 py-4">
-          <SidebarMenu>
-            {navItems.map((item) => {
-              const isActive = location === item.url || location.startsWith(item.url + "/");
-              const Icon = item.icon;
+      {/* Main Content — scrollable, with bottom padding for tab bar */}
+      <main className="flex-1 overflow-auto pb-20">
+        <div className="admin-content-shell mx-auto w-full max-w-[720px]">
+          {children}
+        </div>
+      </main>
 
-              return (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton tooltip={item.title} isActive={isActive} onClick={() => navigate(item.url)} className="w-full">
-                    <Icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarContent>
+      {/* Bottom Tab Bar — fixed, mobile-first */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
+        <div className="flex items-center justify-around max-w-[720px] mx-auto">
+          {tabs.map((tab) => {
+            const isActive = location === tab.url || location.startsWith(tab.url + "/");
+            const Icon = tab.icon;
 
-        <SidebarFooter className="border-t px-2 py-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <div className="flex items-center gap-2 px-2 py-1.5">
-                <Avatar className="h-8 w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">{userInitials}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-1 flex-col gap-0.5 group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm font-medium">{userName}</span>
-                  <span className="text-xs text-muted-foreground">{userData.email || "Administrator"}</span>
-                </div>
-              </div>
-            </SidebarMenuItem>
-
-            <Separator className="my-1" />
-
-            {/* Git Commits Toggle */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip={showChangelogs ? "Hide Git Commits" : "Show Git Commits"}
-                onClick={() => {
-                  const newValue = !showChangelogs;
-                  setShowChangelogs(newValue);
-                  localStorage.setItem("showChangelogs", String(newValue));
-                  if (!newValue && location === "/admin/changelogs") {
-                    // If we're on changelogs page and hiding it, navigate away
-                    navigate("/admin/dashboard");
-                  }
-                }}
-                className="w-full"
+            return (
+              <button
+                key={tab.url}
+                onClick={() => navigate(tab.url)}
+                className={`flex flex-col items-center justify-center flex-1 py-3 px-2 transition-colors active:opacity-70 ${
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
-                <GitBranch className="h-4 w-4" />
-                <span>{showChangelogs ? "Hide" : "Show"} Git Commits</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <Separator className="my-1" />
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip="Logout"
-                onClick={handleLogout}
-                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-
-        <SidebarRail />
-      </Sidebar>
-
-        <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur-sm">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="h-6" />
-
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2 text-sm">
-            {breadcrumbs.length === 0 ? (
-              <span className="text-muted-foreground">Dashboard</span>
-            ) : (
-              breadcrumbs.map((crumb, index) => (
-                <div key={crumb.path} className="flex items-center gap-2">
-                  {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                  <button onClick={() => navigate(crumb.path)} className="text-muted-foreground hover:text-foreground transition-colors">
-                    {crumb.label}
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          </header>
-
-          <main className="flex-1 overflow-auto bg-muted/20">
-            <div className="admin-content-shell mx-auto w-full max-w-[1440px]">{children}</div>
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
+                <Icon className={`h-6 w-6 ${isActive ? "stroke-[2.5]" : ""}`} />
+                <span className={`text-xs mt-1 ${isActive ? "font-semibold" : ""}`}>
+                  {tab.title}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

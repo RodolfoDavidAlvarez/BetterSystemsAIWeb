@@ -90,11 +90,9 @@ function AudioPlayerButton({ audioUrl }: { audioUrl: string }) {
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState(false);
 
-  // Audio files live on the VPS. Relative paths like "data/plaud-audio/xxx.mp3" → VPS URL
-  const VPS_AUDIO_BASE = "http://143.198.74.96:8090";
-  const resolvedUrl = audioUrl.startsWith("http")
-    ? audioUrl
-    : `${VPS_AUDIO_BASE}/${audioUrl.replace("data/plaud-audio/", "")}`;
+  // Route audio through /api/audio proxy (avoids mixed-content HTTPS→HTTP block)
+  const filename = audioUrl.replace("data/plaud-audio/", "").split("/").pop() || "";
+  const resolvedUrl = audioUrl.startsWith("http") ? audioUrl : `/api/audio/${filename}`;
 
   const togglePlay = () => {
     if (error) return;

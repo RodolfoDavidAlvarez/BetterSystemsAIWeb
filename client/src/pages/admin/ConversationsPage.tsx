@@ -165,6 +165,8 @@ export default function ConversationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showTranscript, setShowTranscript] = useState<number | null>(null);
+  const [actionsExpanded, setActionsExpanded] = useState(false);
+  const [dismissingIds, setDismissingIds] = useState<Set<number>>(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -261,40 +263,100 @@ export default function ConversationsPage() {
         </div>
       </div>
 
-      {/* Active Action Items Summary */}
+      {/* Action Items — Full Expandable List */}
       {activeActions.length > 0 && !searchQuery && (
-        <div className="mx-4 mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="h-4 w-4 text-amber-500" />
-            <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
-              {activeActions.length} pending action{activeActions.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="space-y-1.5">
-            {activeActions.slice(0, 5).map((a) => (
-              <div key={a.id} className="flex items-center gap-2 text-sm group">
-                <button
-                  onClick={() => updateActionStatus(a.id, "completed")}
-                  className="flex-shrink-0 p-0.5 rounded-full hover:bg-green-500/20 active:bg-green-500/30 transition-colors"
-                  title="Mark complete"
-                >
-                  <Circle className="h-4 w-4 text-yellow-500 group-hover:hidden" />
-                  <Check className="h-4 w-4 text-green-500 hidden group-hover:block" />
-                </button>
-                <span className="text-foreground/80 leading-tight flex-1">{a.title}</span>
-                <button
-                  onClick={() => updateActionStatus(a.id, "dismissed")}
-                  className="flex-shrink-0 p-1 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500/20 active:bg-red-500/30 transition-all"
-                  title="Dismiss"
-                >
-                  <X className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-              </div>
-            ))}
-            {activeActions.length > 5 && (
-              <span className="text-xs text-muted-foreground">+{activeActions.length - 5} more</span>
+        <div className="mx-4 mt-4 rounded-xl bg-amber-500/10 border border-amber-500/20 overflow-hidden">
+          {/* Header — tap to expand/collapse */}
+          <button
+            onClick={() => setActionsExpanded(!actionsExpanded)}
+            className="w-full flex items-center justify-between p-4 active:bg-amber-500/5 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                {activeActions.length} pending action{activeActions.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            {actionsExpanded ? (
+              <ChevronUp className="h-5 w-5 text-amber-500" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-amber-500" />
             )}
-          </div>
+          </button>
+
+          {/* Collapsed preview — first 3 items */}
+          {!actionsExpanded && (
+            <div className="px-4 pb-3 space-y-1">
+              {activeActions.slice(0, 3).map((a) => (
+                <div key={a.id} className="flex items-center gap-2 text-sm">
+                  <Circle className="h-3 w-3 text-yellow-500 flex-shrink-0" />
+                  <span className="text-foreground/70 leading-tight truncate">{a.title}</span>
+                </div>
+              ))}
+              {activeActions.length > 3 && (
+                <p className="text-xs text-amber-600/60 pl-5">tap to see all {activeActions.length}</p>
+              )}
+            </div>
+          )}
+
+          {/* Expanded — full scrollable list */}
+          {actionsExpanded && (
+            <div className="border-t border-amber-500/20">
+              <div className="max-h-[60vh] overflow-y-auto divide-y divide-amber-500/10">
+                {activeActions.map((a) => {
+                  const isDismissing = dismissingIds.has(a.id);
+                  return (
+                    <div
+                      key={a.id}
+                      className={`flex items-start gap-3 px-4 py-3 transition-opacity ${isDismissing ? "opacity-30" : ""}`}
+                    >
+                      {/* Complete button */}
+                      <button
+                        onClick={() => updateActionStatus(a.id, "completed")}
+                        className="flex-shrink-0 mt-0.5 p-1 rounded-full active:bg-green-500/30 transition-colors"
+                        title="Complete"
+                      >
+                        <Circle className="h-5 w-5 text-yellow-500" />
+                      </button>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-tight">{a.title}</p>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
+                          {a.priority && a.priority !== "medium" && (
+                            <span className={`text-xs font-semibold ${priorityColor(a.priority)}`}>
+                              {a.priority}
+                            </span>
+                          )}
+                          {a.company && (
+                            <span className="text-xs text-muted-foreground">{a.company}</span>
+                          )}
+                          {a.assigned_to && (
+                            <span className="text-xs text-muted-foreground">→ {a.assigned_to}</span>
+                          )}
+                          {a.due_date && (
+                            <span className="text-xs text-muted-foreground">Due {formatDate(a.due_date)}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Dismiss button — always visible on mobile */}
+                      <button
+                        onClick={() => {
+                          setDismissingIds((prev) => new Set(prev).add(a.id));
+                          updateActionStatus(a.id, "dismissed");
+                        }}
+                        className="flex-shrink-0 p-2 -mr-1 rounded-full active:bg-red-500/20 transition-colors"
+                        title="Dismiss"
+                      >
+                        <X className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -430,11 +492,11 @@ export default function ConversationsPage() {
                             {recActions.map((action) => (
                               <div
                                 key={action.id}
-                                className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50 group"
+                                className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50"
                               >
                                 <button
                                   onClick={() => updateActionStatus(action.id, "completed")}
-                                  className="flex-shrink-0 mt-0.5 p-0.5 rounded-full hover:bg-green-500/20 active:bg-green-500/30 transition-colors"
+                                  className="flex-shrink-0 mt-0.5 p-1 rounded-full active:bg-green-500/30 transition-colors"
                                   title="Mark complete"
                                 >
                                   {statusIcon(action.status)}
@@ -446,7 +508,7 @@ export default function ConversationsPage() {
                                       {action.description}
                                     </p>
                                   )}
-                                  <div className="flex items-center gap-2 mt-1.5">
+                                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                     {action.priority && action.priority !== "medium" && (
                                       <span className={`text-xs font-medium ${priorityColor(action.priority)}`}>
                                         {action.priority}
@@ -466,10 +528,10 @@ export default function ConversationsPage() {
                                 </div>
                                 <button
                                   onClick={() => updateActionStatus(action.id, "dismissed")}
-                                  className="flex-shrink-0 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500/20 active:bg-red-500/30 transition-all"
+                                  className="flex-shrink-0 p-2 -mr-1 rounded-full active:bg-red-500/20 transition-colors"
                                   title="Dismiss"
                                 >
-                                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <X className="h-4 w-4 text-muted-foreground" />
                                 </button>
                               </div>
                             ))}

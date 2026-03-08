@@ -83,43 +83,190 @@ function statusIcon(status: string) {
   }
 }
 
-// ─── Audio Player Button ────────────────────────────────────────────
+// ─── Waveform Audio Player ──────────────────────────────────────────
 
-function AudioPlayerButton({ audioUrl }: { audioUrl: string }) {
+function WaveformPlayer({ audioUrl, duration }: { audioUrl: string; duration?: number }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const animFrameRef = useRef<number>(0);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(duration || 0);
+  const [waveformData, setWaveformData] = useState<number[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
-  // Route audio through /api/audio proxy (avoids mixed-content HTTPS→HTTP block)
   const filename = audioUrl.replace("data/plaud-audio/", "").split("/").pop() || "";
   const resolvedUrl = audioUrl.startsWith("http") ? audioUrl : `/api/audio/${filename}`;
 
-  const togglePlay = () => {
-    if (error) return;
+  const BAR_COUNT = 150;
+  const BAR_WIDTH = 3;
+  const BAR_GAP = 1;
+
+  // Generate waveform from audio buffer
+  const generateWaveform = useCallback(async (url: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("fetch failed");
+      const arrayBuffer = await response.arrayBuffer();
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const channelData = audioBuffer.getChannelData(0);
+      const blockSize = Math.floor(channelData.length / BAR_COUNT);
+      const bars: number[] = [];
+      for (let i = 0; i < BAR_COUNT; i++) {
+        let sum = 0;
+        const start = i * blockSize;
+        for (let j = 0; j < blockSize; j++) {
+          sum += Math.abs(channelData[start + j] || 0);
+        }
+        bars.push(sum / blockSize);
+      }
+      // Normalize
+      const max = Math.max(...bars, 0.01);
+      const normalized = bars.map((b) => Math.max(b / max, 0.05));
+      setWaveformData(normalized);
+      setAudioDuration(audioBuffer.duration);
+      audioContext.close();
+    } catch {
+      // Fallback: generate fake waveform
+      const fake = Array.from({ length: BAR_COUNT }, () => 0.1 + Math.random() * 0.9);
+      setWaveformData(fake);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Draw waveform on canvas
+  const drawWaveform = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || waveformData.length === 0) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    const progress = audioDuration > 0 ? currentTime / audioDuration : 0;
+    const playedBars = Math.floor(progress * waveformData.length);
+    const centerY = rect.height / 2;
+    const maxBarH = rect.height * 0.9;
+
+    for (let i = 0; i < waveformData.length; i++) {
+      const barH = waveformData[i] * maxBarH;
+      const x = i * (BAR_WIDTH + BAR_GAP);
+      const y = centerY - barH / 2;
+
+      if (i < playedBars) {
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--color-primary").trim() || "#6366f1";
+      } else {
+        const isDark = document.documentElement.classList.contains("dark");
+        ctx.fillStyle = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.15)";
+      }
+      ctx.beginPath();
+      ctx.roundRect(x, y, BAR_WIDTH, barH, 1.5);
+      ctx.fill();
+    }
+  }, [waveformData, currentTime, audioDuration]);
+
+  // Animation loop for smooth progress
+  useEffect(() => {
+    if (playing && audioRef.current) {
+      const tick = () => {
+        if (audioRef.current) {
+          setCurrentTime(audioRef.current.currentTime);
+        }
+        animFrameRef.current = requestAnimationFrame(tick);
+      };
+      animFrameRef.current = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(animFrameRef.current);
+    }
+  }, [playing]);
+
+  // Redraw when data or time changes
+  useEffect(() => {
+    drawWaveform();
+  }, [drawWaveform]);
+
+  // Resize observer
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const observer = new ResizeObserver(() => drawWaveform());
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [drawWaveform]);
+
+  const loadAndPlay = async () => {
+    if (!loaded) {
+      await generateWaveform(resolvedUrl);
+      setLoaded(true);
+    }
     if (!audioRef.current) {
       const audio = new Audio(resolvedUrl);
       audioRef.current = audio;
-      audio.addEventListener("ended", () => setPlaying(false));
+      audio.addEventListener("ended", () => {
+        setPlaying(false);
+        setCurrentTime(0);
+      });
       audio.addEventListener("error", () => {
         setPlaying(false);
         setError(true);
       });
-    }
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
-    } else {
-      audioRef.current.play().catch(() => {
-        setPlaying(false);
-        setError(true);
+      audio.addEventListener("loadedmetadata", () => {
+        setAudioDuration(audio.duration);
       });
-      setPlaying(true);
+    }
+    return audioRef.current;
+  };
+
+  const togglePlay = async () => {
+    if (error) return;
+    try {
+      const audio = await loadAndPlay();
+      if (playing) {
+        audio.pause();
+        setPlaying(false);
+      } else {
+        await audio.play();
+        setPlaying(true);
+      }
+    } catch {
+      setError(true);
     }
   };
 
-  // Cleanup on unmount
+  // Seek on waveform tap/click
+  const handleSeek = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !audioRef.current || audioDuration <= 0) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const x = clientX - rect.left;
+    const totalWidth = waveformData.length * (BAR_WIDTH + BAR_GAP);
+    const ratio = Math.max(0, Math.min(1, x / totalWidth));
+    const seekTime = ratio * audioDuration;
+    audioRef.current.currentTime = seekTime;
+    setCurrentTime(seekTime);
+  };
+
+  const fmtTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  // Cleanup
   useEffect(() => {
     return () => {
+      cancelAnimationFrame(animFrameRef.current);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -127,32 +274,57 @@ function AudioPlayerButton({ audioUrl }: { audioUrl: string }) {
     };
   }, []);
 
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 py-3 px-4 rounded-xl bg-muted/50 text-muted-foreground text-sm">
+        <Play className="h-4 w-4 opacity-50" />
+        <span className="text-xs">Audio unavailable</span>
+      </div>
+    );
+  }
+
   return (
-    <button
-      onClick={togglePlay}
-      className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium text-sm active:opacity-90 transition-opacity ${
-        error ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : "bg-muted"
-      }`}
-      disabled={error}
-      title={error ? "Audio not available in production" : playing ? "Pause" : "Listen"}
-    >
-      {error ? (
-        <>
-          <Play className="h-4 w-4 opacity-50" />
-          <span className="text-xs">Audio unavailable</span>
-        </>
-      ) : playing ? (
-        <>
-          <Pause className="h-4 w-4" />
-          Pause
-        </>
-      ) : (
-        <>
-          <Play className="h-4 w-4" />
-          Listen
-        </>
-      )}
-    </button>
+    <div className="w-full rounded-xl bg-muted/50 border border-border/50 overflow-hidden">
+      <div className="flex items-center gap-3 p-3">
+        {/* Play/Pause */}
+        <button
+          onClick={togglePlay}
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground active:opacity-80 transition-opacity"
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : playing ? (
+            <Pause className="h-5 w-5" />
+          ) : (
+            <Play className="h-5 w-5 ml-0.5" />
+          )}
+        </button>
+
+        {/* Waveform + Time */}
+        <div className="flex-1 min-w-0">
+          <div
+            ref={containerRef}
+            className="w-full overflow-x-auto scrollbar-none"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <canvas
+              ref={canvasRef}
+              onClick={handleSeek}
+              className="h-12 cursor-pointer"
+              style={{
+                width: `${Math.max(waveformData.length * (BAR_WIDTH + BAR_GAP), 100)}px`,
+                minWidth: "100%",
+              }}
+            />
+          </div>
+          <div className="flex justify-between mt-1 text-[10px] text-muted-foreground tabular-nums px-0.5">
+            <span>{fmtTime(currentTime)}</span>
+            <span>{audioDuration > 0 ? fmtTime(audioDuration) : "--:--"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -456,18 +628,18 @@ export default function ConversationsPage() {
                   {isExpanded && (
                     <div className="border-t">
                       {/* Action Buttons */}
-                      <div className="p-4 flex gap-2">
+                      <div className="p-4 space-y-3">
                         {hasTranscript && (
                           <button
                             onClick={() => setShowTranscript(isTranscriptOpen ? null : rec.id)}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-primary-foreground font-medium text-sm active:opacity-90 transition-opacity"
+                            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary text-primary-foreground font-medium text-sm active:opacity-90 transition-opacity"
                           >
                             <FileText className="h-4 w-4" />
                             {isTranscriptOpen ? "Hide Transcript" : "View Transcript"}
                           </button>
                         )}
                         {rec.audio_url && (
-                          <AudioPlayerButton audioUrl={rec.audio_url} />
+                          <WaveformPlayer audioUrl={rec.audio_url} duration={rec.duration_seconds} />
                         )}
                       </div>
 

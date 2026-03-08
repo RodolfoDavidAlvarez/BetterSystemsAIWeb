@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   MessageSquare, Search, Clock, ChevronDown, ChevronUp,
   Calendar, Mic, CheckCircle2, Circle, AlertCircle,
-  Play, FileText, Loader2, RefreshCw, X, Check
+  Play, Pause, FileText, Loader2, RefreshCw, X, Check
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -81,6 +81,81 @@ function statusIcon(status: string) {
     case "pending": return <Circle className="h-4 w-4 text-yellow-500 flex-shrink-0" />;
     default: return <Circle className="h-4 w-4 text-gray-400 flex-shrink-0" />;
   }
+}
+
+// ─── Audio Player Button ────────────────────────────────────────────
+
+function AudioPlayerButton({ audioUrl }: { audioUrl: string }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Audio files live on the VPS. Relative paths like "data/plaud-audio/xxx.mp3" → VPS URL
+  const VPS_AUDIO_BASE = "http://143.198.74.96:8090";
+  const resolvedUrl = audioUrl.startsWith("http")
+    ? audioUrl
+    : `${VPS_AUDIO_BASE}/${audioUrl.replace("data/plaud-audio/", "")}`;
+
+  const togglePlay = () => {
+    if (error) return;
+    if (!audioRef.current) {
+      const audio = new Audio(resolvedUrl);
+      audioRef.current = audio;
+      audio.addEventListener("ended", () => setPlaying(false));
+      audio.addEventListener("error", () => {
+        setPlaying(false);
+        setError(true);
+      });
+    }
+    if (playing) {
+      audioRef.current.pause();
+      setPlaying(false);
+    } else {
+      audioRef.current.play().catch(() => {
+        setPlaying(false);
+        setError(true);
+      });
+      setPlaying(true);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <button
+      onClick={togglePlay}
+      className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium text-sm active:opacity-90 transition-opacity ${
+        error ? "bg-muted/50 text-muted-foreground cursor-not-allowed" : "bg-muted"
+      }`}
+      disabled={error}
+      title={error ? "Audio not available in production" : playing ? "Pause" : "Listen"}
+    >
+      {error ? (
+        <>
+          <Play className="h-4 w-4 opacity-50" />
+          <span className="text-xs">Audio unavailable</span>
+        </>
+      ) : playing ? (
+        <>
+          <Pause className="h-4 w-4" />
+          Pause
+        </>
+      ) : (
+        <>
+          <Play className="h-4 w-4" />
+          Listen
+        </>
+      )}
+    </button>
+  );
 }
 
 // ─── Main Component ─────────────────────────────────────────────────
@@ -332,15 +407,7 @@ export default function ConversationsPage() {
                           </button>
                         )}
                         {rec.audio_url && (
-                          <a
-                            href={rec.audio_url.startsWith("http") ? rec.audio_url : `/${rec.audio_url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-muted font-medium text-sm active:opacity-90 transition-opacity"
-                          >
-                            <Play className="h-4 w-4" />
-                            Listen
-                          </a>
+                          <AudioPlayerButton audioUrl={rec.audio_url} />
                         )}
                       </div>
 

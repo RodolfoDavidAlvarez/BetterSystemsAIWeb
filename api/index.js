@@ -52,6 +52,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ==================== AUDIO PROXY (VPS) ====================
+// Proxies audio files from VPS to avoid mixed-content (HTTP→HTTPS) browser blocks
+app.get('/api/audio/:filename', async (req, res) => {
+  try {
+    const filename = req.params.filename;
+    if (!filename.match(/^[a-zA-Z0-9_-]+\.mp3$/)) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+    const vpsUrl = `http://143.198.74.96:8090/${filename}`;
+    const response = await fetch(vpsUrl);
+    if (!response.ok) {
+      return res.status(404).json({ error: 'Audio not found' });
+    }
+    res.set('Content-Type', 'audio/mpeg');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.set('Accept-Ranges', 'bytes');
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    console.error('Audio proxy error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch audio' });
+  }
+});
+
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Login endpoint

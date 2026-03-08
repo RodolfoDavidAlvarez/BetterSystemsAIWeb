@@ -10,25 +10,25 @@ import jwt from 'jsonwebtoken';
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
-import { pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
 
 const app = express();
 
-// Database schema matching production database
+// Database schema matching actual bettersystems.users table
 const users = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  email: text('email').notNull().unique(),
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  username: text('username').unique().notNull(),
+  password: text('password').notNull(),
   name: text('name').notNull(),
-  role: text('role').notNull(),
-  phone: text('phone'),
-  password_hash: text('password_hash'),
-  approval_status: text('approval_status').notNull().default('pending_approval'),
-  last_seen_at: timestamp('last_seen_at'),
-  created_at: timestamp('created_at').defaultNow()
+  email: text('email').unique().notNull(),
+  role: text('role').default('admin').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 
-// Database connection
-const queryClient = postgres(process.env.DATABASE_URL);
+// Database connection — add search_path for bettersystems schema (users table lives there)
+const dbUrl = process.env.DATABASE_URL + (process.env.DATABASE_URL.includes('?') ? '&' : '?') + 'options=-c%20search_path=bettersystems,public';
+const queryClient = postgres(dbUrl);
 const db = drizzle(queryClient);
 
 // JWT helpers
@@ -82,8 +82,8 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Find user by email (username field contains email)
-    const foundUsers = await db.select().from(users).where(eq(users.email, username)).limit(1);
+    // Find user by username
+    const foundUsers = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
     if (foundUsers.length === 0) {
       return res.status(401).json({
@@ -94,16 +94,15 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = foundUsers[0];
 
-    // Compare passwords (using password_hash field)
-    const passwordHash = user.password_hash || user.password;
-    if (!passwordHash) {
+    // Compare passwords
+    if (!user.password) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, passwordHash);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -115,7 +114,7 @@ app.post('/api/auth/login', async (req, res) => {
     // Create JWT token
     const token = createAuthToken({
       id: user.id,
-      username: user.email,
+      username: user.username,
       role: user.role
     });
 
@@ -128,7 +127,7 @@ app.post('/api/auth/login', async (req, res) => {
       token,
       user: {
         id: user.id,
-        username: user.email,
+        username: user.username,
         name: user.name,
         email: user.email,
         role: user.role
@@ -348,6 +347,132 @@ app.get('/api/pay/:invoiceNumber', async (req, res) => {
     lineItems: config.lineItems,
     isPaid,
   });
+});
+
+// ==================== BOOKING ROUTES ====================
+
+// Submit a booking
+app.post('/api/book', async (req, res) => {
+  try {
+    const { date, time, name, email, company, interest, notes } = req.body;
+
+    if (!date || !time || !name || !email) {
+      return res.status(400).json({ success: false, message: 'Missing required fields: date, time, name, email' });
+    }
+
+    // Save to database
+    let bookingRecord;
+    try {
+      const result = await queryClient`
+        INSERT INTO bookings (date, time, name, email, company, interest, notes, status, confirmation_sent)
+        VALUES (${date}, ${time}, ${name}, ${email}, ${company || null}, ${interest || null}, ${notes || null}, 'pending', true)
+        RETURNING id
+      `;
+      bookingRecord = result[0];
+    } catch (dbError) {
+      console.error('Database save failed:', dbError);
+    }
+
+    // Save to Airtable as backup
+    try {
+      await base(process.env.AIRTABLE_TABLE_NAME).create({
+        'Form Type': 'Discovery Call Booking',
+        'Submitted At': new Date().toISOString(),
+        'Status': 'New',
+        'Name': name,
+        'Email': email,
+        'Company': company || '',
+        'Additional Notes': `Date: ${date}, Time: ${time}, Interest: ${interest || 'N/A'}${notes ? ', Notes: ' + notes : ''}`,
+        'Form Data': JSON.stringify({ date, time, name, email, company, interest, notes, formType: 'Discovery Call Booking' })
+      });
+    } catch (airtableErr) {
+      console.error('Airtable save failed:', airtableErr);
+    }
+
+    // Format for display
+    const bookingDate = new Date(date);
+    const formattedDate = bookingDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const [hour, minute] = time.split(':');
+    const hourNum = parseInt(hour);
+    const displayHour = hourNum > 12 ? hourNum - 12 : hourNum;
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    const displayTime = `${displayHour}:${minute} ${ampm}`;
+
+    // Send confirmation email to customer
+    try {
+      await resend.emails.send({
+        from: 'Better Systems AI <info@bettersystems.ai>',
+        to: email,
+        subject: `Discovery Call Confirmed - ${formattedDate} at ${displayTime}`,
+        html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#0a0f1a;color:#fff;padding:40px;border-radius:16px;">
+          <div style="text-align:center;margin-bottom:30px;"><h1 style="color:#fff;margin:0;font-size:28px;">Your Call is Booked!</h1><p style="color:#94a3b8;margin-top:8px;">Discovery Call with Better Systems AI</p></div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;margin-bottom:20px;text-align:center;">
+            <p style="color:#60a5fa;font-size:14px;margin:0 0 8px 0;">SCHEDULED FOR</p>
+            <p style="color:#fff;font-size:24px;font-weight:bold;margin:0;">${formattedDate}</p>
+            <p style="color:#fff;font-size:20px;margin:8px 0 0 0;">${displayTime} (Arizona Time)</p>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;margin-bottom:20px;">
+            <h2 style="color:#60a5fa;margin:0 0 16px 0;font-size:18px;">What to Expect</h2>
+            <ul style="color:#fff;margin:0;padding-left:20px;line-height:1.8;"><li>15-minute discovery call</li><li>We'll discuss your business automation needs</li><li>You'll receive a follow-up with recommendations</li></ul>
+          </div>
+          <div style="background:rgba(96,165,250,0.1);border-radius:12px;padding:24px;margin-bottom:20px;border:1px solid rgba(96,165,250,0.3);">
+            <p style="color:#60a5fa;margin:0;font-size:14px;"><strong>Note:</strong> You'll receive a calendar invite with the meeting link shortly before your call.</p>
+          </div>
+          <p style="color:#64748b;font-size:12px;text-align:center;margin-top:30px;">Better Systems AI | bettersystems.ai</p>
+        </div>`
+      });
+    } catch (emailError) {
+      console.error('Failed to send customer confirmation:', emailError);
+    }
+
+    // Send admin notification
+    try {
+      await resend.emails.send({
+        from: 'Better Systems AI <info@bettersystems.ai>',
+        to: 'rodolfo@bettersystems.ai',
+        subject: `[BOOKING] ${name} - ${formattedDate} at ${displayTime}`,
+        html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#0a0f1a;color:#fff;padding:40px;border-radius:16px;">
+          <h1 style="color:#fff;margin:0 0 20px;font-size:28px;text-align:center;">New Discovery Call Booked!</h1>
+          <div style="background:rgba(34,197,94,0.1);border-radius:12px;padding:24px;margin-bottom:20px;border:1px solid rgba(34,197,94,0.3);text-align:center;">
+            <p style="color:#22c55e;font-size:24px;font-weight:bold;margin:0;">${formattedDate}</p>
+            <p style="color:#22c55e;font-size:20px;margin:8px 0 0 0;">${displayTime}</p>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;margin-bottom:20px;">
+            <h2 style="color:#60a5fa;margin:0 0 16px 0;font-size:18px;">Contact Details</h2>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="color:#94a3b8;padding:8px 0;width:120px;">Name:</td><td style="color:#fff;padding:8px 0;"><strong>${name}</strong></td></tr>
+              <tr><td style="color:#94a3b8;padding:8px 0;">Email:</td><td style="color:#fff;padding:8px 0;"><a href="mailto:${email}" style="color:#60a5fa;">${email}</a></td></tr>
+              <tr><td style="color:#94a3b8;padding:8px 0;">Company:</td><td style="color:#fff;padding:8px 0;">${company || 'Not provided'}</td></tr>
+              <tr><td style="color:#94a3b8;padding:8px 0;">Interest:</td><td style="color:#fff;padding:8px 0;">${interest || 'Not specified'}</td></tr>
+            </table>
+          </div>
+          ${notes ? `<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:24px;margin-bottom:20px;"><h2 style="color:#60a5fa;margin:0 0 16px 0;font-size:18px;">Notes</h2><p style="color:#fff;margin:0;white-space:pre-wrap;">${notes}</p></div>` : ''}
+          <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;text-align:center;"><p style="color:#94a3b8;margin:0;font-size:14px;">Remember to send a calendar invite with meeting link!</p></div>
+        </div>`
+      });
+    } catch (emailError) {
+      console.error('Failed to send admin notification:', emailError);
+    }
+
+    res.json({ success: true, message: 'Your discovery call has been booked successfully.', bookingId: bookingRecord?.id });
+  } catch (error) {
+    console.error('Booking API error:', error);
+    res.status(500).json({ success: false, message: 'Failed to process your booking. Please try again.' });
+  }
+});
+
+// Get booked slots for availability
+app.get('/api/bookings/slots/:date', async (req, res) => {
+  try {
+    const { date } = req.params;
+    const bookedSlots = await queryClient`
+      SELECT time FROM bookings WHERE date = ${date} AND status != 'cancelled'
+    `;
+    res.json({ success: true, date, bookedTimes: bookedSlots.map(s => s.time) });
+  } catch (error) {
+    console.error('Error fetching booked slots:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch availability.' });
+  }
 });
 
 // ElevenLabs signed URL endpoint
@@ -1073,6 +1198,224 @@ app.delete('/api/admin/client-tasks/:id', async (req, res) => {
   }
 });
 
+// ==================== CONTRACTOR INQUIRY ====================
+app.post('/api/contractor-inquiry', async (req, res) => {
+  try {
+    const { name, email, company, phone, message } = req.body;
+    if (!name || !email) {
+      return res.status(400).json({ success: false, message: 'Name and email required' });
+    }
+
+    // Insert into leads table
+    await queryClient`
+      INSERT INTO leads (first_name, last_name, email, phone, company, source, status, tags)
+      VALUES (
+        ${name.split(' ')[0] || name},
+        ${name.split(' ').slice(1).join(' ') || null},
+        ${email},
+        ${phone || null},
+        ${company || null},
+        'website',
+        'new',
+        ${'{"contractor_page"}'}
+      )
+      ON CONFLICT (email) DO UPDATE SET
+        updated_at = NOW(),
+        tags = CASE WHEN NOT ('contractor_page' = ANY(leads.tags)) THEN array_append(leads.tags, 'contractor_page') ELSE leads.tags END
+    `;
+
+    // Notify Rodo via Resend
+    try {
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Better Systems AI <noreply@bettersystemsai.com>',
+        to: 'rodolfo@bettersystems.ai',
+        subject: `🎯 Contractor CRM Inquiry: ${name}${company ? ` (${company})` : ''}`,
+        text: `New contractor inquiry from ${name}\nEmail: ${email}\nCompany: ${company || 'N/A'}\nPhone: ${phone || 'N/A'}\nMessage: ${message || 'N/A'}\n\nSource: /contractors landing page`,
+      });
+    } catch (emailErr) {
+      console.error('[Contractor Inquiry] Email notification failed:', emailErr.message);
+    }
+
+    res.json({ success: true, message: 'Inquiry received' });
+  } catch (error) {
+    console.error('[Contractor Inquiry] Error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to process inquiry' });
+  }
+});
+
+// ==================== RESEND WEBHOOK (bounce/delivery tracking) ====================
+app.post('/api/webhooks/resend', async (req, res) => {
+  try {
+    // Verify webhook signature if secret is configured
+    const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const svixId = req.headers['svix-id'];
+      const svixTimestamp = req.headers['svix-timestamp'];
+      const svixSignature = req.headers['svix-signature'];
+      if (!svixId || !svixTimestamp || !svixSignature) {
+        console.log('[Resend Webhook] Missing signature headers');
+        return res.status(401).json({ error: 'Missing signature' });
+      }
+    }
+
+    const { type, data } = req.body;
+    const recipient = data?.to?.[0] || data?.email || null;
+
+    console.log(`[Resend Webhook] ${type} for ${recipient}`);
+
+    if (!recipient) {
+      return res.json({ success: true, skipped: true, reason: 'no_recipient' });
+    }
+
+    if (type === 'email.bounced' || type === 'email.complained') {
+      // Mark lead as bounced
+      const result = await queryClient`
+        UPDATE leads SET status = 'bounced', updated_at = NOW()
+        WHERE email = ${recipient} AND status != 'bounced'
+      `;
+      console.log(`[Resend Webhook] Marked ${recipient} as bounced (${result.count} rows)`);
+    } else if (type === 'email.delivered') {
+      console.log(`[Resend Webhook] Delivered to ${recipient}`);
+    } else if (type === 'email.opened') {
+      console.log(`[Resend Webhook] Opened by ${recipient}`);
+    }
+
+    res.json({ success: true, type, recipient });
+  } catch (error) {
+    console.error('[Resend Webhook] Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==================== NEW LEADS PIPELINE (admin) ====================
+app.get('/api/admin/cold-outreach/new-leads', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'No token' });
+    jwt.verify(token, JWT_SECRET);
+
+    const leads = await queryClient`
+      SELECT id, first_name, last_name, email, phone, title, company, company_website,
+             industry, city, state, employee_count, source, status, outreach_step,
+             last_email_sent, tags, created_at, updated_at
+      FROM leads
+      ORDER BY
+        CASE
+          WHEN status = 'replied' THEN 1
+          WHEN status = 'contacted' AND outreach_step < 3 THEN 2
+          WHEN status = 'new' THEN 3
+          WHEN status = 'bounced' THEN 4
+          ELSE 5
+        END,
+        last_email_sent DESC NULLS LAST,
+        created_at DESC
+    `;
+
+    res.json({ success: true, leads });
+  } catch (error) {
+    console.error('[New Leads] Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get('/api/admin/cold-outreach/new-leads/metrics', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'No token' });
+    jwt.verify(token, JWT_SECRET);
+
+    const [metrics] = await queryClient`
+      SELECT
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE status = 'new') as new_leads,
+        COUNT(*) FILTER (WHERE status = 'contacted') as contacted,
+        COUNT(*) FILTER (WHERE status = 'replied') as replied,
+        COUNT(*) FILTER (WHERE status = 'bounced') as bounced,
+        COUNT(*) FILTER (WHERE outreach_step = 0) as not_emailed,
+        COUNT(*) FILTER (WHERE outreach_step = 1) as step_1,
+        COUNT(*) FILTER (WHERE outreach_step = 2) as step_2,
+        COUNT(*) FILTER (WHERE outreach_step >= 3) as step_3_complete,
+        COUNT(*) FILTER (WHERE last_email_sent::date = CURRENT_DATE) as sent_today
+      FROM leads
+    `;
+
+    res.json({ success: true, metrics });
+  } catch (error) {
+    console.error('[New Leads Metrics] Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PATCH lead — update status, notes, outreach_step
+app.patch('/api/admin/leads/:id', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'No token' });
+    jwt.verify(token, JWT_SECRET);
+
+    const { id } = req.params;
+    const { status, notes, outreach_step } = req.body;
+
+    const sets = [];
+    if (status !== undefined) sets.push({ key: 'status', val: status });
+    if (notes !== undefined) sets.push({ key: 'notes', val: notes });
+    if (outreach_step !== undefined) sets.push({ key: 'outreach_step', val: outreach_step });
+
+    if (sets.length === 0) {
+      return res.status(400).json({ success: false, message: 'No fields to update' });
+    }
+
+    // Build update dynamically
+    const [lead] = await queryClient`
+      UPDATE leads SET
+        status = COALESCE(${status ?? null}, status),
+        notes = COALESCE(${notes ?? null}, notes),
+        outreach_step = COALESCE(${outreach_step !== undefined ? outreach_step : null}, outreach_step),
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (!lead) {
+      return res.status(404).json({ success: false, message: 'Lead not found' });
+    }
+
+    res.json({ success: true, lead });
+  } catch (error) {
+    console.error('[Leads PATCH] Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET lead activity — today's sends + queued next
+app.get('/api/admin/leads/activity', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'No token' });
+    jwt.verify(token, JWT_SECRET);
+
+    const sent_today = await queryClient`
+      SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent
+      FROM leads
+      WHERE last_email_sent::date = CURRENT_DATE
+      ORDER BY last_email_sent DESC
+    `;
+
+    const queued_next = await queryClient`
+      SELECT id, first_name, last_name, email, company, state, outreach_step
+      FROM leads
+      WHERE status = 'new' AND outreach_step = 0
+      ORDER BY created_at ASC
+      LIMIT 10
+    `;
+
+    res.json({ success: true, sent_today, queued_next });
+  } catch (error) {
+    console.error('[Leads Activity] Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ElevenLabs Voice Agent Webhook - Post-call notifications with AI analysis
 app.post('/api/webhooks/elevenlabs', async (req, res) => {
   console.log('[ElevenLabs Webhook] Received post-call data');
@@ -1302,10 +1645,10 @@ app.get('/api/admin/recordings', async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit || '50', 10), 200);
     const rows = await queryClient`
       SELECT id, plaud_recording_id, title, audio_url, duration_seconds,
-             transcription_status, transcript, client_id, deal_id,
-             recording_type, tags, recorded_at, transcribed_at, created_at
+             transcription_status, transcript, summary, metadata, language,
+             client_id, deal_id, recording_type, tags, recorded_at, transcribed_at, created_at
       FROM recordings
-      ORDER BY created_at DESC
+      ORDER BY recorded_at DESC NULLS LAST
       LIMIT ${limit}
     `;
     res.json({ success: true, recordings: rows });
@@ -1425,6 +1768,7 @@ app.get('/api/admin/knowledge-base/actions', async (req, res) => {
   try {
     const items = await queryClient`
       SELECT * FROM action_items
+      WHERE status NOT IN ('needs_review')
       ORDER BY
         CASE status WHEN 'pending' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END,
         CASE priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,

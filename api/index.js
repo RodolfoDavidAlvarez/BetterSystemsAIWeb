@@ -229,7 +229,14 @@ app.get('/api/auth/me', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get current user error:', error);
+    console.error('Get current user error:', error.name, error.message);
+    console.error('Auth debug — token found:', !!token, '| token length:', token ? token.length : 0);
+    console.error('Auth debug — JWT_SECRET source:', process.env.JWT_SECRET ? 'env' : 'fallback');
+    if (error.name === 'JsonWebTokenError') {
+      console.error('Auth debug — JWT error detail:', error.message);
+    } else if (error.name === 'TokenExpiredError') {
+      console.error('Auth debug — token expired at:', error.expiredAt);
+    }
     res.status(401).json({
       success: false,
       message: 'Invalid or expired token'

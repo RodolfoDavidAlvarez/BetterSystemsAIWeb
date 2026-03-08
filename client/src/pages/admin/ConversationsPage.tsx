@@ -56,13 +56,24 @@ function formatDate(dateStr: string | null): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayName = days[d.getDay()];
+  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const shortDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-  if (diffDays === 0) {
-    return "Today " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  }
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diffDays === 0) return `Today ${time}`;
+  if (diffDays === 1) return `Yesterday ${time}`;
+  if (diffDays < 7) return `${dayName} · ${diffDays}d ago · ${time}`;
+  return `${dayName} ${shortDate} · ${diffDays}d ago`;
+}
+
+// Strip date prefixes from recording titles (e.g. "2026-03-05 — Call..." → "Call...")
+function cleanTitle(title: string | null): string {
+  if (!title) return "Untitled Recording";
+  return title
+    .replace(/^\d{4}-\d{2}-\d{2}\s*[-—–]\s*/, "")
+    .replace(/^\d{2}-\d{2}\s*/, "")
+    .trim() || "Untitled Recording";
 }
 
 function priorityColor(priority: string): string {
@@ -444,7 +455,7 @@ export default function ConversationsPage() {
     actionItems.filter((a) => a.recording_id === recordingId && a.status !== "dismissed" && a.status !== "completed");
 
   const getAllActiveActions = () =>
-    actionItems.filter((a) => a.status === "pending" || a.status === "in_progress");
+    actionItems.filter((a) => a.status === "pending" || a.status === "in_progress" || a.status === "needs_review");
 
   const activeActions = getAllActiveActions();
 
@@ -608,7 +619,7 @@ export default function ConversationsPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base leading-tight truncate">
-                          {rec.title || "Untitled Recording"}
+                          {cleanTitle(rec.title)}
                         </h3>
                         <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">

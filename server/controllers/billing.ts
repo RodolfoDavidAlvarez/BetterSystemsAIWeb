@@ -3,6 +3,7 @@ import { db } from "../../db/index";
 import { stripeCustomers, invoices, paymentIntents, subscriptions, quotes, paymentLinks, clients, deals, supportTickets } from "../../db/schema";
 import { eq, and, or, isNull } from "drizzle-orm";
 import * as stripeService from "../services/stripe";
+import { isStripeConfigured } from "../services/stripe";
 
 // ==================== MONTHLY REVENUE ====================
 
@@ -13,6 +14,23 @@ import * as stripeService from "../services/stripe";
 export async function getMonthlyRevenue(req: Request, res: Response) {
   try {
     const months = parseInt(req.query.months as string) || 6;
+
+    if (!isStripeConfigured) {
+      // Return empty months structure when Stripe not connected
+      const monthsData: { month: string; revenue: number }[] = [];
+      const now = new Date();
+      for (let i = months - 1; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+        monthsData.push({ month: monthKey, revenue: 0 });
+      }
+      return res.json({
+        success: true,
+        stripeConnected: false,
+        data: { monthlyRevenue: monthsData, totalRevenue: 0 },
+      });
+    }
+
     const monthlyRevenue = await stripeService.getMonthlyRevenueFromStripe(months);
 
     // Calculate total revenue
@@ -20,6 +38,7 @@ export async function getMonthlyRevenue(req: Request, res: Response) {
 
     res.json({
       success: true,
+      stripeConnected: true,
       data: {
         monthlyRevenue,
         totalRevenue: Math.round(totalRevenue * 100) / 100,
@@ -41,10 +60,15 @@ export async function getMonthlyRevenue(req: Request, res: Response) {
  */
 export async function getPaymentHistory(req: Request, res: Response) {
   try {
+    if (!isStripeConfigured) {
+      return res.json({ success: true, stripeConnected: false, data: [] });
+    }
+
     const payments = await stripeService.getPaymentHistory();
 
     res.json({
       success: true,
+      stripeConnected: true,
       data: payments,
     });
   } catch (error: any) {
@@ -867,6 +891,14 @@ export async function getClientBillingSummary(req: Request, res: Response) {
  */
 export async function getFreshStripeData(req: Request, res: Response) {
   try {
+    if (!isStripeConfigured) {
+      return res.json({
+        success: true,
+        stripeConnected: false,
+        data: { invoices: [], subscriptions: [], customers: [], summary: { totalRevenue: 0, totalOutstanding: 0, totalDraft: 0, totalInvoices: 0, totalSubscriptions: 0 } },
+      });
+    }
+
     const [stripeInvoices, stripeSubscriptions, stripeCustomers] = await Promise.all([
       stripeService.getAllStripeInvoices(),
       stripeService.getAllSubscriptions(),
@@ -1065,44 +1097,22 @@ export async function getDealBillingSummary(req: Request, res: Response) {
  */
 export async function getBillingDashboard(req: Request, res: Response) {
   try {
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "billing.ts:923",
-        message: "getBillingDashboard entry",
-        data: { timestamp: Date.now() },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "B",
-      }),
-    }).catch(() => {});
-    // #endregion
+    // Gracefully handle missing tables — they may not exist yet if DB hasn't been migrated
+    const safeQuery = async (queryFn: () => Promise<any[]>) => {
+      try { return await queryFn(); } catch (e: any) {
+        if (e.message?.includes('does not exist') || e.code === '42P01') return [];
+        throw e;
+      }
+    };
+
     const [allInvoices, allPaymentIntents, allSubscriptions, allQuotes, allPaymentLinks, allClients] = await Promise.all([
-      db.select().from(invoices),
-      db.select().from(paymentIntents),
-      db.select().from(subscriptions),
-      db.select().from(quotes),
-      db.select().from(paymentLinks),
-      db.select().from(clients),
+      safeQuery(() => db.select().from(invoices)),
+      safeQuery(() => db.select().from(paymentIntents)),
+      safeQuery(() => db.select().from(subscriptions)),
+      safeQuery(() => db.select().from(quotes)),
+      safeQuery(() => db.select().from(paymentLinks)),
+      safeQuery(() => db.select().from(clients)),
     ]);
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "billing.ts:933",
-        message: "After DB queries",
-        data: { invoicesCount: allInvoices.length, clientsCount: allClients.length },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "B",
-      }),
-    }).catch(() => {});
-    // #endregion
 
     // Always fetch fresh data from Stripe to ensure we have all historical data
     // This ensures we see all invoices, even if database is empty or incomplete
@@ -1110,18 +1120,19 @@ export async function getBillingDashboard(req: Request, res: Response) {
     let stripePaymentIntents = allPaymentIntents;
     let stripeSubscriptions = allSubscriptions;
 
-    // Always fetch customer data from Stripe to enrich invoices with customer info
-    // This ensures we have customer names/emails even for database invoices
+    // Fetch customer data from Stripe to enrich invoices with customer info (only if Stripe is configured)
     let stripeCustomersList: any[] = [];
-    try {
-      stripeCustomersList = await stripeService.getAllStripeCustomers();
-      console.log(`Fetched ${stripeCustomersList.length} Stripe customers for enrichment`);
-    } catch (error) {
-      console.error("Error fetching Stripe customers for enrichment:", error);
+    if (isStripeConfigured) {
+      try {
+        stripeCustomersList = await stripeService.getAllStripeCustomers();
+        console.log(`Fetched ${stripeCustomersList.length} Stripe customers for enrichment`);
+      } catch (error) {
+        console.error("Error fetching Stripe customers for enrichment:", error);
+      }
     }
 
     // Get all Stripe customer records from database
-    const allStripeCustomerRecords = await db.select().from(stripeCustomers);
+    const allStripeCustomerRecords = await safeQuery(() => db.select().from(stripeCustomers));
 
     // Create maps for quick lookup
     const stripeCustomerIdToInfoMap = new Map<string, { name: string | null; email: string | null; clientId: number | null }>();
@@ -1187,57 +1198,13 @@ export async function getBillingDashboard(req: Request, res: Response) {
           clientId: inv.clientId || customerInfo?.clientId || customerInfoFromDb?.clientId || null,
         };
 
-        // #region agent log
-        if (!enrichedInvoice.customerName && !enrichedInvoice.customerEmail) {
-          fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              location: "billing.ts:1127",
-              message: "Invoice missing customer info",
-              data: {
-                invoiceId: inv.id,
-                stripeInvoiceId: inv.stripeInvoiceId,
-                stripeCustomerId: inv.stripeCustomerId,
-                hasStripeCustId: !!stripeCustId,
-                hasCustomerInfo: !!customerInfo,
-                hasCustomerInfoFromDb: !!customerInfoFromDb,
-                stripeDataCustomer: inv.stripeData?.customer,
-              },
-              timestamp: Date.now(),
-              sessionId: "debug-session",
-              runId: "run1",
-              hypothesisId: "F",
-            }),
-          }).catch(() => {});
-        }
-        // #endregion
-
         return enrichedInvoice;
       });
     }
 
-    // Always fetch fresh data from Stripe to ensure we have complete customer information
-    // This ensures customer names/emails are always available, even for old invoices
-    const shouldFetchFromStripe = true; // Always fetch to get customer info
-
-    if (shouldFetchFromStripe) {
+    // Fetch fresh data from Stripe if configured
+    if (isStripeConfigured) {
       try {
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: "billing.ts:939",
-            message: "Fetching ALL historical data from Stripe",
-            data: { timestamp: Date.now(), hasInvoicesInDB: allInvoices.length > 0 },
-            timestamp: Date.now(),
-            sessionId: "debug-session",
-            runId: "run1",
-            hypothesisId: "A",
-          }),
-        }).catch(() => {});
-        // #endregion
         console.log("Fetching ALL historical data from Stripe (this may take a moment for large accounts)...");
         // Fetch ALL historical data from Stripe (with pagination)
         // Use already fetched customers if available, otherwise fetch fresh
@@ -1268,7 +1235,7 @@ export async function getBillingDashboard(req: Request, res: Response) {
 
         // Create a map of Stripe customer IDs to client IDs
         const customerMap = new Map<string, number>();
-        const allStripeCustomerRecords = await db.select().from(stripeCustomers);
+        const allStripeCustomerRecords = await safeQuery(() => db.select().from(stripeCustomers));
 
         // First, use database records to map Stripe customer IDs to client IDs
         for (const stripeCustRecord of allStripeCustomerRecords) {
@@ -1279,21 +1246,6 @@ export async function getBillingDashboard(req: Request, res: Response) {
 
         // Also match by email if we have Stripe customer emails from Stripe API
         const stripeCustomerEmailMap = new Map<string, string>(); // email -> stripe customer id
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: "billing.ts:962",
-            message: "Before stripeCustomersFromAPI loop",
-            data: { stripeCustomersListLength: stripeCustomersList?.length || 0, stripeCustomersListType: typeof stripeCustomersList },
-            timestamp: Date.now(),
-            sessionId: "debug-session",
-            runId: "run1",
-            hypothesisId: "A",
-          }),
-        }).catch(() => {});
-        // #endregion
         for (const cust of stripeCustomersList) {
           if (cust.email) {
             stripeCustomerEmailMap.set(cust.email.toLowerCase(), cust.id);
@@ -1418,24 +1370,9 @@ export async function getBillingDashboard(req: Request, res: Response) {
             updatedAt: new Date(),
           };
         });
-      } catch (stripeError) {
-        // #region agent log
-        fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: "billing.ts:1051",
-            message: "Stripe fetch error",
-            data: { errorMessage: stripeError?.message, errorType: stripeError?.constructor?.name },
-            timestamp: Date.now(),
-            sessionId: "debug-session",
-            runId: "run1",
-            hypothesisId: "D",
-          }),
-        }).catch(() => {});
-        // #endregion
-        console.error("Error fetching Stripe data for dashboard:", stripeError);
-        // Continue with empty database data
+      } catch (stripeError: any) {
+        console.error("Error fetching Stripe data for dashboard:", stripeError?.message);
+        // Continue with database-only data
       }
     }
 
@@ -1454,7 +1391,7 @@ export async function getBillingDashboard(req: Request, res: Response) {
 
     // Get all billable tickets (unbilled work) for all clients
     const DEFAULT_HOURLY_RATE = 65;
-    const allBillableTickets = await db
+    const allBillableTickets = await safeQuery(() => db
       .select({
         ticket: supportTickets,
         dealHourlyRate: deals.hourlyRate,
@@ -1466,7 +1403,7 @@ export async function getBillingDashboard(req: Request, res: Response) {
           or(eq(supportTickets.status, "resolved"), eq(supportTickets.readyToBill, true)),
           isNull(supportTickets.invoiceId)
         )
-      );
+      ));
 
     // Calculate unbilled work per client
     const unbilledWorkByClient = new Map<number, number>();
@@ -1519,23 +1456,9 @@ export async function getBillingDashboard(req: Request, res: Response) {
       })
       .filter((g: any) => g.invoiceCount > 0 || g.subscriptionCount > 0 || g.unbilledWork > 0);
 
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "billing.ts:1098",
-        message: "Before sending response",
-        data: { invoicesCount: stripeInvoices.length, clientGroupsCount: clientGroups.length, totalRevenue },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "C",
-      }),
-    }).catch(() => {});
-    // #endregion
     res.json({
       success: true,
+      stripeConnected: isStripeConfigured,
       data: {
         invoices: stripeInvoices,
         paymentIntents: stripePaymentIntents,
@@ -1554,21 +1477,6 @@ export async function getBillingDashboard(req: Request, res: Response) {
       },
     });
   } catch (error: any) {
-    // #region agent log
-    fetch("http://127.0.0.1:7242/ingest/eeaabba8-d84f-4ac1-9027-563534dec8de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "billing.ts:1117",
-        message: "getBillingDashboard top-level error",
-        data: { errorMessage: error?.message, errorType: error?.constructor?.name },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        runId: "run1",
-        hypothesisId: "D",
-      }),
-    }).catch(() => {});
-    // #endregion
     console.error("Error fetching billing dashboard:", error);
     res.status(500).json({
       success: false,

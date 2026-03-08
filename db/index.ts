@@ -10,11 +10,13 @@ let isMockDatabase = false;
 // Enhanced database connection handling with more comprehensive fallbacks
 const getDatabaseConnection = () => {
   // Check if we have a database URL
-  if (!process.env.DATABASE_URL) {
+  const rawDatabaseUrl = process.env.DATABASE_URL?.trim();
+
+  if (!rawDatabaseUrl) {
     console.error("[Database] WARNING: DATABASE_URL is not set");
 
     // Check if we're in production
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV?.trim() === "production") {
       console.warn("[Database] Production environment detected without DATABASE_URL");
 
       // In production, check for individual Postgres environment variables
@@ -45,7 +47,9 @@ const getDatabaseConnection = () => {
   }
 
   // Append search_path to connection string for Supabase bettersystems schema
-  let dbUrl = process.env.DATABASE_URL;
+  let dbUrl = rawDatabaseUrl;
+  // Remove sslmode from URL — we handle SSL via Pool options to allow rejectUnauthorized: false
+  dbUrl = dbUrl.replace(/[?&]sslmode=[^&]*/g, '').replace(/\?&/, '?').replace(/\?$/, '');
   if (dbUrl && !dbUrl.includes('search_path')) {
     const separator = dbUrl.includes('?') ? '&' : '?';
     dbUrl = `${dbUrl}${separator}options=-c%20search_path=bettersystems,public`;
@@ -83,6 +87,7 @@ try {
       connectionTimeoutMillis: 5000, // 5 second timeout for initial connection
       idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
       max: 20, // Maximum number of clients in the pool
+      ssl: { rejectUnauthorized: false }, // Required for Supabase pooler
     });
 
     // Set search_path to bettersystems schema for production Supabase

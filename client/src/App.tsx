@@ -1,5 +1,6 @@
 // React imports
-import { Router, Route, Switch } from "wouter";
+import { useEffect } from "react";
+import { Router, Route, Switch, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { queryClient } from "./lib/queryClient";
@@ -16,30 +17,27 @@ import OnboardPage from "./pages/OnboardPage";
 import PartnersPage from "./pages/PartnersPage";
 import SocialPage from "./pages/SocialPage";
 import BookingPage from "./pages/BookingPage";
+import ContractorCRMPage from "./pages/ContractorCRMPage";
 import InvoicePaymentPage from "./pages/InvoicePaymentPage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
 // Admin imports
 import LoginPage from "./pages/admin/LoginPage";
-import DashboardPage from "./pages/admin/DashboardPage";
-import BlogPostsPage from "./pages/admin/BlogPostsPage";
-import BlogPostEditor from "./pages/admin/BlogPostEditor";
-import ClientsPage from "./pages/admin/ClientsPage";
-import ClientEditorPage from "./pages/admin/ClientEditorPage";
 import BillingPage from "./pages/admin/BillingPage";
-import DealsPage from "./pages/admin/DealsPage";
-import DealDetailPage from "./pages/admin/DealDetailPage";
-import TicketsPage from "./pages/admin/TicketsPage";
-import ChangelogPage from "./pages/admin/ChangelogPage";
-import UpdatesPage from "./pages/admin/UpdatesPage";
-import EmailsPage from "./pages/admin/EmailsPage";
-import CampaignsPage from "./pages/admin/CampaignsPage";
-import MissionControlPage from "./pages/admin/MissionControlPage";
-import BrainStormPage from "./pages/admin/BrainStormPage";
-import ReviewsPage from "./pages/admin/ReviewsPage";
+import ConversationsPage from "./pages/admin/ConversationsPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 import ReviewSurveyPage from "./pages/ReviewSurveyPage";
+import OutreachDashboard from "./pages/admin/OutreachDashboard";
+
+// Simple redirect component that doesn't cause infinite re-renders
+function RedirectTo({ path }: { path: string }) {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    navigate(path, { replace: true });
+  }, [navigate, path]);
+  return null;
+}
 
 
 function App() {
@@ -63,143 +61,41 @@ function App() {
               <Route path="/start" component={OnboardPage} />
               <Route path="/rodolfo" component={SocialPage} />
               <Route path="/book" component={BookingPage} />
+              <Route path="/contractors" component={ContractorCRMPage} />
               <Route path="/review" component={ReviewSurveyPage} />
               <Route path="/pay/:invoiceNumber" component={InvoicePaymentPage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />
+
+              {/* Redirect old routes to conversations */}
               <Route path="/admin/dashboard">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <DashboardPage />
-                  </AdminLayout>
-                </ProtectedRoute>
+                <RedirectTo path="/admin/conversations" />
               </Route>
-              <Route path="/admin/blog">
+
+              {/* Conversations — the main admin page */}
+              <Route path="/admin/conversations">
                 <ProtectedRoute>
                   <AdminLayout>
-                    <BlogPostsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/blog/new">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <BlogPostEditor />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/blog/:id">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <BlogPostEditor />
+                    <ConversationsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>
 
-              {/* CRM Routes */}
-              <Route path="/admin/clients">
+              {/* Outreach CRM */}
+              <Route path="/admin/outreach">
                 <ProtectedRoute>
                   <AdminLayout>
-                    <ClientsPage />
+                    <OutreachDashboard />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>
-              <Route path="/admin/clients/new">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <ClientEditorPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/clients/:id/edit">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <ClientEditorPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/clients/:id">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <ClientEditorPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/deals/:id">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <DealDetailPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/deals">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <DealsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
+
+              {/* Financial — kept as-is */}
               <Route path="/admin/billing">
                 <ProtectedRoute>
                   <AdminLayout>
                     <BillingPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/tickets">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <TicketsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/changelogs">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <ChangelogPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/updates">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <UpdatesPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/emails">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <EmailsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/campaigns">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <CampaignsPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/mission-control">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <MissionControlPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/brain-storm">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <BrainStormPage />
-                  </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-              <Route path="/admin/reviews">
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <ReviewsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Safe area for iPhone notch/home indicator */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Admin bottom tab bar spacing */
+.admin-ui main {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 @layer base {
   :root {
     /* Enhanced contrast color palette */
@@ -37,6 +47,16 @@
     --ring: 217 91% 45%; /* Strong focus ring */
 
     --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 220 15% 97%;
+    --sidebar-foreground: 220 40% 10%;
+    --sidebar-primary: 217 91% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 92%;
+    --sidebar-accent-foreground: 220 40% 10%;
+    --sidebar-border: 220 20% 88%;
+    --sidebar-ring: 217 91% 45%;
   }
 }
 
@@ -433,6 +453,16 @@
 
 .admin-ui {
   --admin-radius: 0.7rem;
+
+  /* Admin uses a dark/neutral sidebar */
+  --sidebar-background: 220 20% 14%;
+  --sidebar-foreground: 220 10% 85%;
+  --sidebar-primary: 217 91% 55%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 20% 20%;
+  --sidebar-accent-foreground: 220 10% 90%;
+  --sidebar-border: 220 15% 22%;
+  --sidebar-ring: 217 91% 55%;
 }
 
 .admin-ui h1 {
@@ -489,6 +519,15 @@
   .admin-ui .admin-content-shell {
     max-width: 100%;
   }
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* ============================================

@@ -1,6 +1,9 @@
 import "./loadEnv";
 import type { Express } from "express";
 import express from "express";
+import { existsSync, mkdirSync } from "fs";
+import { execSync } from "child_process";
+import path from "path";
 import { login, register, getCurrentUser } from "./controllers/auth";
 import { authenticate, isAdmin } from "./middleware/auth";
 import { sendCustomerEmail, sendAdminNotification } from "./services/email";
@@ -732,20 +735,29 @@ export function registerRoutes(app: Express) {
   // GET lead activity — today's sends + queued next
   app.get("/api/admin/leads/activity", authenticate, isAdmin, async (req, res) => {
     try {
-      const sentToday = await db.execute(
-        sql`SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent
-        FROM leads
-        WHERE last_email_sent::date = CURRENT_DATE
-        ORDER BY last_email_sent DESC`
-      );
+      const campaign = req.query.campaign as string | undefined;
 
-      const queuedNext = await db.execute(
-        sql`SELECT id, first_name, last_name, email, company, state, outreach_step
-        FROM leads
-        WHERE status = 'new' AND outreach_step = 0
-        ORDER BY created_at ASC
-        LIMIT 10`
-      );
+      const sentToday = campaign
+        ? await db.execute(sql`
+            SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent, campaign
+            FROM leads WHERE last_email_sent::date = CURRENT_DATE AND campaign = ${campaign}
+            ORDER BY last_email_sent DESC`)
+        : await db.execute(sql`
+            SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent, campaign
+            FROM leads WHERE last_email_sent::date = CURRENT_DATE
+            ORDER BY last_email_sent DESC`);
+
+      const queuedNext = campaign
+        ? await db.execute(sql`
+            SELECT id, first_name, last_name, email, company, state, outreach_step, campaign
+            FROM leads WHERE status = 'new' AND outreach_step = 0 AND campaign = ${campaign}
+            ORDER BY CASE WHEN state = 'AZ' THEN 0 ELSE 1 END, employee_count ASC NULLS LAST, created_at ASC
+            LIMIT 10`)
+        : await db.execute(sql`
+            SELECT id, first_name, last_name, email, company, state, outreach_step, campaign
+            FROM leads WHERE status = 'new' AND outreach_step = 0
+            ORDER BY CASE WHEN state = 'AZ' THEN 0 ELSE 1 END, employee_count ASC NULLS LAST, created_at ASC
+            LIMIT 10`);
 
       res.json({ success: true, sent_today: sentToday.rows, queued_next: queuedNext.rows });
     } catch (error: any) {
@@ -917,8 +929,21 @@ export function registerRoutes(app: Express) {
     express.static("uploads")(req, res, next);
   });
 
-  // Serve Plaud audio recordings
+  // Serve Plaud audio recordings — proxy from VPS if local file missing
   app.use("/data/plaud-audio", authenticate, isAdmin, (req, res, next) => {
+    const localPath = path.join("data/plaud-audio", req.path);
+    if (!existsSync(localPath)) {
+      try {
+        mkdirSync("data/plaud-audio", { recursive: true });
+        execSync(
+          `scp -o ConnectTimeout=5 root@143.198.74.96:/opt/context-engine/data/plaud-audio/${path.basename(req.path)} ${localPath}`,
+          { timeout: 15000 }
+        );
+        console.log(`[Audio] Fetched from VPS: ${path.basename(req.path)}`);
+      } catch (e: any) {
+        console.error("[Audio] Failed to fetch from VPS:", e.message);
+      }
+    }
     express.static("data/plaud-audio")(req, res, next);
   });
 
@@ -956,24 +981,30 @@ export function registerRoutes(app: Express) {
   app.post("/api/admin/cold-outreach/bulk-update", authenticate, isAdmin, bulkUpdateLeads);
 
   // ==================== NEW LEADS PIPELINE (outreach-engine leads table) ====================
-  app.get("/api/admin/cold-outreach/new-leads", authenticate, isAdmin, async (_req, res) => {
+  app.get("/api/admin/cold-outreach/new-leads", authenticate, isAdmin, async (req, res) => {
     try {
-      const result = await db.execute(sql`
-        SELECT id, first_name, last_name, email, phone, title, company, company_website,
-               industry, city, state, employee_count, source, status, outreach_step,
-               last_email_sent, tags, created_at, updated_at
-        FROM leads
-        ORDER BY
-          CASE
-            WHEN status = 'replied' THEN 1
-            WHEN status = 'contacted' AND outreach_step < 3 THEN 2
-            WHEN status = 'new' THEN 3
-            WHEN status = 'bounced' THEN 4
-            ELSE 5
-          END,
-          last_email_sent DESC NULLS LAST,
-          created_at DESC
-      `);
+      const campaign = req.query.campaign as string | undefined;
+      const result = campaign
+        ? await db.execute(sql`
+            SELECT id, first_name, last_name, email, phone, title, company, company_website,
+                   industry, city, state, employee_count, source, status, outreach_step,
+                   last_email_sent, notes, campaign, resend_message_id, tags, created_at, updated_at
+            FROM leads WHERE campaign = ${campaign}
+            ORDER BY
+              CASE WHEN status = 'replied' THEN 1 WHEN status = 'contacted' AND outreach_step < 3 THEN 2
+                   WHEN status = 'new' THEN 3 WHEN status = 'bounced' THEN 4 ELSE 5 END,
+              last_email_sent DESC NULLS LAST, created_at DESC
+          `)
+        : await db.execute(sql`
+            SELECT id, first_name, last_name, email, phone, title, company, company_website,
+                   industry, city, state, employee_count, source, status, outreach_step,
+                   last_email_sent, notes, campaign, resend_message_id, tags, created_at, updated_at
+            FROM leads
+            ORDER BY
+              CASE WHEN status = 'replied' THEN 1 WHEN status = 'contacted' AND outreach_step < 3 THEN 2
+                   WHEN status = 'new' THEN 3 WHEN status = 'bounced' THEN 4 ELSE 5 END,
+              last_email_sent DESC NULLS LAST, created_at DESC
+          `);
       res.json({ success: true, leads: result.rows });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
@@ -982,21 +1013,33 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/admin/cold-outreach/new-leads/metrics", authenticate, isAdmin, async (_req, res) => {
     try {
-      const result = await db.execute(sql`
+      const campaignMetrics = await db.execute(sql`
         SELECT
+          campaign,
           COUNT(*) as total,
           COUNT(*) FILTER (WHERE status = 'new') as new_leads,
           COUNT(*) FILTER (WHERE status = 'contacted') as contacted,
           COUNT(*) FILTER (WHERE status = 'replied') as replied,
           COUNT(*) FILTER (WHERE status = 'bounced') as bounced,
-          COUNT(*) FILTER (WHERE outreach_step = 0) as not_emailed,
+          COUNT(*) FILTER (WHERE outreach_step = 0 AND status NOT IN ('unsubscribed')) as not_emailed,
           COUNT(*) FILTER (WHERE outreach_step = 1) as step_1,
           COUNT(*) FILTER (WHERE outreach_step = 2) as step_2,
           COUNT(*) FILTER (WHERE outreach_step >= 3) as step_3_complete,
           COUNT(*) FILTER (WHERE last_email_sent::date = CURRENT_DATE) as sent_today
         FROM leads
+        GROUP BY campaign
       `);
-      res.json({ success: true, metrics: result.rows[0] });
+      const rows = campaignMetrics.rows as any[];
+      const combined: any = {
+        total: 0, new_leads: 0, contacted: 0, replied: 0, bounced: 0,
+        not_emailed: 0, step_1: 0, step_2: 0, step_3_complete: 0, sent_today: 0
+      };
+      for (const m of rows) {
+        for (const key of Object.keys(combined)) {
+          combined[key] += Number(m[key]) || 0;
+        }
+      }
+      res.json({ success: true, metrics: combined, by_campaign: rows });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }

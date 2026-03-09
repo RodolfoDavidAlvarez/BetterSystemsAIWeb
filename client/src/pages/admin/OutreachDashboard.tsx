@@ -12,6 +12,8 @@ import {
   Mail,
   Loader2,
   Send,
+  Truck,
+  Wrench,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -36,9 +38,25 @@ interface Lead {
   last_email_sent: string | null;
   last_reply_at: string | null;
   notes: string | null;
+  campaign: string | null;
+  resend_message_id: string | null;
   tags: string[] | null;
   created_at: string;
   updated_at: string;
+}
+
+interface CampaignMetrics {
+  campaign: string;
+  total: number;
+  new_leads: number;
+  contacted: number;
+  replied: number;
+  bounced: number;
+  not_emailed: number;
+  step_1: number;
+  step_2: number;
+  step_3_complete: number;
+  sent_today: number;
 }
 
 interface Metrics {
@@ -59,6 +77,63 @@ interface Activity {
   queued_next: Lead[];
 }
 
+// ─── Email Templates (for preview) ──────────────────────────────────
+
+function getEmailPreview(lead: Lead): { subject: string; snippet: string } {
+  const step = lead.outreach_step;
+  const campaign = lead.campaign || "contractor-crm";
+
+  if (campaign === "weight-ticket") {
+    if (step >= 3 || step === 0) {
+      return {
+        subject: `${lead.company} — quick question`,
+        snippet: `My name is Rodo. I built a system for a hauling company here in Phoenix that lets their drivers log weight tickets right from their phone...`,
+      };
+    }
+    if (step === 1) {
+      return {
+        subject: `${lead.company} — quick question`,
+        snippet: `My name is Rodo. I built a system for a hauling company here in Phoenix that lets their drivers log weight tickets right from their phone...`,
+      };
+    }
+    if (step === 2) {
+      return {
+        subject: `Re: ${lead.company} — quick question`,
+        snippet: `Following up on my last note. The hauling company I mentioned went from spending 2-3 hours a day on ticket data entry to about 15 minutes...`,
+      };
+    }
+  }
+
+  // contractor-crm
+  if (step >= 3 || step === 0) {
+    return {
+      subject: `${lead.company} — quick question`,
+      snippet: `My name is Rodo. I help contractors like ${lead.company} stay ahead with technology so you're not falling behind...`,
+    };
+  }
+  if (step === 1) {
+    return {
+      subject: `${lead.company} — quick question`,
+      snippet: `My name is Rodo. I help contractors like ${lead.company} stay ahead with technology so you're not falling behind...`,
+    };
+  }
+  if (step === 2) {
+    return {
+      subject: `Re: ${lead.company} — quick question`,
+      snippet: `Quick follow-up on my last email. The contractor I mentioned said the biggest win was that customers sign and pay from their phone on the spot...`,
+    };
+  }
+
+  return { subject: `Re: ${lead.company} — quick question`, snippet: `Last one from me...` };
+}
+
+function getLastEmailLabel(step: number): string {
+  if (step === 1) return "Intro sent";
+  if (step === 2) return "Follow-up sent";
+  if (step >= 3) return "Sequence complete";
+  return "";
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function getAuthHeaders() {
@@ -68,29 +143,34 @@ function getAuthHeaders() {
   };
 }
 
-function stepLabel(step: number): string {
-  if (step === 0) return "Not emailed";
-  if (step === 1) return "Email 1";
-  if (step === 2) return "Email 2";
-  return "Complete";
-}
-
 function timeAgo(dateStr: string | null): string {
   if (!dateStr) return "";
   return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
 }
+
+// ─── Campaign Config ────────────────────────────────────────────────
+
+const CAMPAIGNS = [
+  { id: "all", label: "All", icon: null },
+  { id: "contractor-crm", label: "CRM", icon: Wrench },
+  { id: "weight-ticket", label: "Weight Ticket", icon: Truck },
+] as const;
+
+type CampaignFilter = "all" | "contractor-crm" | "weight-ticket";
 
 // ─── Main Component ─────────────────────────────────────────────────
 
 export default function OutreachDashboard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [campaignMetrics, setCampaignMetrics] = useState<CampaignMetrics[]>([]);
   const [activity, setActivity] = useState<Activity | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [filterStep, setFilterStep] = useState<number | null>(null);
+  const [campaignFilter, setCampaignFilter] = useState<CampaignFilter>("all");
   const [editingNote, setEditingNote] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
   const { toast } = useToast();
@@ -98,17 +178,21 @@ export default function OutreachDashboard() {
   const fetchAll = async () => {
     setLoading(true);
     try {
+      const campaignParam = campaignFilter !== "all" ? `?campaign=${campaignFilter}` : "";
       const [leadsRes, metricsRes, activityRes] = await Promise.all([
-        fetch("/api/admin/cold-outreach/new-leads", { headers: getAuthHeaders() }),
-        fetch("/api/admin/cold-outreach/new-leads/metrics", { headers: getAuthHeaders() }),
-        fetch("/api/admin/leads/activity", { headers: getAuthHeaders() }),
+        fetch(`/api/admin/cold-outreach/new-leads${campaignParam}`, { headers: getAuthHeaders() }),
+        fetch(`/api/admin/cold-outreach/new-leads/metrics`, { headers: getAuthHeaders() }),
+        fetch(`/api/admin/leads/activity${campaignParam}`, { headers: getAuthHeaders() }),
       ]);
 
       const leadsData = await leadsRes.json();
       const metricsData = await metricsRes.json();
 
       if (leadsData.success) setLeads(leadsData.leads);
-      if (metricsData.success) setMetrics(metricsData.metrics);
+      if (metricsData.success) {
+        setMetrics(metricsData.metrics);
+        if (metricsData.by_campaign) setCampaignMetrics(metricsData.by_campaign);
+      }
 
       if (activityRes.ok) {
         const activityData = await activityRes.json();
@@ -124,7 +208,7 @@ export default function OutreachDashboard() {
 
   useEffect(() => {
     fetchAll();
-  }, []);
+  }, [campaignFilter]);
 
   const updateLead = async (id: number, updates: Record<string, unknown>) => {
     try {
@@ -136,12 +220,14 @@ export default function OutreachDashboard() {
       const data = await res.json();
       if (data.success) {
         setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...data.lead } : l)));
-        // Refresh metrics
-        const metricsRes = await fetch("/api/admin/cold-outreach/new-leads/metrics", {
+        const metricsRes = await fetch(`/api/admin/cold-outreach/new-leads/metrics`, {
           headers: getAuthHeaders(),
         });
         const metricsData = await metricsRes.json();
-        if (metricsData.success) setMetrics(metricsData.metrics);
+        if (metricsData.success) {
+          setMetrics(metricsData.metrics);
+          if (metricsData.by_campaign) setCampaignMetrics(metricsData.by_campaign);
+        }
       } else {
         toast({ title: "Error", description: data.message, variant: "destructive" });
       }
@@ -174,8 +260,17 @@ export default function OutreachDashboard() {
   const sentToday = activity?.sent_today || [];
   const queuedNext = activity?.queued_next || [];
 
+  // Active metrics (use campaign-specific if filtered)
+  const activeMetrics = useMemo(() => {
+    if (campaignFilter !== "all") {
+      const cm = campaignMetrics.find((c) => c.campaign === campaignFilter);
+      if (cm) return cm;
+    }
+    return metrics;
+  }, [metrics, campaignMetrics, campaignFilter]);
+
   return (
-    <div className="min-h-screen bg-background pb-4">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
@@ -186,6 +281,33 @@ export default function OutreachDashboard() {
           >
             <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
           </button>
+        </div>
+
+        {/* Campaign Tabs */}
+        <div className="flex gap-1 mb-3">
+          {CAMPAIGNS.map((c) => {
+            const isActive = campaignFilter === c.id;
+            const Icon = c.icon;
+            const count =
+              c.id === "all"
+                ? metrics?.total || 0
+                : Number(campaignMetrics.find((m) => m.campaign === c.id)?.total || 0);
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCampaignFilter(c.id as CampaignFilter)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-foreground text-background"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {Icon && <Icon className="h-3.5 w-3.5" />}
+                {c.label}
+                <span className={`${isActive ? "opacity-60" : "opacity-40"}`}>({count})</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Search */}
@@ -210,33 +332,69 @@ export default function OutreachDashboard() {
 
       {!loading && (
         <div className="px-4 mt-4 space-y-4">
-          {/* Metrics Row */}
-          {metrics && (
-            <div className="grid grid-cols-3 gap-2">
+          {/* Campaign Summary Cards (when viewing "All") */}
+          {campaignFilter === "all" && campaignMetrics.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {campaignMetrics.map((cm) => (
+                <button
+                  key={cm.campaign}
+                  onClick={() => setCampaignFilter(cm.campaign as CampaignFilter)}
+                  className="rounded-xl border bg-card p-3 text-left active:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    {cm.campaign === "weight-ticket" ? (
+                      <Truck className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <Wrench className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {cm.campaign === "weight-ticket" ? "Weight Ticket" : "Contractor CRM"}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold">{Number(cm.total)}</div>
+                  <div className="flex gap-3 mt-1 text-[11px] text-muted-foreground">
+                    <span>{Number(cm.contacted)} sent</span>
+                    <span className="text-green-500">{Number(cm.replied)} replied</span>
+                    {Number(cm.sent_today) > 0 && (
+                      <span className="text-blue-500">{Number(cm.sent_today)} today</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Metrics Row (for specific campaign or combined) */}
+          {activeMetrics && campaignFilter !== "all" && (
+            <div className="grid grid-cols-4 gap-2">
               <div className="rounded-xl border bg-card p-3">
-                <span className="text-xs text-muted-foreground">Total</span>
-                <div className="text-2xl font-bold">{metrics.total}</div>
+                <span className="text-[10px] text-muted-foreground">Total</span>
+                <div className="text-xl font-bold">{Number(activeMetrics.total)}</div>
               </div>
               <div className="rounded-xl border bg-card p-3">
-                <span className="text-xs text-muted-foreground">Contacted</span>
-                <div className="text-2xl font-bold">{metrics.contacted}</div>
+                <span className="text-[10px] text-muted-foreground">Contacted</span>
+                <div className="text-xl font-bold">{Number(activeMetrics.contacted)}</div>
               </div>
               <div className="rounded-xl border bg-card p-3">
-                <span className="text-xs text-muted-foreground">Today</span>
-                <div className="text-2xl font-bold">{metrics.sent_today}</div>
+                <span className="text-[10px] text-muted-foreground">Replied</span>
+                <div className="text-xl font-bold text-green-500">{Number(activeMetrics.replied)}</div>
+              </div>
+              <div className="rounded-xl border bg-card p-3">
+                <span className="text-[10px] text-muted-foreground">Today</span>
+                <div className="text-xl font-bold">{Number(activeMetrics.sent_today)}</div>
               </div>
             </div>
           )}
 
           {/* Pipeline */}
-          {metrics && (
+          {activeMetrics && (
             <div className="rounded-xl border bg-card overflow-hidden">
               <div className="flex">
                 {[
-                  { step: 0, label: "New", count: Number(metrics.not_emailed) },
-                  { step: 1, label: "Email 1", count: Number(metrics.step_1) },
-                  { step: 2, label: "Email 2", count: Number(metrics.step_2) },
-                  { step: 3, label: "Done", count: Number(metrics.step_3_complete) },
+                  { step: 0, label: "New", count: Number(activeMetrics.not_emailed) },
+                  { step: 1, label: "Email 1", count: Number(activeMetrics.step_1) },
+                  { step: 2, label: "Email 2", count: Number(activeMetrics.step_2) },
+                  { step: 3, label: "Done", count: Number(activeMetrics.step_3_complete) },
                 ].map((stage, i) => {
                   const isActive = filterStep === stage.step;
                   return (
@@ -272,8 +430,10 @@ export default function OutreachDashboard() {
                       {lead.first_name} {lead.last_name}
                       <span className="text-muted-foreground ml-1.5">- {lead.company}</span>
                     </span>
-                    {lead.last_reply_at && (
-                      <span className="text-xs text-muted-foreground">{timeAgo(lead.last_reply_at)}</span>
+                    {lead.campaign && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        {lead.campaign === "weight-ticket" ? "WT" : "CRM"}
+                      </span>
                     )}
                   </div>
                 ))}
@@ -305,16 +465,21 @@ export default function OutreachDashboard() {
             <div className="rounded-xl border bg-card p-4 space-y-3">
               {sentToday.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex items-center gap-2 mb-2">
                     <Send className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Sent today ({sentToday.length})
                     </span>
                   </div>
-                  {sentToday.slice(0, 5).map((lead) => (
-                    <div key={lead.id} className="text-sm py-0.5 text-foreground/80">
-                      {lead.first_name} {lead.last_name}
-                      <span className="text-muted-foreground ml-1.5">- {lead.company}</span>
+                  {sentToday.slice(0, 8).map((lead) => (
+                    <div key={lead.id} className="flex items-center justify-between text-sm py-0.5">
+                      <span className="text-foreground/80 truncate">
+                        {lead.first_name} {lead.last_name}
+                        <span className="text-muted-foreground ml-1.5">- {lead.company}</span>
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-2 flex-shrink-0">
+                        {(lead as any).campaign === "weight-ticket" ? "WT" : "CRM"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -322,23 +487,25 @@ export default function OutreachDashboard() {
 
               {queuedNext.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex items-center gap-2 mb-2">
                     <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Next up ({queuedNext.length})
                     </span>
                   </div>
                   {queuedNext.slice(0, 5).map((lead) => (
-                    <div key={lead.id} className="text-sm py-0.5 text-foreground/80">
-                      {lead.first_name} {lead.last_name}
-                      <span className="text-muted-foreground ml-1.5">
-                        - {lead.company}, {lead.state}
+                    <div key={lead.id} className="flex items-center justify-between text-sm py-0.5">
+                      <span className="text-foreground/80 truncate">
+                        {lead.first_name} {lead.last_name}
+                        <span className="text-muted-foreground ml-1.5">
+                          - {lead.company}, {lead.state}
+                        </span>
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-2 flex-shrink-0">
+                        {(lead as any).campaign === "weight-ticket" ? "WT" : "CRM"}
                       </span>
                     </div>
                   ))}
-                  {queuedNext.length > 5 && (
-                    <span className="text-xs text-muted-foreground">+{queuedNext.length - 5} more</span>
-                  )}
                 </div>
               )}
             </div>
@@ -366,7 +533,10 @@ export default function OutreachDashboard() {
             })}
             {(filterStatus || filterStep !== null) && (
               <button
-                onClick={() => { setFilterStatus(null); setFilterStep(null); }}
+                onClick={() => {
+                  setFilterStatus(null);
+                  setFilterStep(null);
+                }}
                 className="px-2.5 py-1 rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Clear
@@ -387,6 +557,7 @@ export default function OutreachDashboard() {
             <div className="space-y-2">
               {filtered.map((lead) => {
                 const isExpanded = expandedId === lead.id;
+                const emailPreview = getEmailPreview(lead);
                 return (
                   <div key={lead.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
                     {/* Row */}
@@ -396,11 +567,24 @@ export default function OutreachDashboard() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base leading-tight truncate">
-                            {lead.first_name} {lead.last_name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                            <span>{lead.company}</span>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-base leading-tight truncate">
+                              {lead.first_name} {lead.last_name}
+                            </h3>
+                            {lead.campaign && (
+                              <span
+                                className={`flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                  lead.campaign === "weight-ticket"
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                    : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                }`}
+                              >
+                                {lead.campaign === "weight-ticket" ? "WT" : "CRM"}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <span className="truncate">{lead.company}</span>
                             {lead.state && (
                               <>
                                 <span className="opacity-30">|</span>
@@ -408,20 +592,38 @@ export default function OutreachDashboard() {
                               </>
                             )}
                           </div>
+
+                          {/* Email Preview Snippet */}
+                          {lead.outreach_step > 0 && (
+                            <div className="mt-2 text-[11px] text-muted-foreground/70 leading-snug line-clamp-2">
+                              <span className="font-medium text-muted-foreground">
+                                {getLastEmailLabel(lead.outreach_step)}:
+                              </span>{" "}
+                              {emailPreview.snippet}
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex items-center gap-3 flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <div className="text-right">
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                              lead.status === "replied"
-                                ? "bg-green-500/10 text-green-600 dark:text-green-400"
-                                : lead.status === "bounced"
-                                  ? "bg-red-500/10 text-red-600 dark:text-red-400"
-                                  : lead.status === "contacted"
-                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                                    : "bg-muted text-muted-foreground"
-                            }`}>
-                              {stepLabel(lead.outreach_step)}
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                                lead.status === "replied"
+                                  ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                                  : lead.status === "bounced"
+                                    ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                                    : lead.status === "contacted"
+                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                      : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {lead.outreach_step === 0
+                                ? "New"
+                                : lead.status === "replied"
+                                  ? "Replied"
+                                  : lead.status === "bounced"
+                                    ? "Bounced"
+                                    : `Step ${lead.outreach_step}`}
                             </span>
                             {lead.last_email_sent && (
                               <div className="text-[10px] text-muted-foreground mt-1">
@@ -430,9 +632,9 @@ export default function OutreachDashboard() {
                             )}
                           </div>
                           {isExpanded ? (
-                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
                           )}
                         </div>
                       </div>
@@ -441,48 +643,75 @@ export default function OutreachDashboard() {
                     {/* Expanded */}
                     {isExpanded && (
                       <div className="px-4 pb-4 pt-0 border-t space-y-3">
+                        {/* Email Preview */}
+                        {lead.outreach_step > 0 && (
+                          <div className="mt-3 rounded-lg bg-muted/30 border border-border/50 p-3">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Mail className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                                Last email sent
+                              </span>
+                            </div>
+                            <div className="text-xs font-medium mb-1">{emailPreview.subject}</div>
+                            <div className="text-[11px] text-muted-foreground leading-relaxed">
+                              {emailPreview.snippet}
+                            </div>
+                            {lead.last_email_sent && (
+                              <div className="text-[10px] text-muted-foreground/50 mt-2">
+                                Sent {format(new Date(lead.last_email_sent), "MMM d, yyyy 'at' h:mm a")}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Details */}
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-3 text-sm">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 pt-2 text-sm">
                           <div>
                             <span className="text-muted-foreground text-xs">Email</span>
-                            <div className="truncate">{lead.email}</div>
+                            <div className="truncate text-xs">{lead.email}</div>
                           </div>
                           {lead.phone && (
                             <div>
                               <span className="text-muted-foreground text-xs">Phone</span>
-                              <div>{lead.phone}</div>
+                              <div className="text-xs">{lead.phone}</div>
                             </div>
                           )}
                           {lead.title && (
                             <div>
                               <span className="text-muted-foreground text-xs">Title</span>
-                              <div className="truncate">{lead.title}</div>
+                              <div className="truncate text-xs">{lead.title}</div>
                             </div>
                           )}
                           {lead.city && (
                             <div>
                               <span className="text-muted-foreground text-xs">Location</span>
-                              <div>{lead.city}, {lead.state}</div>
+                              <div className="text-xs">
+                                {lead.city}, {lead.state}
+                              </div>
                             </div>
                           )}
                           {lead.industry && (
                             <div>
                               <span className="text-muted-foreground text-xs">Industry</span>
-                              <div className="truncate">{lead.industry}</div>
+                              <div className="truncate text-xs">{lead.industry}</div>
                             </div>
                           )}
                           {lead.employee_count && (
                             <div>
                               <span className="text-muted-foreground text-xs">Employees</span>
-                              <div>{lead.employee_count}</div>
+                              <div className="text-xs">{lead.employee_count}</div>
                             </div>
                           )}
                           {lead.company_website && (
                             <div className="col-span-2">
                               <span className="text-muted-foreground text-xs">Website</span>
-                              <div className="truncate">
+                              <div className="truncate text-xs">
                                 <a
-                                  href={lead.company_website.startsWith("http") ? lead.company_website : `https://${lead.company_website}`}
+                                  href={
+                                    lead.company_website.startsWith("http")
+                                      ? lead.company_website
+                                      : `https://${lead.company_website}`
+                                  }
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-primary hover:underline"
@@ -562,6 +791,12 @@ export default function OutreachDashboard() {
 
                         <div className="text-[10px] text-muted-foreground pt-1">
                           Added {format(new Date(lead.created_at), "MMM d, yyyy")}
+                          {lead.campaign && (
+                            <span>
+                              {" "}
+                              — {lead.campaign === "weight-ticket" ? "Weight Ticket" : "Contractor CRM"}
+                            </span>
+                          )}
                         </div>
                       </div>
                     )}

@@ -1307,22 +1307,42 @@ app.get('/api/admin/cold-outreach/new-leads', async (req, res) => {
     if (!token) return res.status(401).json({ success: false, message: 'No token' });
     jwt.verify(token, JWT_SECRET);
 
-    const leads = await queryClient`
-      SELECT id, first_name, last_name, email, phone, title, company, company_website,
-             industry, city, state, employee_count, source, status, outreach_step,
-             last_email_sent, tags, created_at, updated_at
-      FROM leads
-      ORDER BY
-        CASE
-          WHEN status = 'replied' THEN 1
-          WHEN status = 'contacted' AND outreach_step < 3 THEN 2
-          WHEN status = 'new' THEN 3
-          WHEN status = 'bounced' THEN 4
-          ELSE 5
-        END,
-        last_email_sent DESC NULLS LAST,
-        created_at DESC
-    `;
+    const campaign = req.query.campaign || null;
+
+    const leads = campaign
+      ? await queryClient`
+          SELECT id, first_name, last_name, email, phone, title, company, company_website,
+                 industry, city, state, employee_count, source, status, outreach_step,
+                 last_email_sent, notes, campaign, resend_message_id, tags, created_at, updated_at
+          FROM leads
+          WHERE campaign = ${campaign}
+          ORDER BY
+            CASE
+              WHEN status = 'replied' THEN 1
+              WHEN status = 'contacted' AND outreach_step < 3 THEN 2
+              WHEN status = 'new' THEN 3
+              WHEN status = 'bounced' THEN 4
+              ELSE 5
+            END,
+            last_email_sent DESC NULLS LAST,
+            created_at DESC
+        `
+      : await queryClient`
+          SELECT id, first_name, last_name, email, phone, title, company, company_website,
+                 industry, city, state, employee_count, source, status, outreach_step,
+                 last_email_sent, notes, campaign, resend_message_id, tags, created_at, updated_at
+          FROM leads
+          ORDER BY
+            CASE
+              WHEN status = 'replied' THEN 1
+              WHEN status = 'contacted' AND outreach_step < 3 THEN 2
+              WHEN status = 'new' THEN 3
+              WHEN status = 'bounced' THEN 4
+              ELSE 5
+            END,
+            last_email_sent DESC NULLS LAST,
+            created_at DESC
+        `;
 
     res.json({ success: true, leads });
   } catch (error) {
@@ -1337,22 +1357,47 @@ app.get('/api/admin/cold-outreach/new-leads/metrics', async (req, res) => {
     if (!token) return res.status(401).json({ success: false, message: 'No token' });
     jwt.verify(token, JWT_SECRET);
 
-    const [metrics] = await queryClient`
+    const campaign = req.query.campaign || null;
+
+    // Per-campaign metrics
+    const campaignMetrics = await queryClient`
       SELECT
+        campaign,
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE status = 'new') as new_leads,
         COUNT(*) FILTER (WHERE status = 'contacted') as contacted,
         COUNT(*) FILTER (WHERE status = 'replied') as replied,
         COUNT(*) FILTER (WHERE status = 'bounced') as bounced,
-        COUNT(*) FILTER (WHERE outreach_step = 0) as not_emailed,
+        COUNT(*) FILTER (WHERE outreach_step = 0 AND status NOT IN ('unsubscribed')) as not_emailed,
         COUNT(*) FILTER (WHERE outreach_step = 1) as step_1,
         COUNT(*) FILTER (WHERE outreach_step = 2) as step_2,
         COUNT(*) FILTER (WHERE outreach_step >= 3) as step_3_complete,
         COUNT(*) FILTER (WHERE last_email_sent::date = CURRENT_DATE) as sent_today
       FROM leads
+      GROUP BY campaign
     `;
 
-    res.json({ success: true, metrics });
+    // If specific campaign requested, return just that one
+    if (campaign) {
+      const m = campaignMetrics.find(c => c.campaign === campaign) || {
+        campaign, total: 0, new_leads: 0, contacted: 0, replied: 0, bounced: 0,
+        not_emailed: 0, step_1: 0, step_2: 0, step_3_complete: 0, sent_today: 0
+      };
+      return res.json({ success: true, metrics: m });
+    }
+
+    // Return all campaigns + combined totals
+    const combined = {
+      total: 0, new_leads: 0, contacted: 0, replied: 0, bounced: 0,
+      not_emailed: 0, step_1: 0, step_2: 0, step_3_complete: 0, sent_today: 0
+    };
+    for (const m of campaignMetrics) {
+      for (const key of Object.keys(combined)) {
+        combined[key] += Number(m[key]) || 0;
+      }
+    }
+
+    res.json({ success: true, metrics: combined, by_campaign: campaignMetrics });
   } catch (error) {
     console.error('[New Leads Metrics] Error:', error.message);
     res.status(500).json({ success: false, message: error.message });
@@ -1407,20 +1452,33 @@ app.get('/api/admin/leads/activity', async (req, res) => {
     if (!token) return res.status(401).json({ success: false, message: 'No token' });
     jwt.verify(token, JWT_SECRET);
 
-    const sent_today = await queryClient`
-      SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent
-      FROM leads
-      WHERE last_email_sent::date = CURRENT_DATE
-      ORDER BY last_email_sent DESC
-    `;
+    const campaign = req.query.campaign || null;
 
-    const queued_next = await queryClient`
-      SELECT id, first_name, last_name, email, company, state, outreach_step
-      FROM leads
-      WHERE status = 'new' AND outreach_step = 0
-      ORDER BY created_at ASC
-      LIMIT 10
-    `;
+    const sent_today = campaign
+      ? await queryClient`
+          SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent, campaign
+          FROM leads WHERE last_email_sent::date = CURRENT_DATE AND campaign = ${campaign}
+          ORDER BY last_email_sent DESC
+        `
+      : await queryClient`
+          SELECT id, first_name, last_name, email, company, state, outreach_step, last_email_sent, campaign
+          FROM leads WHERE last_email_sent::date = CURRENT_DATE
+          ORDER BY last_email_sent DESC
+        `;
+
+    const queued_next = campaign
+      ? await queryClient`
+          SELECT id, first_name, last_name, email, company, state, outreach_step, campaign
+          FROM leads WHERE status = 'new' AND outreach_step = 0 AND campaign = ${campaign}
+          ORDER BY CASE WHEN state = 'AZ' THEN 0 ELSE 1 END, employee_count ASC NULLS LAST, created_at ASC
+          LIMIT 10
+        `
+      : await queryClient`
+          SELECT id, first_name, last_name, email, company, state, outreach_step, campaign
+          FROM leads WHERE status = 'new' AND outreach_step = 0
+          ORDER BY CASE WHEN state = 'AZ' THEN 0 ELSE 1 END, employee_count ASC NULLS LAST, created_at ASC
+          LIMIT 10
+        `;
 
     res.json({ success: true, sent_today, queued_next });
   } catch (error) {

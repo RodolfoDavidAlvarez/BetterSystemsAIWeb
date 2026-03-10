@@ -29,6 +29,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 import ReviewSurveyPage from "./pages/ReviewSurveyPage";
 import OutreachDashboard from "./pages/admin/OutreachDashboard";
+import RecordingSearchPage from "./pages/admin/RecordingSearchPage";
+import MorePage from "./pages/admin/MorePage";
 
 // Simple redirect component that doesn't cause infinite re-renders
 function RedirectTo({ path }: { path: string }) {
@@ -87,6 +89,24 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <OutreachDashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+
+              {/* Recording Intelligence */}
+              <Route path="/admin/search">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <RecordingSearchPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+
+              {/* More — Speaker Profiles & Intelligence */}
+              <Route path="/admin/more">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <MorePage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

@@ -2008,6 +2008,24 @@ async function getQueryEmbedding(text) {
   return data.embedding?.values;
 }
 
+// Speaker profiles
+app.get('/api/admin/speaker-profiles', async (req, res) => {
+  try {
+    const profiles = await queryClient`
+      SELECT id, name, aliases, company, role, topics, vocabulary,
+             speaking_style, frequent_contacts, companies_discussed,
+             recording_count, total_minutes, first_seen, last_seen,
+             confidence_score, metadata
+      FROM speaker_profiles
+      ORDER BY recording_count DESC, last_seen DESC
+    `;
+    res.json({ success: true, profiles });
+  } catch (error) {
+    console.error('[SpeakerProfiles] Error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch speaker profiles' });
+  }
+});
+
 // Semantic search across recordings
 app.get('/api/admin/recordings/search/semantic', async (req, res) => {
   try {

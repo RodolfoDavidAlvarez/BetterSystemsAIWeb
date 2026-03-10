@@ -1717,7 +1717,8 @@ app.get('/api/admin/recordings', async (req, res) => {
     const rows = await queryClient`
       SELECT id, plaud_recording_id, title, audio_url, duration_seconds,
              transcription_status, transcript, summary, metadata, language,
-             client_id, deal_id, recording_type, tags, recorded_at, transcribed_at, created_at
+             client_id, deal_id, recording_type, tags, recorded_at, transcribed_at, created_at,
+             speakers, topics, people, companies, projects
       FROM recordings
       ORDER BY recorded_at DESC NULLS LAST
       LIMIT ${limit}
@@ -1984,6 +1985,192 @@ app.get('/api/context/project/:project', async (req, res) => {
       related_recordings: recordings,
     });
   } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── Semantic Search API ─────────────────────────────────────────────
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+async function getQueryEmbedding(text) {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'models/gemini-embedding-001',
+      content: { parts: [{ text }] },
+      taskType: 'RETRIEVAL_QUERY',
+      outputDimensionality: 768,
+    }),
+  });
+  const data = await res.json();
+  return data.embedding?.values;
+}
+
+// Semantic search across recordings
+app.get('/api/admin/recordings/search/semantic', async (req, res) => {
+  try {
+    const { q, limit = 20, company, speaker, project } = req.query;
+    if (!q) return res.status(400).json({ error: 'Missing q parameter' });
+    if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Missing GEMINI_API_KEY' });
+
+    const embedding = await getQueryEmbedding(q);
+    if (!embedding) return res.status(500).json({ error: 'Failed to generate embedding' });
+
+    const vecStr = `[${embedding.join(',')}]`;
+    const lim = Math.min(parseInt(limit) || 20, 50);
+
+    const results = await queryClient`
+      SELECT
+        rc.id, rc.recording_id, rc.chunk_index, rc.content, rc.speaker,
+        rc.topics, rc.company, rc.project, rc.people, rc.metadata,
+        r.title as recording_title, r.recorded_at, r.duration_seconds,
+        r.speakers as recording_speakers, r.topics as recording_topics,
+        r.people as recording_people,
+        1 - (rc.embedding <=> ${vecStr}::vector) as similarity
+      FROM recording_chunks rc
+      JOIN recordings r ON r.id = rc.recording_id
+      WHERE (${company || null}::text IS NULL OR rc.company = ${company || null})
+        AND (${speaker || null}::text IS NULL OR rc.speaker = ${speaker || null})
+        AND (${project || null}::text IS NULL OR rc.project = ${project || null})
+      ORDER BY rc.embedding <=> ${vecStr}::vector
+      LIMIT ${lim}
+    `;
+
+    // Group by recording for a cleaner response
+    const grouped = {};
+    for (const r of results) {
+      const key = r.recording_id;
+      if (!grouped[key]) {
+        grouped[key] = {
+          recording_id: r.recording_id,
+          title: r.recording_title,
+          recorded_at: r.recorded_at,
+          duration_seconds: r.duration_seconds,
+          speakers: r.recording_speakers,
+          topics: r.recording_topics,
+          people: r.recording_people,
+          best_similarity: r.similarity,
+          chunks: [],
+        };
+      }
+      grouped[key].chunks.push({
+        content: r.content,
+        speaker: r.speaker,
+        similarity: r.similarity,
+        chunk_index: r.chunk_index,
+      });
+    }
+
+    res.json({
+      query: q,
+      total_chunks: results.length,
+      recordings: Object.values(grouped).sort((a, b) => b.best_similarity - a.best_similarity),
+    });
+  } catch (e) {
+    console.error('Semantic search error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Recording stats (indexing progress)
+app.get('/api/admin/recordings/search/stats', async (req, res) => {
+  try {
+    const [counts] = await queryClient`
+      SELECT
+        (SELECT count(*)::int FROM recordings WHERE transcription_status = 'completed') as total_recordings,
+        (SELECT count(*)::int FROM recordings WHERE metadata->>'indexed' = 'true') as indexed_recordings,
+        (SELECT count(*)::int FROM recording_chunks) as total_chunks,
+        (SELECT count(DISTINCT recording_id)::int FROM recording_chunks) as recordings_with_chunks
+    `;
+
+    const topSpeakers = await queryClient`
+      SELECT speaker, count(*)::int as chunk_count FROM recording_chunks
+      WHERE speaker IS NOT NULL GROUP BY speaker ORDER BY chunk_count DESC LIMIT 15
+    `;
+
+    const topTopics = await queryClient`
+      SELECT unnest(topics) as topic, count(*)::int as mentions FROM recording_chunks
+      WHERE topics IS NOT NULL GROUP BY topic ORDER BY mentions DESC LIMIT 20
+    `;
+
+    const recentIndexed = await queryClient`
+      SELECT id, title, speakers, topics, people, recorded_at,
+        metadata->>'summary' as summary,
+        metadata->>'urgency' as urgency,
+        metadata->'key_decisions' as decisions,
+        metadata->'key_numbers' as numbers,
+        metadata->'diarized_segments' as diarized_segments
+      FROM recordings
+      WHERE metadata->>'indexed' = 'true'
+      ORDER BY recorded_at DESC LIMIT 20
+    `;
+
+    res.json({
+      ...counts,
+      top_speakers: topSpeakers,
+      top_topics: topTopics,
+      recent_indexed: recentIndexed,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Ask a question (RAG)
+app.post('/api/admin/recordings/search/ask', async (req, res) => {
+  try {
+    const { question, limit = 8 } = req.body;
+    if (!question) return res.status(400).json({ error: 'Missing question' });
+    if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Missing GEMINI_API_KEY' });
+
+    const embedding = await getQueryEmbedding(question);
+    if (!embedding) return res.status(500).json({ error: 'Failed to generate embedding' });
+
+    const vecStr = `[${embedding.join(',')}]`;
+
+    const results = await queryClient`
+      SELECT rc.content, rc.speaker, rc.topics, r.title as recording_title, r.recorded_at,
+        1 - (rc.embedding <=> ${vecStr}::vector) as similarity
+      FROM recording_chunks rc
+      JOIN recordings r ON r.id = rc.recording_id
+      ORDER BY rc.embedding <=> ${vecStr}::vector
+      LIMIT ${parseInt(limit) || 8}
+    `;
+
+    // Build context for Gemini
+    const context = results.map((r, i) => {
+      const date = new Date(r.recorded_at).toLocaleDateString('en-US', { timeZone: 'America/Phoenix' });
+      return `--- Source ${i + 1}: ${r.recording_title} (${date}) [${(r.similarity * 100).toFixed(0)}% match] ---\n${r.speaker ? `Speaker: ${r.speaker}\n` : ''}${r.content}`;
+    }).join('\n\n');
+
+    const prompt = `You are Rodo Alvarez's AI assistant. Answer this question using ONLY the recording excerpts below. Be specific, cite which recording/date the info comes from. If the answer isn't in the sources, say so.\n\nQUESTION: ${question}\n\nRECORDING EXCERPTS:\n${context}\n\nAnswer concisely with specific facts, names, numbers, and dates from the sources:`;
+
+    const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+      }),
+    });
+    const geminiData = await geminiRes.json();
+    const answer = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'No answer generated';
+
+    res.json({
+      question,
+      answer,
+      sources: results.map(r => ({
+        title: r.recording_title,
+        date: r.recorded_at,
+        speaker: r.speaker,
+        similarity: r.similarity,
+        excerpt: r.content.substring(0, 200),
+      })),
+    });
+  } catch (e) {
+    console.error('Ask error:', e);
     res.status(500).json({ error: e.message });
   }
 });

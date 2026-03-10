@@ -835,28 +835,39 @@ export default function ConversationsPage() {
                               </div>
                             )}
 
-                            {/* Diarized Segments (top dialogue snippets) */}
+                            {/* Conversation View (diarized segments) */}
                             {diarizedSegments.length > 0 && (
-                              <details className="group">
-                                <summary className="flex items-center gap-1.5 cursor-pointer text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors">
-                                  <MessageSquare className="h-3 w-3" />
-                                  Key Dialogue ({diarizedSegments.length} segments)
-                                  <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
-                                </summary>
-                                <div className="mt-2 space-y-1 max-h-[40vh] overflow-y-auto">
-                                  {diarizedSegments.slice(0, 15).map((seg: any, i: number) => (
-                                    <div key={i} className="flex items-start gap-2 text-[12px]">
-                                      <span className="text-[10px] text-muted-foreground/40 tabular-nums flex-shrink-0 w-10 text-right mt-px">
-                                        {seg.timestamp || ""}
-                                      </span>
-                                      <span className={`flex-shrink-0 px-1.5 py-px rounded text-[10px] font-medium ${getSpeakerColor(seg.speaker || "Unknown")}`}>
-                                        {seg.speaker || "?"}
-                                      </span>
-                                      <span className="text-foreground/65 leading-snug">{seg.text}</span>
-                                    </div>
-                                  ))}
+                              <div className="rounded-xl bg-muted/20 border border-border/30 overflow-hidden">
+                                <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/20">
+                                  <MessageSquare className="h-3 w-3 text-muted-foreground/50" />
+                                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+                                    Conversation ({diarizedSegments.length})
+                                  </span>
                                 </div>
-                              </details>
+                                <div className="divide-y divide-border/10 max-h-[50vh] overflow-y-auto">
+                                  {diarizedSegments.map((seg: any, i: number) => {
+                                    const prevSpeaker = i > 0 ? diarizedSegments[i - 1]?.speaker : null;
+                                    const isNewSpeaker = seg.speaker !== prevSpeaker;
+                                    return (
+                                      <div key={i} className={`px-3 py-2 ${isNewSpeaker ? "" : "pt-1"}`}>
+                                        {isNewSpeaker && (
+                                          <div className="flex items-center gap-1.5 mb-1">
+                                            <span className={`px-1.5 py-px rounded text-[10px] font-semibold ${getSpeakerColor(seg.speaker || "Unknown")}`}>
+                                              {seg.speaker || "?"}
+                                            </span>
+                                            {seg.timestamp && (
+                                              <span className="text-[9px] text-muted-foreground/30 tabular-nums">{seg.timestamp}</span>
+                                            )}
+                                          </div>
+                                        )}
+                                        <p className="text-[12.5px] text-foreground/70 leading-relaxed pl-0.5">
+                                          {seg.text}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             )}
                           </div>
                         ) : null;
@@ -886,14 +897,39 @@ export default function ConversationsPage() {
                         </div>
                       )}
 
-                      {/* Transcript */}
+                      {/* Transcript with speaker labels */}
                       {isTranscriptOpen && hasTranscript && (
                         <div className="px-4 pt-2 pb-3">
                           <div className="relative rounded-xl bg-muted/30 border border-border/30 p-3.5 max-h-[60vh] overflow-y-auto">
-                            <CopyButton text={rec.transcript || ""} />
-                            <pre className="text-[12px] whitespace-pre-wrap font-mono leading-relaxed text-foreground/70">
-                              {rec.transcript}
-                            </pre>
+                            <CopyButton text={rec.metadata?.labeled_transcript || rec.transcript || ""} />
+                            <div className="text-[12px] font-mono leading-relaxed text-foreground/70">
+                              {(rec.metadata?.labeled_transcript || rec.transcript || "").split("\n").map((line, i) => {
+                                // Parse speaker labels: [Speaker N]:, [Name]:
+                                const speakerMatch = line.match(/^(\[[\d:]+\]\s*)?\[([^\]]+)\]:\s*(.*)/);
+                                if (speakerMatch) {
+                                  const timestamp = speakerMatch[1] || "";
+                                  let speaker = speakerMatch[2];
+                                  const text = speakerMatch[3];
+                                  // Map "Speaker N" to identified speakers
+                                  if (/^Speaker \d+$/.test(speaker) && rec.speakers?.length) {
+                                    const idx = parseInt(speaker.replace("Speaker ", "")) - 1;
+                                    if (rec.speakers[idx]) speaker = rec.speakers[idx];
+                                  }
+                                  return (
+                                    <div key={i} className="mb-1">
+                                      {timestamp && <span className="text-muted-foreground/30">{timestamp}</span>}
+                                      <span className={`inline-block px-1.5 py-px rounded text-[10px] font-semibold mr-1.5 ${getSpeakerColor(speaker)}`}>
+                                        {speaker}
+                                      </span>
+                                      <span>{text}</span>
+                                    </div>
+                                  );
+                                }
+                                // Regular line (just timestamp or plain text)
+                                if (!line.trim()) return <div key={i} className="h-2" />;
+                                return <div key={i} className="mb-0.5">{line}</div>;
+                              })}
+                            </div>
                           </div>
                         </div>
                       )}

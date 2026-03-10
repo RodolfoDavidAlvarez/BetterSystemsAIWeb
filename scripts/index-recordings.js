@@ -268,9 +268,36 @@ async function indexRecording(recording) {
   if (decisions.length) console.log(`  ✅ Decisions: ${decisions.length}`);
   if (numbers.length) console.log(`  🔢 Numbers: ${numbers.length}`);
 
+  // Build speaker-labeled transcript
+  // Replace [Speaker N]: with [ActualName]: in the raw transcript
+  const diarizedSegments = analysis.diarized_segments || [];
+  let labeledTranscript = recording.transcript || '';
+  const speakerMap = {};
+  for (const s of (analysis.speakers || [])) {
+    if (s.original_label && s.label) speakerMap[s.original_label] = s.label;
+  }
+  // Replace [Speaker 1]: → [Rodo]:, [Speaker 2]: → [Kerry]:, etc.
+  for (const [orig, real] of Object.entries(speakerMap)) {
+    labeledTranscript = labeledTranscript.replace(
+      new RegExp(`\\[${orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`, 'g'),
+      `[${real}]`
+    );
+  }
+  // Also handle common patterns: if transcript has unlabeled lines and we have diarized segments,
+  // try to label them by matching text snippets
+  if (diarizedSegments.length > 0 && !labeledTranscript.includes('[Speaker ')) {
+    // Build a simple labeled version from diarized segments
+    const segLines = diarizedSegments.map(seg => {
+      const ts = seg.timestamp ? `[${seg.timestamp}] ` : '';
+      return `${ts}[${seg.speaker}]: ${seg.text}`;
+    });
+    if (segLines.length > 0) {
+      labeledTranscript = segLines.join('\n');
+    }
+  }
+
   // Step 2: Update recording with tags
   // Note: metadata may be array (legacy Plaud format) — overwrite with clean object
-  const diarizedSegments = analysis.diarized_segments || [];
   const newMeta = {
     indexed: true,
     indexed_at: new Date().toISOString(),
@@ -281,6 +308,7 @@ async function indexRecording(recording) {
     summary: analysis.summary || '',
     diarized: diarizedSegments.length > 0,
     diarized_segments: diarizedSegments.length > 0 ? diarizedSegments : undefined,
+    labeled_transcript: labeledTranscript !== recording.transcript ? labeledTranscript : undefined,
   };
 
   await sql`

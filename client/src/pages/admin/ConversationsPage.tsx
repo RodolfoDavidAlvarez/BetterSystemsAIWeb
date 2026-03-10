@@ -104,9 +104,9 @@ function priorityBadge(priority: string) {
 }
 
 function getUrgency(rec: Recording): { level: string; color: string } | null {
-  const u = rec.metadata?.tags?.urgency;
+  const u = rec.metadata?.urgency || rec.metadata?.tags?.urgency;
   if (!u || u === "low" || u === "none") return null;
-  if (u === "urgent") return { level: "URGENT", color: "bg-red-500/15 text-red-500" };
+  if (u === "urgent" || u === "action-needed") return { level: "ACTION", color: "bg-red-500/15 text-red-500" };
   if (u === "high") return { level: "HIGH", color: "bg-orange-500/15 text-orange-500" };
   if (u === "medium") return { level: "MED", color: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400" };
   return null;
@@ -708,6 +708,20 @@ export default function ConversationsPage() {
                           })()}
                         </div>
 
+                        {/* Speaker names preview (collapsed) */}
+                        {!isExpanded && (rec.speakers?.length || 0) > 0 && (
+                          <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                            {rec.speakers!.slice(0, 4).map((s, i) => (
+                              <span key={i} className={`px-1.5 py-px rounded text-[10px] font-medium ${getSpeakerColor(s)}`}>
+                                {s}
+                              </span>
+                            ))}
+                            {rec.speakers!.length > 4 && (
+                              <span className="text-[10px] text-muted-foreground/40">+{rec.speakers!.length - 4}</span>
+                            )}
+                          </div>
+                        )}
+
                         {/* Summary preview */}
                         {(hasSummary || rec.metadata?.summary) && !isExpanded && (
                           <p className="mt-1.5 text-[13px] text-muted-foreground/70 line-clamp-2 leading-relaxed">
@@ -742,11 +756,11 @@ export default function ConversationsPage() {
                       {/* ── Recording Intelligence ── */}
                       {(() => {
                         const speakers = rec.speakers || rec.metadata?.speakers?.map((s: any) => s.name) || rec.metadata?.people || [];
-                        const topics = rec.topics || rec.metadata?.tags?.topics || rec.metadata?.topics || [];
-                        const companies = rec.companies || rec.metadata?.tags?.companies || [];
-                        const projects = rec.projects || rec.metadata?.tags?.projects || [];
-                        const keyDecisions = rec.metadata?.tags?.key_decisions || [];
-                        const keyNumbers = rec.metadata?.tags?.key_numbers || [];
+                        const topics = rec.topics || rec.metadata?.topics || rec.metadata?.tags?.topics || [];
+                        const companies = rec.companies || rec.metadata?.companies || rec.metadata?.tags?.companies || [];
+                        const projects = rec.projects || rec.metadata?.projects || rec.metadata?.tags?.projects || [];
+                        const keyDecisions = rec.metadata?.key_decisions || rec.metadata?.tags?.key_decisions || [];
+                        const keyNumbers = rec.metadata?.key_numbers || rec.metadata?.tags?.key_numbers || [];
                         const diarizedSegments = rec.metadata?.diarized_segments || [];
                         const hasIntel = speakers.length > 0 || topics.length > 0 || companies.length > 0 || keyDecisions.length > 0 || keyNumbers.length > 0;
 

@@ -223,11 +223,11 @@ export default function AIPresentationPage() {
                     <SelectTrigger className="bg-[#0a0f1a] border-[#1e293b] text-white">
                       <SelectValue placeholder="Select one" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#111827] border-[#1e293b]">
-                      <SelectItem value="Student">Student</SelectItem>
-                      <SelectItem value="Business Owner">Business Owner</SelectItem>
-                      <SelectItem value="Employee">Employee</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                    <SelectContent className="bg-[#1a2235] border-[#2d3a4f] z-50">
+                      <SelectItem value="Student" className="text-white hover:bg-blue-600/30 focus:bg-blue-600/30 focus:text-white">Student</SelectItem>
+                      <SelectItem value="Business Owner" className="text-white hover:bg-blue-600/30 focus:bg-blue-600/30 focus:text-white">Business Owner</SelectItem>
+                      <SelectItem value="Employee" className="text-white hover:bg-blue-600/30 focus:bg-blue-600/30 focus:text-white">Employee</SelectItem>
+                      <SelectItem value="Other" className="text-white hover:bg-blue-600/30 focus:bg-blue-600/30 focus:text-white">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   {form.formState.errors.category && (

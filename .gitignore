@@ -13,3 +13,8 @@ vite.config.ts.timestamp-*.env
 .env.*.local
 .env*.local
 .claude/
+.env.prod.live
+.env.vercel
+.env.vercel-prod
+scripts/.env.supabase
+data/

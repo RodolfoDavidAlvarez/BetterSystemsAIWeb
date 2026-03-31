@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI in Business - Rodo Alvarez</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+  :root {
+    --accent: #4FC3F7;
+    --accent2: #81C784;
+    --accent3: #FFB74D;
+    --accent4: #F06292;
+    --bg: #0a0a0f;
+    --card: rgba(255,255,255,0.04);
+    --dim: rgba(255,255,255,0.45);
+  }
+
+  /* === BASE === */
+  .reveal {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 38px;
+    color: rgba(255,255,255,0.9);
+  }
+  .reveal .slides { text-align: left; }
+  .reveal .slides section { padding: 40px 60px 200px; }
+  .reveal h1, .reveal h2, .reveal h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: #fff;
+  }
+  .reveal h1 { font-size: 2.4em; }
+  .reveal h2 { font-size: 1.6em; margin-bottom: 0.3em; }
+  .reveal h3 { font-size: 1.1em; font-weight: 600; }
+  .reveal p { font-size: 0.85em; line-height: 1.5; color: rgba(255,255,255,0.75); }
+
+  /* === COLORS === */
+  .accent { color: var(--accent); }
+  .green { color: var(--accent2); }
+  .orange { color: var(--accent3); }
+  .pink { color: var(--accent4); }
+  .dim { color: var(--dim); }
+  .bold { font-weight: 700; }
+
+  /* === GRADIENT TEXT === */
+  .gradient {
+    background: linear-gradient(135deg, #4FC3F7, #81C784);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* === BIG NUMBER === */
+  .big-number {
+    font-size: 4em;
+    font-weight: 900;
+    line-height: 1;
+    margin: 0.15em 0;
+  }
+
+  /* === CARDS === */
+  .card-grid { display: grid; gap: 14px; margin-top: 14px; }
+  .card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .card h4 {
+    font-size: 0.8em;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 6px 0;
+  }
+  .card p {
+    font-size: 0.65em;
+    color: var(--dim);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  /* === BEFORE/AFTER === */
+  .vs-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .vs-box {
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .vs-box.before {
+    background: rgba(244,67,54,0.06);
+    border: 1px solid rgba(244,67,54,0.15);
+  }
+  .vs-box.after {
+    background: rgba(76,175,80,0.06);
+    border: 1px solid rgba(76,175,80,0.15);
+  }
+  .vs-box h4 { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 10px 0; }
+  .vs-box.before h4 { color: #EF5350; }
+  .vs-box.after h4 { color: #66BB6A; }
+  .vs-box ul { list-style: none; padding: 0; margin: 0; }
+  .vs-box li { font-size: 0.68em; padding: 3px 0; color: rgba(255,255,255,0.65); }
+  .vs-arrow { font-size: 1.5em; color: var(--dim); }
+
+  /* === STAT ROW === */
+  .stat-row { display: flex; gap: 30px; margin-top: 14px; }
+  .stat { text-align: center; }
+  .stat .num { font-size: 1.8em; font-weight: 900; line-height: 1; }
+  .stat .lbl { font-size: 0.6em; color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  /* === FLOW === */
+  .flow { display: flex; align-items: center; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+  .flow-step {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.7em;
+    font-weight: 600;
+  }
+  .flow-arrow { color: var(--accent); font-size: 1em; }
+
+  /* === HIGHLIGHT BOX === */
+  .highlight {
+    background: linear-gradient(135deg, rgba(79,195,247,0.08), rgba(129,199,132,0.08));
+    border: 1px solid rgba(79,195,247,0.15);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 12px;
+  }
+  .highlight h4 { color: var(--accent); font-size: 0.8em; font-weight: 700; margin: 0 0 6px 0; }
+  .highlight p { margin: 0; font-size: 0.72em; }
+
+  /* === SECTION DIVIDER === */
+  .divider {
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .divider .part { font-size: 0.7em; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.3em; }
+  .divider h2 { text-align: center; font-size: 2em; }
+
+  /* === TOOL GRID === */
+  .tool-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .tool-item { background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; text-align: center; }
+  .tool-item .name { font-weight: 700; font-size: 0.8em; color: #fff; }
+  .tool-item .desc { font-size: 0.58em; color: var(--dim); margin-top: 3px; }
+  .tool-item .price { font-size: 0.6em; color: var(--accent2); margin-top: 3px; font-weight: 600; }
+
+  /* === LABEL === */
+  .label {
+    font-size: 0.6em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.3em;
+    display: block;
+  }
+
+  /* === FRAGMENTS + ANIMATIONS === */
+  .reveal .fragment.fade-up { transform: translateY(20px); opacity: 0; transition: all 0.5s ease; }
+  .reveal .fragment.fade-up.visible { transform: translateY(0); opacity: 1; }
+  .reveal .fragment.grow-in { transform: scale(0.8); opacity: 0; transition: all 0.5s ease; }
+  .reveal .fragment.grow-in.visible { transform: scale(1); opacity: 1; }
+
+  /* Slide-in from right */
+  .reveal .fragment.slide-right { transform: translateX(60px); opacity: 0; transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+  .reveal .fragment.slide-right.visible { transform: translateX(0); opacity: 1; }
+
+  /* Slide-in from left */
+  .reveal .fragment.slide-left { transform: translateX(-60px); opacity: 0; transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+  .reveal .fragment.slide-left.visible { transform: translateX(0); opacity: 1; }
+
+  /* Pop in */
+  .reveal .fragment.pop-in { transform: scale(0.5); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .reveal .fragment.pop-in.visible { transform: scale(1); opacity: 1; }
+
+  /* Auto-animate illustrations on slide enter */
+  .slide-illust {
+    animation: slideInRight 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.3s;
+  }
+  .slide-illust-left {
+    animation: slideInLeft 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.3s;
+  }
+  @keyframes slideInRight {
+    from { transform: translateX(80px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideInLeft {
+    from { transform: translateX(-80px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeFloat {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .float-in {
+    animation: fadeFloat 0.6s ease both;
+    animation-delay: 0.2s;
+  }
+
+  /* === DYNAMIC SCRIPT PANEL (outside reveal) === */
+  #script-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.94);
+    border-top: 2px solid rgba(255,183,77,0.3);
+    padding: 12px 40px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(255,255,255,0.75);
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 9999;
+    transition: opacity 0.3s;
+  }
+  #script-panel .script-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  #script-panel .script-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #FFB74D;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  #script-panel .script-progress {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #script-panel .script-progress .bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    max-width: 200px;
+  }
+  #script-panel .script-progress .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4FC3F7, #81C784);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+  #script-panel .script-progress .bar-text {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  #script-panel .script-progress .bar-label {
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    flex-shrink: 0;
+    width: 48px;
+  }
+  #script-panel .cue { color: #4FC3F7; font-weight: 600; }
+  #script-panel .key-line { color: #4FC3F7; font-weight: 600; }
+  #script-panel .direction { color: rgba(255,255,255,0.3); font-style: italic; }
+
+  /* Bigger slide number — top left to avoid arrow overlap */
+  .reveal .slide-number {
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    color: rgba(255,255,255,0.4) !important;
+    background: rgba(0,0,0,0.6) !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 20px !important;
+    top: 20px !important;
+  }
+
+  /* Hide script panel in print */
+  @media print { #script-panel { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!-- DYNAMIC SCRIPT PANEL — sits outside reveal, updates via JS       -->
+<!-- ================================================================ -->
+<div id="script-panel" style="display: none;">
+  <div class="script-header">
+    <span class="script-label">Script</span>
+    <div class="script-progress">
+      <span class="bar-label">Section</span>
+      <div class="bar-track"><div class="bar-fill" id="script-bar-fill" style="width: 0%;"></div></div>
+      <span class="bar-text" id="script-bar-text">1/1</span>
+    </div>
+    <div class="script-progress">
+      <span class="bar-label">Overall</span>
+      <div class="bar-track" style="max-width: 300px;"><div class="bar-fill" id="overall-bar-fill" style="width: 0%; background: linear-gradient(90deg, #FFB74D, #F06292);"></div></div>
+      <span class="bar-text" id="overall-bar-text">1/27</span>
+    </div>
+  </div>
+  <div id="script-text"></div>
+</div>
+
+<!-- ================================================================ -->
+<!-- SLIDES                                                            -->
+<!-- ================================================================ -->
+<div class="reveal">
+<div class="slides">
+
+<!-- S1: COVER -->
+<section data-background-color="#0a0a0f" style="text-align: center !important; padding-top: 120px;">
+  <img src="bsa-logo-transparent.png" alt="Better Systems AI" style="max-width: 420px; margin-bottom: 16px;">
+  <div style="font-size: 1.1em; font-weight: 300; color: rgba(255,255,255,0.45); letter-spacing: 0.08em;">Your Business One Step Ahead</div>
+</section>
+
+<!-- S2: TITLE -->
+<section data-background-color="#0a0a0f" style="text-align: center !important; padding-top: 100px;">
+  <h1 class="gradient" style="font-size: 2.6em;">AI in Business</h1>
+  <p style="font-size: 0.9em; color: rgba(255,255,255,0.45); text-align: center;">How Small Businesses Are Using AI to Compete with the Big Guys</p>
+  <div style="margin-top: 1em;">
+    <div style="font-size: 0.8em; color: var(--accent); font-weight: 600;">Rodo Alvarez</div>
+    <div style="font-size: 0.65em; color: var(--dim);">Founder, Better Systems AI</div>
+  </div>
+  <div style="font-size: 0.5em; color: rgba(255,255,255,0.2); margin-top: 0.8em;">Chandler-Gilbert Community College &bull; March 31, 2026</div>
+</section>
+
+<!-- S3: HOOK -->
+<section data-background-color="#0a0a0f">
+  <h2 style="font-size: 1.5em;">Every business you walk into this week...</h2>
+  <p style="font-size: 0.95em; margin-top: 0.5em;">The restaurant. The mechanic. The landscaper.</p>
+  <p class="fragment fade-up" style="font-size: 1.1em; margin-top: 0.5em; color: var(--accent); font-weight: 700;">
+    Is losing money right now because of a problem AI already solved.
+  </p>
+  <img src="v-money-leaving.png" style="width: 500px; border-radius: 12px; margin-top: 10px;" class="float-in">
+</section>
+
+<!-- S4a: STORY — THE SUCCESS -->
+<section data-background-color="#0a0a0f">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+    <div>
+      <h2>"He was the best at what he did."</h2>
+      <p style="font-size: 0.9em; margin-top: 0.4em;">Customers loved his work. Five-star reviews. Referrals pouring in.</p>
+    </div>
+    <img src="v-happy-owner.png" class="slide-illust" style="width: 100%; border-radius: 12px;">
+  </div>
+</section>
+
+<!-- S4b: STORY — THE CHAOS -->
+<section data-background-color="#0a0a0f">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+    <div>
+      <h2 style="color: var(--accent3);">But his business was falling apart.</h2>
+    </div>
+    <img src="v-stressed-owner.png" class="slide-illust" style="width: 100%; border-radius: 12px;">
+  </div>
+</section>
+
+<!-- S5: STORY — THE PROBLEMS -->
+<section data-background-color="#0a0a0f">
+  <span class="label orange">The Reality</span>
+  <div class="card-grid cols-3" style="margin-top: 10px;">
+    <div class="card" style="text-align: center;">
+      <h4>Leads Lost</h4>
+      <p>Customers called. Nobody followed up. The leads went cold.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4>Invoices Forgotten</h4>
+      <p>Jobs completed. Bills never sent. Money left on the table.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h4 style="margin-top: 60px;">Scheduling Chaos</h4>
+      <p>Double-bookings. Missed appointments. Angry customers.</p>
+    </div>
+  </div>
+  <p class="fragment fade-up" style="margin-top: 16px; font-size: 0.8em; color: var(--dim);">He wasn't failing because of his skills. He was failing because every process was manual, disconnected from each other, and everything was running off his memory. He had to double-check every single decision.</p>
+</section>
+
+<!-- S6: STORY — THE FIX -->
+<section data-background-color="#0a0a0f">
+  <span class="label green">The Fix</span>
+  <h2>One platform. Built in weeks.</h2>
+  <img src="v-dashboard.png" class="float-in" style="width: 100%; max-width: 700px; border-radius: 12px; margin-top: 10px;">
+  <div class="card-grid cols-2" style="margin-top: 10px;">
+    <div class="card">
+      <h4 style="color: var(--accent2);">AI Follow-ups</h4>
+      <p>Every lead gets a response. Every customer gets a follow-up. Automatically.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent2);">Smart Scheduling</h4>
+      <p>No more double-bookings. Calendar synced. Crew dispatched.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent2);">Auto Invoicing</h4>
+      <p>Job done? Invoice sent. Payment tracked. No more chasing.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent2);">One Dashboard</h4>
+      <p>Every lead, job, invoice, and customer in one place. Real-time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S7: CORE MESSAGE -->
+<section data-background-color="#0a0a0f" style="text-align: center !important; padding-top: 60px;">
+  <img src="v-ai-brain.png" class="float-in" style="width: 500px; border-radius: 12px; margin-bottom: 16px;">
+  <h2 style="font-size: 1.6em; text-align: center; line-height: 1.4;">
+    AI doesn't replace you.<br>
+    <span class="gradient">It removes everything slowing you down.</span>
+  </h2>
+</section>
+
+<!-- S8: WHO I AM -->
+<section data-background-color="#0a0a0f">
+  <span class="label accent">Who We Are</span>
+  <h2>We build AI systems for local businesses.</h2>
+  <p style="font-size: 0.85em;">We're not from Silicon Valley. We're right here in Arizona.</p>
+  <div class="highlight fragment fade-up">
+    <h4>What I've seen</h4>
+    <p>The businesses using AI now have an unfair advantage over every competitor in their industry. And the gap is growing every month.</p>
+  </div>
+</section>
+
+<!-- S9a: CAMP 1 — ChatGPT Only -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <span class="label orange">Camp 1</span>
+  <h2>"AI is just ChatGPT"</h2>
+  <p style="font-size: 0.85em; color: var(--dim); margin-top: 0.3em;">They use it to brainstorm, write emails, copy and paste, and send it out.<br>And they think... that's it. That's AI.</p>
+</section>
+
+<!-- S9b: CAMP 2 — Waiting for the Robot -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <span class="label pink">Camp 2</span>
+  <h2>"AI isn't really there yet"</h2>
+  <p style="font-size: 0.85em; color: var(--dim); margin-top: 0.3em;">They'll believe in AI when there's a robot that autonomously handles<br>every single part of their business. Until then, they wait.</p>
+</section>
+
+<!-- S9c: BOTH WRONG -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <img src="v-two-camps.png" class="float-in" style="width: 650px; border-radius: 12px; margin-bottom: 14px;">
+  <h2 style="text-align: center; color: var(--accent2);">Both are wrong.</h2>
+  <p style="font-size: 0.85em; color: var(--dim); text-align: center;">The reality is AI works right now by plugging into the processes your business already has.</p>
+</section>
+
+<!-- S10: THE REALITY -->
+<section data-background-color="#0a0a0f">
+  <h2>AI plugs into processes your business <span class="accent">already has.</span></h2>
+  <p style="font-size: 0.82em; margin-top: 0.3em; color: var(--dim);">Every business runs on these five areas. AI enhances all of them. Right now.</p>
+  <div class="card-grid cols-5" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr; margin-top: 14px;">
+    <div class="card" style="text-align: center; border-color: rgba(79,195,247,0.2);">
+      <h4 style="color: var(--accent); font-size: 0.7em;">R&D</h4>
+      <p style="font-size: 0.55em;">Your product or service, target demographic, pricing structure, launch strategy, geographic positioning</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(129,199,132,0.2);">
+      <h4 style="color: var(--accent2); font-size: 0.7em;">Operations</h4>
+      <p style="font-size: 0.55em;">Day-to-day manufacturing or service delivery, scheduling, logistics, quality control</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(255,183,77,0.2);">
+      <h4 style="color: var(--accent3); font-size: 0.7em;">Administration</h4>
+      <p style="font-size: 0.55em;">Accounting, payroll, payables, receivables, compliance reporting</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(240,98,146,0.2);">
+      <h4 style="color: var(--accent4); font-size: 0.7em;">Finance</h4>
+      <p style="font-size: 0.55em;">Cash flow, cash in/out, projections, budget tracking</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(206,147,216,0.2);">
+      <h4 style="color: #CE93D8; font-size: 0.7em;">Marketing</h4>
+      <p style="font-size: 0.55em;">Website, email campaigns, phone, SMS, all input and output channels</p>
+    </div>
+  </div>
+  <div class="highlight fragment fade-up" style="margin-top: 14px;">
+    <h4>The result</h4>
+    <p>One person today, with AI, automation, and the right systems, can do the work that used to require an entire team.</p>
+  </div>
+</section>
+
+<!-- S11: DIVIDER — OPPORTUNITY -->
+<section class="divider" data-background-color="#0a0a0f">
+  <div class="part">Part 1</div>
+  <h2>The AI Opportunity</h2>
+  <p class="dim" style="text-align: center; font-size: 0.7em;">Why right now is the most exciting time to be in business</p>
+</section>
+
+<!-- AI ADOPTION STATS -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <h2 style="text-align: center;">This isn't hype. It's already happening.</h2>
+  <div style="display: flex; justify-content: center; gap: 60px; margin-top: 24px;">
+    <div style="text-align: center;">
+      <div class="gradient" style="font-size: 3.5em; font-weight: 900; line-height: 1;">65%</div>
+      <div style="font-size: 0.6em; color: var(--dim); margin-top: 6px;">of companies regularly<br>use AI in 2025</div>
+      <div style="font-size: 0.45em; color: rgba(255,255,255,0.15); margin-top: 2px;">McKinsey, 2025</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 3.5em; font-weight: 900; line-height: 1; color: var(--accent2);">2x</div>
+      <div style="font-size: 0.6em; color: var(--dim); margin-top: 6px;">productivity for<br>AI-assisted workers</div>
+      <div style="font-size: 0.45em; color: rgba(255,255,255,0.15); margin-top: 2px;">Harvard Business Review</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 3.5em; font-weight: 900; line-height: 1; color: var(--accent3);">$4.4T</div>
+      <div style="font-size: 0.6em; color: var(--dim); margin-top: 6px;">annual value AI<br>adds to the economy</div>
+      <div style="font-size: 0.45em; color: rgba(255,255,255,0.15); margin-top: 2px;">McKinsey Global Institute</div>
+    </div>
+  </div>
+</section>
+
+<!-- S13: THE GAP -->
+<section data-background-color="#0a0a0f">
+  <h2>But here's the thing...</h2>
+  <div class="vs-grid fragment fade-up">
+    <div class="vs-box after">
+      <h4 style="color: var(--accent);">Big Companies</h4>
+      <ul>
+        <li>Dedicated AI teams</li>
+        <li>Million-dollar budgets</li>
+        <li>Custom models</li>
+        <li>Data scientists on payroll</li>
+      </ul>
+    </div>
+    <div class="vs-arrow">vs</div>
+    <div class="vs-box before">
+      <h4>Small Businesses</h4>
+      <ul>
+        <li>"We use Google Sheets"</li>
+        <li>Can't afford a developer</li>
+        <li>"AI seems cool but..."</li>
+        <li>No idea where to start</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight fragment fade-up">
+    <h4>This gap is the opportunity.</h4>
+    <p>The tools are here. They're affordable. The question is who moves first.</p>
+  </div>
+</section>
+
+<!-- S13b: SMALL BUSINESS ADVANTAGE -->
+<section data-background-color="#0a0a0f">
+  <h2>Small businesses have one <span class="accent">massive advantage.</span></h2>
+  <p style="font-size: 0.9em; margin-top: 0.4em;">They can move fast. No boards. No committees. No 6-month approval processes.</p>
+  <div class="highlight fragment fade-up" style="margin-top: 14px;">
+    <h4>Speed wins</h4>
+    <p>A small business can adopt AI, build systems, and transform their operations in weeks. A big company takes years. That's your competitive edge. Use it before it closes.</p>
+  </div>
+</section>
+
+<!-- S14: OLD WAY VS NEW WAY -->
+<section data-background-color="#0a0a0f">
+  <h2>The Old Way vs. The New Way</h2>
+  <div class="vs-grid fragment fade-up">
+    <div class="vs-box before">
+      <h4>Before AI</h4>
+      <ul>
+        <li>Buy a template with 3,000 features</li>
+        <li>You use maybe 3</li>
+        <li>$500-2,000/month in subscriptions</li>
+        <li>Hire a dev team for 6-12 months</li>
+        <li>Still doesn't fit how you work</li>
+      </ul>
+    </div>
+    <div class="vs-arrow">&rarr;</div>
+    <div class="vs-box after">
+      <h4>With AI</h4>
+      <ul>
+        <li>Build exactly what you need</li>
+        <li>Every feature is one you'll use</li>
+        <li>Fraction of the cost</li>
+        <li>Built in weeks, not months</li>
+        <li>Designed around how YOU work</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER — STORIES -->
+<section class="divider" data-background-color="#0a0a0f">
+  <div class="part">Part 2</div>
+  <h2>Stories</h2>
+  <p class="dim" style="text-align: center; font-size: 0.7em;">Real-world scenarios of AI in business</p>
+</section>
+
+<!-- AI IMPLEMENTATION FRAMEWORK -->
+<section data-background-color="#0a0a0f">
+  <h2>Before you implement AI, <span class="accent">think.</span></h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; margin-top: 10px;">
+    <div>
+      <div class="card" style="margin-bottom: 10px; border-color: rgba(76,175,80,0.2);">
+        <h4 style="color: var(--accent2);">Find where AI makes a real improvement</h4>
+        <p>Look for repetitive, time-consuming processes where errors are costly.</p>
+      </div>
+      <div class="card" style="margin-bottom: 10px; border-color: rgba(244,67,54,0.2);">
+        <h4 style="color: #EF5350;">Don't implement where it's not needed</h4>
+        <p>AI in the wrong place magnifies inefficiencies instead of fixing them.</p>
+      </div>
+      <div class="card" style="border-color: rgba(79,195,247,0.2);">
+        <h4 style="color: var(--accent);">Identify the problem first, then the solution</h4>
+        <p>Start with the pain. The technology follows.</p>
+      </div>
+    </div>
+    <img src="v-framework.png" class="slide-illust" style="width: 100%; border-radius: 12px;">
+  </div>
+</section>
+
+<!-- STORY 1 INTRO — THE TRUCKING COMPANY -->
+<section data-background-color="#0a0a0f">
+  <span class="label accent">Story 1 — Operations</span>
+  <h2>A trucking company with 10 trucks.</h2>
+  <img src="v-trucking-company.png" class="float-in" style="width: 100%; max-width: 850px; border-radius: 12px; margin-top: 10px;">
+  <p style="font-size: 0.78em; color: var(--dim); margin-top: 10px;">When I started working with this company, I identified many problems. One of the biggest was in the operations department.</p>
+</section>
+
+<!-- THE WEIGHT TICKET — FULL PAGE -->
+<section data-background-color="#0a0a0f" style="text-align: center !important; padding: 20px;">
+  <h2 style="text-align: center; margin-bottom: 10px;">This is a weight ticket.</h2>
+  <img src="weight-ticket-sample.jpeg" style="max-width: 90%; max-height: 70vh; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);">
+  <p style="font-size: 0.7em; color: var(--dim); margin-top: 8px; text-align: center;">Every single load requires one. Handwritten. Every time.</p>
+</section>
+
+<!-- THE SCALE OF THE PROBLEM -->
+<section data-background-color="#0a0a0f">
+  <h2>Now multiply that by <span class="orange">thousands.</span></h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; margin-top: 10px;">
+    <div>
+      <p style="font-size: 0.82em;">10 trucks. Multiple loads per day. Over a month, hundreds, sometimes thousands of weight tickets.</p>
+      <p style="font-size: 0.82em; margin-top: 8px;">Every one has to be logged. Net weight calculated. Then sent out as an invoice to the client.</p>
+      <p style="font-size: 0.82em; margin-top: 8px; color: var(--accent3); font-weight: 600;">The invoicing for a single month could take three months to complete. Weight Tickets miscalculated. Sent back. Redone.</p>
+    </div>
+    <img src="v-wt-paper-stack.png" class="slide-illust" style="width: 100%; border-radius: 12px;">
+  </div>
+</section>
+
+<!-- THE BOTTLENECK -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <h2 style="text-align: center; color: var(--accent4);">Because of this bottleneck,<br>the owner didn't want more trucks.</h2>
+  <p style="font-size: 0.9em; color: var(--dim); margin-top: 0.5em; text-align: center;">Not because of demand. Not because of drivers.<br>Because the paperwork was killing the business.</p>
+</section>
+
+<!-- THE SOLUTION — PHOTO -->
+<section data-background-color="#0a0a0f">
+  <span class="label green">The Solution</span>
+  <h2>One photo. 98% accuracy. Instant.</h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; margin-top: 10px;">
+    <div>
+      <p style="font-size: 0.82em;">Instead of carrying paper to the office, the driver takes a photo. Stamped with date and time automatically.</p>
+      <p style="font-size: 0.82em; margin-top: 8px;">AI vision analyzes the ticket instantly, 98% accuracy. The driver reviews the extracted data, confirms with one tap, and submits to the database.</p>
+    </div>
+    <img src="v-wt-phone-scan.png" class="slide-illust" style="width: 100%; border-radius: 12px;">
+  </div>
+</section>
+
+<!-- THE FULL FLOW -->
+<section data-background-color="#0a0a0f">
+  <h2>From photo to invoice. <span class="accent">Automated.</span></h2>
+  <img src="v-wt-flow.png" class="float-in" style="width: 100%; max-width: 900px; border-radius: 12px; margin-top: 10px;">
+  <p style="font-size: 0.78em; color: var(--dim); margin-top: 12px;">Photo → AI extraction → Database → QuickBooks → Invoice to client.</p>
+  <div class="highlight fragment fade-up" style="margin-top: 10px;">
+    <h4>The result</h4>
+    <p>Hundreds of hours of admin work per year reduced to minutes per week. After a quick verification from the office, the automated invoice goes out.</p>
+  </div>
+</section>
+
+<!-- THE DASHBOARD -->
+<section data-background-color="#0a0a0f">
+  <h2>Everything in one place.</h2>
+  <img src="v-wt-dashboard.png" class="slide-illust" style="width: 100%; max-width: 900px; border-radius: 12px; margin-top: 10px;">
+  <p style="font-size: 0.78em; color: var(--dim); margin-top: 12px;">Every ticket, every truck, every weight. Searchable instantly. Real-time visibility.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 3: UNDERSTANDING THE TECH                                -->
+<!-- ============================================================ -->
+
+<!-- DIVIDER — UNDERSTANDING THE TECH -->
+<section class="divider" data-background-color="#0a0a0f">
+  <div class="part">Part 3</div>
+  <h2>Understanding the Tech</h2>
+  <p class="dim" style="text-align: center; font-size: 0.7em;">The AI providers, what they can do, and how to put it all together</p>
+</section>
+
+<!-- AI SUPPLIERS -->
+<section data-background-color="#0a0a0f">
+  <h2>The AI Suppliers</h2>
+  <p style="font-size: 0.78em; color: var(--dim);">These are the companies building the AI models. Think of them like the engine manufacturers.</p>
+  <div class="card-grid cols-4" style="margin-top: 14px; grid-template-columns: 1fr 1fr 1fr 1fr;">
+    <div class="card" style="text-align: center; border-color: rgba(79,195,247,0.2);">
+      <h4 style="color: var(--accent);">OpenAI</h4>
+      <p>GPT-4, ChatGPT, DALL-E, Whisper</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(129,199,132,0.2);">
+      <h4 style="color: var(--accent2);">Google Gemini</h4>
+      <p>Gemini Pro, Imagen, Veo, Search AI</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(255,183,77,0.2);">
+      <h4 style="color: var(--accent3);">Anthropic</h4>
+      <p>Claude, Claude Code, AI assistants</p>
+    </div>
+    <div class="card" style="text-align: center; border-color: rgba(240,98,146,0.2);">
+      <h4 style="color: var(--accent4);">Meta / Open Source</h4>
+      <p>Llama, Stable Diffusion, free models</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI CAPABILITIES -->
+<section data-background-color="#0a0a0f">
+  <h2>What AI Can Do <span class="accent">Right Now</span></h2>
+  <div class="card-grid cols-3" style="margin-top: 12px;">
+    <div class="card">
+      <h4 style="color: var(--accent);">Image Generation</h4>
+      <p>Create photos, graphics, logos from text. Every image in this presentation was AI-generated.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent2);">Image & Document Analysis</h4>
+      <p>Read handwriting, extract data from photos. That's how the weight ticket system works.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent3);">Voice Generation</h4>
+      <p>Natural voices for phone systems, customer service. Sounds human. Available 24/7.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent4);">Perfect Transcription</h4>
+      <p>Any audio to text with speaker ID. Meetings, calls, conversations, all searchable.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: #CE93D8;">Code Generation</h4>
+      <p>AI writes production software. Entire applications in days, not months.</p>
+    </div>
+    <div class="card">
+      <h4 style="color: var(--accent);">Text & Email Writing</h4>
+      <p>Proposals, emails, reports, marketing. In your brand voice. Consistent. Fast.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTEXT ENGINEERING -->
+<section data-background-color="#0a0a0f">
+  <h2>The Secret Ingredient: <span class="accent">Context</span></h2>
+  <p style="font-size: 0.85em; margin-top: 0.3em;">AI is only as smart as the information you give it.</p>
+  <div class="card-grid cols-2" style="margin-top: 14px;">
+    <div class="card" style="border-color: rgba(244,67,54,0.15);">
+      <h4 style="color: var(--accent4);">Without context</h4>
+      <p>Like hiring an employee and never training them. Generic answers. No understanding of YOUR business. Useless.</p>
+    </div>
+    <div class="card" style="border-color: rgba(76,175,80,0.15);">
+      <h4 style="color: var(--accent2);">With context</h4>
+      <p>AI knows your customers, your processes, your history, your voice. It works FOR your specific business. Powerful.</p>
+    </div>
+  </div>
+  <div class="highlight fragment fade-up" style="margin-top: 12px;">
+    <h4>Context engineering</h4>
+    <p>The art of feeding AI your real data so it becomes an expert on YOUR business. The company that gives AI the most context wins.</p>
+  </div>
+</section>
+
+<!-- RECORDING ARCHITECTURE -->
+<section data-background-color="#0a0a0f">
+  <h2>How I Feed AI My Entire Business</h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; margin-top: 10px;">
+    <div>
+      <p style="font-size: 0.82em;">I wear a small recording device. Every conversation gets transcribed automatically. AI identifies who said what, extracts every decision, every action item, every key number.</p>
+      <p style="font-size: 0.82em; margin-top: 8px;">After a month, AI knows my customers. After a year, it knows my entire operation. It drafts my emails, manages my calendar, sends me alerts.</p>
+      <p style="font-size: 0.82em; margin-top: 8px; color: var(--accent); font-weight: 600;">The longer you feed it, the smarter it gets. The compounding effect is massive.</p>
+    </div>
+    <img src="v-context-engine.png" class="slide-illust" style="width: 100%; border-radius: 12px;">
+  </div>
+</section>
+
+<!-- THE PLATFORMS -->
+<section data-background-color="#0a0a0f">
+  <h2>The Platforms You Connect</h2>
+  <p style="font-size: 0.78em; color: var(--dim);">AI is the brain. These are the arms and legs.</p>
+  <div class="card-grid cols-4" style="margin-top: 12px; grid-template-columns: 1fr 1fr 1fr 1fr;">
+    <div class="card" style="border-color: rgba(79,195,247,0.15);">
+      <h4 style="color: var(--accent);">Google Workspace</h4>
+      <p>Gmail, Calendar, Drive, Docs</p>
+    </div>
+    <div class="card" style="border-color: rgba(129,199,132,0.15);">
+      <h4 style="color: var(--accent2);">Stripe</h4>
+      <p>Payments, invoicing, subscriptions</p>
+    </div>
+    <div class="card" style="border-color: rgba(255,183,77,0.15);">
+      <h4 style="color: var(--accent3);">QuickBooks</h4>
+      <p>Accounting, bookkeeping, tax</p>
+    </div>
+    <div class="card" style="border-color: rgba(240,98,146,0.15);">
+      <h4 style="color: var(--accent4);">Twilio</h4>
+      <p>Phone, SMS, WhatsApp</p>
+    </div>
+    <div class="card" style="border-color: rgba(206,147,216,0.15);">
+      <h4 style="color: #CE93D8;">ElevenLabs</h4>
+      <p>AI voice agents, voice cloning</p>
+    </div>
+    <div class="card" style="border-color: rgba(79,195,247,0.15);">
+      <h4 style="color: var(--accent);">Supabase</h4>
+      <p>Database, auth, file storage</p>
+    </div>
+    <div class="card" style="border-color: rgba(129,199,132,0.15);">
+      <h4 style="color: var(--accent2);">Calendly</h4>
+      <p>Scheduling, booking</p>
+    </div>
+    <div class="card" style="border-color: rgba(255,183,77,0.15);">
+      <h4 style="color: var(--accent3);">Shopify / Square</h4>
+      <p>E-commerce, POS, inventory</p>
+    </div>
+    <div class="card" style="border-color: rgba(240,98,146,0.15);">
+      <h4 style="color: var(--accent4);">Resend</h4>
+      <p>Email at scale, automated</p>
+    </div>
+    <div class="card" style="border-color: rgba(206,147,216,0.15);">
+      <h4 style="color: #CE93D8;">Airtable</h4>
+      <p>Visual database, anyone can use</p>
+    </div>
+    <div class="card" style="border-color: rgba(79,195,247,0.15);">
+      <h4 style="color: var(--accent);">Vercel</h4>
+      <p>Website deployment, instant</p>
+    </div>
+    <div class="card" style="border-color: rgba(129,199,132,0.15);">
+      <h4 style="color: var(--accent2);">GitHub</h4>
+      <p>Code management, version control</p>
+    </div>
+  </div>
+</section>
+
+<!-- CLAUDE CODE — THE INSTALLER -->
+<section data-background-color="#0a0a0f">
+  <h2>One Tool Connects <span class="gradient">Everything</span></h2>
+  <p style="font-size: 0.85em; margin-top: 0.3em;">You have the AI suppliers. You have the platforms. How do you wire it all together?</p>
+  <div class="highlight" style="margin-top: 14px;">
+    <h4 style="font-size: 1em;">Claude Code by Anthropic</h4>
+    <p style="font-size: 0.85em;">Think of it as the electrician that wires the entire building. You describe what you need in plain English. It reads the APIs, writes the code, connects the platforms, and builds the system. One tool. That's how we build entire business platforms in weeks.</p>
+  </div>
+  <p class="fragment fade-up" style="margin-top: 12px; font-size: 0.82em; color: var(--dim);">This is what I use every single day. It's the single most powerful tool for building AI-powered business systems that exists right now.</p>
+</section>
+
+<!-- WHAT YOU CAN BUILD — EXPANDED -->
+<section data-background-color="#0a0a0f">
+  <h2>What You Can Build</h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.72em;">
+    <div class="card"><h4><span class="accent">1.</span> AI Phone Receptionist</h4><p>Answers calls 24/7, books appointments, routes to the right person. Sounds human.</p></div>
+    <div class="card"><h4><span class="accent">2.</span> Customer CRM</h4><p>Track every lead, automate follow-ups, never lose a customer again.</p></div>
+    <div class="card"><h4><span class="accent">3.</span> Estimate Generator</h4><p>Take photos of the job site, AI generates a professional estimate.</p></div>
+    <div class="card"><h4><span class="accent">4.</span> Fleet Management</h4><p>Track vehicles, drivers, routes, maintenance in real time.</p></div>
+    <div class="card"><h4><span class="accent">5.</span> Document Scanner</h4><p>Photos of paperwork → structured data in your database instantly.</p></div>
+    <div class="card"><h4><span class="accent">6.</span> Automated Invoicing</h4><p>Job done = invoice sent to QuickBooks = payment tracked. No chasing.</p></div>
+  </div>
+</section>
+
+<!-- WHAT YOU CAN BUILD — PAGE 2 -->
+<section data-background-color="#0a0a0f">
+  <h2>What You Can Build <span class="dim" style="font-size: 0.6em;">(continued)</span></h2>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.72em;">
+    <div class="card"><h4><span class="accent">7.</span> Review Manager</h4><p>AI monitors Google reviews, drafts responses, flags negative ones instantly.</p></div>
+    <div class="card"><h4><span class="accent">8.</span> Social Media Manager</h4><p>AI creates posts, schedules them, analyzes engagement, adjusts strategy.</p></div>
+    <div class="card"><h4><span class="accent">9.</span> Route Optimizer</h4><p>AI plans the most efficient routes. Saves fuel, time, and money.</p></div>
+    <div class="card"><h4><span class="accent">10.</span> Expense Tracker</h4><p>Photo of receipt → categorized → logged → tax-ready. No manual entry.</p></div>
+    <div class="card"><h4><span class="accent">11.</span> Employee Training System</h4><p>AI creates training modules from your SOPs, quizzes employees, tracks completion.</p></div>
+    <div class="card"><h4><span class="accent">12.</span> Contract Analyzer</h4><p>Upload a contract, AI highlights risks, summarizes terms, flags issues in seconds.</p></div>
+  </div>
+</section>
+
+<!-- COST -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <h2 style="text-align: center;">All of this. <span class="gradient">Under $100/month.</span></h2>
+  <p style="font-size: 0.9em; color: var(--dim); text-align: center; margin-top: 0.5em;">Five years ago, building what I showed you would've cost<br>half a million dollars and a team of ten.</p>
+  <p style="font-size: 0.9em; text-align: center; margin-top: 0.5em; color: var(--accent); font-weight: 600;">Today it costs $100 a month and one person with AI.</p>
+</section>
+
+<!-- S26: CLOSING -->
+<section data-background-color="#0a0a0f" style="text-align: center !important; padding-top: 80px;">
+  <p style="font-size: 1.1em; text-align: center;">Two years ago, none of what I showed you was possible.</p>
+  <p class="fragment fade-up" style="font-size: 1.1em; text-align: center;">Two years from now, it'll be <span class="accent bold">10x more powerful</span>.</p>
+  <p class="fragment fade-up" style="font-size: 1.2em; text-align: center; font-weight: 700; margin-top: 0.6em;">
+    The best time to start was yesterday.<br>
+    The second best time is <span class="green">right now</span>.
+  </p>
+</section>
+
+<!-- Q&A -->
+<section data-background-color="#0a0a0f" style="text-align: center !important;">
+  <h1 class="gradient" style="font-size: 2.2em; text-align: center;">Questions?</h1>
+  <p style="text-align: center; font-size: 0.85em; color: var(--dim); margin-top: 0.3em;">Scan to download this presentation and get in touch.</p>
+  <div style="display: flex; justify-content: center; align-items: center; gap: 50px; margin-top: 20px;">
+    <img src="qr-contact.png" style="width: 240px; height: 240px; border-radius: 12px;">
+    <div style="text-align: left;">
+      <div style="font-size: 0.75em; color: rgba(255,255,255,0.7); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--accent); font-size: 1.2em;">&#9993;</span>
+        <span>info@bettersystems.ai</span>
+      </div>
+      <div style="font-size: 0.75em; color: rgba(255,255,255,0.7); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--accent); font-size: 1.2em;">&#9742;</span>
+        <span>(928) 550-1649</span>
+      </div>
+      <div style="font-size: 0.75em; color: rgba(255,255,255,0.7); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--accent); font-size: 1.2em;">&#127760;</span>
+        <span>www.bettersystems.ai</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top: 16px;">
+    <img src="bsa-logo-transparent.png" style="width: 200px; margin-bottom: 6px;">
+    <div style="font-size: 0.75em; font-weight: 600; color: var(--accent);">Rodo Alvarez</div>
+    <div style="font-size: 0.55em; color: rgba(255,255,255,0.2);">Your Business One Step Ahead</div>
+  </div>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<!-- ================================================================ -->
+<!-- SCRIPTS                                                           -->
+<!-- ================================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+// === DYNAMIC SCRIPT DATA ===
+// Each key is a slide index (0-based). If a slide isn't listed, the previous script stays.
+// A script can span multiple slides — it only changes when a new key is hit.
+const scripts = {
+  // SECTION A: Cover + Title (slides 0-1)
+  0: `<span class="direction">[Logo on screen. Let it sit 3-5 seconds. Let people settle in.]</span><br><br>"Thanks for being here today. I'm Rodo, I'm the founder of Better Systems AI. We help local businesses with automation and AI right here in Arizona."<br><br>"Today I'm going to show you something that I think is going to change how you think about business, about technology, and honestly, about what's possible for you."`,
+
+  // SECTION B: Hook (slide 2)
+  2: `"Think about every business you walked into this week. The restaurant where you waited 20 minutes for a check. The mechanic who forgot to call you back. The landscaper who gave you a quote on a napkin."<br><br>"Every single one of them is losing money right now. Not because they're bad at what they do, but because they're running their business the same way people did two, three years ago. There's a fix for that, and it already exists."`,
+
+  // SECTION C: The Story — happy owner → chaos → problems → fix → core message (slides 3-8)
+  3: `"Let me tell you about a business owner I worked with. He was the best in his industry. Customers loved his work. Five-star reviews everywhere."<br><br><span class="cue">[CLICK — chaos appears]</span><br><br>"But his business was chaos. Leads coming in that nobody followed up on. Invoices he forgot to send. Scheduling mistakes that cost him jobs."<br><br>"He wasn't failing because of his skills. He was failing because every process was manual, disconnected from each other, and everything was running off his memory. He had to double-check every single decision."<br><br><span class="cue">[CLICK — the fix]</span><br><br>"We built him one system. One platform. AI handled the follow-ups, the scheduling, the invoicing, and some of the marketing. Within weeks his business was running like a completely different company. Same owner, same skills, completely different results."<br><br><span class="key-line">"That's what AI, automation, and systems actually do. They don't replace you. They remove everything that's slowing you down."</span>`,
+
+  // SECTION D: Who I Am + Two Camps + Reality (slides 8-13)
+  8: `"We're not from Silicon Valley. We're right here in Arizona. I build AI systems for local businesses, the kind of businesses you drive past every day. And what I've seen is that the ones using AI now have an unfair advantage."<br><br><span class="cue">[CLICK — Camp 1]</span><br>"Camp one thinks AI is just ChatGPT. They use it to brainstorm, write emails, copy and paste, send it out, and think, cool, that's AI."<br><br><span class="cue">[CLICK — Camp 2]</span><br>"Camp two thinks AI isn't really there yet. They'll believe it when there's a robot that autonomously handles every single part of their business. Until then, they wait."<br><br><span class="cue">[CLICK — Both wrong]</span><br>"Both are wrong. The reality is AI works right now by plugging into the processes your business already has. Your R&D, your product, your target market, your pricing. Your operations, the day-to-day manufacturing or delivery. Your admin, accounting, payroll, payables, receivables, compliance. Your finance, cash flow, projections. Your marketing, website, email, phone, SMS, every channel."<br><br>"One person today, with AI, automation, and the right systems, can do the work that used to require an entire team."`,
+
+  // SECTION E: The Opportunity — Stats + Gap + Advantage + Old vs New (slides 14-19)
+  14: `"Now let me show you the real numbers. This is not hype."<br><br>"72% of companies have already adopted AI. Workers using AI are twice as productive. If you could send 30 emails a day, now you send 60, 90. By 2027, nearly half of all small businesses will be using AI."<br><br>"Amazon has 10,000 AI engineers. The landscaper down the street has Dave with a clipboard. That gap is massive. But here's the thing: small businesses have one massive advantage. They can move fast. No boards, no committees, no 6-month approval processes. A small business can adopt AI and transform in weeks. A big company takes years. That's your competitive edge."<br><br>"The old way: buy Salesforce, pay for 3,000 features, use three. The new way? Build exactly what your business needs, how you need it, simplistic."`,
+
+  // SECTION F: Framework + Weight Ticket Story (slides 18-26)
+  18: `"Before we jump into real scenarios, here's the framework. You don't want to implement AI where it's not needed. That magnifies problems. You want to find where AI can actually make an improvement. Start with the pain."<br><br><span class="cue">[CLICK — Trucking company]</span><br>"Let me bring you to a real example. A trucking company with about 10 trucks."<br><br><span class="cue">[CLICK — The weight ticket]</span><br>"This is a weight ticket. Every single load requires one. Handwritten. Every time."<br><br><span class="cue">[CLICK — Scale of problem]</span><br>"Now multiply that by thousands. 10 trucks, multiple loads per day. Over a month, hundreds, sometimes thousands of weight tickets. Every one has to be logged, net weight calculated, then sent as an invoice. The invoicing for a single month could take three months to complete. Weight Tickets miscalculated, sent back, redone."<br><br><span class="cue">[CLICK — Bottleneck]</span><br>"Because of this bottleneck, the owner didn't want more trucks. Not because of demand. Because the paperwork was killing the business."<br><br><span class="cue">[CLICK — Solution]</span><br>"Instead of carrying paper to the office, the driver takes a photo. AI vision analyzes it, 98% accuracy. The driver reviews, confirms with one tap, submits to the database."<br><br><span class="cue">[CLICK — Flow]</span><br>"Photo to AI to database to QuickBooks to invoice. After a quick verification from the admin office, the automated invoice goes to the client. Hundreds of hours reduced to minutes per week."<br><br><span class="cue">[CLICK — Dashboard]</span><br>"Everything in one place. Every ticket, every truck, every weight, searchable instantly."`,
+
+  // SECTION G: Understanding the Tech — AI Suppliers + Capabilities (slides 27-29)
+  27: `"Now let me show you the tech behind all of this."<br><br><span class="cue">[CLICK — AI Suppliers]</span><br>"These are the companies building the AI. Think of them like engine manufacturers. OpenAI makes GPT and ChatGPT. Google has Gemini. Anthropic makes Claude, which is what I use to build everything. Meta releases open-source models anyone can use for free."<br><br><span class="cue">[CLICK — Capabilities]</span><br>"Here's what AI can do right now. Image generation — every graphic in this presentation was AI-generated tonight. Document analysis — that's the weight ticket system. Voice generation that sounds human, available 24/7. Perfect transcription with speaker identification. Code generation — AI writes entire applications. And text writing in your brand voice."`,
+
+  // SECTION H: Context Engineering (slides 30-31)
+  30: `"Now here's the secret ingredient. Context."<br><br>"AI is only as smart as the information you give it. Without context, it's like hiring an employee and never training them. Generic answers. Useless. But with context — your customers, your processes, your history — it becomes an expert on YOUR business."<br><br><span class="cue">[CLICK — Recording architecture]</span><br>"Let me show you how I do this. I wear a small recording device. Every conversation gets transcribed. AI identifies who said what, extracts decisions, action items, key numbers. After a month, AI knows my customers. After a year, it knows my entire operation. The compounding effect is massive."`,
+
+  // SECTION I: Platforms + Claude Code + What You Can Build (slides 32-37)
+  32: `"AI is the brain. These are the arms and legs. Google Workspace, Gmail, Calendar. Stripe for payments. QuickBooks for accounting. Twilio for phone and SMS. ElevenLabs for AI voice agents. Supabase for your database. Calendly for scheduling. Shopify for e-commerce. Resend for email. Airtable. Vercel. GitHub. You connect these together like building blocks."<br><br><span class="cue">[CLICK — Claude Code]</span><br>"But how do you wire it all together? One tool. Claude Code by Anthropic. Think of it as the electrician that wires the entire building. You describe what you need in plain English. It reads the APIs, writes the code, connects the platforms, builds the system. This is what I use every single day."<br><br><span class="cue">[CLICK — What you can build]</span><br>"With these tools you can build: an AI phone receptionist that answers 24/7. A CRM. An estimate generator — photos of the job, AI makes the estimate. Fleet management. Document scanners. Automated invoicing straight to QuickBooks."<br><br><span class="cue">[CLICK — More examples]</span><br>"Review managers that monitor Google reviews and draft responses. Social media managers. Route optimizers. Expense trackers — photo of receipt, categorized, tax-ready. Employee training systems. Contract analyzers."<br><br><span class="cue">[CLICK — Cost]</span><br>"Five years ago, this would've cost half a million dollars. Today? Under $100 a month and one person with AI."`,
+
+  // SECTION J: Close + Q&A (slides 37-38)
+  37: `"Everything I showed you today, none of it was possible two years ago. The AI we have today is the worst AI we'll ever have. It only gets better."<br><br>"The students in this room who start now will have a massive head start. Don't wait."<br><br>"Do you have a business? Scan the QR code. Let's talk. What questions do you have?"`,
+};
+
+// === INIT REVEAL ===
+Reveal.initialize({
+  hash: true,
+  slideNumber: true,
+  transition: 'fade',
+  transitionSpeed: 'default',
+  backgroundTransition: 'fade',
+  center: true,
+  width: 1920,
+  height: 1080,
+  margin: 0.04,
+  minScale: 0.5,
+  maxScale: 1.5,
+});
+
+// === DYNAMIC SCRIPT UPDATE WITH PROGRESS ===
+const scriptText = document.getElementById('script-text');
+const barFill = document.getElementById('script-bar-fill');
+const barText = document.getElementById('script-bar-text');
+const overallFill = document.getElementById('overall-bar-fill');
+const overallText = document.getElementById('overall-bar-text');
+let lastScript = '';
+
+// Pre-compute script sections: for each script key, find how many slides it covers
+const scriptKeys = Object.keys(scripts).map(Number).sort((a, b) => a - b);
+const totalSlides = Reveal.getTotalSlides();
+
+function getScriptSection(slideIdx) {
+  // Find which script key this slide belongs to
+  let scriptStart = 0;
+  for (let i = scriptKeys.length - 1; i >= 0; i--) {
+    if (scriptKeys[i] <= slideIdx) {
+      scriptStart = scriptKeys[i];
+      break;
+    }
+  }
+
+  // Find where the NEXT script starts (that's where this section ends)
+  let scriptEnd = totalSlides - 1;
+  for (let i = 0; i < scriptKeys.length; i++) {
+    if (scriptKeys[i] > scriptStart) {
+      scriptEnd = scriptKeys[i] - 1;
+      break;
+    }
+  }
+
+  const sectionLength = scriptEnd - scriptStart + 1;
+  const positionInSection = slideIdx - scriptStart + 1;
+
+  return { scriptStart, scriptEnd, sectionLength, positionInSection };
+}
+
+function updateScript() {
+  const idx = Reveal.getIndices().h;
+
+  // Find the current script
+  let current = '';
+  for (let i = idx; i >= 0; i--) {
+    if (scripts[i] !== undefined) {
+      current = scripts[i];
+      break;
+    }
+  }
+
+  // Update script text
+  if (current !== lastScript) {
+    scriptText.innerHTML = current;
+    lastScript = current;
+    document.getElementById('script-panel').scrollTop = 0;
+  }
+
+  // Update progress bar
+  const section = getScriptSection(idx);
+  const pct = (section.positionInSection / section.sectionLength) * 100;
+  barFill.style.width = pct + '%';
+  barText.textContent = section.positionInSection + '/' + section.sectionLength;
+
+  // Update overall progress bar
+  const overallPct = ((idx + 1) / totalSlides) * 100;
+  overallFill.style.width = overallPct + '%';
+  overallText.textContent = (idx + 1) + '/' + totalSlides;
+}
+
+Reveal.on('slidechanged', updateScript);
+Reveal.on('ready', updateScript);
+</script>
+</body>
+</html>

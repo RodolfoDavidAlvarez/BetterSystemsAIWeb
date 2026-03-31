@@ -98,24 +98,37 @@ export default function AIPresentationPage() {
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">Thank you!</h2>
                 <p className="text-slate-400">
-                  Your presentation download is ready.
+                  Choose how you'd like to access the presentation.
                 </p>
               </div>
-              <a
-                href="/presentations/ai-in-business-cgcc.pdf"
-                download
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
-              >
-                <Download className="w-5 h-5" />
-                Download Presentation (PDF)
-              </a>
+              <div className="flex flex-col gap-3 w-full">
+                <a
+                  href="/presentations/ai-in-business-cgcc.pdf"
+                  download
+                  className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors w-full"
+                >
+                  <Download className="w-5 h-5" />
+                  Download PDF
+                </a>
+                <a
+                  href="/presentations/ai-cgcc/"
+                  target="_blank"
+                  className="inline-flex items-center justify-center gap-2 bg-[#1e293b] hover:bg-[#2d3a4f] text-white font-semibold px-6 py-3 rounded-lg transition-colors border border-[#334155] w-full"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  View Interactive Presentation
+                </a>
+              </div>
+              <p className="text-xs text-slate-500">
+                The interactive version is optimized for desktop viewing.
+              </p>
               <p className="text-sm text-slate-500">
                 Questions? Reach out at{" "}
                 <a
-                  href="mailto:rodolfo@bettersystems.ai"
+                  href="mailto:info@bettersystems.ai"
                   className="text-blue-400 hover:underline"
                 >
-                  rodolfo@bettersystems.ai
+                  info@bettersystems.ai
                 </a>
               </p>
             </CardContent>

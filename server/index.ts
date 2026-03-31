@@ -151,14 +151,26 @@ if (isDevelopment) {
   app.use(express.static(staticDir));
 }
 
-// Health check endpoint with detailed response
-app.get("/api/health", (_req, res) => {
+// Health check endpoint with detailed response and database probe
+app.get("/api/health", async (_req, res) => {
+  let dbStatus = "unknown";
+  let dbError: string | null = null;
+  try {
+    const { db } = await import("@db/index");
+    const { sql } = await import("drizzle-orm");
+    await db.execute(sql`SELECT 1 as ok`);
+    dbStatus = "connected";
+  } catch (err) {
+    dbStatus = "disconnected";
+    dbError = err instanceof Error ? err.message : String(err);
+  }
   const health = {
-    status: "healthy",
+    status: dbStatus === "connected" ? "healthy" : "degraded",
     time: new Date().toISOString(),
     env: process.env.NODE_ENV || "development",
     port: PORT,
     nodeVersion: process.version,
+    database: { status: dbStatus, ...(dbError && { error: dbError }) },
     ...(isDevelopment ? {} : { staticDir, staticDirExists: existsSync(staticDir) }),
   };
   res.json(health);

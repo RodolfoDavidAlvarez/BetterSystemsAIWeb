@@ -8,6 +8,8 @@ import OpenAI from 'openai';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import postgres from 'postgres';
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // drizzle removed — using raw postgres.js (queryClient) for all queries
 const app = express();
 
@@ -36,7 +38,11 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use((req, res, next) => {
+  // Skip JSON parsing for Stripe webhook (needs raw body for signature verification)
+  if (req.path === '/api/webhooks/stripe') return next();
+  express.json({ limit: '10mb' })(req, res, next);
+});
 app.use(cookieParser());
 
 // Initialize services
@@ -1300,6 +1306,77 @@ app.post('/api/webhooks/resend', async (req, res) => {
   }
 });
 
+// ==================== STRIPE WEBHOOK (payment notifications) ====================
+app.post('/api/webhooks/stripe', express.raw({type: '*/*'}), async (req, res) => {
+  try {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+    if (webhookSecret && sig) {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } else if (!sig) {
+      // Allow unsigned requests for testing (Stripe always sends signature in production)
+      const raw = Buffer.isBuffer(req.body) ? req.body.toString() : (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+      event = JSON.parse(raw);
+    } else {
+      event = JSON.parse(req.body.toString());
+    }
+
+    const paymentEvents = ['charge.succeeded', 'payment_intent.succeeded', 'invoice.paid', 'invoice.payment_succeeded', 'checkout.session.completed'];
+    if (paymentEvents.includes(event.type)) {
+      const obj = event.data.object;
+      // Handle different event shapes
+      const amount = (obj.amount || obj.amount_received || obj.amount_paid || obj.amount_total || 0) / 100;
+      const name = obj.billing_details?.name || obj.customer_name || obj.customer_details?.name || obj.customer_email || obj.description || 'Unknown';
+      const email = obj.billing_details?.email || obj.receipt_email || obj.customer_email || obj.customer_details?.email || '';
+      const date = new Date(obj.created * 1000).toLocaleDateString('en-US', { timeZone: 'America/Phoenix' });
+
+      // Skip tiny charges (Stripe App fees, test charges)
+      if (amount < 50) {
+        return res.json({ received: true, skipped: 'small_amount' });
+      }
+
+      const message = `Payment received: $${amount.toFixed(2)} from ${name}${email ? ' (' + email + ')' : ''} on ${date}`;
+      console.log(`[Stripe Webhook] ${message}`);
+
+      // Send SMS to Rodo
+      try {
+        const twilio = (await import('twilio')).default;
+        const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        await twilioClient.messages.create({
+          body: message,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: '+19285501649'
+        });
+        console.log('[Stripe Webhook] SMS sent to Rodo');
+      } catch (smsErr) {
+        console.error('[Stripe Webhook] SMS failed:', smsErr.message);
+      }
+
+      // Send email to Rodo
+      try {
+        const { Resend } = await import('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: 'BSA Payments <accounting@bettersystems.ai>',
+          to: 'rodolfo@bettersystems.ai',
+          subject: `Payment: $${amount.toFixed(2)} from ${name}`,
+          text: `${message}\n\nStripe Dashboard: https://dashboard.stripe.com/payments/${obj.id || obj.latest_charge || ''}`
+        });
+        console.log('[Stripe Webhook] Email sent to Rodo');
+      } catch (emailErr) {
+        console.error('[Stripe Webhook] Email failed:', emailErr.message);
+      }
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('[Stripe Webhook] Error:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // ==================== NEW LEADS PIPELINE (admin) ====================
 app.get('/api/admin/cold-outreach/new-leads', async (req, res) => {
   try {
@@ -2190,6 +2267,57 @@ app.post('/api/admin/recordings/search/ask', async (req, res) => {
   } catch (e) {
     console.error('Ask error:', e);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// ==================== PRESENTATION LEADS ====================
+app.post('/api/presentation-leads', async (req, res) => {
+  try {
+    const { name, email, phone, category, interestedInHelp, presentation } = req.body;
+
+    if (!name || !email || !category) {
+      return res.status(400).json({ error: 'Name, email, and category are required' });
+    }
+
+    // Store in database
+    await queryClient`
+      INSERT INTO presentation_leads (name, email, phone, category, interested_in_help, presentation)
+      VALUES (${name}, ${email}, ${phone || null}, ${category}, ${interestedInHelp || false}, ${presentation || 'cgcc-ai-2026'})
+    `;
+
+    // Send notification email via Resend
+    try {
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Better Systems AI <developer@bettersystems.ai>',
+        to: 'rodolfo@bettersystems.ai',
+        subject: `New Presentation Lead: ${name}`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0f1a; color: #fff; padding: 40px; border-radius: 16px;">
+            <h1 style="color: #fff; margin: 0 0 8px 0; font-size: 24px;">New Presentation Lead</h1>
+            <p style="color: #94a3b8; margin: 0 0 24px 0;">Someone downloaded the AI presentation</p>
+            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Name</td><td style="color: #fff; padding: 8px 0; text-align: right;"><strong>${name}</strong></td></tr>
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Email</td><td style="color: #fff; padding: 8px 0; text-align: right;"><a href="mailto:${email}" style="color: #60a5fa;">${email}</a></td></tr>
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Phone</td><td style="color: #fff; padding: 8px 0; text-align: right;">${phone || 'Not provided'}</td></tr>
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Category</td><td style="color: #fff; padding: 8px 0; text-align: right;">${category}</td></tr>
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Wants AI Help</td><td style="color: #fff; padding: 8px 0; text-align: right;">${interestedInHelp ? '<span style="color: #22c55e; font-weight: bold;">YES</span>' : 'No'}</td></tr>
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Presentation</td><td style="color: #fff; padding: 8px 0; text-align: right;">${presentation || 'cgcc-ai-2026'}</td></tr>
+                <tr><td style="color: #94a3b8; padding: 8px 0;">Submitted</td><td style="color: #fff; padding: 8px 0; text-align: right;">${new Date().toLocaleString('en-US', { timeZone: 'America/Phoenix' })}</td></tr>
+              </table>
+            </div>
+            ${interestedInHelp ? '<div style="margin-top: 16px; padding: 12px 16px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; color: #22c55e; font-weight: 600; text-align: center;">This person wants help integrating AI systems</div>' : ''}
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error('Failed to send presentation lead notification:', emailErr);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Presentation lead error:', error);
+    res.status(500).json({ error: 'Failed to save lead' });
   }
 });
 

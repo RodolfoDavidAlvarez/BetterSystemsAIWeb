@@ -19,6 +19,7 @@ import SocialPage from "./pages/SocialPage";
 import BookingPage from "./pages/BookingPage";
 import ContractorCRMPage from "./pages/ContractorCRMPage";
 import InvoicePaymentPage from "./pages/InvoicePaymentPage";
+import AIPresentationPage from "./pages/AIPresentationPage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
 // Admin imports
@@ -31,6 +32,8 @@ import ReviewSurveyPage from "./pages/ReviewSurveyPage";
 import OutreachDashboard from "./pages/admin/OutreachDashboard";
 import RecordingSearchPage from "./pages/admin/RecordingSearchPage";
 import MorePage from "./pages/admin/MorePage";
+import DealsPage from "./pages/admin/DealsPage";
+import DealDetailPage from "./pages/admin/DealDetailPage";
 
 // Simple redirect component that doesn't cause infinite re-renders
 function RedirectTo({ path }: { path: string }) {
@@ -66,6 +69,7 @@ function App() {
               <Route path="/contractors" component={ContractorCRMPage} />
               <Route path="/review" component={ReviewSurveyPage} />
               <Route path="/pay/:invoiceNumber" component={InvoicePaymentPage} />
+              <Route path="/ai-presentation" component={AIPresentationPage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />
@@ -89,6 +93,23 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <OutreachDashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+
+              {/* Deals Pipeline */}
+              <Route path="/admin/deals/:id">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <DealDetailPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              </Route>
+
+              <Route path="/admin/deals">
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <DealsPage />
                   </AdminLayout>
                 </ProtectedRoute>
               </Route>

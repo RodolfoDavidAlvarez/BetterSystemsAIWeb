@@ -1,12 +1,33 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is required in environment variables");
+// Validate Stripe key - trim whitespace/newlines and check if actually present
+const rawKey = (process.env.STRIPE_SECRET_KEY || "").trim();
+const isValidKey = rawKey.length > 10 && rawKey.startsWith("sk_");
+
+export const isStripeConfigured = isValidKey;
+
+// Only create Stripe client if we have a valid key
+// Use a lazy getter so imports don't crash the server
+let _stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!isStripeConfigured) {
+      throw new Error("Stripe is not configured. Set a valid STRIPE_SECRET_KEY in your environment.");
+    }
+    _stripe = new Stripe(rawKey, {
+      apiVersion: "2025-11-17.clover",
+      typescript: true,
+    });
+  }
+  return _stripe;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-11-17.clover",
-  typescript: true,
+// For backwards compat - consumers that used `stripe` directly
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    return (getStripe() as any)[prop];
+  },
 });
 
 // ==================== CUSTOMERS ====================
@@ -29,7 +50,7 @@ export async function getAllStripeCustomers() {
       params.starting_after = startingAfter;
     }
 
-    const customers = await stripe.customers.list(params);
+    const customers = await getStripe().customers.list(params);
     allCustomers.push(...customers.data);
 
     hasMore = customers.has_more;
@@ -42,15 +63,15 @@ export async function getAllStripeCustomers() {
 }
 
 export async function getStripeCustomer(customerId: string) {
-  return await stripe.customers.retrieve(customerId);
+  return await getStripe().customers.retrieve(customerId);
 }
 
 export async function createStripeCustomer(params: { email: string; name?: string; phone?: string; metadata?: Record<string, string> }) {
-  return await stripe.customers.create(params);
+  return await getStripe().customers.create(params);
 }
 
 export async function updateStripeCustomer(customerId: string, params: Stripe.CustomerUpdateParams) {
-  return await stripe.customers.update(customerId, params);
+  return await getStripe().customers.update(customerId, params);
 }
 
 // ==================== INVOICES ====================
@@ -77,7 +98,7 @@ export async function getAllStripeInvoices(customerId?: string) {
       params.starting_after = startingAfter;
     }
 
-    const invoices = await stripe.invoices.list(params);
+    const invoices = await getStripe().invoices.list(params);
     allInvoices.push(...invoices.data);
 
     hasMore = invoices.has_more;
@@ -90,7 +111,7 @@ export async function getAllStripeInvoices(customerId?: string) {
 }
 
 export async function getStripeInvoice(invoiceId: string) {
-  return await stripe.invoices.retrieve(invoiceId);
+  return await getStripe().invoices.retrieve(invoiceId);
 }
 
 export async function createStripeInvoice(params: {
@@ -101,7 +122,7 @@ export async function createStripeInvoice(params: {
   collectionMethod?: "charge_automatically" | "send_invoice";
   metadata?: Record<string, string>;
 }) {
-  const invoice = await stripe.invoices.create({
+  const invoice = await getStripe().invoices.create({
     customer: params.customer,
     description: params.description,
     due_date: params.dueDate,
@@ -121,7 +142,7 @@ export async function addInvoiceLineItem(params: {
   currency?: string;
   quantity?: number;
 }) {
-  const invoiceItem = await stripe.invoiceItems.create({
+  const invoiceItem = await getStripe().invoiceItems.create({
     customer: params.customer,
     invoice: params.invoice,
     description: params.description,
@@ -134,23 +155,23 @@ export async function addInvoiceLineItem(params: {
 }
 
 export async function finalizeStripeInvoice(invoiceId: string) {
-  return await stripe.invoices.finalizeInvoice(invoiceId);
+  return await getStripe().invoices.finalizeInvoice(invoiceId);
 }
 
 export async function sendStripeInvoice(invoiceId: string) {
-  return await stripe.invoices.sendInvoice(invoiceId);
+  return await getStripe().invoices.sendInvoice(invoiceId);
 }
 
 export async function updateStripeInvoice(invoiceId: string, params: Stripe.InvoiceUpdateParams) {
-  return await stripe.invoices.update(invoiceId, params);
+  return await getStripe().invoices.update(invoiceId, params);
 }
 
 export async function voidStripeInvoice(invoiceId: string) {
-  return await stripe.invoices.voidInvoice(invoiceId);
+  return await getStripe().invoices.voidInvoice(invoiceId);
 }
 
 export async function payStripeInvoice(invoiceId: string) {
-  return await stripe.invoices.pay(invoiceId);
+  return await getStripe().invoices.pay(invoiceId);
 }
 
 // ==================== PAYMENT INTENTS ====================
@@ -177,7 +198,7 @@ export async function getAllPaymentIntents(customerId?: string) {
       params.starting_after = startingAfter;
     }
 
-    const paymentIntents = await stripe.paymentIntents.list(params);
+    const paymentIntents = await getStripe().paymentIntents.list(params);
     allPaymentIntents.push(...paymentIntents.data);
 
     hasMore = paymentIntents.has_more;
@@ -190,7 +211,7 @@ export async function getAllPaymentIntents(customerId?: string) {
 }
 
 export async function getPaymentIntent(paymentIntentId: string) {
-  return await stripe.paymentIntents.retrieve(paymentIntentId);
+  return await getStripe().paymentIntents.retrieve(paymentIntentId);
 }
 
 export async function createPaymentIntent(params: {
@@ -201,7 +222,7 @@ export async function createPaymentIntent(params: {
   metadata?: Record<string, string>;
   receiptEmail?: string;
 }) {
-  return await stripe.paymentIntents.create({
+  return await getStripe().paymentIntents.create({
     amount: params.amount,
     currency: params.currency ?? "usd",
     customer: params.customer,
@@ -238,7 +259,7 @@ export async function getAllSubscriptions(customerId?: string) {
       params.starting_after = startingAfter;
     }
 
-    const subscriptions = await stripe.subscriptions.list(params);
+    const subscriptions = await getStripe().subscriptions.list(params);
     allSubscriptions.push(...subscriptions.data);
 
     hasMore = subscriptions.has_more;
@@ -251,7 +272,7 @@ export async function getAllSubscriptions(customerId?: string) {
 }
 
 export async function getSubscription(subscriptionId: string) {
-  return await stripe.subscriptions.retrieve(subscriptionId);
+  return await getStripe().subscriptions.retrieve(subscriptionId);
 }
 
 export async function createSubscription(params: {
@@ -260,7 +281,7 @@ export async function createSubscription(params: {
   trialPeriodDays?: number;
   metadata?: Record<string, string>;
 }) {
-  return await stripe.subscriptions.create({
+  return await getStripe().subscriptions.create({
     customer: params.customer,
     items: params.items,
     trial_period_days: params.trialPeriodDays,
@@ -270,11 +291,11 @@ export async function createSubscription(params: {
 
 export async function cancelSubscription(subscriptionId: string, cancelAtPeriodEnd: boolean = false) {
   if (cancelAtPeriodEnd) {
-    return await stripe.subscriptions.update(subscriptionId, {
+    return await getStripe().subscriptions.update(subscriptionId, {
       cancel_at_period_end: true,
     });
   } else {
-    return await stripe.subscriptions.cancel(subscriptionId);
+    return await getStripe().subscriptions.cancel(subscriptionId);
   }
 }
 
@@ -287,7 +308,7 @@ export async function createPaymentLink(params: {
   metadata?: Record<string, string>;
 }) {
   // Create a price first (required for payment links)
-  const price = await stripe.prices.create({
+  const price = await getStripe().prices.create({
     unit_amount: params.amount,
     currency: params.currency ?? "usd",
     product_data: {
@@ -296,7 +317,7 @@ export async function createPaymentLink(params: {
   });
 
   // Create the payment link
-  const paymentLink = await stripe.paymentLinks.create({
+  const paymentLink = await getStripe().paymentLinks.create({
     line_items: [
       {
         price: price.id,
@@ -310,7 +331,7 @@ export async function createPaymentLink(params: {
 }
 
 export async function getPaymentLink(paymentLinkId: string) {
-  return await stripe.paymentLinks.retrieve(paymentLinkId);
+  return await getStripe().paymentLinks.retrieve(paymentLinkId);
 }
 
 // ==================== CHARGES ====================
@@ -333,7 +354,7 @@ export async function getAllStripeCharges(limit?: number) {
       params.starting_after = startingAfter;
     }
 
-    const charges = await stripe.charges.list(params);
+    const charges = await getStripe().charges.list(params);
     allCharges.push(...charges.data);
 
     hasMore = charges.has_more;
@@ -414,7 +435,7 @@ export async function getMonthlyRevenueFromStripe(months: number = 6) {
 // ==================== WEBHOOK HANDLING ====================
 
 export function constructWebhookEvent(payload: string | Buffer, signature: string, secret: string) {
-  return stripe.webhooks.constructEvent(payload, signature, secret);
+  return getStripe().webhooks.constructEvent(payload, signature, secret);
 }
 
 export async function handleWebhookEvent(event: Stripe.Event) {

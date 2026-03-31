@@ -270,11 +270,12 @@ async function extractActionItems(recordingId) {
   }
 
   // Fetch existing items (pending + recently completed/dismissed) for dedup
+  // Use DISTINCT ON to avoid checking thousands of duplicates
   const existingItems = await sql`
-    SELECT title, status FROM action_items
+    SELECT DISTINCT ON (LOWER(title)) title, status FROM action_items
     WHERE (status IN ('pending', 'in_progress')
        OR (status IN ('completed', 'dismissed') AND updated_at > NOW() - INTERVAL '30 days'))
-    ORDER BY id DESC LIMIT 500
+    ORDER BY LOWER(title), id DESC
   `;
   const existingList = existingItems.map(i => i.title).join(', ');
 
@@ -456,31 +457,10 @@ async function cleanupActionItems() {
   console.log(`  📊 Status: ${stats.review} needs review, ${stats.pending} pending (${stats.overdue} overdue)\n`);
 }
 
-async function cleanupActionItems() {
-  // 1. Auto-dismiss pending items older than 7 days (if not done by now, they're dead)
-  const stale = await sql`
-    UPDATE action_items SET status = 'dismissed', updated_at = NOW()
-    WHERE status = 'pending' AND created_at < NOW() - INTERVAL '7 days'
-    RETURNING id
-  `;
-  if (stale.length > 0) console.log(`  🧹 Auto-dismissed ${stale.length} stale items (>7 days old)`);
-
-  // 2. Auto-dismiss needs_review items older than 3 days (unconfirmed AI extractions)
-  const unreviewed = await sql`
-    UPDATE action_items SET status = 'dismissed', updated_at = NOW()
-    WHERE status = 'needs_review' AND created_at < NOW() - INTERVAL '3 days'
-    RETURNING id
-  `;
-  if (unreviewed.length > 0) console.log(`  🧹 Auto-dismissed ${unreviewed.length} unreviewed items (>3 days old)`);
-
-  // 3. Promote needs_review to pending after 1 day (auto-confirm)
-  const promoted = await sql`
-    UPDATE action_items SET status = 'pending', updated_at = NOW()
-    WHERE status = 'needs_review' AND created_at < NOW() - INTERVAL '1 day'
-    RETURNING id
-  `;
-  if (promoted.length > 0) console.log(`  📋 Auto-promoted ${promoted.length} items to pending`);
-}
+// [DELETED] — duplicate function removed. Using the one above (lines 421-457) with proper thresholds:
+// - Auto-dismiss pending items overdue by 14+ days
+// - Auto-promote needs_review items older than 3 days to pending
+// See cleanupActionItems() defined above.
 
 async function extractAllPending() {
   // Run cleanup before extraction
@@ -602,7 +582,7 @@ async function generateBriefing() {
   `;
 
   const recentRecordings = await sql`
-    SELECT title, recorded_at, duration_seconds, metadata
+    SELECT title, recorded_at, duration_seconds, metadata, speakers, topics, people, companies, projects
     FROM recordings
     WHERE transcription_status = 'completed'
     AND recorded_at > NOW() - INTERVAL '7 days'
@@ -660,18 +640,30 @@ async function generateBriefing() {
     briefing += '\n';
   }
 
-  // Recent recordings — enriched with indexed metadata
+  // Recent recordings — enriched with indexed intelligence data
   if (recentRecordings.length > 0) {
     briefing += `## Recent Recordings (last 7 days)\n\n`;
     for (const r of recentRecordings) {
       const date = r.recorded_at ? new Date(r.recorded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '?';
       const dur = `${Math.round(r.duration_seconds / 60)}m`;
-      const callType = r.metadata?.call_type || '';
-      const contact = r.metadata?.contact || '';
-      const company = r.metadata?.company || '';
-      const topics = (r.metadata?.topics || []).slice(0, 3).join(', ');
-      const extra = [callType, contact ? `with ${contact}` : '', company, topics].filter(Boolean).join(' · ');
-      briefing += `- ${date} — ${r.title || 'Untitled'} (${dur})${extra ? ' [' + extra + ']' : ''}\n`;
+      // Use indexed fields first (from index-recordings.js), fall back to metadata
+      const speakers = (r.speakers || []).filter(s => s !== 'Rodo' && !s.startsWith('Unknown')).join(', ');
+      const topics = (r.topics || r.metadata?.topics || []).slice(0, 4).join(', ');
+      const companies = (r.companies || []).join(', ');
+      const urgency = r.metadata?.urgency || '';
+      const decisions = (r.metadata?.key_decisions || []);
+      const numbers = (r.metadata?.key_numbers || []);
+      const summary = r.metadata?.summary || '';
+
+      let line = `- ${date} — **${r.title || 'Untitled'}** (${dur})`;
+      if (speakers) line += ` w/ ${speakers}`;
+      if (companies) line += ` [${companies}]`;
+      if (urgency === 'action-needed') line += ' ⚡';
+      briefing += line + '\n';
+      if (topics) briefing += `  Topics: ${topics}\n`;
+      if (decisions.length > 0) briefing += `  Decisions: ${decisions.slice(0, 2).join('; ')}\n`;
+      if (numbers.length > 0) briefing += `  Key numbers: ${numbers.slice(0, 3).join('; ')}\n`;
+      if (summary && !decisions.length) briefing += `  ${summary.substring(0, 150)}\n`;
     }
     briefing += '\n';
   }

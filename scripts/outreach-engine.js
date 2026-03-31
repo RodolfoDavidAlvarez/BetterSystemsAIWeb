@@ -47,8 +47,8 @@ const args = process.argv.slice(2);
 const campaignIdx = args.indexOf('--campaign');
 const CAMPAIGN = campaignIdx !== -1 ? args[campaignIdx + 1] : 'contractor-crm';
 
-if (!['contractor-crm', 'weight-ticket'].includes(CAMPAIGN)) {
-  console.error(`Unknown campaign: ${CAMPAIGN}. Use 'contractor-crm' or 'weight-ticket'.`);
+if (!['contractor-crm', 'weight-ticket', 'ssw-landscaper'].includes(CAMPAIGN)) {
+  console.error(`Unknown campaign: ${CAMPAIGN}. Use 'contractor-crm', 'weight-ticket', or 'ssw-landscaper'.`);
   process.exit(1);
 }
 
@@ -68,6 +68,10 @@ const CAMPAIGN_CONFIG = {
   'weight-ticket': {
     fromEmail: 'rodo@weightticket.com',
     label: 'Weight Ticket',
+  },
+  'ssw-landscaper': {
+    fromEmail: 'rodo@whysoilmatters.com',
+    label: 'SSW Landscaper',
   },
 };
 
@@ -173,9 +177,52 @@ Rodo
   }
 };
 
+const SSW_LANDSCAPER_TEMPLATES = {
+  email1: {
+    subject: (lead) => `${lead.company} — soil question`,
+    body: (lead) => `Hey ${lead.first_name},
+
+My name is Rodo. I run Soil Seed & Water here in Phoenix. We supply organic soil blends, compost, and amendments to landscapers and growers across AZ.
+
+A lot of the crews we work with switched from big-box soil to custom blends and saw way better plant establishment and fewer callbacks. We deliver by the pallet or truckload.
+
+Would better soil supply be useful for ${lead.company}? Happy to send over our wholesale pricing.
+
+Rodo Alvarez
+(602) 637-0032`
+  },
+
+  email2: {
+    subject: (lead) => `Re: ${lead.company} — soil question`,
+    body: (lead) => `Hey ${lead.first_name},
+
+Quick follow-up. One of the landscapers we supply told us switching to our turf blend cut his sod replacement callbacks in half. The soil actually holds moisture and nutrients instead of washing through.
+
+Here's our full product line if you want to take a look: soilseedandwater.com/products
+
+Happy to send samples or put together wholesale pricing for ${lead.company}. If it's not a fit, no worries at all.
+
+Rodo
+(602) 637-0032`
+  },
+
+  email3: {
+    subject: (lead) => `Re: ${lead.company} — soil question`,
+    body: (lead) => `Hey ${lead.first_name},
+
+Last one from me. If you ever need a reliable soil supplier for ${lead.company}, we're local and deliver across the valley.
+
+soilseedandwater.com/products
+
+Rodo
+(602) 637-0032`
+  }
+};
+
 const TEMPLATES_MAP = {
   'contractor-crm': CRM_TEMPLATES,
   'weight-ticket': WEIGHT_TICKET_TEMPLATES,
+  'ssw-landscaper': SSW_LANDSCAPER_TEMPLATES,
 };
 
 const TEMPLATES = TEMPLATES_MAP[CAMPAIGN];
@@ -255,6 +302,9 @@ async function getLeadsToEmail() {
   }
 
   // Get leads ready for next email (filtered by campaign)
+  // IMPORTANT: Follow-ups (step 1, 2) are prioritized over new sends (step 0).
+  // This prevents new Email 1 sends from consuming the entire daily limit
+  // and starving Email 2/3 follow-ups that are already due.
   const leads = await sql`
     SELECT * FROM leads
     WHERE email IS NOT NULL AND email != ''
@@ -266,7 +316,8 @@ async function getLeadsToEmail() {
         OR (outreach_step = 2 AND last_email_sent < NOW() - INTERVAL '4 days')
       )
     ORDER BY
-      outreach_step ASC,
+      CASE WHEN outreach_step > 0 THEN 0 ELSE 1 END ASC,
+      outreach_step DESC,
       CASE WHEN state = 'AZ' THEN 0 ELSE 1 END ASC,
       employee_count ASC NULLS LAST,
       created_at ASC

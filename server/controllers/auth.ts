@@ -7,7 +7,7 @@ import { AuthenticatedRequest, createAuthToken, setAuthCookie } from "../middlew
 
 // Constants
 const SALT_ROUNDS = 10;
-const JWT_SECRET = process.env.JWT_SECRET || "bettersystems-blog-secret-key-dev";
+const JWT_SECRET = process.env.JWT_SECRET?.trim() || "bettersystems-blog-secret-key-dev";
 
 // Register a new admin user
 export const register = async (req: Request, res: Response) => {
@@ -81,7 +81,8 @@ export const login = async (req: Request, res: Response) => {
       headers: req.headers,
     });
 
-    const { username, password } = req.body;
+    const username = typeof req.body?.username === "string" ? req.body.username.trim() : req.body?.username;
+    const password = typeof req.body?.password === "string" ? req.body.password : req.body?.password;
 
     console.log("Environment info:", {
       nodeEnv: process.env.NODE_ENV,

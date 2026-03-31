@@ -35,6 +35,14 @@ Browser → localhost:5173 (Vite)
 - CORS issues occur if you mix ports
 - Authentication cookies may not work correctly across ports
 
+## Admin Panel Access
+
+**URL:** `/admin/login` (local: http://localhost:5173/admin/login)
+**Credentials are stored in `.env`** — look for `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+- Only ONE admin account exists in the database (user ID 1)
+- If password needs reset, hash with bcrypt and update `users` table WHERE id = 1
+- NEVER create additional user accounts without explicit instruction
+
 ## Build and Development Commands
 
 ### Root Level (Full Stack)

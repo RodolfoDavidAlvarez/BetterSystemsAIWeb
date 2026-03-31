@@ -1121,3 +1121,75 @@ export const insertReviewSchema = createInsertSchema(reviews);
 export const selectReviewSchema = createSelectSchema(reviews);
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = z.infer<typeof selectReviewSchema>;
+
+// ==================== RECORDINGS TABLE (PLAUD INTEGRATION) ====================
+
+// Recordings - Audio recordings from Plaud device with Whisper transcription
+export const recordings = pgTable("recordings", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  // Plaud identification
+  plaudRecordingId: text("plaud_recording_id").unique(),
+  plaudTaskId: text("plaud_task_id"),
+
+  // Recording details
+  title: text("title"),
+  audioUrl: text("audio_url"),
+  durationSeconds: integer("duration_seconds"),
+
+  // Transcription
+  transcriptionStatus: text("transcription_status").default("pending").notNull(), // pending, processing, completed, failed
+  transcript: text("transcript"),
+  transcriptionError: text("transcription_error"),
+  transcribedAt: timestamp("transcribed_at"),
+
+  // CRM links
+  clientId: integer("client_id").references(() => clients.id),
+  dealId: integer("deal_id").references(() => deals.id),
+
+  // Metadata
+  recordingType: text("recording_type"), // meeting, call, note, other
+  tags: text("tags").array(),
+  metadata: jsonb("metadata"), // Raw Plaud payload, speaker info, etc.
+
+  // Timestamps
+  recordedAt: timestamp("recorded_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Recordings Relations
+export const recordingsRelations = relations(recordings, ({ one }) => ({
+  client: one(clients, {
+    fields: [recordings.clientId],
+    references: [clients.id],
+  }),
+  deal: one(deals, {
+    fields: [recordings.dealId],
+    references: [deals.id],
+  }),
+}));
+
+// Recordings Schemas
+export const insertRecordingSchema = createInsertSchema(recordings);
+export const selectRecordingSchema = createSelectSchema(recordings);
+export type InsertRecording = z.infer<typeof insertRecordingSchema>;
+export type Recording = z.infer<typeof selectRecordingSchema>;
+
+// ==================== PRESENTATION LEADS ====================
+
+export const presentationLeads = pgTable("presentation_leads", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  category: text("category").notNull(), // Student, Business Owner, Employee, Other
+  interestedInHelp: boolean("interested_in_help").default(false),
+  presentation: text("presentation").notNull(), // e.g. "cgcc-ai-2026"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPresentationLeadSchema = createInsertSchema(presentationLeads);
+export const selectPresentationLeadSchema = createSelectSchema(presentationLeads);
+export type InsertPresentationLead = z.infer<typeof insertPresentationLeadSchema>;
+export type PresentationLead = z.infer<typeof selectPresentationLeadSchema>;

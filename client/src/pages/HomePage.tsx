@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
 import {
   ArrowRight,
@@ -11,10 +10,6 @@ import {
   Rocket,
   Target,
   Star,
-  ChevronLeft,
-  ChevronRight,
-  Pause,
-  Play,
   MessageSquare,
   Mail,
   Smartphone,
@@ -36,8 +31,6 @@ import {
   Bot,
   Phone,
   Users,
-  Building2,
-  Wrench,
   ClipboardList,
   Receipt,
   Calculator,
@@ -92,45 +85,35 @@ function useAnimatedCounter(end: number, duration: number = 2000, startOnView: b
 
 // Technology data with categories
 const technologies = [
-  { name: "Twilio SMS", icon: Smartphone, category: "Communication", color: "#F22F46" },
-  { name: "Resend Email", icon: Mail, category: "Communication", color: "#00D4FF" },
-  { name: "ElevenLabs AI", icon: Mic, category: "AI/Voice", color: "#6D28D9" },
-  { name: "OpenAI", icon: Brain, category: "AI/Voice", color: "#00A67E" },
-  { name: "Supabase", icon: Database, category: "Database", color: "#3ECF8E" },
-  { name: "PostgreSQL", icon: Database, category: "Database", color: "#336791" },
+  { name: "OpenAI", icon: Brain, category: "AI Brain", color: "#10A37F" },
+  { name: "Anthropic", icon: Brain, category: "AI Brain", color: "#1F2937" },
+  { name: "Gemini", icon: Brain, category: "AI Brain", color: "#1A73E8" },
+  { name: "Perplexity", icon: Brain, category: "AI Research", color: "#111827" },
+  { name: "ElevenLabs AI", icon: Mic, category: "AI Voice", color: "#6D28D9" },
+  { name: "Twilio SMS", icon: Smartphone, category: "Messaging", color: "#F22F46" },
+  { name: "Resend Email", icon: Mail, category: "Messaging", color: "#00D4FF" },
+  { name: "Supabase", icon: Database, category: "Data System", color: "#3ECF8E" },
+  { name: "PostgreSQL", icon: Database, category: "Data System", color: "#336791" },
   { name: "Stripe", icon: CreditCard, category: "Payments", color: "#635BFF" },
   { name: "QuickBooks", icon: Receipt, category: "Payments", color: "#2CA01C" },
-  { name: "Next.js", icon: Zap, category: "Frontend", color: "#0F172A" },
-  { name: "React", icon: Cpu, category: "Frontend", color: "#61DAFB" },
-  { name: "TypeScript", icon: FileText, category: "Backend", color: "#3178C6" },
-  { name: "Node.js", icon: Cloud, category: "Backend", color: "#539E43" },
-  { name: "Mapbox", icon: Target, category: "Mapping", color: "#4264FB" },
-  { name: "Airtable", icon: BarChart3, category: "Data", color: "#18BFFF" },
+  { name: "Next.js", icon: Zap, category: "App Experience", color: "#0F172A" },
+  { name: "React", icon: Cpu, category: "App Experience", color: "#61DAFB" },
+  { name: "TypeScript", icon: FileText, category: "System Logic", color: "#3178C6" },
+  { name: "Node.js", icon: Cloud, category: "System Logic", color: "#539E43" },
+  { name: "Mapbox", icon: Target, category: "Location Tools", color: "#4264FB" },
+  { name: "Airtable", icon: BarChart3, category: "Data System", color: "#18BFFF" },
   { name: "Puppeteer", icon: FileText, category: "Automation", color: "#40B5A4" },
-  { name: "Drizzle ORM", icon: Database, category: "Database", color: "#C5F74F" },
+  { name: "Drizzle ORM", icon: Database, category: "Data System", color: "#C5F74F" },
 ];
 
 export default function HomePage() {
-  const [isScrolling, setIsScrolling] = useState(true);
   const [activeCase, setActiveCase] = useState(0);
   const [hoveredTech, setHoveredTech] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Animated counters for ROI section
   const hoursCounter = useAnimatedCounter(156, 2500);
   const costCounter = useAnimatedCounter(89, 2000);
   const accuracyCounter = useAnimatedCounter(99, 2200);
-
-  const toggleScrolling = () => setIsScrolling(!isScrolling);
-
-  const scrollCarousel = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -300 : 300,
-        behavior: 'smooth'
-      });
-    }
-  };
 
   // Case studies data
   const caseStudies = [
@@ -211,7 +194,7 @@ export default function HomePage() {
     },
     {
       id: "proposal-crm",
-      title: "Proposal CRM System",
+      title: "CRM Systems",
       subtitle: "Quote-to-Contract Automation",
       icon: FileText,
       color: "#DC2626",
@@ -237,6 +220,44 @@ export default function HomePage() {
   ];
 
   const currentCase = caseStudies[activeCase];
+  const automationCapabilities = [
+    {
+      icon: MessageSquare,
+      title: "Customer Communication",
+      description: "Automate SMS, email, reminders, and support responses with AI.",
+      color: "#2563eb",
+    },
+    {
+      icon: ClipboardList,
+      title: "Operations Workflows",
+      description: "Turn repetitive admin steps into reliable automated pipelines.",
+      color: "#0f766e",
+    },
+    {
+      icon: CreditCard,
+      title: "Billing and Payments",
+      description: "Automate invoice generation, payment collection, and reconciliation.",
+      color: "#635BFF",
+    },
+    {
+      icon: Truck,
+      title: "Field and Fleet Systems",
+      description: "Streamline field intake, dispatching, and maintenance operations.",
+      color: "#b45309",
+    },
+    {
+      icon: BarChart3,
+      title: "Reporting and Insights",
+      description: "Generate executive dashboards and real-time KPI tracking automatically.",
+      color: "#dc2626",
+    },
+    {
+      icon: Bot,
+      title: "AI Agent Execution",
+      description: "Deploy AI assistants to handle tasks, triage requests, and route actions.",
+      color: "#6D28D9",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
@@ -374,12 +395,11 @@ export default function HomePage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
               {[
-                { value: "150+", label: "Hours Saved Monthly", color: "#2563eb" },
-                { value: "99%", label: "System Uptime", color: "#0f766e" },
-                { value: "24/7", label: "AI Working For You", color: "#b45309" },
                 { value: "5x", label: "Faster Operations", color: "#dc2626" },
+                { value: "24/7", label: "AI Working For You", color: "#0f766e" },
+                { value: "$4K+", label: "Saved Per Month", color: "#2563eb" },
               ].map((stat, i) => (
                 <div key={i} className="glass-card rounded-xl p-4 text-center hover:scale-105 transition-transform duration-300">
                   <div className="font-display text-3xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
@@ -387,27 +407,48 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-
-            <div className="mt-12 flex justify-center">
-              <Link href="/rodolfo" className="glass-card rounded-2xl px-5 py-4 flex items-center gap-4 max-w-md w-full sm:w-auto hover:shadow-xl transition-shadow">
-                <img
-                  src="/Professional Portrait Rodolfo.jpg"
-                  alt="Rodolfo Alvarez, CEO and Founder"
-                  className="h-14 w-14 rounded-full object-cover object-top ring-2 ring-[#2563eb]/20"
-                />
-                <div className="text-left">
-                  <p className="font-display text-sm font-semibold text-slate-900 leading-tight">Rodolfo Alvarez</p>
-                  <p className="font-body text-xs text-slate-600">CEO & Founder, Better Systems AI</p>
-                </div>
-              </Link>
-            </div>
+            <div className="mt-8 mx-auto h-1.5 w-40 rounded-full bg-gradient-to-r from-[#2563eb] via-[#0f766e] to-[#b45309]" />
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-500">
-          <span className="font-body text-xs uppercase tracking-widest">Scroll to explore</span>
-          <ArrowDownRight className="h-5 w-5 animate-bounce" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 border border-slate-300 shadow-sm text-slate-700">
+            <ArrowDownRight className="h-4 w-4 animate-bounce" />
+            <span className="font-body text-xs uppercase tracking-widest">Scroll to explore</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== PARTNERS CAROUSEL ==================== */}
+      <section className="-mt-4 md:-mt-8 py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50" />
+
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-slate-200 mb-4">
+              <Star className="h-4 w-4 text-[#b45309]" />
+              <span className="font-body text-sm text-slate-600">Trusted Partners</span>
+            </div>
+            <h2 className="font-display text-3xl font-bold text-slate-900">
+              Powering Real Businesses
+            </h2>
+          </div>
+
+          <div className="overflow-hidden mx-auto px-2 md:px-4">
+            <div className="flex gap-16 py-8 animate-scroll-x">
+              {[1, 2, 3].map((group) => (
+                <div key={group} className="flex items-center gap-16 shrink-0">
+                  <img src="/partner-desert-moon.png" alt="Desert Moon Lighting" className="h-14 md:h-16 w-auto object-contain opacity-100 saturate-110 transition-transform duration-300 hover:scale-105" />
+                  <img src="/partner-desert-mist.png" alt="Desert Mist Arizona" className="h-14 md:h-16 w-auto object-contain opacity-100 saturate-110 transition-transform duration-300 hover:scale-105" />
+                  <img src="/partner-agave.png" alt="Agave Fleet" className="h-14 md:h-16 w-auto object-contain opacity-100 saturate-110 transition-transform duration-300 hover:scale-105" />
+                  <img src="/partner-ssw.png" alt="Soil Seed & Water" className="h-14 md:h-16 w-auto object-contain opacity-100 saturate-110 transition-transform duration-300 hover:scale-105" />
+                  <img src="/partner-aec.png" alt="AEC" className="h-14 md:h-16 w-auto object-contain opacity-100 saturate-110 transition-transform duration-300 hover:scale-105" />
+                  <img src="/partner-azcc.png" alt="Arizona Composting Council" className="h-14 md:h-16 w-auto object-contain opacity-100 saturate-110 transition-transform duration-300 hover:scale-105" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -422,8 +463,22 @@ export default function HomePage() {
               <span className="text-[#2563eb] glow-cyan"> STACK</span>
             </h2>
             <p className="font-body text-xl text-slate-600 max-w-2xl mx-auto">
-              Enterprise integrations that power real-world automation
+              We combine leading AI with your core business tools to solve real operational problems.
             </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {[
+                "AI that handles repetitive work",
+                "AI that supports decisions",
+                "AI that responds faster to customers",
+              ].map((ai) => (
+                <span
+                  key={ai}
+                  className="px-3 py-1.5 rounded-full bg-[#2563eb]/10 text-[#2563eb] border border-[#2563eb]/20 text-sm font-semibold"
+                >
+                  {ai}
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* Technology Grid */}
@@ -456,10 +511,40 @@ export default function HomePage() {
 
           {/* Category Legend */}
           <div className="flex flex-wrap justify-center gap-6 text-sm font-body">
-            {["Communication", "AI/Voice", "Database", "Payments", "Frontend", "Backend"].map((cat) => (
+            {["AI/LLM", "AI Search", "AI/Voice", "Communication", "Database", "Payments", "Frontend", "Backend"].map((cat) => (
               <div key={cat} className="flex items-center gap-2 text-slate-600">
                 <span className="w-2 h-2 rounded-full bg-gradient-to-r from-[#2563eb] to-[#0f766e]" />
                 {cat}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== AUTOMATION ABILITIES ==================== */}
+      <section className="relative py-20 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-4xl sm:text-5xl font-bold mb-4">
+              <span className="text-slate-900">AUTOMATION</span>
+              <span className="text-[#0f766e] glow-green"> ABILITIES</span>
+            </h2>
+            <p className="font-body text-xl text-slate-600 max-w-3xl mx-auto">
+              Best-fit scenarios we can automate across operations, sales, service, and finance.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {automationCapabilities.map((item) => (
+              <div key={item.title} className="glass-card rounded-2xl p-6 hover:scale-[1.02] transition-all duration-300">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                  style={{ backgroundColor: `${item.color}18` }}
+                >
+                  <item.icon className="h-6 w-6" style={{ color: item.color }} />
+                </div>
+                <h3 className="font-display text-xl font-bold text-slate-900 mb-2">{item.title}</h3>
+                <p className="font-body text-slate-600">{item.description}</p>
               </div>
             ))}
           </div>
@@ -718,67 +803,6 @@ export default function HomePage() {
                     AI-validated accuracy
                   </li>
                 </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== PARTNERS CAROUSEL ==================== */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-100 to-slate-50" />
-
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-slate-200 mb-4">
-              <Star className="h-4 w-4 text-[#b45309]" />
-              <span className="font-body text-sm text-slate-600">Trusted Partners</span>
-            </div>
-            <h2 className="font-display text-3xl font-bold text-slate-900">
-              Powering Real Businesses
-            </h2>
-          </div>
-
-          <div className="relative">
-            <div className="flex justify-center gap-4 mb-6">
-              <Button
-                onClick={() => scrollCarousel('left')}
-                variant="outline"
-                size="icon"
-                className="rounded-full w-10 h-10 border-slate-300 hover:border-slate-400 bg-transparent"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Button
-                onClick={toggleScrolling}
-                variant="outline"
-                size="icon"
-                className="rounded-full w-10 h-10 border-slate-300 hover:border-slate-400 bg-transparent"
-              >
-                {isScrolling ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-              </Button>
-              <Button
-                onClick={() => scrollCarousel('right')}
-                variant="outline"
-                size="icon"
-                className="rounded-full w-10 h-10 border-slate-300 hover:border-slate-400 bg-transparent"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
-
-            <div className="overflow-hidden mx-auto" ref={scrollRef}>
-              <div className={`flex gap-12 py-4 ${isScrolling ? 'animate-scroll-x' : ''}`}>
-                {[1, 2].map((group) => (
-                  <div key={group} className="flex items-center gap-12 shrink-0">
-                    <img src="/partner-desert-moon.png" alt="Desert Moon Lighting" className="h-12 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0" />
-                    <img src="/partner-desert-mist.png" alt="Desert Mist Arizona" className="h-12 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0" />
-                    <img src="/partner-agave.png" alt="Agave Fleet" className="h-12 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0" />
-                    <img src="/partner-ssw.png" alt="Soil Seed & Water" className="h-12 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0" />
-                    <img src="/partner-aec.png" alt="AEC" className="h-12 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0" />
-                    <img src="/partner-azcc.png" alt="Arizona Composting Council" className="h-12 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0" />
-                  </div>
-                ))}
               </div>
             </div>
           </div>

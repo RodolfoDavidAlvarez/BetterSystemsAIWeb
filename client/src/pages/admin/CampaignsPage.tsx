@@ -162,6 +162,43 @@ interface ColdMetrics {
   };
 }
 
+// ================== NEW LEADS TYPES (outreach-engine leads table) ==================
+
+interface NewLead {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  phone: string | null;
+  title: string | null;
+  company: string | null;
+  company_website: string | null;
+  industry: string | null;
+  city: string | null;
+  state: string | null;
+  employee_count: string | null;
+  source: string;
+  status: string;
+  outreach_step: number;
+  last_email_sent: string | null;
+  tags: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface NewLeadMetrics {
+  total: string;
+  new_leads: string;
+  contacted: string;
+  replied: string;
+  bounced: string;
+  not_emailed: string;
+  step_1: string;
+  step_2: string;
+  step_3_complete: string;
+  sent_today: string;
+}
+
 // ================== CONFIG ==================
 
 const campaignStatusConfig: Record<string, { color: string; bgColor: string; icon: typeof CheckCircle2; label: string }> = {
@@ -223,7 +260,12 @@ export default function CampaignsPage() {
   const { toast } = useToast();
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"sequences" | "cold-outreach">("cold-outreach");
+  const [activeTab, setActiveTab] = useState<"sequences" | "cold-outreach" | "contractor-outreach">("cold-outreach");
+
+  // Contractor CRM Outreach state (leads table)
+  const [newLeads, setNewLeads] = useState<NewLead[]>([]);
+  const [newLeadMetrics, setNewLeadMetrics] = useState<NewLeadMetrics | null>(null);
+  const [newLeadsLoading, setNewLeadsLoading] = useState(true);
 
   // Email Sequences state
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -256,6 +298,9 @@ export default function CampaignsPage() {
     if (activeTab === "sequences") {
       fetchCampaigns();
       fetchStats();
+    } else if (activeTab === "contractor-outreach") {
+      fetchNewLeads();
+      fetchNewLeadMetrics();
     } else {
       fetchColdLeads();
       fetchColdMetrics();
@@ -290,6 +335,38 @@ export default function CampaignsPage() {
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchNewLeads = async () => {
+    setNewLeadsLoading(true);
+    try {
+      const response = await fetch(`${baseUrl}/admin/cold-outreach/new-leads`, {
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNewLeads(data.leads);
+      }
+    } catch (error) {
+      console.error("Error fetching new leads:", error);
+      toast({ title: "Error", description: "Failed to load contractor outreach leads", variant: "destructive" });
+    } finally {
+      setNewLeadsLoading(false);
+    }
+  };
+
+  const fetchNewLeadMetrics = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/admin/cold-outreach/new-leads/metrics`, {
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNewLeadMetrics(data.metrics);
+      }
+    } catch (error) {
+      console.error("Error fetching new lead metrics:", error);
     }
   };
 
@@ -496,6 +573,20 @@ export default function CampaignsPage() {
             size="sm"
             className={cn(
               "h-8 px-4 rounded-md transition-all",
+              activeTab === "contractor-outreach"
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            onClick={() => setActiveTab("contractor-outreach")}
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Contractor CRM
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 px-4 rounded-md transition-all",
               activeTab === "sequences"
                 ? "bg-background shadow-sm text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -516,6 +607,9 @@ export default function CampaignsPage() {
               if (activeTab === "sequences") {
                 fetchCampaigns();
                 fetchStats();
+              } else if (activeTab === "contractor-outreach") {
+                fetchNewLeads();
+                fetchNewLeadMetrics();
               } else {
                 fetchColdLeads();
                 fetchColdMetrics();
@@ -529,7 +623,14 @@ export default function CampaignsPage() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === "cold-outreach" ? (
+      {activeTab === "contractor-outreach" ? (
+        <ContractorOutreachTab
+          leads={newLeads}
+          metrics={newLeadMetrics}
+          loading={newLeadsLoading}
+          onRefresh={() => { fetchNewLeads(); fetchNewLeadMetrics(); }}
+        />
+      ) : activeTab === "cold-outreach" ? (
         <ColdOutreachTab
           leads={filteredColdLeads}
           allLeads={coldLeads}
@@ -563,6 +664,219 @@ export default function CampaignsPage() {
           navigate={navigate}
         />
       )}
+    </div>
+  );
+}
+
+// ================== CONTRACTOR CRM OUTREACH TAB ==================
+
+const outreachStepLabels: Record<number, { label: string; color: string; bgColor: string }> = {
+  0: { label: "Not Emailed", color: "text-slate-600 dark:text-slate-300", bgColor: "bg-slate-100 dark:bg-slate-800/60" },
+  1: { label: "Email 1 Sent", color: "text-blue-700 dark:text-blue-300", bgColor: "bg-blue-50 dark:bg-blue-950/40" },
+  2: { label: "Email 2 Sent", color: "text-indigo-700 dark:text-indigo-300", bgColor: "bg-indigo-50 dark:bg-indigo-950/40" },
+  3: { label: "Sequence Done", color: "text-emerald-700 dark:text-emerald-300", bgColor: "bg-emerald-50 dark:bg-emerald-950/40" },
+};
+
+const newLeadStatusConfig: Record<string, { label: string; color: string; bgColor: string; dotColor: string }> = {
+  new: { label: "New", color: "text-slate-600 dark:text-slate-300", bgColor: "bg-slate-100 dark:bg-slate-800/60", dotColor: "bg-slate-400" },
+  contacted: { label: "Contacted", color: "text-blue-700 dark:text-blue-300", bgColor: "bg-blue-50 dark:bg-blue-950/40", dotColor: "bg-blue-500" },
+  replied: { label: "Replied", color: "text-emerald-700 dark:text-emerald-300", bgColor: "bg-emerald-50 dark:bg-emerald-950/40", dotColor: "bg-emerald-500" },
+  bounced: { label: "Bounced", color: "text-red-700 dark:text-red-300", bgColor: "bg-red-50 dark:bg-red-950/40", dotColor: "bg-red-500" },
+  unsubscribed: { label: "Unsubscribed", color: "text-rose-600 dark:text-rose-400", bgColor: "bg-rose-50 dark:bg-rose-950/40", dotColor: "bg-rose-500" },
+  client: { label: "Client", color: "text-cyan-700 dark:text-cyan-300", bgColor: "bg-cyan-50 dark:bg-cyan-950/40", dotColor: "bg-cyan-500" },
+};
+
+interface ContractorOutreachTabProps {
+  leads: NewLead[];
+  metrics: NewLeadMetrics | null;
+  loading: boolean;
+  onRefresh: () => void;
+}
+
+function ContractorOutreachTab({ leads, metrics, loading, onRefresh }: ContractorOutreachTabProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = useMemo(() => {
+    return leads.filter((lead) => {
+      if (statusFilter !== "all" && lead.status !== statusFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const name = `${lead.first_name || ""} ${lead.last_name || ""}`.toLowerCase();
+        return (
+          name.includes(q) ||
+          lead.email.toLowerCase().includes(q) ||
+          (lead.company || "").toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [leads, searchQuery, statusFilter]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-muted-foreground">
+        <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+        Loading contractor outreach pipeline...
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Metrics Bar */}
+      {metrics && (
+        <div className="px-5 py-3 border-b border-border/40 bg-muted/20">
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Total:</span>
+              <span className="font-semibold">{metrics.total}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-2 w-2 rounded-full bg-slate-400" />
+              <span className="text-muted-foreground">New:</span>
+              <span className="font-medium">{metrics.new_leads}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-2 w-2 rounded-full bg-blue-500" />
+              <span className="text-muted-foreground">Contacted:</span>
+              <span className="font-medium">{metrics.contacted}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-muted-foreground">Replied:</span>
+              <span className="font-semibold text-emerald-600">{metrics.replied}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-2 w-2 rounded-full bg-red-500" />
+              <span className="text-muted-foreground">Bounced:</span>
+              <span className="font-medium">{metrics.bounced}</span>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              <span className="text-muted-foreground">Sent today:</span>
+              <span className="font-semibold">{metrics.sent_today}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Not emailed:</span>
+              <span className="font-medium">{metrics.not_emailed}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search leads..."
+            className="pl-8 h-8 text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("h-7 px-3 text-xs", statusFilter === "all" && "bg-muted")}
+            onClick={() => setStatusFilter("all")}
+          >
+            All ({leads.length})
+          </Button>
+          {Object.entries(newLeadStatusConfig).map(([key, cfg]) => {
+            const count = leads.filter((l) => l.status === key).length;
+            if (count === 0) return null;
+            return (
+              <Button
+                key={key}
+                variant="ghost"
+                size="sm"
+                className={cn("h-7 px-3 text-xs", statusFilter === key && "bg-muted")}
+                onClick={() => setStatusFilter(key)}
+              >
+                <div className={cn("h-1.5 w-1.5 rounded-full mr-1.5", cfg.dotColor)} />
+                {cfg.label} ({count})
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Table */}
+      <ScrollArea className="flex-1">
+        <div className="min-w-[900px]">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-background border-b border-border/40">
+              <tr>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Company</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Outreach</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Email</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((lead) => {
+                const statusCfg = newLeadStatusConfig[lead.status] || newLeadStatusConfig.new;
+                const stepCfg = outreachStepLabels[lead.outreach_step] || outreachStepLabels[0];
+                const name = `${lead.first_name || ""} ${lead.last_name || ""}`.trim() || "—";
+
+                return (
+                  <tr
+                    key={lead.id}
+                    className="border-b border-border/20 hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="px-4 py-2.5">
+                      <div className="font-medium">{name}</div>
+                      {lead.title && (
+                        <div className="text-xs text-muted-foreground mt-0.5">{lead.title}</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div>{lead.company || "—"}</div>
+                      {lead.city && lead.state && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {lead.city}, {lead.state}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{lead.email}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium", statusCfg.bgColor, statusCfg.color)}>
+                        <div className={cn("h-1.5 w-1.5 rounded-full", statusCfg.dotColor)} />
+                        {statusCfg.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium", stepCfg.bgColor, stepCfg.color)}>
+                        {stepCfg.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-muted-foreground text-xs">
+                      {lead.last_email_sent
+                        ? formatDistanceToNow(new Date(lead.last_email_sent), { addSuffix: true })
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-xs text-muted-foreground capitalize">{lead.source}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                    {searchQuery || statusFilter !== "all" ? "No leads match filters" : "No leads loaded yet"}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }

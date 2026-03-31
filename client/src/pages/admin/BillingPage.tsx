@@ -12,6 +12,7 @@ import {
   Archive,
   Undo2,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
@@ -81,13 +82,13 @@ const EMAIL_ALIASES: Record<string, string> = {
 
 // Projected revenue data - update manually as deals progress
 const PROJECTED_REVENUE: Record<string, { amount: number; month: string; note: string }[]> = {
-  // Brian Mitchell - remaining 50% ($898.50) + add-ons ($780) = $1,678.50
+  // Brian Mitchell - requested invoice BSA-2026-004
   "brian.mitchell38@gmail.com": [
-    { amount: 1678.50, month: "Feb 2026", note: "Final balance + add-ons (pins/perimeter)" },
+    { amount: 2003.50, month: "Feb 2026", note: "Requested invoice BSA-2026-004 (requested Feb 7, 2026)" },
   ],
-  // Desert Moon Lighting - outstanding balance
+  // Desert Moon Lighting - requested invoice BSA-2026-005
   "mmazick@nssaz.com": [
-    { amount: 2752, month: "Feb 2026", note: "Outstanding balance" },
+    { amount: 2979.50, month: "Feb 2026", note: "Requested invoice BSA-2026-005 (requested Feb 17, 2026)" },
   ],
   // Agave Environmental - outstanding invoice + subscription
   "victoria.rosales@agave-inc.com": [
@@ -176,6 +177,7 @@ const saveArchivedToStorage = (archivedItems: ArchivedItemsState) => {
 export default function BillingPage() {
   const [data, setData] = useState<BillingDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stripeConnected, setStripeConnected] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   // Monthly revenue for chart
@@ -264,6 +266,9 @@ export default function BillingPage() {
       }
 
       const dashboardResult = await dashboardRes.json();
+      if (dashboardResult.stripeConnected !== undefined) {
+        setStripeConnected(dashboardResult.stripeConnected);
+      }
       setData(dashboardResult);
 
       // Fetch revenue data with current time range
@@ -769,15 +774,28 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h1 className="text-2xl font-semibold">Financial</h1>
         <Button onClick={fetchData} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
       </div>
+
+      {/* Stripe Connection Banner */}
+      {stripeConnected === false && (
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Stripe not connected</p>
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Set a valid STRIPE_SECRET_KEY in your .env to see live payment data. Showing projected and local data only.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -805,15 +823,15 @@ export default function BillingPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm text-muted-foreground">Outstanding</div>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(242.20 + 2752)}</div>
-            <div className="text-xs text-muted-foreground mt-1">Agave + DML</div>
+            <div className="text-2xl font-bold text-orange-600">{formatCurrency(242.20 + 2003.50 + 2979.50)}</div>
+            <div className="text-xs text-muted-foreground mt-1">Agave + Brian + DML</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm text-muted-foreground">Open Invoices</div>
-            <div className="text-2xl font-bold">2</div>
-            <div className="text-xs text-muted-foreground mt-1">Agave (1) + DML (1)</div>
+            <div className="text-2xl font-bold">3</div>
+            <div className="text-xs text-muted-foreground mt-1">Agave (1) + Brian (1) + DML (1)</div>
           </CardContent>
         </Card>
         <Card>
@@ -1095,30 +1113,32 @@ export default function BillingPage() {
           ) : payments.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">No payments found</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Email</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
-                    <TableCell className="font-medium text-green-600">{formatCurrency(payment.amount)}</TableCell>
-                    <TableCell>
-                      <Badge variant={payment.category === "Invoice" ? "default" : "secondary"}>
-                        {payment.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{payment.email}</TableCell>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Amount</TableHead>
+                    <TableHead className="whitespace-nowrap">Category</TableHead>
+                    <TableHead className="whitespace-nowrap min-w-[150px]">Email</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="whitespace-nowrap">{new Date(payment.date).toLocaleDateString()}</TableCell>
+                      <TableCell className="font-medium text-green-600 whitespace-nowrap">{formatCurrency(payment.amount)}</TableCell>
+                      <TableCell>
+                        <Badge variant={payment.category === "Invoice" ? "default" : "secondary"}>
+                          {payment.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{payment.email}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -1142,41 +1162,43 @@ export default function BillingPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Month</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Note</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* Client projections */}
-              {Object.entries(PROJECTED_REVENUE).flatMap(([email, projections]) => {
-                const client = ACTIVE_CLIENTS.find(c => c.email === email);
-                return projections.map((p, i) => (
-                  <TableRow key={`${email}-${i}`}>
-                    <TableCell>{p.month}</TableCell>
-                    <TableCell className="font-medium text-amber-600">{formatCurrency(p.amount)}</TableCell>
-                    <TableCell>{client?.name || email}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.note}</TableCell>
-                  </TableRow>
-                ));
-              })}
-              {/* Monthly projections (not tied to existing clients) */}
-              {Object.entries(MONTHLY_PROJECTED).flatMap(([month, projections]) =>
-                projections.map((p, i) => (
-                  <TableRow key={`monthly-${month}-${i}`}>
-                    <TableCell>{month}</TableCell>
-                    <TableCell className="font-medium text-amber-600">{formatCurrency(p.amount)}</TableCell>
-                    <TableCell>New</TableCell>
-                    <TableCell className="text-muted-foreground">{p.note}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="whitespace-nowrap">Month</TableHead>
+                  <TableHead className="whitespace-nowrap">Amount</TableHead>
+                  <TableHead className="whitespace-nowrap">Client</TableHead>
+                  <TableHead className="whitespace-nowrap min-w-[150px]">Note</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Client projections */}
+                {Object.entries(PROJECTED_REVENUE).flatMap(([email, projections]) => {
+                  const client = ACTIVE_CLIENTS.find(c => c.email === email);
+                  return projections.map((p, i) => (
+                    <TableRow key={`${email}-${i}`}>
+                      <TableCell className="whitespace-nowrap">{p.month}</TableCell>
+                      <TableCell className="font-medium text-amber-600 whitespace-nowrap">{formatCurrency(p.amount)}</TableCell>
+                      <TableCell className="whitespace-nowrap">{client?.name || email}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{p.note}</TableCell>
+                    </TableRow>
+                  ));
+                })}
+                {/* Monthly projections (not tied to existing clients) */}
+                {Object.entries(MONTHLY_PROJECTED).flatMap(([month, projections]) =>
+                  projections.map((p, i) => (
+                    <TableRow key={`monthly-${month}-${i}`}>
+                      <TableCell className="whitespace-nowrap">{month}</TableCell>
+                      <TableCell className="font-medium text-amber-600 whitespace-nowrap">{formatCurrency(p.amount)}</TableCell>
+                      <TableCell className="whitespace-nowrap">New</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{p.note}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -1211,26 +1233,28 @@ export default function BillingPage() {
             <CardTitle className="text-base">Clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead className="text-right">Billed</TableHead>
-                  <TableHead className="text-right">Paid</TableHead>
-                  <TableHead className="text-right">Balance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.clientGroups.map((group) => (
-                  <TableRow key={group.clientId}>
-                    <TableCell className="font-medium">{group.clientName}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(group.totalBilled)}</TableCell>
-                    <TableCell className="text-right text-green-600">{formatCurrency(group.totalPaid)}</TableCell>
-                    <TableCell className="text-right text-orange-600">{formatCurrency(group.balance)}</TableCell>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Client</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Billed</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Paid</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Balance</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.clientGroups.map((group) => (
+                    <TableRow key={group.clientId}>
+                      <TableCell className="font-medium whitespace-nowrap">{group.clientName}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{formatCurrency(group.totalBilled)}</TableCell>
+                      <TableCell className="text-right text-green-600 whitespace-nowrap">{formatCurrency(group.totalPaid)}</TableCell>
+                      <TableCell className="text-right text-orange-600 whitespace-nowrap">{formatCurrency(group.balance)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1251,37 +1275,39 @@ export default function BillingPage() {
           {(showArchived ? archivedInvoices : activeInvoices).length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">No invoices</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(showArchived ? archivedInvoices : activeInvoices).map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.clientName}</TableCell>
-                    <TableCell>{invoice.description}</TableCell>
-                    <TableCell>{formatCurrency(parseFloat(invoice.total))}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => { setSelectedInvoice(invoice); setViewInvoiceOpen(true); }}>
-                        View
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => showArchived ? handleUnarchiveItem("invoice", invoice.id.toString()) : handleArchiveItem("invoice", invoice.id.toString())}>
-                        {showArchived ? <Undo2 className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Client</TableHead>
+                    <TableHead className="whitespace-nowrap min-w-[120px]">Description</TableHead>
+                    <TableHead className="whitespace-nowrap">Amount</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {(showArchived ? archivedInvoices : activeInvoices).map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{invoice.clientName}</TableCell>
+                      <TableCell className="text-sm">{invoice.description}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatCurrency(parseFloat(invoice.total))}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(invoice.status)}>{invoice.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button variant="ghost" size="sm" onClick={() => { setSelectedInvoice(invoice); setViewInvoiceOpen(true); }}>
+                          View
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => showArchived ? handleUnarchiveItem("invoice", invoice.id.toString()) : handleArchiveItem("invoice", invoice.id.toString())}>
+                          {showArchived ? <Undo2 className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -1293,32 +1319,34 @@ export default function BillingPage() {
             <CardTitle className="text-base">Quotes</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.quotes.map((quote) => (
-                  <TableRow key={quote.id}>
-                    <TableCell className="font-medium">{quote.clientName}</TableCell>
-                    <TableCell>{formatCurrency(parseFloat(quote.total))}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => { setSelectedQuote(quote); setViewQuoteOpen(true); }}>
-                        View
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Client</TableHead>
+                    <TableHead className="whitespace-nowrap">Total</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.quotes.map((quote) => (
+                    <TableRow key={quote.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{quote.clientName}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatCurrency(parseFloat(quote.total))}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(quote.status)}>{quote.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => { setSelectedQuote(quote); setViewQuoteOpen(true); }}>
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1330,28 +1358,30 @@ export default function BillingPage() {
             <CardTitle className="text-base">Subscriptions</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Interval</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {activeSubscriptions.map((sub) => (
-                  <TableRow key={sub.id}>
-                    <TableCell className="font-medium">{sub.clientName}</TableCell>
-                    <TableCell>{formatCurrency(parseFloat(sub.amount))}</TableCell>
-                    <TableCell className="capitalize">{sub.interval}</TableCell>
-                    <TableCell>
-                      <Badge variant={sub.status === "active" ? "default" : "secondary"}>{sub.status}</Badge>
-                    </TableCell>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Client</TableHead>
+                    <TableHead className="whitespace-nowrap">Amount</TableHead>
+                    <TableHead className="whitespace-nowrap">Interval</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {activeSubscriptions.map((sub) => (
+                    <TableRow key={sub.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{sub.clientName}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatCurrency(parseFloat(sub.amount))}</TableCell>
+                      <TableCell className="capitalize whitespace-nowrap">{sub.interval}</TableCell>
+                      <TableCell>
+                        <Badge variant={sub.status === "active" ? "default" : "secondary"}>{sub.status}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1363,34 +1393,36 @@ export default function BillingPage() {
             <CardTitle className="text-base">Payment Links</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Link</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {activePaymentLinks.map((link) => (
-                  <TableRow key={link.id}>
-                    <TableCell className="font-medium">{link.description}</TableCell>
-                    <TableCell>{formatCurrency(parseFloat(link.amount))}</TableCell>
-                    <TableCell>
-                      <Badge variant={link.status === "active" ? "default" : "secondary"}>{link.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {link.url && (
-                        <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </TableCell>
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap min-w-[120px]">Description</TableHead>
+                    <TableHead className="whitespace-nowrap">Amount</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Link</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {activePaymentLinks.map((link) => (
+                    <TableRow key={link.id}>
+                      <TableCell className="font-medium text-sm">{link.description}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatCurrency(parseFloat(link.amount))}</TableCell>
+                      <TableCell>
+                        <Badge variant={link.status === "active" ? "default" : "secondary"}>{link.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {link.url && (
+                          <Button variant="ghost" size="sm" onClick={() => window.open(link.url, "_blank")}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

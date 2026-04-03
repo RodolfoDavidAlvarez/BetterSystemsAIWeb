@@ -66,19 +66,12 @@ app.get('/api/audio/:filename', async (req, res) => {
     if (!filename.match(/^[a-zA-Z0-9_-]+\.mp3$/)) {
       return res.status(400).json({ error: 'Invalid filename' });
     }
-    const vpsUrl = `http://143.198.74.96:8090/${filename}`;
-    const response = await fetch(vpsUrl);
-    if (!response.ok) {
-      return res.status(404).json({ error: 'Audio not found' });
-    }
-    res.set('Content-Type', 'audio/mpeg');
-    res.set('Cache-Control', 'public, max-age=86400');
-    res.set('Accept-Ranges', 'bytes');
-    const buffer = await response.arrayBuffer();
-    res.send(Buffer.from(buffer));
+    // Redirect to Supabase Storage public URL (no VPS needed)
+    const supabaseUrl = `https://nnkuwtfktblqlfjugnrj.supabase.co/storage/v1/object/public/plaud-audio/${filename}`;
+    res.redirect(301, supabaseUrl);
   } catch (error) {
-    console.error('Audio proxy error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch audio' });
+    console.error('Audio redirect error:', error.message);
+    res.status(500).json({ error: 'Failed to serve audio' });
   }
 });
 

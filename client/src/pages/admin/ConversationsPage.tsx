@@ -74,8 +74,14 @@ function formatDate(dateStr: string | null): string {
   return `${dayName} ${shortDate} · ${diffDays}d ago`;
 }
 
-function cleanTitle(title: string | null): string {
-  if (!title) return "Untitled Recording";
+function cleanTitle(title: string | null, metadata?: any): string {
+  if (!title) return metadata?.summary?.slice(0, 60) || "Untitled Recording";
+  // If title is just a timestamp (e.g. "2026-04-02 14:07:41"), use summary instead
+  if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/.test(title.trim())) {
+    const summary = metadata?.summary;
+    if (summary) return summary.length > 60 ? summary.slice(0, 57) + "..." : summary;
+    return "Untitled Recording";
+  }
   return title
     .replace(/^\d{4}-\d{2}-\d{2}\s*[-—–]\s*/, "")
     .replace(/^\d{2}-\d{2}\s*/, "")
@@ -659,7 +665,7 @@ export default function ConversationsPage() {
                         {/* Title row */}
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-[15px] leading-tight truncate">
-                            {cleanTitle(rec.title)}
+                            {cleanTitle(rec.title, rec.metadata)}
                           </h3>
                           {company && (
                             <span className={`flex-shrink-0 px-1.5 py-px rounded text-[9px] font-bold uppercase tracking-wider ${company.color}`}>

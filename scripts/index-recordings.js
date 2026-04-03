@@ -592,6 +592,8 @@ if (args.includes('--stats')) {
 // Index mode
 const specificId = args.includes('--id') ? parseInt(args[args.indexOf('--id') + 1]) : null;
 const indexAll = args.includes('--all');
+const limitIdx = args.indexOf('--limit');
+const maxRecordings = limitIdx !== -1 ? parseInt(args[limitIdx + 1]) : null;
 
 let recordings;
 if (specificId) {
@@ -605,6 +607,7 @@ if (specificId) {
     FROM recordings WHERE transcription_status = 'completed'
     AND transcript IS NOT NULL AND length(transcript) > 100
     ORDER BY id ASC
+    ${maxRecordings ? sql`LIMIT ${maxRecordings}` : sql``}
   `;
 } else {
   // Only unindexed
@@ -614,6 +617,7 @@ if (specificId) {
     AND transcript IS NOT NULL AND length(transcript) > 100
     AND (metadata IS NULL OR metadata->>'indexed' IS NULL OR metadata->>'indexed' != 'true')
     ORDER BY id ASC
+    ${maxRecordings ? sql`LIMIT ${maxRecordings}` : sql``}
   `;
 }
 

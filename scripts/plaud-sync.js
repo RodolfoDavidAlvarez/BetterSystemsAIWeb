@@ -238,21 +238,10 @@ async function syncRecording(fileInfo) {
     console.warn(`    ⚠️  Audio download failed: ${e.message}`);
   }
 
-  // 3. Whisper transcription (if no Plaud transcript and we have audio)
-  let whisperTranscript = null;
-  if (!plaudTranscript && audioPath && OPENAI_KEY) {
-    try {
-      console.log(`    🎙️  Transcribing with Whisper...`);
-      const result = await transcribeWithWhisper(audioPath);
-      whisperTranscript = formatWhisperTranscript(result);
-      language = language || result.language;
-      console.log(`    ✅ Transcribed (${result.language}, ${result.duration?.toFixed(0)}s)`);
-    } catch (e) {
-      console.warn(`    ⚠️  Whisper failed: ${e.message}`);
-    }
-  }
+  // 3. Skip OpenAI Whisper API — local-transcribe.js handles this with MLX Whisper (free)
+  // Old code used OpenAI Whisper API ($0.006/min). Disabled to prevent accidental charges.
 
-  const transcript = plaudTranscript || whisperTranscript;
+  const transcript = plaudTranscript;
   const startTime = detail.start_time || fileInfo.start_time;
 
   const result = await upsertRecording({
@@ -274,7 +263,7 @@ async function syncRecording(fileInfo) {
       speakers: Object.keys(detail.embeddings || {}),
       file_version: detail.file_version,
       filesize: fileInfo.filesize,
-      source: plaudTranscript ? 'plaud' : whisperTranscript ? 'whisper' : null,
+      source: plaudTranscript ? 'plaud' : null,
     },
   });
 

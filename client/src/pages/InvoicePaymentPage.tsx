@@ -134,7 +134,7 @@ export default function InvoicePaymentPage() {
         <div className="bg-[#111118] rounded-2xl border border-white/10 overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
 
           {/* Discount Banner */}
-          {invoice.isDiscounted && (
+          {invoice.isDiscounted && invoice.discountPercent > 0 && (
             <div className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-[#00ff88]/20 to-[#00d4ff]/20" />
               <div className="relative px-6 py-4 border-b border-[#00ff88]/20">
@@ -163,7 +163,7 @@ export default function InvoicePaymentPage() {
             <p className="text-5xl font-bold text-white tracking-tight">
               ${formatCurrency(invoice.total)}
             </p>
-            {invoice.isDiscounted && (
+            {invoice.isDiscounted && invoice.discountPercent > 0 && (
               <p className="text-sm text-gray-600 mt-2 line-through">
                 ${formatCurrency(invoice.originalTotal)}
               </p>
@@ -181,7 +181,7 @@ export default function InvoicePaymentPage() {
               <div className="text-right">
                 <p className="text-gray-600 text-xs uppercase tracking-wider font-medium mb-1">Due Date</p>
                 <p className="font-medium text-white">{invoice.dueDate}</p>
-                <p className="text-gray-500 text-xs mt-0.5">Net 30</p>
+                <p className="text-gray-500 text-xs mt-0.5">Net {invoice.discountPercent > 0 ? '30' : '14'}</p>
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function InvoicePaymentPage() {
                 <p className="text-sm text-gray-500">Subtotal</p>
                 <p className="text-sm font-semibold text-white tabular-nums font-mono">${formatCurrency(invoice.subtotal)}</p>
               </div>
-              {invoice.isDiscounted && (
+              {invoice.isDiscounted && invoice.discountPercent > 0 && (
                 <div className="flex justify-between items-center">
                   <p className="text-sm font-medium text-[#00ff88]">{invoice.discountPercent}% Early Payment Discount</p>
                   <p className="text-sm font-semibold text-[#00ff88] tabular-nums font-mono">-${formatCurrency(invoice.savings)}</p>
@@ -244,7 +244,7 @@ export default function InvoicePaymentPage() {
             <FileText className="w-3.5 h-3.5 text-[#00d4ff]/60" /> Invoice {invoice.invoiceNumber}
           </span>
           <span className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-[#00d4ff]/60" /> Net 30 Terms
+            <Clock className="w-3.5 h-3.5 text-[#00d4ff]/60" /> Net {invoice.discountPercent > 0 ? '30' : '14'} Terms
           </span>
         </div>
 

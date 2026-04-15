@@ -188,6 +188,27 @@ export function registerRoutes(app: Express) {
         { description: "Additional Agreed Scope", detail: "SMS, installation confirmation, payment confirmation, and related updates — 3.5 hrs @ $65/hr", amount: 227.50 },
       ],
     },
+    "BSA-2026-006": {
+      invoiceNumber: "BSA-2026-006",
+      clientName: "Brian Mitchell",
+      projectName: "Mitch's Map — Phase 2 Development",
+      issuedDate: "April 15, 2026",
+      dueDate: "April 28, 2026",
+      subtotal: 2350.00,
+      fullTotal: 2350.00,
+      discountPercent: 0,
+      discountDeadline: "2026-04-28T23:59:59-07:00",
+      discountPaymentUrl: "https://invoice.stripe.com/i/acct_1OBpTYLe9qCZBeeN/live_YWNjdF8xT0JwVFlMZTlxQ1pCZWVOLF9VS3gyc1A2d3JLMEhCejREWjFsUEpCQnZNU1FsMVJqLDE2NjgyMDUyNA0200zDZSZUa0?s=ap",
+      fullPaymentUrl: "https://invoice.stripe.com/i/acct_1OBpTYLe9qCZBeeN/live_YWNjdF8xT0JwVFlMZTlxQ1pCZWVOLF9VS3gyc1A2d3JLMEhCejREWjFsUEpCQnZNU1FsMVJqLDE2NjgyMDUyNA0200zDZSZUa0?s=ap",
+      lineItems: [
+        { description: "Mitch's Map Rebrand", detail: "New logo, royal blue color scheme, header with REALTOR + broker name, favicon/icons, splash screen, SEO meta tags", amount: 400.00 },
+        { description: "Legal & Compliance Package", detail: "Footer with security badge, Terms & Conditions page, Privacy Policy, SMS/TCPA Policy, Equal Housing Opportunity page", amount: 400.00 },
+        { description: "Contact Form Redesign", detail: "Pill-button questions (timeline, agent status), SMS consent checkbox, compact no-scroll layout, lead notification emails", amount: 350.00 },
+        { description: "Smart Map Navigation", detail: "Marker clustering, zoom-based auto-navigation, community flag markers, community name labels", amount: 500.00 },
+        { description: "Dynamic Builder Experience", detail: "No-scroll detail sheet, model pill switching with video + stats, amenity overlay, builder compliance text", amount: 450.00 },
+        { description: "Master Amenity Filter", detail: "Filter by 7 amenity types, builder matching logic, badge count, mobile optimization", amount: 250.00 },
+      ],
+    },
   };
 
   app.get("/api/pay/:invoiceNumber", async (req, res) => {

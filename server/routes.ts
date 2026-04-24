@@ -5,7 +5,7 @@ import { existsSync, mkdirSync } from "fs";
 import { execSync } from "child_process";
 import path from "path";
 import { login, register, getCurrentUser } from "./controllers/auth";
-import { authenticate, isAdmin } from "./middleware/auth";
+import { authenticate, isAdmin, hasRole } from "./middleware/auth";
 import { sendCustomerEmail, sendAdminNotification } from "./services/email";
 import { saveToAirtable } from "./services/airtable";
 import { analyzeVoiceAgentLead, formatLeadEmailHtml } from "./services/leadAnalysis";
@@ -2104,6 +2104,164 @@ export function registerRoutes(app: Express) {
     } catch (error: any) {
       console.error("[Stripe Webhook] Error:", error.message);
       return res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ==================== DEV TRACKER ====================
+  // Role-gated project tracker backed by qa_items + qa_notes.
+  // owner: full CRUD. developer: read + status updates + add/resolve notes.
+
+  app.get("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      const project = req.query.project as string | undefined;
+      const itemsRes: any = project
+        ? await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`)
+        : await db.execute(sql`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`);
+      const items = itemsRes.rows || itemsRes;
+      if (!items.length) return res.json(project ? [] : {});
+      const ids = items.map((i: any) => i.id);
+      const notesRes: any = await db.execute(sql`SELECT * FROM qa_notes WHERE item_id = ANY(${ids}::uuid[]) ORDER BY created_at ASC`);
+      const notes = notesRes.rows || notesRes;
+      const byItem = new Map<string, any[]>();
+      for (const n of notes) {
+        const arr = byItem.get(n.item_id) || [];
+        arr.push(n);
+        byItem.set(n.item_id, arr);
+      }
+      if (project) {
+        return res.json(items.map((it: any) => ({ ...it, notes: byItem.get(it.id) || [] })));
+      }
+      const projects: Record<string, any[]> = {};
+      for (const it of items) {
+        const key = it.project;
+        if (!projects[key]) projects[key] = [];
+        projects[key].push({ ...it, notes: byItem.get(it.id) || [] });
+      }
+      res.json(projects);
+    } catch (e: any) {
+      console.error("dev-tracker items:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get("/api/dev-tracker/projects", authenticate, hasRole(["owner", "admin", "developer"]), async (_req, res) => {
+    try {
+      const r: any = await db.execute(sql`SELECT project, COUNT(*)::int AS count FROM qa_items GROUP BY project ORDER BY project`);
+      res.json(r.rows || r);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+    try {
+      const b = req.body || {};
+      const r: any = await db.execute(sql`
+        INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order)
+        VALUES (${b.project || "mitchs-map"}, ${b.version || "2.4"}, ${b.category || "feature"},
+                ${b.title || "Untitled"}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
+                ${b.status || "open"}, ${b.sort_order ?? 0})
+        RETURNING *
+      `);
+      const row = (r.rows || r)[0];
+      res.json({ ...row, notes: [] });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.patch("/api/dev-tracker/items/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      const id = req.params.id;
+      const user = (req as any).user;
+      const b = req.body || {};
+      const ownerFields = ["version", "category", "title", "description", "charged", "commit_hash", "amount_cents", "source", "source_date", "sort_order"];
+      const devFields = ["status"];
+      const isOwnerRole = ["owner", "admin"].includes(user.role);
+      const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
+      const sets: any[] = [];
+      for (const k of allowed) {
+        if (k in b) sets.push(sql`${sql.raw(`"${k}"`)} = ${b[k]}`);
+      }
+      if (b.status === "tested_pass" || b.status === "tested_fail") sets.push(sql`tested_at = NOW()`);
+      if (b.status === "shipped") sets.push(sql`deployed_at = COALESCE(deployed_at, NOW())`);
+      sets.push(sql`updated_at = NOW()`);
+      if (sets.length === 1) return res.status(400).json({ error: "No valid fields" });
+      const setExpr = sets.reduce((acc, s, i) => (i === 0 ? s : sql`${acc}, ${s}`));
+      const r: any = await db.execute(sql`UPDATE qa_items SET ${setExpr} WHERE id = ${id}::uuid RETURNING *`);
+      const row = (r.rows || r)[0];
+      const notesRes: any = await db.execute(sql`SELECT * FROM qa_notes WHERE item_id = ${id}::uuid ORDER BY created_at ASC`);
+      res.json({ ...row, notes: notesRes.rows || notesRes });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete("/api/dev-tracker/items/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+    try {
+      await db.execute(sql`DELETE FROM qa_items WHERE id = ${req.params.id}::uuid`);
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/dev-tracker/items/:id/notes", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      const id = req.params.id;
+      const user = (req as any).user;
+      const b = req.body || {};
+      const author = user.username || "unknown";
+      const r: any = await db.execute(sql`
+        INSERT INTO qa_notes (item_id, text, author)
+        VALUES (${id}::uuid, ${b.text || ""}, ${author})
+        RETURNING *
+      `);
+      await db.execute(sql`UPDATE qa_items SET updated_at = NOW() WHERE id = ${id}::uuid`);
+      res.json((r.rows || r)[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.patch("/api/dev-tracker/items/:id/notes/:noteId", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      const { noteId } = req.params;
+      const user = (req as any).user;
+      const b = req.body || {};
+      const sets: any[] = [];
+      if ("text" in b) sets.push(sql`text = ${b.text}`);
+      if (b.resolved === true) {
+        sets.push(sql`resolved_at = NOW()`);
+        sets.push(sql`resolved_by = ${user.username || "unknown"}`);
+      }
+      if (b.resolved === false) {
+        sets.push(sql`resolved_at = NULL`);
+        sets.push(sql`resolved_by = NULL`);
+      }
+      if (!sets.length) return res.status(400).json({ error: "No updates" });
+      const setExpr = sets.reduce((acc, s, i) => (i === 0 ? s : sql`${acc}, ${s}`));
+      const r: any = await db.execute(sql`UPDATE qa_notes SET ${setExpr} WHERE id = ${noteId}::uuid RETURNING *`);
+      res.json((r.rows || r)[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.get("/api/dev-tracker/unresolved", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      const project = (req.query.project as string) || "mitchs-map";
+      const r: any = await db.execute(sql`
+        SELECT n.id AS note_id, n.text, n.created_at AS note_created_at,
+               i.id AS item_id, i.title, i.version, i.status
+        FROM qa_notes n
+        JOIN qa_items i ON i.id = n.item_id
+        WHERE n.resolved_at IS NULL AND i.project = ${project}
+        ORDER BY n.created_at ASC
+      `);
+      res.json(r.rows || r);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 }

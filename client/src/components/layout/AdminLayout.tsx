@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { useLocation } from "wouter";
-import { MessageSquare, CreditCard, Target, LogOut, MoreHorizontal, Handshake } from "lucide-react";
+import { MessageSquare, CreditCard, Target, LogOut, ListTodo, Handshake, KanbanSquare } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 
 interface AdminLayoutProps {
@@ -35,9 +35,14 @@ const tabs: TabItem[] = [
     icon: CreditCard,
   },
   {
-    title: "More",
-    url: "/admin/more",
-    icon: MoreHorizontal,
+    title: "Tasks",
+    url: "/admin/tasks",
+    icon: ListTodo,
+  },
+  {
+    title: "Dev",
+    url: "/admin/dev-tracker",
+    icon: KanbanSquare,
   },
 ];
 

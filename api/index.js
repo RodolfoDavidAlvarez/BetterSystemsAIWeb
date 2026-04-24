@@ -2340,5 +2340,177 @@ app.post('/api/presentation-leads', async (req, res) => {
   }
 });
 
+// ==================== DEV TRACKER ====================
+// Feature: /admin/dev-tracker — role-gated project tracker backed by qa_items + qa_notes.
+// Roles: owner = full CRUD, developer = read + update status + add/resolve notes.
+
+function devTrackerAuth(requiredRoles) {
+  return async (req, res, next) => {
+    try {
+      let token;
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) token = authHeader.split(' ')[1];
+      else if (req.cookies && req.cookies.token) token = req.cookies.token;
+      if (!token) return res.status(401).json({ error: 'Authentication required' });
+
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const rows = await queryClient`SELECT id, username, name, email, role FROM bettersystems.users WHERE id = ${decoded.id} LIMIT 1`;
+      if (!rows.length) return res.status(401).json({ error: 'User not found' });
+      const user = rows[0];
+      if (!requiredRoles.includes(user.role)) {
+        return res.status(403).json({ error: 'Forbidden', role: user.role });
+      }
+      req.user = user;
+      next();
+    } catch (e) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+  };
+}
+
+app.get('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const project = req.query.project;
+    const where = project ? queryClient`WHERE project = ${project}` : queryClient``;
+    const items = project
+      ? await queryClient`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`
+      : await queryClient`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`;
+    if (!items.length) return res.json(project ? [] : {});
+    const ids = items.map(i => i.id);
+    const notes = await queryClient`SELECT * FROM qa_notes WHERE item_id IN ${queryClient(ids)} ORDER BY created_at ASC`;
+    const byItem = new Map();
+    for (const n of notes) {
+      const arr = byItem.get(n.item_id) || [];
+      arr.push(n);
+      byItem.set(n.item_id, arr);
+    }
+    if (project) {
+      return res.json(items.map(it => ({ ...it, notes: byItem.get(it.id) || [] })));
+    }
+    const projects = {};
+    for (const it of items) {
+      const key = it.project;
+      if (!projects[key]) projects[key] = [];
+      projects[key].push({ ...it, notes: byItem.get(it.id) || [] });
+    }
+    res.json(projects);
+  } catch (e) {
+    console.error('dev-tracker items error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/dev-tracker/projects', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const rows = await queryClient`SELECT project, COUNT(*)::int AS count FROM qa_items GROUP BY project ORDER BY project`;
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const [row] = await queryClient`
+      INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order)
+      VALUES (${b.project || 'mitchs-map'}, ${b.version || '2.4'}, ${b.category || 'feature'},
+              ${b.title || 'Untitled'}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
+              ${b.status || 'open'}, ${b.sort_order ?? 0})
+      RETURNING *
+    `;
+    res.json({ ...row, notes: [] });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const b = req.body || {};
+    const ownerFields = ['version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents', 'source', 'source_date', 'sort_order'];
+    const devFields = ['status'];
+    const isOwnerRole = ['owner', 'admin'].includes(req.user.role);
+    const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
+    const updates = {};
+    for (const k of allowed) if (k in b) updates[k] = b[k];
+    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid fields' });
+    if (b.status === 'tested_pass' || b.status === 'tested_fail') updates.tested_at = new Date();
+    if (b.status === 'shipped' && !b.deployed_at) updates.deployed_at = new Date();
+    updates.updated_at = new Date();
+    const [row] = await queryClient`UPDATE qa_items SET ${queryClient(updates)} WHERE id = ${id} RETURNING *`;
+    const notes = await queryClient`SELECT * FROM qa_notes WHERE item_id = ${id} ORDER BY created_at ASC`;
+    res.json({ ...row, notes });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    await queryClient`DELETE FROM qa_items WHERE id = ${req.params.id}`;
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/dev-tracker/items/:id/notes', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const b = req.body || {};
+    const author = req.user.username || req.user.name || 'unknown';
+    const [n] = await queryClient`
+      INSERT INTO qa_notes (item_id, text, author)
+      VALUES (${id}, ${b.text || ''}, ${author})
+      RETURNING *
+    `;
+    await queryClient`UPDATE qa_items SET updated_at = now() WHERE id = ${id}`;
+    res.json(n);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/api/dev-tracker/items/:id/notes/:noteId', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const { noteId } = req.params;
+    const b = req.body || {};
+    const updates = {};
+    if ('text' in b) updates.text = b.text;
+    if (b.resolved === true) {
+      updates.resolved_at = new Date();
+      updates.resolved_by = req.user.username || 'unknown';
+    }
+    if (b.resolved === false) {
+      updates.resolved_at = null;
+      updates.resolved_by = null;
+    }
+    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No updates' });
+    const [row] = await queryClient`UPDATE qa_notes SET ${queryClient(updates)} WHERE id = ${noteId} RETURNING *`;
+    res.json(row);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/dev-tracker/unresolved', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const project = req.query.project || 'mitchs-map';
+    const rows = await queryClient`
+      SELECT n.id AS note_id, n.text, n.created_at AS note_created_at,
+             i.id AS item_id, i.title, i.version, i.status
+      FROM qa_notes n
+      JOIN qa_items i ON i.id = n.item_id
+      WHERE n.resolved_at IS NULL AND i.project = ${project}
+      ORDER BY n.created_at ASC
+    `;
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Export for Vercel
 export default app;

@@ -2429,7 +2429,7 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
   try {
     const id = req.params.id;
     const b = req.body || {};
-    const ownerFields = ['version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents', 'source', 'source_date', 'sort_order'];
+    const ownerFields = ['version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents', 'source', 'source_date', 'source_context', 'source_ref', 'sort_order'];
     const devFields = ['status'];
     const isOwnerRole = ['owner', 'admin'].includes(req.user.role);
     const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;

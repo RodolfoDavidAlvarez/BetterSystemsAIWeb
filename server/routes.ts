@@ -2120,7 +2120,8 @@ export function registerRoutes(app: Express) {
       const items = itemsRes.rows || itemsRes;
       if (!items.length) return res.json(project ? [] : {});
       const ids = items.map((i: any) => i.id);
-      const notesRes: any = await db.execute(sql`SELECT * FROM qa_notes WHERE item_id = ANY(${ids}::uuid[]) ORDER BY created_at ASC`);
+      const idsCsv = ids.map((x: string) => `'${x}'::uuid`).join(",");
+      const notesRes: any = await db.execute(sql.raw(`SELECT * FROM qa_notes WHERE item_id IN (${idsCsv}) ORDER BY created_at ASC`));
       const notes = notesRes.rows || notesRes;
       const byItem = new Map<string, any[]>();
       for (const n of notes) {
@@ -2175,7 +2176,7 @@ export function registerRoutes(app: Express) {
       const id = req.params.id;
       const user = (req as any).user;
       const b = req.body || {};
-      const ownerFields = ["version", "category", "title", "description", "charged", "commit_hash", "amount_cents", "source", "source_date", "sort_order"];
+      const ownerFields = ["version", "category", "title", "description", "charged", "commit_hash", "amount_cents", "source", "source_date", "source_context", "source_ref", "sort_order"];
       const devFields = ["status"];
       const isOwnerRole = ["owner", "admin"].includes(user.role);
       const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;

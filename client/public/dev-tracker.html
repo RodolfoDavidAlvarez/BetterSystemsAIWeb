@@ -10,6 +10,63 @@
 <style>
   /* Role-based visibility — hide owner-only controls for developer role */
   html[data-role="developer"] .owner-only { display: none !important; }
+
+  /* Source context — clickable + expandable panel */
+  .meta-item.source-link { transition: background .15s, color .15s, border-color .15s; }
+  .meta-item.source-link.has-context { cursor: pointer; border-color: var(--line-strong); font-weight: 600; }
+  .meta-item.source-link.has-context:hover { background: var(--ink); color: white; }
+  .meta-item.source-link.is-open { background: var(--accent); color: white; border-color: var(--accent); }
+  .meta-item.source-link.no-context { opacity: .5; cursor: help; }
+  .context-panel {
+    margin: 12px 0 4px;
+    border-left: 3px solid var(--accent);
+    background: var(--paper);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    animation: cxSlide .18s ease-out;
+  }
+  @keyframes cxSlide { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .context-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 10px;
+  }
+  .context-head-label {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .context-head-ref {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    max-width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+  .context-body {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    max-height: 460px;
+    overflow-y: auto;
+  }
   :root {
     --bg: #ffffff;
     --paper: #f8f8f8;
@@ -110,7 +167,7 @@
   /* === BRIEF STATS === */
   .brief {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 32px;
   }
@@ -148,16 +205,7 @@
 
   /* === FILTER BAR === */
   .filterbar {
-    background: var(--paper);
-    border: 2px solid var(--line);
-    border-radius: 14px;
-    padding: 14px 16px;
     margin-bottom: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .filterbar-top {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -173,131 +221,100 @@
     font-family: "Geist", sans-serif;
     font-size: 14px;
     font-weight: 500;
-    padding: 10px 14px 10px 38px;
-    border: 2px solid var(--line);
-    border-radius: 10px;
+    padding: 9px 32px 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
     background: white;
     color: var(--ink);
     transition: border-color 0.15s;
   }
-  .search-wrap input:focus { outline: 0; border-color: var(--accent); }
-  .search-wrap::before {
-    content: "🔍";
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    opacity: 0.6;
-    pointer-events: none;
-  }
+  .search-wrap input:focus { outline: 0; border-color: var(--ink); }
   .search-clear {
     position: absolute;
-    right: 10px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    background: var(--ink-4);
-    color: white;
+    background: transparent;
+    color: var(--ink-4);
     border: 0;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 16px;
     line-height: 1;
     display: none;
     align-items: center;
     justify-content: center;
   }
   .search-wrap.has-value .search-clear { display: inline-flex; }
+  .search-clear:hover { color: var(--ink); }
+
+  .filter-select {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    background: white;
+    border: 1px solid var(--line);
+    padding: 8px 28px 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23555' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.15s;
+  }
+  .filter-select:hover, .filter-select:focus { border-color: var(--ink); outline: 0; }
+  .filter-select.is-active { border-color: var(--ink); font-weight: 600; }
 
   .bulk-toggle {
     font-family: "Geist", sans-serif;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 500;
     background: white;
-    color: var(--ink);
-    border: 2px solid var(--line);
-    padding: 10px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .bulk-toggle:hover { border-color: var(--ink); }
-  .bulk-toggle.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-  .filter-reset {
-    font-family: "Geist", sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    background: transparent;
     color: var(--ink-3);
-    border: 0;
+    border: 1px solid var(--line);
     padding: 8px 12px;
-    cursor: pointer;
-    text-decoration: underline;
-    white-space: nowrap;
-  }
-  .filter-reset:hover { color: var(--hot); }
-
-  .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .filter-label {
-    font-family: "Geist Mono", monospace;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    margin-right: 4px;
-    min-width: 64px;
-  }
-  .filter {
-    font-family: "Geist", sans-serif;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--ink);
-    background: white;
-    border: 2px solid var(--line);
-    padding: 6px 12px;
-    border-radius: 999px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.15s;
-    letter-spacing: 0;
-    line-height: 1.2;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    white-space: nowrap;
   }
-  .filter:hover { border-color: var(--ink); }
-  .filter.active {
+  .bulk-toggle:hover { border-color: var(--ink); color: var(--ink); }
+  .bulk-toggle.active {
     background: var(--ink);
     color: white;
     border-color: var(--ink);
   }
-  .filter.active.f-delivered { background: var(--green); border-color: var(--green); }
-  .filter.active.f-fail { background: var(--hot); border-color: var(--hot); }
-  .filter.active.f-fix { background: #7c2d12; border-color: #7c2d12; }
-  .filter .f-count {
-    background: rgba(0,0,0,0.1);
-    padding: 1px 6px;
-    border-radius: 999px;
-    font-size: 10.5px;
-    font-weight: 800;
+  .filter-reset {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--ink-4);
+    border: 0;
+    padding: 6px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    visibility: hidden;
   }
-  .filter.active .f-count { background: rgba(255,255,255,0.22); color: white; }
+  .filter-reset.visible { visibility: visible; }
+  .filter-reset:hover { color: var(--hot); text-decoration: underline; }
+
+  /* Brief cells become clickable status filters */
+  .brief-cell { cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
+  .brief-cell:hover { border-color: var(--ink-3); }
+  .brief-cell.is-active {
+    border-color: var(--ink);
+    border-width: 2.5px;
+  }
+  .brief-cell.is-active.b-flight { border-color: var(--orange); }
+  .brief-cell.is-active.b-shipped { border-color: var(--accent); }
+  .brief-cell.is-active.b-pass { border-color: var(--green); }
+  .brief-cell.is-active.b-fail { border-color: var(--hot); }
 
   /* === BULK ACTION BAR (sticky bottom) === */
   .bulk-bar {
@@ -1101,15 +1118,13 @@
     <div class="brief" id="brief"></div>
 
     <div class="filterbar">
-      <div class="filterbar-top">
-        <div class="search-wrap" id="search-wrap">
-          <input id="search-input" type="text" placeholder="Search title, source, note..." oninput="onSearchInput(this.value)" />
-          <button class="search-clear" onclick="clearSearch()" title="Clear">×</button>
-        </div>
-        <button class="bulk-toggle" id="bulk-toggle" onclick="toggleBulkMode()">☑ Bulk edit</button>
-        <button class="filter-reset" onclick="resetFilters()">Reset filters</button>
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="text" placeholder="Search title, source, note..." oninput="onSearchInput(this.value)" />
+        <button class="search-clear" onclick="clearSearch()" title="Clear">×</button>
       </div>
-      <div id="filter-rows"></div>
+      <div id="filter-rows" style="display:contents;"></div>
+      <button class="bulk-toggle" id="bulk-toggle" onclick="toggleBulkMode()">Bulk edit</button>
+      <button class="filter-reset" id="filter-reset" onclick="resetFilters()">Reset</button>
     </div>
 
     <div id="deals"></div>
@@ -1262,6 +1277,7 @@ function dealColor(name) {
 let projects = {};
 let collapsed = JSON.parse(localStorage.getItem("qa-collapsed") || "{}");
 let expandedNotes = new Set();
+let expandedContext = new Set();
 let pendingFlash = new Set(); // item IDs to flash after next render
 
 // Filter state (persisted)
@@ -1317,6 +1333,18 @@ function toggleDeal(name) {
 function toggleNotes(itemId) {
   if (expandedNotes.has(itemId)) expandedNotes.delete(itemId); else expandedNotes.add(itemId);
   render();
+}
+function toggleContext(itemId) {
+  if (expandedContext.has(itemId)) expandedContext.delete(itemId); else expandedContext.add(itemId);
+  render();
+}
+function refTypeIcon(t) {
+  if (!t) return "📎";
+  if (t === "imessage") return "💬";
+  if (t === "email") return "✉️";
+  if (t === "meeting") return "🎙️";
+  if (t === "internal-qa") return "🔧";
+  return "📎";
 }
 function setFilter(key, value) {
   filters[key] = value;
@@ -1429,16 +1457,17 @@ function render() {
     <div class="progress-bar"><div class="progress-fill" style="width: ${g.pct}%"></div></div>
   `;
 
-  // Brief stats
-  document.getElementById("brief").innerHTML = [
-    ["b-total","total",g.total,true],
-    ["b-open","not started",g.open,g.open>0],
-    ["b-flight","building",g.in_flight,g.in_flight>0],
-    ["b-shipped","shipped",g.shipped,g.shipped>0],
-    ["b-pass","passing",g.tested_pass,g.tested_pass>0],
-    ["b-fail","failing",g.tested_fail,g.tested_fail>0],
-  ].map(([cls,label,n,hasValue]) => `
-    <div class="brief-cell ${cls} ${hasValue?'has-value':'zero'}">
+  // Brief stats — clickable as status filters
+  const briefCells = [
+    ["b-total","total",g.total,true,"all"],
+    ["b-open","not started",g.open,g.open>0,"open"],
+    ["b-flight","building",g.in_flight,g.in_flight>0,"in_flight"],
+    ["b-shipped","shipped",g.shipped,g.shipped>0,"shipped"],
+    ["b-pass","passing",g.tested_pass,g.tested_pass>0,"tested_pass"],
+    ["b-fail","failing",g.tested_fail,g.tested_fail>0,"tested_fail"],
+  ];
+  document.getElementById("brief").innerHTML = briefCells.map(([cls,label,n,hasValue,statusVal]) => `
+    <div class="brief-cell ${cls} ${hasValue?'has-value':'zero'} ${filters.status===statusVal?'is-active':''}" onclick="setFilter('status','${statusVal}')" title="Filter: ${label}">
       <div class="brief-num">${n}</div>
       <div class="brief-label">${label}</div>
     </div>
@@ -1450,43 +1479,32 @@ function render() {
   const allDeals = Object.keys(projects).sort();
   const countBy = (pred) => all.filter(pred).length;
 
-  const statusOpts = [
-    ["all", "All", countBy(() => true), ""],
-    ["open", "Not started", countBy(i => i.status==="open"), ""],
-    ["in_flight", "Building", countBy(i => i.status==="in_flight"), ""],
-    ["shipped", "Shipped", countBy(i => i.status==="shipped"), ""],
-    ["delivered", "Delivered ✓", countBy(i => i.status==="shipped" && i.charged), "f-delivered"],
-    ["tested_pass", "Passing", countBy(i => i.status==="tested_pass"), ""],
-    ["tested_fail", "Failing", countBy(i => i.status==="tested_fail"), "f-fail"],
-    ["wont_do", "Skipped", countBy(i => i.status==="wont_do"), ""],
-  ];
-  const versionOpts = [["all", "All", all.length, ""]].concat(
-    allVersions.map(v => [v, "v"+v, countBy(i => i.version===v), ""])
+  const versionOpts = [["all", "All versions", all.length]].concat(
+    allVersions.map(v => [v, "v"+v, countBy(i => i.version===v)])
   );
-  const catOpts = [["all", "All", all.length, ""]].concat(
-    allCategories.map(c => [c, c.charAt(0).toUpperCase()+c.slice(1), countBy(i => (i.category||"feature")===c), c==="fix"?"f-fix":""])
+  const catOpts = [["all", "All categories", all.length]].concat(
+    allCategories.map(c => [c, c.charAt(0).toUpperCase()+c.slice(1), countBy(i => (i.category||"feature")===c)])
   );
-  const dealOpts = [["all", "All", all.length, ""]].concat(
-    allDeals.map(d => [d, d, countBy(i => i.project===d), ""])
+  const dealOpts = [["all", "All deals", all.length]].concat(
+    allDeals.map(d => [d, d, countBy(i => i.project===d)])
   );
 
-  const renderGroup = (label, key, opts) => `
-    <div class="filter-group">
-      <span class="filter-label">${label}</span>
-      ${opts.map(([val, lbl, n, extra]) => `
-        <button class="filter ${filters[key]===val?'active '+extra:''}" onclick="setFilter('${key}', '${val}')">
-          ${lbl}<span class="f-count">${n}</span>
-        </button>
-      `).join("")}
-    </div>
-  `;
+  const renderSelect = (key, opts) => {
+    const isActive = filters[key] !== "all";
+    return `<select class="filter-select ${isActive?'is-active':''}" onchange="setFilter('${key}', this.value)">
+      ${opts.map(([val, lbl, n]) => `<option value="${val}" ${filters[key]===val?'selected':''}>${lbl} (${n})</option>`).join("")}
+    </select>`;
+  };
 
   document.getElementById("filter-rows").innerHTML = [
-    renderGroup("Status", "status", statusOpts),
-    renderGroup("Version", "version", versionOpts),
-    allDeals.length > 1 ? renderGroup("Deal", "deal", dealOpts) : "",
-    allCategories.length > 1 ? renderGroup("Category", "category", catOpts) : "",
+    renderSelect("version", versionOpts),
+    allDeals.length > 1 ? renderSelect("deal", dealOpts) : "",
+    allCategories.length > 1 ? renderSelect("category", catOpts) : "",
   ].filter(Boolean).join("");
+
+  // Toggle Reset visibility when any filter is active
+  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "";
+  document.getElementById("filter-reset").classList.toggle("visible", anyActive);
 
   // Apply filters
   const q = (filters.search || "").trim().toLowerCase();
@@ -1615,6 +1633,9 @@ function renderItem(it) {
   const notes = it.notes || [];
   const unresolved = notes.filter(n => !n.resolved_at).length;
   const showNotes = expandedNotes.has(it.id);
+  const showContext = expandedContext.has(it.id);
+  const hasContext = !!(it.source_context && it.source_context.trim());
+  const refType = (it.source_ref && it.source_ref.type) || null;
   const cyclesTo = STATUS_FLOW[it.status];
   const flashClass = pendingFlash.has(it.id) ? 'flash' : '';
   pendingFlash.delete(it.id);
@@ -1639,7 +1660,7 @@ function renderItem(it) {
         <div class="item-title" contenteditable="true" data-original="${escapeAttr(it.title)}" onblur="if(this.textContent.trim() && this.textContent.trim() !== this.dataset.original) patchItem('${it.id}', { title: this.textContent.trim() })">${escapeHtml(it.title)}</div>
         <div class="item-meta">
           ${isDelivered ? `<span class="delivered-badge"><span class="chk">✓</span>Delivered</span>` : ""}
-          ${it.source ? `<span class="meta-item">${escapeHtml(it.source)}</span>` : ""}
+          ${it.source ? `<span class="meta-item source-link ${hasContext ? 'has-context' : 'no-context'} ${showContext ? 'is-open' : ''}" onclick="${hasContext ? `toggleContext('${it.id}')` : ''}" title="${hasContext ? 'Click to view source context' : 'No context captured'}">${refTypeIcon(refType)} ${escapeHtml(it.source)}${hasContext ? (showContext ? ' ▾' : ' ▸') : ''}</span>` : ""}
           ${it.source_date ? `<span class="meta-item">${it.source_date.slice(0,10)}</span>` : ""}
           ${it.commit_hash ? `<span class="meta-item commit">${it.commit_hash.slice(0,7)}</span>` : ""}
           ${it.tested_at ? `<span class="meta-item">tested ${new Date(it.tested_at).toLocaleDateString()}</span>` : ""}
@@ -1658,6 +1679,15 @@ function renderItem(it) {
       </div>
     </div>
     ${checklist ? renderChecklist(it, checklist) : ""}
+    ${showContext && hasContext ? `
+      <div class="context-panel">
+        <div class="context-head">
+          <span class="context-head-label">${refTypeIcon(refType)} Source Context${refType ? ' · ' + refType.replace('-', ' ') : ''}</span>
+          ${it.source_ref ? `<span class="context-head-ref">${escapeHtml(JSON.stringify(it.source_ref))}</span>` : ""}
+        </div>
+        <pre class="context-body">${escapeHtml(it.source_context)}</pre>
+      </div>
+    ` : ""}
     ${showNotes ? `
       <div class="notes-section">
         ${notes.length === 0 ? '<div style="color:var(--ink-4); font-size:14px; font-style:italic;">No notes yet — add the first one below.</div>' : ''}

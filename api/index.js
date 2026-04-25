@@ -2371,10 +2371,14 @@ function devTrackerAuth(requiredRoles) {
 app.get('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const project = req.query.project;
-    const where = project ? queryClient`WHERE project = ${project}` : queryClient``;
+    const isDevOnly = req.user.role === 'developer';
     const items = project
-      ? await queryClient`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`
-      : await queryClient`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`;
+      ? (isDevOnly
+          ? await queryClient`SELECT * FROM qa_items WHERE project = ${project} AND assignee = ${req.user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`
+          : await queryClient`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`)
+      : (isDevOnly
+          ? await queryClient`SELECT * FROM qa_items WHERE assignee = ${req.user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`
+          : await queryClient`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`);
     if (!items.length) return res.json(project ? [] : {});
     const ids = items.map(i => i.id);
     const notes = await queryClient`SELECT * FROM qa_notes WHERE item_id IN ${queryClient(ids)} ORDER BY created_at ASC`;
@@ -2413,10 +2417,10 @@ app.post('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin']), async (re
   try {
     const b = req.body || {};
     const [row] = await queryClient`
-      INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order)
+      INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
       VALUES (${b.project || 'mitchs-map'}, ${b.version || '2.4'}, ${b.category || 'feature'},
               ${b.title || 'Untitled'}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
-              ${b.status || 'open'}, ${b.sort_order ?? 0})
+              ${b.status || 'open'}, ${b.sort_order ?? 0}, ${b.assignee || null})
       RETURNING *
     `;
     res.json({ ...row, notes: [] });
@@ -2429,7 +2433,7 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
   try {
     const id = req.params.id;
     const b = req.body || {};
-    const ownerFields = ['version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents', 'source', 'source_date', 'source_context', 'source_ref', 'sort_order'];
+    const ownerFields = ['version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents', 'source', 'source_date', 'source_context', 'source_ref', 'sort_order', 'assignee'];
     const devFields = ['status'];
     const isOwnerRole = ['owner', 'admin'].includes(req.user.role);
     const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
@@ -2493,6 +2497,60 @@ app.patch('/api/dev-tracker/items/:id/notes/:noteId', devTrackerAuth(['owner', '
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// === User management (admin only) ===
+app.get('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin']), async (_req, res) => {
+  try {
+    const rows = await queryClient`SELECT id, username, name, email, role, "createdAt" FROM bettersystems.users ORDER BY id`;
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const b = req.body || {};
+    if (!b.username || !b.name || !b.email || !b.password) {
+      return res.status(400).json({ error: 'Missing required fields: username, name, email, password' });
+    }
+    const role = ['developer', 'admin', 'owner'].includes(b.role) ? b.role : 'developer';
+    const hash = bcrypt.hashSync(b.password, 10);
+    const [row] = await queryClient`
+      INSERT INTO bettersystems.users (username, name, email, password, role)
+      VALUES (${b.username}, ${b.name}, ${b.email}, ${hash}, ${role})
+      RETURNING id, username, name, email, role, "createdAt"
+    `;
+    res.json(row);
+  } catch (e) {
+    if (String(e.message).includes('duplicate')) return res.status(409).json({ error: 'Username or email already exists' });
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.patch('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const b = req.body || {};
+    const updates = {};
+    if (b.name) updates.name = b.name;
+    if (b.email) updates.email = b.email;
+    if (b.role && ['developer', 'admin', 'owner'].includes(b.role)) updates.role = b.role;
+    if (b.password) updates.password = bcrypt.hashSync(b.password, 10);
+    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No updates' });
+    updates.updatedAt = new Date();
+    const [row] = await queryClient`UPDATE bettersystems.users SET ${queryClient(updates)} WHERE id = ${id} RETURNING id, username, name, email, role`;
+    res.json(row);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (req.user.id === id) return res.status(400).json({ error: 'Cannot delete yourself' });
+    await queryClient`UPDATE qa_items SET assignee = NULL WHERE assignee IN (SELECT username FROM bettersystems.users WHERE id = ${id})`;
+    await queryClient`DELETE FROM bettersystems.users WHERE id = ${id}`;
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/dev-tracker/unresolved', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {

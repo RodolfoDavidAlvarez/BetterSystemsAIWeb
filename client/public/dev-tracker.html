@@ -313,8 +313,12 @@
   }
   .brief-cell.is-active.b-flight { border-color: var(--orange); }
   .brief-cell.is-active.b-shipped { border-color: var(--accent); }
+  .brief-cell.is-active.b-delivered { border-color: var(--green); }
   .brief-cell.is-active.b-pass { border-color: var(--green); }
   .brief-cell.is-active.b-fail { border-color: var(--hot); }
+  .brief-cell.is-active.b-skipped { border-color: var(--ink-3); }
+  .brief-cell.has-value.b-delivered .brief-num { color: var(--green); }
+  .brief-cell.has-value.b-skipped .brief-num { color: var(--ink-3); }
 
   /* === BULK ACTION BAR (sticky bottom) === */
   .bulk-bar {
@@ -1083,12 +1087,89 @@
     margin-bottom: 8px;
   }
 
+  /* === USERS MODAL === */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: flex-start; justify-content: center;
+    padding: 60px 20px 40px;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .modal-backdrop.visible { display: flex; }
+  .modal-card {
+    background: white;
+    border-radius: 16px;
+    max-width: 720px;
+    width: 100%;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 { font-size: 20px; font-weight: 800; }
+  .modal-close { background: transparent; border: 0; font-size: 22px; cursor: pointer; color: var(--ink-3); }
+  .modal-close:hover { color: var(--hot); }
+  .user-row {
+    display: grid;
+    grid-template-columns: 1fr 130px auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .user-row:last-child { border-bottom: 0; }
+  .user-name { font-weight: 700; font-size: 14px; }
+  .user-meta { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .user-cell select {
+    font-family: "Geist", sans-serif; font-size: 12px; padding: 5px 8px;
+    border: 1px solid var(--line); border-radius: 6px; background: white;
+  }
+  .user-cell-actions { display: flex; gap: 6px; }
+  .user-btn {
+    font-family: "Geist", sans-serif; font-size: 12px; font-weight: 600;
+    padding: 6px 10px; border: 1px solid var(--line); background: white; border-radius: 6px; cursor: pointer;
+  }
+  .user-btn:hover:not(:disabled) { border-color: var(--ink); }
+  .user-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .user-btn.danger:hover:not(:disabled) { border-color: var(--hot); color: var(--hot); }
+  .user-form {
+    margin-top: 22px; padding-top: 18px; border-top: 2px solid var(--ink);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .user-form h3 { grid-column: 1 / -1; font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  .user-form input, .user-form select {
+    font-family: "Geist", sans-serif; font-size: 13px; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 6px; background: white;
+  }
+  .user-form input:focus, .user-form select:focus { outline: 0; border-color: var(--ink); }
+  .user-form .form-submit {
+    grid-column: 1 / -1;
+    background: var(--ink); color: white; font-weight: 700; padding: 10px;
+    border: 0; border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  .user-form .form-submit:hover { background: var(--accent); }
+
+  /* assignee chip on items */
+  .assignee-chip {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--line); color: var(--ink-2);
+  }
+  .assignee-chip.unassigned { color: var(--ink-4); font-style: italic; }
+  .assignee-select {
+    font-family: "Geist", sans-serif; font-size: 11px; padding: 2px 6px;
+    border: 1px solid var(--line); border-radius: 6px; background: white;
+  }
+
   /* === MOBILE === */
   @media (max-width: 720px) {
     .wrap { padding: 24px 16px 80px; }
     .masthead { flex-direction: column; align-items: flex-start; gap: 18px; padding-bottom: 20px; margin-bottom: 22px; }
     h1.masthead-title { font-size: 48px; }
-    .brief { grid-template-columns: repeat(3, 1fr); }
+    .brief { grid-template-columns: repeat(2, 1fr); }
     .brief-num { font-size: 32px; }
     .brief-label { font-size: 11px; }
     .deal-name { font-size: 18px; }
@@ -1128,6 +1209,29 @@
     </div>
 
     <div id="deals"></div>
+
+    <!-- Users management modal (admin only) -->
+    <div class="modal-backdrop" id="users-modal" onclick="if(event.target===this)closeUsersModal()">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2>Manage developers</h2>
+          <button class="modal-close" onclick="closeUsersModal()">×</button>
+        </div>
+        <div id="users-list"></div>
+        <form class="user-form" onsubmit="createUser(event)">
+          <h3>Add a developer</h3>
+          <input name="username" placeholder="Username (e.g. carlos)" required />
+          <input name="name" placeholder="Full name" required />
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" placeholder="Initial password" required />
+          <select name="role">
+            <option value="developer" selected>developer</option>
+            <option value="admin">admin</option>
+          </select>
+          <button type="submit" class="form-submit">Add user</button>
+        </form>
+      </div>
+    </div>
 
     <!-- Bulk action bar (floating) -->
     <div class="bulk-bar" id="bulk-bar">
@@ -1230,7 +1334,9 @@ async function loadCurrentUser() {
     if (banner) {
       const role = CURRENT_USER.role || "developer";
       const roleLabel = role === "owner" ? "OWNER" : role === "developer" ? "DEVELOPER" : role.toUpperCase();
-      banner.innerHTML = `<span>${CURRENT_USER.name || CURRENT_USER.username || CURRENT_USER.email} <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span> <button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button>`;
+      const isAdmin = role === "owner" || role === "admin";
+      banner.innerHTML = `<span>${CURRENT_USER.name || CURRENT_USER.username || CURRENT_USER.email} <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span><span style="display:flex;gap:14px;align-items:center;">${isAdmin ? `<button onclick="openUsersModal()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Manage developers</button>` : ""}<button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button></span>`;
+      if (isAdmin) loadUsers();
     }
   } catch (e) {
     console.error("auth check failed", e);
@@ -1241,6 +1347,93 @@ function devLogout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   window.location.href = "/admin/login";
+}
+
+// === Users (admin only) ===
+let USERS = [];
+async function loadUsers() {
+  try {
+    const r = await apiFetch("/api/dev-tracker/users");
+    if (!r.ok) return;
+    USERS = await r.json();
+    if (typeof render === "function") render();
+  } catch (e) { console.warn("loadUsers failed", e); }
+}
+function devUsernames() {
+  return USERS.filter(u => u.role === "developer").map(u => u.username);
+}
+function openUsersModal() {
+  const m = document.getElementById("users-modal");
+  m.classList.add("visible");
+  renderUsersList();
+}
+function closeUsersModal() {
+  document.getElementById("users-modal").classList.remove("visible");
+}
+function renderUsersList() {
+  const list = document.getElementById("users-list");
+  list.innerHTML = USERS.map(u => `
+    <div class="user-row">
+      <div class="user-cell user-cell-main">
+        <div class="user-name">${escapeHtml(u.name)}</div>
+        <div class="user-meta">${escapeHtml(u.username)} · ${escapeHtml(u.email)}</div>
+      </div>
+      <div class="user-cell">
+        <select onchange="patchUser(${u.id}, { role: this.value })" ${u.id === CURRENT_USER.id ? "disabled" : ""}>
+          <option value="developer" ${u.role==='developer'?'selected':''}>developer</option>
+          <option value="admin" ${u.role==='admin'?'selected':''}>admin</option>
+          <option value="owner" ${u.role==='owner'?'selected':''}>owner</option>
+        </select>
+      </div>
+      <div class="user-cell user-cell-actions">
+        <button class="user-btn" onclick="resetUserPassword(${u.id}, '${escapeHtml(u.username)}')">Reset password</button>
+        <button class="user-btn danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')" ${u.id === CURRENT_USER.id ? "disabled" : ""}>Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+async function createUser(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  const body = {
+    username: f.username.value.trim(),
+    name: f.name.value.trim(),
+    email: f.email.value.trim(),
+    password: f.password.value,
+    role: f.role.value,
+  };
+  if (!body.username || !body.name || !body.email || !body.password) return alert("All fields required");
+  try {
+    const r = await apiFetch("/api/dev-tracker/users", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "create failed")); }
+    f.reset();
+    await loadUsers();
+    renderUsersList();
+    alert("Created. Share these credentials with the developer:\n\nUsername: " + body.username + "\nPassword: " + body.password + "\nLogin URL: " + window.location.origin + "/admin/login");
+  } catch (e) { alert("Error: " + e.message); }
+}
+async function patchUser(id, body) {
+  try {
+    const r = await apiFetch("/api/dev-tracker/users/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "update failed")); }
+    await loadUsers();
+    renderUsersList();
+  } catch (e) { alert("Error: " + e.message); }
+}
+async function resetUserPassword(id, username) {
+  const pwd = prompt("New password for " + username + ":");
+  if (!pwd) return;
+  await patchUser(id, { password: pwd });
+  alert("Password reset for " + username + ". New password: " + pwd);
+}
+async function deleteUser(id, username) {
+  if (!confirm("Delete user '" + username + "'? Their items will be unassigned. Cannot undo.")) return;
+  try {
+    const r = await apiFetch("/api/dev-tracker/users/" + id, { method: "DELETE" });
+    if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "delete failed")); }
+    await loadUsers();
+    renderUsersList();
+  } catch (e) { alert("Error: " + e.message); }
 }
 // fetch wrapper that auto-adds Authorization header and handles 401
 async function apiFetch(url, opts = {}) {
@@ -1458,13 +1651,17 @@ function render() {
   `;
 
   // Brief stats — clickable as status filters
+  const deliveredCount = all.filter(i => i.status==="shipped" && i.charged).length;
+  const skippedCount = all.filter(i => i.status==="wont_do").length;
   const briefCells = [
     ["b-total","total",g.total,true,"all"],
     ["b-open","not started",g.open,g.open>0,"open"],
     ["b-flight","building",g.in_flight,g.in_flight>0,"in_flight"],
     ["b-shipped","shipped",g.shipped,g.shipped>0,"shipped"],
+    ["b-delivered","delivered",deliveredCount,deliveredCount>0,"delivered"],
     ["b-pass","passing",g.tested_pass,g.tested_pass>0,"tested_pass"],
     ["b-fail","failing",g.tested_fail,g.tested_fail>0,"tested_fail"],
+    ["b-skipped","skipped",g.wont_do,skippedCount>0,"wont_do"],
   ];
   document.getElementById("brief").innerHTML = briefCells.map(([cls,label,n,hasValue,statusVal]) => `
     <div class="brief-cell ${cls} ${hasValue?'has-value':'zero'} ${filters.status===statusVal?'is-active':''}" onclick="setFilter('status','${statusVal}')" title="Filter: ${label}">
@@ -1664,6 +1861,12 @@ function renderItem(it) {
           ${it.source_date ? `<span class="meta-item">${it.source_date.slice(0,10)}</span>` : ""}
           ${it.commit_hash ? `<span class="meta-item commit">${it.commit_hash.slice(0,7)}</span>` : ""}
           ${it.tested_at ? `<span class="meta-item">tested ${new Date(it.tested_at).toLocaleDateString()}</span>` : ""}
+          ${(CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin"))
+            ? `<select class="assignee-select" onchange="patchItem('${it.id}', { assignee: this.value || null })" title="Assign to developer">
+                 <option value="">— unassigned —</option>
+                 ${devUsernames().map(u => `<option value="${u}" ${it.assignee===u?'selected':''}>@${u}</option>`).join("")}
+               </select>`
+            : (it.assignee ? `<span class="assignee-chip">@${escapeHtml(it.assignee)}</span>` : `<span class="assignee-chip unassigned">unassigned</span>`)}
           <span class="meta-item notes-link ${unresolved > 0 ? 'has-unresolved' : ''}" onclick="toggleNotes('${it.id}')">
             ${notes.length === 0 ? "+ Add note" : (unresolved > 0 ? `${unresolved} unresolved · ${notes.length} total` : `${notes.length} note${notes.length===1?'':'s'}`)}
           </span>

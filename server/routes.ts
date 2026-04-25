@@ -2113,10 +2113,16 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
+      const user = (req as any).user;
       const project = req.query.project as string | undefined;
+      const isDevOnly = user.role === "developer";
       const itemsRes: any = project
-        ? await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`)
-        : await db.execute(sql`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`);
+        ? (isDevOnly
+            ? await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} AND assignee = ${user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`)
+            : await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`))
+        : (isDevOnly
+            ? await db.execute(sql`SELECT * FROM qa_items WHERE assignee = ${user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`)
+            : await db.execute(sql`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`));
       const items = itemsRes.rows || itemsRes;
       if (!items.length) return res.json(project ? [] : {});
       const ids = items.map((i: any) => i.id);
@@ -2158,10 +2164,10 @@ export function registerRoutes(app: Express) {
     try {
       const b = req.body || {};
       const r: any = await db.execute(sql`
-        INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order)
+        INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
         VALUES (${b.project || "mitchs-map"}, ${b.version || "2.4"}, ${b.category || "feature"},
                 ${b.title || "Untitled"}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
-                ${b.status || "open"}, ${b.sort_order ?? 0})
+                ${b.status || "open"}, ${b.sort_order ?? 0}, ${b.assignee || null})
         RETURNING *
       `);
       const row = (r.rows || r)[0];
@@ -2176,7 +2182,7 @@ export function registerRoutes(app: Express) {
       const id = req.params.id;
       const user = (req as any).user;
       const b = req.body || {};
-      const ownerFields = ["version", "category", "title", "description", "charged", "commit_hash", "amount_cents", "source", "source_date", "source_context", "source_ref", "sort_order"];
+      const ownerFields = ["version", "category", "title", "description", "charged", "commit_hash", "amount_cents", "source", "source_date", "source_context", "source_ref", "sort_order", "assignee"];
       const devFields = ["status"];
       const isOwnerRole = ["owner", "admin"].includes(user.role);
       const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
@@ -2244,6 +2250,73 @@ export function registerRoutes(app: Express) {
       const setExpr = sets.reduce((acc, s, i) => (i === 0 ? s : sql`${acc}, ${s}`));
       const r: any = await db.execute(sql`UPDATE qa_notes SET ${setExpr} WHERE id = ${noteId}::uuid RETURNING *`);
       res.json((r.rows || r)[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // === User management (admin only) — onboard developers, reset passwords, manage roles ===
+  app.get("/api/dev-tracker/users", authenticate, hasRole(["owner", "admin"]), async (_req, res) => {
+    try {
+      const r: any = await db.execute(sql`SELECT id, username, name, email, role, "createdAt" FROM bettersystems.users ORDER BY id`);
+      res.json(r.rows || r);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/dev-tracker/users", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+    try {
+      const b = req.body || {};
+      if (!b.username || !b.name || !b.email || !b.password) {
+        return res.status(400).json({ error: "Missing required fields: username, name, email, password" });
+      }
+      const role = b.role && ["developer", "admin", "owner"].includes(b.role) ? b.role : "developer";
+      const bcryptMod = await import("bcrypt");
+      const hash = bcryptMod.default.hashSync(b.password, 10);
+      const r: any = await db.execute(sql`
+        INSERT INTO bettersystems.users (username, name, email, password, role)
+        VALUES (${b.username}, ${b.name}, ${b.email}, ${hash}, ${role})
+        RETURNING id, username, name, email, role, "createdAt"
+      `);
+      res.json((r.rows || r)[0]);
+    } catch (e: any) {
+      if (String(e.message).includes("duplicate")) return res.status(409).json({ error: "Username or email already exists" });
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.patch("/api/dev-tracker/users/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const b = req.body || {};
+      const sets: any[] = [];
+      if (b.name) sets.push(sql`name = ${b.name}`);
+      if (b.email) sets.push(sql`email = ${b.email}`);
+      if (b.role && ["developer", "admin", "owner"].includes(b.role)) sets.push(sql`role = ${b.role}`);
+      if (b.password) {
+        const bcryptMod = await import("bcrypt");
+        const hash = bcryptMod.default.hashSync(b.password, 10);
+        sets.push(sql`password = ${hash}`);
+      }
+      if (!sets.length) return res.status(400).json({ error: "No updates" });
+      sets.push(sql`"updatedAt" = NOW()`);
+      const setExpr = sets.reduce((acc, s, i) => (i === 0 ? s : sql`${acc}, ${s}`));
+      const r: any = await db.execute(sql`UPDATE bettersystems.users SET ${setExpr} WHERE id = ${id} RETURNING id, username, name, email, role`);
+      res.json((r.rows || r)[0]);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete("/api/dev-tracker/users/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const me = (req as any).user;
+      if (me.id === id) return res.status(400).json({ error: "Cannot delete yourself" });
+      await db.execute(sql`UPDATE qa_items SET assignee = NULL WHERE assignee IN (SELECT username FROM bettersystems.users WHERE id = ${id})`);
+      await db.execute(sql`DELETE FROM bettersystems.users WHERE id = ${id}`);
+      res.json({ ok: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }

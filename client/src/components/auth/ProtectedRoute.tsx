@@ -4,10 +4,11 @@ import { useToast } from '../../hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: string;
+  requiredRole?: string | string[];
 }
 
 export default function ProtectedRoute({ children, requiredRole = 'admin' }: ProtectedRouteProps) {
+  const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [_, navigate] = useLocation();
   const { toast } = useToast();
@@ -27,8 +28,8 @@ export default function ProtectedRoute({ children, requiredRole = 'admin' }: Pro
       try {
         const userData = JSON.parse(userDataStr);
 
-        if (requiredRole && userData.role !== requiredRole) {
-          throw new Error(`You need ${requiredRole} permissions to access this page`);
+        if (allowedRoles.length && !allowedRoles.includes(userData.role)) {
+          throw new Error(`You need ${allowedRoles.join(' or ')} permissions to access this page`);
         }
 
         const response = await fetch('/api/auth/me', {
@@ -79,7 +80,7 @@ export default function ProtectedRoute({ children, requiredRole = 'admin' }: Pro
     };
 
     checkAuth();
-  }, [requiredRole, toast]);
+  }, [requiredRole, toast]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Redirect when auth fails — this hook must always run (not after an early return)
   useEffect(() => {

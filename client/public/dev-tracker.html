@@ -1,0 +1,1976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Developer Tracker · Better Systems AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Role-based visibility — hide owner-only controls for developer role */
+  html[data-role="developer"] .owner-only { display: none !important; }
+
+  /* Source context — clickable + expandable panel */
+  .meta-item.source-link { transition: background .15s, color .15s, border-color .15s; }
+  .meta-item.source-link.has-context { cursor: pointer; border-color: var(--line-strong); font-weight: 600; }
+  .meta-item.source-link.has-context:hover { background: var(--ink); color: white; }
+  .meta-item.source-link.is-open { background: var(--accent); color: white; border-color: var(--accent); }
+  .meta-item.source-link.no-context { opacity: .5; cursor: help; }
+  .context-panel {
+    margin: 12px 0 4px;
+    border-left: 3px solid var(--accent);
+    background: var(--paper);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    animation: cxSlide .18s ease-out;
+  }
+  @keyframes cxSlide { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  .context-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 10px;
+  }
+  .context-head-label {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .context-head-ref {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    max-width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 3px 8px;
+  }
+  .context-body {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    max-height: 460px;
+    overflow-y: auto;
+  }
+  :root {
+    --bg: #ffffff;
+    --paper: #f8f8f8;
+    --ink: #000000;
+    --ink-2: #1a1a1a;
+    --ink-3: #555555;
+    --ink-4: #888888;
+    --line: #d4d4d4;
+    --line-strong: #1a1a1a;
+    --accent: #0040c8;
+    --hot: #d40000;
+    --green: #008836;
+    --orange: #d96a00;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Geist", -apple-system, system-ui, sans-serif;
+    font-feature-settings: "ss01", "ss02";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body { min-height: 100vh; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 36px 28px 120px; }
+
+  /* === HEADER === */
+  .masthead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 3px solid var(--ink);
+    margin-bottom: 28px;
+  }
+  .masthead-left { flex: 1; }
+  .eyebrow {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  h1.masthead-title {
+    font-family: "Geist", sans-serif;
+    font-size: clamp(48px, 8vw, 76px);
+    font-weight: 900;
+    line-height: 0.94;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+  h1.masthead-title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .masthead-sub {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink-2);
+    margin-top: 14px;
+    max-width: 460px;
+    line-height: 1.5;
+  }
+  .masthead-sub kbd {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--ink);
+    color: white;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .add-btn {
+    background: var(--ink);
+    color: white;
+    border: 0;
+    padding: 14px 24px;
+    font-family: "Geist", sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .add-btn:hover { background: var(--accent); }
+  .add-btn:active { transform: scale(0.97); }
+  .add-btn .plus { font-size: 20px; line-height: 1; font-weight: 700; }
+
+  /* === BRIEF STATS === */
+  .brief {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .brief-cell {
+    padding: 18px 16px;
+    border-radius: 12px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    transition: border-color 0.15s;
+  }
+  .brief-cell.has-value { border-color: var(--ink); }
+  .brief-num {
+    font-family: "Geist", sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+  .brief-cell.has-value.b-flight .brief-num { color: var(--orange); }
+  .brief-cell.has-value.b-shipped .brief-num { color: var(--accent); }
+  .brief-cell.has-value.b-pass .brief-num { color: var(--green); }
+  .brief-cell.has-value.b-fail .brief-num { color: var(--hot); }
+  .brief-cell.zero .brief-num { color: var(--ink-4); }
+  .brief-label {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-top: 8px;
+  }
+  .brief-cell.zero .brief-label { color: var(--ink-4); }
+
+  /* === FILTER BAR === */
+  .filterbar {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+  .search-wrap input {
+    width: 100%;
+    font-family: "Geist", sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 9px 32px 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    color: var(--ink);
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { outline: 0; border-color: var(--ink); }
+  .search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    color: var(--ink-4);
+    border: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-wrap.has-value .search-clear { display: inline-flex; }
+  .search-clear:hover { color: var(--ink); }
+
+  .filter-select {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    background: white;
+    border: 1px solid var(--line);
+    padding: 8px 28px 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23555' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.15s;
+  }
+  .filter-select:hover, .filter-select:focus { border-color: var(--ink); outline: 0; }
+  .filter-select.is-active { border-color: var(--ink); font-weight: 600; }
+
+  .bulk-toggle {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    background: white;
+    color: var(--ink-3);
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .bulk-toggle:hover { border-color: var(--ink); color: var(--ink); }
+  .bulk-toggle.active {
+    background: var(--ink);
+    color: white;
+    border-color: var(--ink);
+  }
+  .filter-reset {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--ink-4);
+    border: 0;
+    padding: 6px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    visibility: hidden;
+  }
+  .filter-reset.visible { visibility: visible; }
+  .filter-reset:hover { color: var(--hot); text-decoration: underline; }
+
+  /* Brief cells become clickable status filters */
+  .brief-cell { cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
+  .brief-cell:hover { border-color: var(--ink-3); }
+  .brief-cell.is-active {
+    border-color: var(--ink);
+    border-width: 2.5px;
+  }
+  .brief-cell.is-active.b-flight { border-color: var(--orange); }
+  .brief-cell.is-active.b-shipped { border-color: var(--accent); }
+  .brief-cell.is-active.b-delivered { border-color: var(--green); }
+  .brief-cell.is-active.b-pass { border-color: var(--green); }
+  .brief-cell.is-active.b-fail { border-color: var(--hot); }
+  .brief-cell.is-active.b-skipped { border-color: var(--ink-3); }
+  .brief-cell.has-value.b-delivered .brief-num { color: var(--green); }
+  .brief-cell.has-value.b-skipped .brief-num { color: var(--ink-3); }
+
+  /* === BULK ACTION BAR (sticky bottom) === */
+  .bulk-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    background: var(--ink);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 100;
+    font-family: "Geist", sans-serif;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: calc(100vw - 32px);
+    flex-wrap: wrap;
+  }
+  .bulk-bar.visible { transform: translateX(-50%) translateY(0); }
+  .bulk-bar .count {
+    font-size: 14px;
+    font-weight: 800;
+    padding: 4px 10px;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  .bulk-bar select {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .bulk-bar select option { color: var(--ink); background: white; }
+  .bulk-bar button {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    background: white;
+    color: var(--ink);
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .bulk-bar button:hover { transform: translateY(-1px); }
+  .bulk-bar button.danger { background: var(--hot); color: white; }
+  .bulk-bar button.ghost { background: transparent; color: white; border: 1.5px solid rgba(255,255,255,0.3); }
+
+  /* === BULK SELECT CHECKBOX === */
+  .bulk-check {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2.5px solid var(--ink-4);
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    margin-right: 4px;
+    transition: all 0.15s;
+  }
+  .bulk-check:hover { border-color: var(--accent); }
+  .bulk-check:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .bulk-check:checked::after {
+    content: "✓";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px; font-weight: 900; line-height: 1;
+  }
+
+  /* === REORDER ARROWS === */
+  .reorder-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+  }
+  .item:hover .reorder-col { opacity: 1; }
+  .reorder-btn {
+    background: transparent;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: var(--ink-3);
+    border-radius: 4px;
+    line-height: 1;
+    font-weight: 700;
+  }
+  .reorder-btn:hover {
+    background: var(--paper);
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  /* === DEAL SECTION === */
+  .deal { margin-bottom: 40px; }
+  .deal-hd {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
+    background: var(--deal-color, var(--ink));
+    color: white;
+    border-radius: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 0 var(--deal-shadow, rgba(0,0,0,0.6));
+  }
+  .deal-hd:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--deal-shadow, rgba(0,0,0,0.6)); }
+  .deal-hd:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--deal-shadow, rgba(0,0,0,0.6)); }
+  .deal-chev {
+    font-family: "Geist Mono", monospace;
+    font-size: 18px;
+    color: white;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 16px;
+    line-height: 1;
+    font-weight: 700;
+  }
+  .deal.collapsed .deal-chev { transform: rotate(-90deg); }
+  .deal-name {
+    font-family: "Geist", sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    color: white;
+    line-height: 1;
+    flex: 1;
+  }
+  .deal-mini {
+    display: flex;
+    gap: 14px;
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: rgba(255,255,255,0.95);
+  }
+  .deal-mini b { color: white; font-weight: 900; font-size: 16px; margin-right: 2px; }
+  .deal-body { padding-top: 4px; }
+  .deal.collapsed .deal-body { display: none; }
+
+  /* === VERSION GROUP === */
+  .vgroup { margin-top: 20px; }
+  .vgroup:first-child { margin-top: 16px; }
+  .vgroup-hd {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 4px 12px;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .vgroup-tag {
+    font-family: "Geist", sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: white;
+    background: var(--deal-color, var(--accent));
+    padding: 6px 14px;
+    border-radius: 8px;
+    letter-spacing: -0.01em;
+  }
+  .vgroup-name {
+    font-family: "Geist", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    flex: 1;
+  }
+  .vgroup-count {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-3);
+    letter-spacing: 0;
+  }
+
+  /* === ITEM === */
+  .item {
+    padding: 22px 20px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: white;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .item:last-child { margin-bottom: 0; }
+  .item:hover { border-color: var(--deal-color, var(--ink)); }
+  .item:hover .item-actions { opacity: 1; }
+  .item.flash { animation: itemFlash 0.5s ease-out; }
+  @keyframes itemFlash {
+    0% { background: #fff7c2; transform: scale(1); }
+    50% { background: #fff7c2; transform: scale(1.005); }
+    100% { background: white; transform: scale(1); }
+  }
+
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .item-pillstack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+    align-items: flex-start;
+    width: 140px;
+    padding-top: 1px;
+  }
+  .item-main { flex: 1; min-width: 0; padding-top: 0; }
+  .item-title {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    outline: none;
+    cursor: text;
+    padding: 1px 4px;
+    margin-left: -4px;
+    border-radius: 4px;
+  }
+  .item-title:focus { background: #fff7c2; box-shadow: 0 0 0 2px #fff7c2; }
+  .item-title:empty:before { content: "Untitled"; color: var(--ink-4); }
+
+  .item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  .item-meta .meta-item { display: inline-flex; align-items: center; gap: 5px; }
+  .item-meta .commit { font-family: "Geist Mono", monospace; font-weight: 600; color: var(--ink); }
+  .item-meta .notes-link {
+    color: var(--accent);
+    cursor: pointer;
+    user-select: none;
+    font-weight: 700;
+  }
+  .item-meta .notes-link:hover { text-decoration: underline; }
+  .item-meta .notes-link.has-unresolved { color: var(--hot); }
+
+  .item-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+  }
+  .actions-always { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .icon-btn {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    color: var(--ink-2);
+    line-height: 0;
+    font-size: 22px;
+    font-weight: 700;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: var(--paper); color: var(--ink); }
+  .icon-btn.danger:hover { background: var(--hot); color: white; }
+  .charged-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: "Geist", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    user-select: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    border: 2px solid var(--line);
+  }
+  .charged-toggle:hover { border-color: var(--ink); }
+  .charged-toggle input { accent-color: var(--green); cursor: pointer; width: 14px; height: 14px; }
+  .charged-toggle.is-charged { background: var(--green); color: white; border-color: var(--green); }
+
+  /* === STATUS PILL === */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 11px;
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid;
+    border-radius: 8px;
+    line-height: 1;
+    white-space: nowrap;
+    width: 100%;
+    justify-content: flex-start;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+    box-sizing: border-box;
+  }
+  .pill:hover { transform: translateY(-2px); box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+  .pill:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,0.15); }
+  .pill.cycling { animation: pillCycle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes pillCycle {
+    0% { transform: scale(1) rotate(0); }
+    40% { transform: scale(1.15) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  .pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .s-open { background: white; border-color: var(--ink); color: var(--ink); }
+  .s-in_flight { background: var(--orange); border-color: var(--orange); color: white; }
+  .s-shipped { background: var(--accent); border-color: var(--accent); color: white; }
+  .s-tested_pass { background: var(--green); border-color: var(--green); color: white; }
+  .s-tested_fail { background: var(--hot); border-color: var(--hot); color: white; }
+  .s-wont_do { background: var(--paper); border-color: var(--ink-4); color: var(--ink-4); text-decoration: line-through; }
+
+  /* === DELIVERED BADGE (invoiced + shipped) === */
+  .delivered-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Geist", sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--green);
+    color: white;
+    padding: 5px 10px 5px 8px;
+    border-radius: 999px;
+    box-shadow: 0 2px 0 #00461b;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  .delivered-badge .chk {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    color: var(--green);
+    font-weight: 900;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .item.is-delivered .item-title { color: var(--ink-2); }
+  .item.is-delivered .item-title::before { content: "✓  "; color: var(--green); font-weight: 900; }
+
+  /* === CHECKLIST ITEM (collapsible test plan) === */
+  .checklist-wrap {
+    margin-top: 14px;
+    padding: 16px 18px 18px;
+    background: linear-gradient(180deg, #fffbeb 0%, #fef9c3 100%);
+    border: 2px solid #facc15;
+    border-radius: 12px;
+    animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .checklist-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .checklist-toggle {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #713f12;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checklist-toggle .chev { transition: transform 0.2s; display: inline-block; }
+  .checklist-wrap.collapsed .chev { transform: rotate(-90deg); }
+  .checklist-wrap.collapsed .checklist-body { display: none; }
+  .checklist-progress {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #7c2d12;
+    background: white;
+    border: 1px solid #facc15;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .checklist-progress.done { background: var(--green); color: white; border-color: var(--green); }
+  .checklist-body { display: flex; flex-direction: column; gap: 2px; }
+  .checklist-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .checklist-row:hover { background: rgba(255,255,255,0.55); }
+  .checklist-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2.5px solid #713f12;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-top: 1px;
+  }
+  .checklist-row input[type="checkbox"]:hover { transform: scale(1.05); border-color: var(--green); }
+  .checklist-row input[type="checkbox"]:checked {
+    background: var(--green);
+    border-color: var(--green);
+    animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .checklist-row input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 15px; font-weight: 900; line-height: 1;
+  }
+  .checklist-row label {
+    flex: 1;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #451a03;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+  .checklist-row.done label {
+    text-decoration: line-through;
+    color: var(--ink-4);
+    opacity: 0.7;
+  }
+  .checklist-row.done { background: rgba(16, 136, 54, 0.07); }
+  .checklist-bar {
+    height: 6px;
+    background: rgba(113, 63, 18, 0.15);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .checklist-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #facc15 0%, var(--green) 100%);
+    border-radius: 999px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* === CATEGORY TAG === */
+  .cat {
+    display: inline-block;
+    font-family: "Geist", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+  .cat-feature { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
+  .cat-fix { background: #ffedd5; color: #7c2d12; border-color: #fdba74; }
+  .cat-compliance { background: #ffe4e6; color: #881337; border-color: #fda4af; }
+  .cat-data { background: #ccfbf1; color: #134e4a; border-color: #5eead4; }
+  .cat-content { background: #fef9c3; color: #713f12; border-color: #fde047; }
+
+  /* === NOTES === */
+  .notes-section {
+    margin-top: 18px;
+    margin-left: 0;
+    padding: 18px 20px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .note {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .note:last-of-type { border-bottom: 0; }
+  /* Big custom checkbox with pop animation */
+  .note .check-wrap { position: relative; display: inline-block; flex-shrink: 0; margin-top: 1px; }
+  .note input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--ink);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .note input[type="checkbox"]:hover { transform: scale(1.05); border-color: var(--green); }
+  .note input[type="checkbox"]:checked {
+    background: var(--green);
+    border-color: var(--green);
+    transform: scale(1);
+    animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes checkPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.3) rotate(-5deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  .note input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .note.resolved .note-text { opacity: 0.4; text-decoration: line-through; }
+  .note-text { flex: 1; color: var(--ink); font-weight: 500; }
+  .note-meta {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+  }
+  .note-add {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid var(--line);
+  }
+  .note-add-row { display: flex; gap: 10px; }
+  .note-add input {
+    flex: 1;
+    border: 2px solid var(--line);
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: inherit;
+    background: white;
+    color: var(--ink);
+    outline: none;
+    border-radius: 8px;
+    transition: border-color 0.15s;
+  }
+  .note-add input:focus { border-color: var(--deal-color, var(--accent)); }
+  .note-add input::placeholder { color: var(--ink-4); }
+  .note-add-btn {
+    background: var(--ink);
+    color: white;
+    border: 0;
+    padding: 0 20px;
+    font-family: "Geist", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s;
+  }
+  .note-add-btn:hover { background: var(--green); }
+  .note-add-btn:active { transform: scale(0.94); }
+
+  /* === MODAL === */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+    animation: fadein 0.15s ease-out;
+  }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: white;
+    border: 3px solid var(--ink);
+    border-radius: 14px;
+    padding: 28px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: pop 0.2s cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes pop { from { transform: scale(0.96) translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal h3 {
+    font-family: "Geist", sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    color: var(--ink);
+    letter-spacing: -0.025em;
+  }
+  .modal-sub {
+    font-family: "Geist", sans-serif;
+    font-size: 14px;
+    color: var(--ink-2);
+    font-weight: 500;
+    margin-bottom: 22px;
+  }
+  .modal label {
+    display: block;
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    margin: 14px 0 6px;
+    font-weight: 700;
+  }
+  .modal input, .modal select {
+    width: 100%;
+    border: 2px solid var(--line);
+    padding: 10px 12px;
+    font-family: "Geist", sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    background: white;
+    color: var(--ink);
+    outline: none;
+    border-radius: 6px;
+  }
+  .modal input:focus, .modal select:focus { border-color: var(--accent); }
+  .modal-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+  .modal-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+  .modal-actions button {
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-family: "Geist", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 2px solid var(--ink);
+    transition: all 0.15s;
+  }
+  .btn-secondary { background: white; color: var(--ink); }
+  .btn-secondary:hover { background: var(--paper); }
+  .btn-primary { background: var(--ink); color: white; }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+
+  /* === PROGRESS BARS === */
+  .progress-bar {
+    height: 10px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 999px;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: white;
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 12px rgba(255,255,255,0.5);
+  }
+  .progress-deal { display: block; }
+  .progress-version {
+    height: 6px;
+    background: var(--line);
+    margin-top: 6px;
+  }
+  .progress-version .progress-fill {
+    background: var(--deal-color, var(--green));
+    box-shadow: none;
+  }
+  .progress-pct {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    color: white;
+    margin-left: 8px;
+  }
+  .progress-pct-version {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-left: 8px;
+  }
+  .global-progress {
+    background: var(--paper);
+    border: 2px solid var(--line);
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+  }
+  .global-progress-hd { display: flex; justify-content: space-between; align-items: baseline; }
+  .global-progress-label { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .global-progress-pct { font-size: 24px; font-weight: 900; color: var(--green); letter-spacing: -0.02em; }
+  .global-progress .progress-bar { height: 14px; background: var(--line); margin-top: 10px; }
+  .global-progress .progress-fill { background: linear-gradient(90deg, var(--accent), var(--green)); box-shadow: 0 0 20px rgba(0,136,54,0.3); }
+
+  /* === EMPTY === */
+  .empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--ink-2);
+    font-weight: 500;
+    font-size: 15px;
+  }
+  .empty-mark {
+    font-family: "Geist", serif;
+    font-size: 56px;
+    font-weight: 900;
+    color: var(--line);
+    margin-bottom: 8px;
+  }
+
+  /* === USERS MODAL === */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: flex-start; justify-content: center;
+    padding: 60px 20px 40px;
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .modal-backdrop.visible { display: flex; }
+  .modal-card {
+    background: white;
+    border-radius: 16px;
+    max-width: 720px;
+    width: 100%;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h2 { font-size: 20px; font-weight: 800; }
+  .modal-close { background: transparent; border: 0; font-size: 22px; cursor: pointer; color: var(--ink-3); }
+  .modal-close:hover { color: var(--hot); }
+  .user-row {
+    display: grid;
+    grid-template-columns: 1fr 130px auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .user-row:last-child { border-bottom: 0; }
+  .user-name { font-weight: 700; font-size: 14px; }
+  .user-meta { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .user-cell select {
+    font-family: "Geist", sans-serif; font-size: 12px; padding: 5px 8px;
+    border: 1px solid var(--line); border-radius: 6px; background: white;
+  }
+  .user-cell-actions { display: flex; gap: 6px; }
+  .user-btn {
+    font-family: "Geist", sans-serif; font-size: 12px; font-weight: 600;
+    padding: 6px 10px; border: 1px solid var(--line); background: white; border-radius: 6px; cursor: pointer;
+  }
+  .user-btn:hover:not(:disabled) { border-color: var(--ink); }
+  .user-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .user-btn.danger:hover:not(:disabled) { border-color: var(--hot); color: var(--hot); }
+  .user-form {
+    margin-top: 22px; padding-top: 18px; border-top: 2px solid var(--ink);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .user-form h3 { grid-column: 1 / -1; font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  .user-form input, .user-form select {
+    font-family: "Geist", sans-serif; font-size: 13px; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 6px; background: white;
+  }
+  .user-form input:focus, .user-form select:focus { outline: 0; border-color: var(--ink); }
+  .user-form .form-submit {
+    grid-column: 1 / -1;
+    background: var(--ink); color: white; font-weight: 700; padding: 10px;
+    border: 0; border-radius: 6px; cursor: pointer; font-size: 13px;
+  }
+  .user-form .form-submit:hover { background: var(--accent); }
+
+  /* assignee chip on items */
+  .assignee-chip {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--line); color: var(--ink-2);
+  }
+  .assignee-chip.unassigned { color: var(--ink-4); font-style: italic; }
+  .assignee-select {
+    font-family: "Geist", sans-serif; font-size: 11px; padding: 2px 6px;
+    border: 1px solid var(--line); border-radius: 6px; background: white;
+  }
+
+  /* === MOBILE === */
+  @media (max-width: 720px) {
+    .wrap { padding: 24px 16px 80px; }
+    .masthead { flex-direction: column; align-items: flex-start; gap: 18px; padding-bottom: 20px; margin-bottom: 22px; }
+    h1.masthead-title { font-size: 48px; }
+    .brief { grid-template-columns: repeat(2, 1fr); }
+    .brief-num { font-size: 32px; }
+    .brief-label { font-size: 11px; }
+    .deal-name { font-size: 18px; }
+    .item-row { gap: 10px; }
+    .item-pillstack { width: 130px; }
+    .item-title { font-size: 15px; }
+    .notes-section { margin-left: 0; }
+    .item-actions { opacity: 1; }
+    .deal-mini { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div id="role-banner" style="position:sticky;top:0;z-index:100;background:#0a0a0a;color:#f0f0f0;padding:8px 28px;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;gap:12px;"><span>Loading…</span></div>
+  <div class="wrap">
+    <header class="masthead">
+      <div class="masthead-left">
+        <div class="eyebrow">BSA · Pipeline</div>
+        <h1 class="masthead-title">Developer <em>Tracker</em></h1>
+        <p class="masthead-sub">Click a status pill to cycle. Notes append, never delete. Press <kbd>n</kbd> to add an item.</p>
+      </div>
+      <button class="add-btn owner-only" onclick="openAdd()"><span class="plus">+</span> New item</button>
+    </header>
+
+    <div class="global-progress" id="global-progress"></div>
+
+    <div class="brief" id="brief"></div>
+
+    <div class="filterbar">
+      <div class="search-wrap" id="search-wrap">
+        <input id="search-input" type="text" placeholder="Search title, source, note..." oninput="onSearchInput(this.value)" />
+        <button class="search-clear" onclick="clearSearch()" title="Clear">×</button>
+      </div>
+      <div id="filter-rows" style="display:contents;"></div>
+      <button class="bulk-toggle" id="bulk-toggle" onclick="toggleBulkMode()">Bulk edit</button>
+      <button class="filter-reset" id="filter-reset" onclick="resetFilters()">Reset</button>
+    </div>
+
+    <div id="deals"></div>
+
+    <!-- Users management modal (admin only) -->
+    <div class="modal-backdrop" id="users-modal" onclick="if(event.target===this)closeUsersModal()">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2>Manage developers</h2>
+          <button class="modal-close" onclick="closeUsersModal()">×</button>
+        </div>
+        <div id="users-list"></div>
+        <form class="user-form" onsubmit="createUser(event)">
+          <h3>Add a developer</h3>
+          <input name="username" placeholder="Username (e.g. carlos)" required />
+          <input name="name" placeholder="Full name" required />
+          <input name="email" type="email" placeholder="Email" required />
+          <input name="password" placeholder="Initial password" required />
+          <select name="role">
+            <option value="developer" selected>developer</option>
+            <option value="admin">admin</option>
+          </select>
+          <button type="submit" class="form-submit">Add user</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bulk action bar (floating) -->
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="count" id="bulk-count">0</span>
+      <select id="bulk-version" onchange="bulkApplyVersion(this.value); this.value='';">
+        <option value="">Move to version…</option>
+        <option value="2.1">v2.1</option>
+        <option value="2.2">v2.2</option>
+        <option value="2.3">v2.3</option>
+        <option value="2.4">v2.4</option>
+        <option value="2.5">v2.5</option>
+        <option value="2.6">v2.6</option>
+      </select>
+      <select id="bulk-status" onchange="bulkApplyStatus(this.value); this.value='';">
+        <option value="">Set status…</option>
+        <option value="open">Not started</option>
+        <option value="in_flight">Building</option>
+        <option value="shipped">Shipped</option>
+        <option value="tested_pass">Passing</option>
+        <option value="tested_fail">Failing</option>
+        <option value="wont_do">Skipped</option>
+      </select>
+      <select id="bulk-cat" onchange="bulkApplyCategory(this.value); this.value='';">
+        <option value="">Set category…</option>
+        <option value="feature">Feature</option>
+        <option value="fix">Fix</option>
+        <option value="compliance">Compliance</option>
+        <option value="data">Data</option>
+        <option value="content">Content</option>
+        <option value="checklist">Checklist</option>
+      </select>
+      <button onclick="bulkToggleCharged(true)">Mark charged $</button>
+      <button onclick="bulkToggleCharged(false)" class="ghost">Uncharged</button>
+      <button onclick="bulkDelete()" class="danger owner-only">Delete</button>
+      <button onclick="clearSelection()" class="ghost">Clear</button>
+    </div>
+  </div>
+
+  <!-- Add modal -->
+  <div class="modal-bg" id="add-modal" style="display:none">
+    <div class="modal">
+      <h3>New <em>item</em></h3>
+      <div class="modal-sub">Add to a deal · pipeline</div>
+      <label>Title</label>
+      <input id="m-title" placeholder="What needs to happen?" />
+      <div class="modal-grid">
+        <div>
+          <label>Deal</label>
+          <input id="m-project" list="project-list" placeholder="mitchs-map" />
+          <datalist id="project-list"></datalist>
+        </div>
+        <div>
+          <label>Version</label>
+          <input id="m-version" value="2.4" />
+        </div>
+      </div>
+      <div class="modal-grid-2">
+        <div>
+          <label>Category</label>
+          <select id="m-category">
+            <option value="feature">Feature</option>
+            <option value="fix">Fix</option>
+            <option value="compliance">Compliance</option>
+            <option value="data">Data</option>
+            <option value="content">Content</option>
+          </select>
+        </div>
+        <div>
+          <label>Source</label>
+          <select id="m-source">
+            <option value="brian-email">Email</option>
+            <option value="brian-sms">SMS</option>
+            <option value="walkthrough">Walkthrough</option>
+            <option value="rodo-self-test">Self-test</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeAdd()">Cancel</button>
+        <button class="btn-primary" onclick="createItem()">Add item</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// =====  AUTH  =====
+const AUTH_TOKEN = localStorage.getItem("authToken") || localStorage.getItem("token");
+if (!AUTH_TOKEN) {
+  window.location.href = "/admin/login?next=/dev-tracker.html";
+}
+let CURRENT_USER = null;
+async function loadCurrentUser() {
+  try {
+    const r = await fetch("/api/auth/me", { headers: { Authorization: "Bearer " + AUTH_TOKEN } });
+    if (!r.ok) { localStorage.removeItem("authToken"); localStorage.removeItem("token"); window.location.href = "/admin/login?next=/dev-tracker.html"; return; }
+    const data = await r.json();
+    CURRENT_USER = data.user || data;
+    document.documentElement.setAttribute("data-role", CURRENT_USER.role || "developer");
+    const banner = document.getElementById("role-banner");
+    if (banner) {
+      const role = CURRENT_USER.role || "developer";
+      const roleLabel = role === "owner" ? "OWNER" : role === "developer" ? "DEVELOPER" : role.toUpperCase();
+      const isAdmin = role === "owner" || role === "admin";
+      banner.innerHTML = `<span>${CURRENT_USER.name || CURRENT_USER.username || CURRENT_USER.email} <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span><span style="display:flex;gap:14px;align-items:center;">${isAdmin ? `<button onclick="openUsersModal()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Manage developers</button>` : ""}<button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button></span>`;
+      if (isAdmin) loadUsers();
+    }
+  } catch (e) {
+    console.error("auth check failed", e);
+  }
+}
+function devLogout() {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.location.href = "/admin/login";
+}
+
+// === Users (admin only) ===
+let USERS = [];
+async function loadUsers() {
+  try {
+    const r = await apiFetch("/api/dev-tracker/users");
+    if (!r.ok) return;
+    USERS = await r.json();
+    if (typeof render === "function") render();
+  } catch (e) { console.warn("loadUsers failed", e); }
+}
+function devUsernames() {
+  return USERS.filter(u => u.role === "developer").map(u => u.username);
+}
+function openUsersModal() {
+  const m = document.getElementById("users-modal");
+  m.classList.add("visible");
+  renderUsersList();
+}
+function closeUsersModal() {
+  document.getElementById("users-modal").classList.remove("visible");
+}
+function renderUsersList() {
+  const list = document.getElementById("users-list");
+  list.innerHTML = USERS.map(u => `
+    <div class="user-row">
+      <div class="user-cell user-cell-main">
+        <div class="user-name">${escapeHtml(u.name)}</div>
+        <div class="user-meta">${escapeHtml(u.username)} · ${escapeHtml(u.email)}</div>
+      </div>
+      <div class="user-cell">
+        <select onchange="patchUser(${u.id}, { role: this.value })" ${u.id === CURRENT_USER.id ? "disabled" : ""}>
+          <option value="developer" ${u.role==='developer'?'selected':''}>developer</option>
+          <option value="admin" ${u.role==='admin'?'selected':''}>admin</option>
+          <option value="owner" ${u.role==='owner'?'selected':''}>owner</option>
+        </select>
+      </div>
+      <div class="user-cell user-cell-actions">
+        <button class="user-btn" onclick="resetUserPassword(${u.id}, '${escapeHtml(u.username)}')">Reset password</button>
+        <button class="user-btn danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')" ${u.id === CURRENT_USER.id ? "disabled" : ""}>Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+async function createUser(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  const body = {
+    username: f.username.value.trim(),
+    name: f.name.value.trim(),
+    email: f.email.value.trim(),
+    password: f.password.value,
+    role: f.role.value,
+  };
+  if (!body.username || !body.name || !body.email || !body.password) return alert("All fields required");
+  try {
+    const r = await apiFetch("/api/dev-tracker/users", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "create failed")); }
+    f.reset();
+    await loadUsers();
+    renderUsersList();
+    alert("Created. Share these credentials with the developer:\n\nUsername: " + body.username + "\nPassword: " + body.password + "\nLogin URL: " + window.location.origin + "/admin/login");
+  } catch (e) { alert("Error: " + e.message); }
+}
+async function patchUser(id, body) {
+  try {
+    const r = await apiFetch("/api/dev-tracker/users/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "update failed")); }
+    await loadUsers();
+    renderUsersList();
+  } catch (e) { alert("Error: " + e.message); }
+}
+async function resetUserPassword(id, username) {
+  const pwd = prompt("New password for " + username + ":");
+  if (!pwd) return;
+  await patchUser(id, { password: pwd });
+  alert("Password reset for " + username + ". New password: " + pwd);
+}
+async function deleteUser(id, username) {
+  if (!confirm("Delete user '" + username + "'? Their items will be unassigned. Cannot undo.")) return;
+  try {
+    const r = await apiFetch("/api/dev-tracker/users/" + id, { method: "DELETE" });
+    if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "delete failed")); }
+    await loadUsers();
+    renderUsersList();
+  } catch (e) { alert("Error: " + e.message); }
+}
+// fetch wrapper that auto-adds Authorization header and handles 401
+async function apiFetch(url, opts = {}) {
+  const headers = Object.assign({}, opts.headers || {}, { Authorization: "Bearer " + AUTH_TOKEN });
+  const r = await fetch(url, Object.assign({}, opts, { headers }));
+  if (r.status === 401) {
+    localStorage.removeItem("authToken"); localStorage.removeItem("token");
+    window.location.href = "/admin/login?next=/dev-tracker.html";
+    throw new Error("unauthorized");
+  }
+  return r;
+}
+
+const STATUS_FLOW = { open:"in_flight", in_flight:"shipped", shipped:"tested_pass", tested_pass:"tested_fail", tested_fail:"open", wont_do:"open" };
+const STATUS_LABEL = { open:"Not started", in_flight:"Building", shipped:"Shipped", tested_pass:"Passing", tested_fail:"Failing", wont_do:"Skipped" };
+const COMPLETED_STATUSES = new Set(["tested_pass", "wont_do"]);
+
+// Deal color palette — vibrant but not gaudy. Hashed by deal name.
+const DEAL_PALETTE = [
+  { c: "#0040c8", s: "#001f5c" }, // electric blue
+  { c: "#008836", s: "#00461b" }, // forest green
+  { c: "#d96a00", s: "#7a3c00" }, // burnt orange
+  { c: "#7c3aed", s: "#3b1c75" }, // royal violet
+  { c: "#0891b2", s: "#063f51" }, // teal
+  { c: "#be123c", s: "#5e081e" }, // crimson
+  { c: "#0a0a0a", s: "#000000" }, // ink
+  { c: "#a16207", s: "#4d2f03" }, // amber
+];
+function dealColor(name) {
+  let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return DEAL_PALETTE[h % DEAL_PALETTE.length];
+}
+
+let projects = {};
+let collapsed = JSON.parse(localStorage.getItem("qa-collapsed") || "{}");
+let expandedNotes = new Set();
+let expandedContext = new Set();
+let pendingFlash = new Set(); // item IDs to flash after next render
+
+// Filter state (persisted)
+const DEFAULT_FILTERS = { status: "all", version: "all", deal: "all", category: "all", search: "" };
+let filters = { ...DEFAULT_FILTERS, ...(JSON.parse(localStorage.getItem("qa-filters") || "{}")) };
+let bulkMode = false;
+let selected = new Set();
+function saveFilters() { localStorage.setItem("qa-filters", JSON.stringify(filters)); }
+
+async function load() {
+  const r = await apiFetch("/api/dev-tracker/items");
+  projects = await r.json();
+  document.getElementById("project-list").innerHTML = Object.keys(projects).map(k => `<option value="${k}">`).join("");
+  render();
+}
+async function patchItem(id, body) {
+  pendingFlash.add(id);
+  await apiFetch("/api/dev-tracker/items/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+  load();
+}
+async function deleteItem(id) {
+  if (!confirm("Delete this item?")) return;
+  // Fade out the element before refetch
+  const el = document.querySelector(`[data-item-id="${id}"]`);
+  if (el) {
+    el.style.transition = "opacity 0.2s, transform 0.2s";
+    el.style.opacity = "0";
+    el.style.transform = "translateX(-20px)";
+  }
+  await apiFetch("/api/dev-tracker/items/" + id, { method: "DELETE" });
+  setTimeout(load, 180);
+}
+async function addNote(itemId, text) {
+  if (!text.trim()) return;
+  pendingFlash.add(itemId);
+  await apiFetch("/api/dev-tracker/items/" + itemId + "/notes", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ text }) });
+  load();
+}
+async function toggleNoteResolved(itemId, noteId, resolved) {
+  pendingFlash.add(itemId);
+  await apiFetch("/api/dev-tracker/items/" + itemId + "/notes/" + noteId, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ resolved, resolved_by: "rodo" }) });
+  load();
+}
+function cycleStatus(id, current, btn) {
+  if (btn) { btn.classList.add("cycling"); setTimeout(() => btn.classList.remove("cycling"), 400); }
+  patchItem(id, { status: STATUS_FLOW[current] });
+}
+function toggleDeal(name) {
+  collapsed[name] = !collapsed[name];
+  localStorage.setItem("qa-collapsed", JSON.stringify(collapsed));
+  render();
+}
+function toggleNotes(itemId) {
+  if (expandedNotes.has(itemId)) expandedNotes.delete(itemId); else expandedNotes.add(itemId);
+  render();
+}
+function toggleContext(itemId) {
+  if (expandedContext.has(itemId)) expandedContext.delete(itemId); else expandedContext.add(itemId);
+  render();
+}
+function refTypeIcon(t) {
+  if (!t) return "📎";
+  if (t === "imessage") return "💬";
+  if (t === "email") return "✉️";
+  if (t === "meeting") return "🎙️";
+  if (t === "internal-qa") return "🔧";
+  return "📎";
+}
+function setFilter(key, value) {
+  filters[key] = value;
+  saveFilters();
+  render();
+}
+function resetFilters() {
+  filters = { ...DEFAULT_FILTERS };
+  saveFilters();
+  const si = document.getElementById("search-input");
+  if (si) si.value = "";
+  const sw = document.getElementById("search-wrap");
+  if (sw) sw.classList.remove("has-value");
+  render();
+}
+function onSearchInput(v) {
+  filters.search = v;
+  saveFilters();
+  document.getElementById("search-wrap").classList.toggle("has-value", !!v);
+  render();
+}
+function clearSearch() {
+  document.getElementById("search-input").value = "";
+  onSearchInput("");
+}
+
+// === Bulk mode ===
+function toggleBulkMode() {
+  bulkMode = !bulkMode;
+  if (!bulkMode) selected.clear();
+  document.getElementById("bulk-toggle").classList.toggle("active", bulkMode);
+  render();
+}
+function toggleSelected(id) {
+  if (selected.has(id)) selected.delete(id); else selected.add(id);
+  updateBulkBar();
+}
+function clearSelection() { selected.clear(); updateBulkBar(); render(); }
+function updateBulkBar() {
+  const bar = document.getElementById("bulk-bar");
+  const count = document.getElementById("bulk-count");
+  if (selected.size > 0) {
+    bar.classList.add("visible");
+    count.textContent = selected.size + " selected";
+  } else {
+    bar.classList.remove("visible");
+  }
+}
+async function bulkPatch(body) {
+  const ids = [...selected];
+  await Promise.all(ids.map(id => apiFetch("/api/dev-tracker/items/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) })));
+  ids.forEach(id => pendingFlash.add(id));
+  load();
+}
+async function bulkApplyVersion(v) { if (!v || selected.size===0) return; await bulkPatch({ version: v }); }
+async function bulkApplyStatus(s) { if (!s || selected.size===0) return; await bulkPatch({ status: s }); }
+async function bulkApplyCategory(c) { if (!c || selected.size===0) return; await bulkPatch({ category: c }); }
+async function bulkToggleCharged(val) { if (selected.size===0) return; await bulkPatch({ charged: val }); }
+async function bulkDelete() {
+  if (selected.size===0) return;
+  if (!confirm(`Delete ${selected.size} item(s)? Cannot undo.`)) return;
+  const ids = [...selected];
+  await Promise.all(ids.map(id => apiFetch("/api/dev-tracker/items/" + id, { method: "DELETE" })));
+  selected.clear();
+  load();
+}
+
+// === Reorder within version group ===
+async function reorderItem(id, direction) {
+  const it = findItem(id);
+  if (!it) return;
+  // Get all items in same project + version, sorted by current order
+  const siblings = (projects[it.project] || [])
+    .filter(x => x.version === it.version)
+    .sort((a,b) => (a.sort_order||0) - (b.sort_order||0) || new Date(a.created_at) - new Date(b.created_at));
+  const idx = siblings.findIndex(x => x.id === id);
+  const newIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (newIdx < 0 || newIdx >= siblings.length) return;
+  const swap = siblings[newIdx];
+  // Swap sort_order values
+  const aOrder = it.sort_order ?? idx;
+  const bOrder = swap.sort_order ?? newIdx;
+  pendingFlash.add(it.id);
+  pendingFlash.add(swap.id);
+  await Promise.all([
+    apiFetch("/api/dev-tracker/items/" + it.id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ sort_order: bOrder }) }),
+    apiFetch("/api/dev-tracker/items/" + swap.id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ sort_order: aOrder }) }),
+  ]);
+  load();
+}
+
+function calcStats(items) {
+  const s = { total: items.length, open: 0, in_flight: 0, shipped: 0, tested_pass: 0, tested_fail: 0, wont_do: 0 };
+  for (const i of items) if (i.status in s) s[i.status]++;
+  s.completed = s.tested_pass + s.wont_do;
+  s.pct = s.total ? Math.round((s.completed / s.total) * 100) : 0;
+  return s;
+}
+
+function render() {
+  const all = Object.values(projects).flat();
+  const g = calcStats(all);
+
+  // Global progress bar
+  document.getElementById("global-progress").innerHTML = `
+    <div class="global-progress-hd">
+      <span class="global-progress-label">Overall progress · ${g.completed}/${g.total} done</span>
+      <span class="global-progress-pct">${g.pct}%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width: ${g.pct}%"></div></div>
+  `;
+
+  // Brief stats — clickable as status filters
+  const deliveredCount = all.filter(i => i.status==="shipped" && i.charged).length;
+  const skippedCount = all.filter(i => i.status==="wont_do").length;
+  const briefCells = [
+    ["b-total","total",g.total,true,"all"],
+    ["b-open","not started",g.open,g.open>0,"open"],
+    ["b-flight","building",g.in_flight,g.in_flight>0,"in_flight"],
+    ["b-shipped","shipped",g.shipped,g.shipped>0,"shipped"],
+    ["b-delivered","delivered",deliveredCount,deliveredCount>0,"delivered"],
+    ["b-pass","passing",g.tested_pass,g.tested_pass>0,"tested_pass"],
+    ["b-fail","failing",g.tested_fail,g.tested_fail>0,"tested_fail"],
+    ["b-skipped","skipped",g.wont_do,skippedCount>0,"wont_do"],
+  ];
+  document.getElementById("brief").innerHTML = briefCells.map(([cls,label,n,hasValue,statusVal]) => `
+    <div class="brief-cell ${cls} ${hasValue?'has-value':'zero'} ${filters.status===statusVal?'is-active':''}" onclick="setFilter('status','${statusVal}')" title="Filter: ${label}">
+      <div class="brief-num">${n}</div>
+      <div class="brief-label">${label}</div>
+    </div>
+  `).join("");
+
+  // Build filter rows with dynamic counts
+  const allVersions = [...new Set(all.map(i => i.version))].sort((a,b) => b.localeCompare(a, undefined, {numeric: true}));
+  const allCategories = [...new Set(all.map(i => i.category || "feature"))].sort();
+  const allDeals = Object.keys(projects).sort();
+  const countBy = (pred) => all.filter(pred).length;
+
+  const versionOpts = [["all", "All versions", all.length]].concat(
+    allVersions.map(v => [v, "v"+v, countBy(i => i.version===v)])
+  );
+  const catOpts = [["all", "All categories", all.length]].concat(
+    allCategories.map(c => [c, c.charAt(0).toUpperCase()+c.slice(1), countBy(i => (i.category||"feature")===c)])
+  );
+  const dealOpts = [["all", "All deals", all.length]].concat(
+    allDeals.map(d => [d, d, countBy(i => i.project===d)])
+  );
+
+  const renderSelect = (key, opts) => {
+    const isActive = filters[key] !== "all";
+    return `<select class="filter-select ${isActive?'is-active':''}" onchange="setFilter('${key}', this.value)">
+      ${opts.map(([val, lbl, n]) => `<option value="${val}" ${filters[key]===val?'selected':''}>${lbl} (${n})</option>`).join("")}
+    </select>`;
+  };
+
+  document.getElementById("filter-rows").innerHTML = [
+    renderSelect("version", versionOpts),
+    allDeals.length > 1 ? renderSelect("deal", dealOpts) : "",
+    allCategories.length > 1 ? renderSelect("category", catOpts) : "",
+  ].filter(Boolean).join("");
+
+  // Toggle Reset visibility when any filter is active
+  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "";
+  document.getElementById("filter-reset").classList.toggle("visible", anyActive);
+
+  // Apply filters
+  const q = (filters.search || "").trim().toLowerCase();
+  const matchesFilters = (it) => {
+    if (filters.deal !== "all" && it.project !== filters.deal) return false;
+    if (filters.version !== "all" && it.version !== filters.version) return false;
+    if (filters.category !== "all" && (it.category || "feature") !== filters.category) return false;
+    if (filters.status === "delivered") {
+      if (!(it.status === "shipped" && it.charged)) return false;
+    } else if (filters.status !== "all" && it.status !== filters.status) return false;
+    if (q) {
+      const hay = [it.title, it.source, it.commit_hash, ...(it.notes||[]).map(n=>n.text)].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  };
+
+  // Deals — sort by activity
+  const dealNames = Object.keys(projects).sort((a,b) => {
+    const sa = calcStats(projects[a]), sb = calcStats(projects[b]);
+    return (sb.open + sb.in_flight) - (sa.open + sa.in_flight);
+  });
+
+  const filteredDeals = dealNames.map(name => {
+    const items = projects[name].filter(matchesFilters);
+    return [name, items];
+  }).filter(([_, items]) => items.length > 0);
+
+  // Update bulk bar
+  updateBulkBar();
+
+  document.getElementById("deals").innerHTML = filteredDeals.length === 0
+    ? `<div class="empty"><div class="empty-mark">∅</div>No items match this filter.</div>`
+    : filteredDeals.map(([name, items]) => renderDeal(name, items)).join("");
+}
+
+function renderDeal(name, items) {
+  const allItems = projects[name];
+  const s = calcStats(allItems);
+  const isCollapsed = collapsed[name];
+  const dealLabel = name.split("-").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+  const color = dealColor(name);
+  const styleVars = `--deal-color: ${color.c}; --deal-shadow: ${color.s};`;
+
+  const byVersion = new Map();
+  for (const it of items) {
+    const arr = byVersion.get(it.version) || []; arr.push(it); byVersion.set(it.version, arr);
+  }
+  const versions = [...byVersion.keys()].sort((a,b) => b.localeCompare(a, undefined, { numeric: true }));
+
+  return `
+  <section class="deal ${isCollapsed ? 'collapsed' : ''}" style="${styleVars}">
+    <div class="deal-hd" onclick="toggleDeal('${name}')">
+      <span class="deal-chev">▾</span>
+      <div style="flex:1; min-width:0;">
+        <h2 class="deal-name">${dealLabel}</h2>
+        <div class="progress-bar progress-deal"><div class="progress-fill" style="width: ${s.pct}%"></div></div>
+      </div>
+      <div class="deal-mini">
+        <span><b>${s.completed}</b>/${s.total}</span>
+        <span class="progress-pct">${s.pct}%</span>
+      </div>
+    </div>
+    <div class="deal-body">
+      ${versions.map(v => {
+        const vs = calcStats(byVersion.get(v));
+        return `
+        <div class="vgroup">
+          <div class="vgroup-hd">
+            <span class="vgroup-tag">v${v}</span>
+            <span class="vgroup-name">Release ${v}</span>
+            <span class="vgroup-count">${vs.completed}/${vs.total} done</span>
+            <span class="progress-pct-version">${vs.pct}%</span>
+          </div>
+          <div class="progress-bar progress-version"><div class="progress-fill" style="width: ${vs.pct}%"></div></div>
+          <div style="margin-top:14px;">
+            ${byVersion.get(v).map(renderItem).join("")}
+          </div>
+        </div>
+        `;
+      }).join("")}
+    </div>
+  </section>
+  `;
+}
+
+function parseChecklist(it) {
+  if (it.category !== 'checklist' || !it.description) return null;
+  try {
+    const parsed = JSON.parse(it.description);
+    if (parsed && parsed.kind === 'checklist' && Array.isArray(parsed.items)) return parsed;
+  } catch {}
+  return null;
+}
+
+async function toggleChecklistItem(itemId, stepId) {
+  const it = findItem(itemId);
+  const cl = parseChecklist(it);
+  if (!cl) return;
+  const step = cl.items.find(s => s.id === stepId);
+  if (!step) return;
+  step.done = !step.done;
+  // Optimistic local update
+  it.description = JSON.stringify(cl);
+  render();
+  pendingFlash.add(itemId);
+  await apiFetch("/api/dev-tracker/items/" + itemId, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ description: it.description }) });
+  load();
+}
+
+function findItem(id) {
+  for (const arr of Object.values(projects)) {
+    for (const it of arr) if (it.id === id) return it;
+  }
+  return null;
+}
+
+function toggleChecklistCollapsed(itemId) {
+  if (collapsed[`cl:${itemId}`]) delete collapsed[`cl:${itemId}`];
+  else collapsed[`cl:${itemId}`] = true;
+  localStorage.setItem("qa-collapsed", JSON.stringify(collapsed));
+  render();
+}
+
+function renderItem(it) {
+  const notes = it.notes || [];
+  const unresolved = notes.filter(n => !n.resolved_at).length;
+  const showNotes = expandedNotes.has(it.id);
+  const showContext = expandedContext.has(it.id);
+  const hasContext = !!(it.source_context && it.source_context.trim());
+  const refType = (it.source_ref && it.source_ref.type) || null;
+  const cyclesTo = STATUS_FLOW[it.status];
+  const flashClass = pendingFlash.has(it.id) ? 'flash' : '';
+  pendingFlash.delete(it.id);
+  const isDelivered = it.status === 'shipped' && it.charged;
+  const checklist = parseChecklist(it);
+  const isSelected = selected.has(it.id);
+  return `
+  <div class="item ${flashClass} ${isDelivered ? 'is-delivered' : ''} ${isSelected ? 'is-selected' : ''}" data-item-id="${it.id}">
+    <div class="item-row">
+      ${bulkMode ? `<input type="checkbox" class="bulk-check" ${isSelected?'checked':''} onchange="toggleSelected('${it.id}')" />` : ""}
+      <div class="reorder-col">
+        <button class="reorder-btn" onclick="reorderItem('${it.id}','up')" title="Move up">▲</button>
+        <button class="reorder-btn" onclick="reorderItem('${it.id}','down')" title="Move down">▼</button>
+      </div>
+      <div class="item-pillstack">
+        <button class="pill s-${it.status}" onclick="cycleStatus('${it.id}', '${it.status}', this)" title="Click → ${STATUS_LABEL[cyclesTo]}">
+          <span class="dot"></span>${STATUS_LABEL[it.status]}
+        </button>
+        <span class="cat cat-${it.category}">${it.category}</span>
+      </div>
+      <div class="item-main">
+        <div class="item-title" contenteditable="true" data-original="${escapeAttr(it.title)}" onblur="if(this.textContent.trim() && this.textContent.trim() !== this.dataset.original) patchItem('${it.id}', { title: this.textContent.trim() })">${escapeHtml(it.title)}</div>
+        <div class="item-meta">
+          ${isDelivered ? `<span class="delivered-badge"><span class="chk">✓</span>Delivered</span>` : ""}
+          ${it.source ? `<span class="meta-item source-link ${hasContext ? 'has-context' : 'no-context'} ${showContext ? 'is-open' : ''}" onclick="${hasContext ? `toggleContext('${it.id}')` : ''}" title="${hasContext ? 'Click to view source context' : 'No context captured'}">${refTypeIcon(refType)} ${escapeHtml(it.source)}${hasContext ? (showContext ? ' ▾' : ' ▸') : ''}</span>` : ""}
+          ${it.source_date ? `<span class="meta-item">${it.source_date.slice(0,10)}</span>` : ""}
+          ${it.commit_hash ? `<span class="meta-item commit">${it.commit_hash.slice(0,7)}</span>` : ""}
+          ${it.tested_at ? `<span class="meta-item">tested ${new Date(it.tested_at).toLocaleDateString()}</span>` : ""}
+          ${(CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin"))
+            ? `<select class="assignee-select" onchange="patchItem('${it.id}', { assignee: this.value || null })" title="Assign to developer">
+                 <option value="">— unassigned —</option>
+                 ${devUsernames().map(u => `<option value="${u}" ${it.assignee===u?'selected':''}>@${u}</option>`).join("")}
+               </select>`
+            : (it.assignee ? `<span class="assignee-chip">@${escapeHtml(it.assignee)}</span>` : `<span class="assignee-chip unassigned">unassigned</span>`)}
+          <span class="meta-item notes-link ${unresolved > 0 ? 'has-unresolved' : ''}" onclick="toggleNotes('${it.id}')">
+            ${notes.length === 0 ? "+ Add note" : (unresolved > 0 ? `${unresolved} unresolved · ${notes.length} total` : `${notes.length} note${notes.length===1?'':'s'}`)}
+          </span>
+        </div>
+      </div>
+      <div class="actions-always">
+        <label class="charged-toggle ${it.charged ? 'is-charged' : ''}" title="Charged on invoice">
+          <input type="checkbox" ${it.charged?"checked":""} onchange="patchItem('${it.id}', { charged: this.checked })" />$
+        </label>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn danger owner-only" onclick="deleteItem('${it.id}')" title="Delete">×</button>
+      </div>
+    </div>
+    ${checklist ? renderChecklist(it, checklist) : ""}
+    ${showContext && hasContext ? `
+      <div class="context-panel">
+        <div class="context-head">
+          <span class="context-head-label">${refTypeIcon(refType)} Source Context${refType ? ' · ' + refType.replace('-', ' ') : ''}</span>
+          ${it.source_ref ? `<span class="context-head-ref">${escapeHtml(JSON.stringify(it.source_ref))}</span>` : ""}
+        </div>
+        <pre class="context-body">${escapeHtml(it.source_context)}</pre>
+      </div>
+    ` : ""}
+    ${showNotes ? `
+      <div class="notes-section">
+        ${notes.length === 0 ? '<div style="color:var(--ink-4); font-size:14px; font-style:italic;">No notes yet — add the first one below.</div>' : ''}
+        ${notes.map(n => `
+          <div class="note ${n.resolved_at ? 'resolved' : ''}">
+            <span class="check-wrap"><input type="checkbox" ${n.resolved_at ? 'checked' : ''} onchange="toggleNoteResolved('${it.id}', '${n.id}', this.checked)" /></span>
+            <div class="note-text">
+              ${escapeHtml(n.text)}
+              <div class="note-meta">${escapeHtml(n.author)} · ${new Date(n.created_at).toLocaleString()}${n.resolved_at ? ' · resolved by ' + escapeHtml(n.resolved_by || '') + ' ' + new Date(n.resolved_at).toLocaleDateString() : ''}</div>
+            </div>
+          </div>
+        `).join("")}
+        <div class="note-add">
+          <div class="note-add-row">
+            <input id="note-${it.id}" placeholder="Type a note and press Enter…" onkeydown="if(event.key==='Enter') { const t=this.value; this.value=''; addNote('${it.id}', t); }" />
+            <button class="note-add-btn" onclick="const i=document.getElementById('note-${it.id}'); const t=i.value; i.value=''; addNote('${it.id}', t);">Add</button>
+          </div>
+        </div>
+      </div>
+    ` : ""}
+  </div>
+  `;
+}
+
+function renderChecklist(it, cl) {
+  const key = `cl:${it.id}`;
+  const isCollapsed = !!collapsed[key];
+  const done = cl.items.filter(s => s.done).length;
+  const total = cl.items.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const allDone = done === total && total > 0;
+  return `
+    <div class="checklist-wrap ${isCollapsed ? 'collapsed' : ''}">
+      <div class="checklist-hdr" onclick="toggleChecklistCollapsed('${it.id}')">
+        <span class="checklist-toggle"><span class="chev">▾</span>Testing checklist · ${done}/${total} done</span>
+        <span class="checklist-progress ${allDone ? 'done' : ''}">${pct}%</span>
+      </div>
+      <div class="checklist-bar"><div class="checklist-bar-fill" style="width:${pct}%"></div></div>
+      <div class="checklist-body">
+        ${cl.items.map(step => `
+          <div class="checklist-row ${step.done ? 'done' : ''}">
+            <input type="checkbox" id="chk-${it.id}-${step.id}" ${step.done ? 'checked' : ''} onchange="toggleChecklistItem('${it.id}', '${step.id}')" />
+            <label for="chk-${it.id}-${step.id}">${escapeHtml(step.label)}</label>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]); }
+function escapeAttr(s) { return escapeHtml(s).replace(/`/g, "&#96;"); }
+
+function openAdd() { document.getElementById("add-modal").style.display = "flex"; setTimeout(() => document.getElementById("m-title").focus(), 50); }
+function closeAdd() { document.getElementById("add-modal").style.display = "none"; document.getElementById("m-title").value = ""; }
+async function createItem() {
+  const body = {
+    project: (document.getElementById("m-project").value || "mitchs-map").trim().toLowerCase().replace(/\s+/g, '-'),
+    title: document.getElementById("m-title").value.trim(),
+    version: document.getElementById("m-version").value.trim() || "2.4",
+    category: document.getElementById("m-category").value,
+    source: document.getElementById("m-source").value,
+    source_date: new Date().toISOString().slice(0,10),
+  };
+  if (!body.title) return;
+  const r = await apiFetch("/api/dev-tracker/items", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+  const created = await r.json();
+  if (created && created.id) pendingFlash.add(created.id);
+  closeAdd();
+  load();
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeAdd();
+  if (e.key === "n" && !e.target.matches("input,textarea,[contenteditable]") && document.getElementById("add-modal").style.display === "none") {
+    e.preventDefault(); openAdd();
+  }
+});
+
+loadCurrentUser().then(() => { load(); setInterval(load, 30000); });
+</script>
+</body>
+</html>

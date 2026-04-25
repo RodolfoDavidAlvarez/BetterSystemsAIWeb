@@ -27,6 +27,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Read optional ?next= redirect target (allow only same-origin paths starting with /)
+  const nextTarget = (() => {
+    if (typeof window === "undefined") return null;
+    const raw = new URLSearchParams(window.location.search).get("next");
+    return raw && raw.startsWith("/") ? raw : null;
+  })();
+
   // Check if user is already logged in
   useEffect(() => {
     const token = localStorage.getItem("authToken") || localStorage.getItem("token");
@@ -34,20 +41,22 @@ export default function LoginPage() {
 
     if (token && user) {
       try {
-        // Parse the user data to check role
         const userData = JSON.parse(user);
-        if (userData && userData.role === "admin") {
-          // User is already logged in, redirect to dashboard
-          navigate("/admin/dashboard");
+        const validRole = userData && ["admin", "owner", "developer"].includes(userData.role);
+        if (validRole) {
+          if (nextTarget) {
+            window.location.href = nextTarget;
+          } else {
+            navigate("/admin/dashboard");
+          }
         }
       } catch (error) {
-        // If there's an error, clear the invalid data
         localStorage.removeItem("authToken");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
     }
-  }, [navigate]);
+  }, [navigate, nextTarget]);
 
   // Initialize form
   const form = useForm<LoginFormValues>({
@@ -179,8 +188,13 @@ export default function LoginPage() {
 
       // Wait a short time to ensure toasts are visible
       setTimeout(() => {
-        // Redirect to admin dashboard
-        navigate("/admin/dashboard");
+        if (nextTarget) {
+          window.location.href = nextTarget;
+        } else if (data.user.role === "developer") {
+          window.location.href = "/dev-tracker.html";
+        } else {
+          navigate("/admin/dashboard");
+        }
       }, 500);
     } catch (error) {
       let errorMessage = "Something went wrong during login";

@@ -149,6 +149,16 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
+// Check if user has one of the given roles
+export const hasRole = (roles: string[]) => (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as AuthenticatedRequest).user;
+  if (!user) return res.status(401).json({ success: false, message: 'Authentication required' });
+  if (!roles.includes(user.role)) {
+    return res.status(403).json({ success: false, message: 'Insufficient permissions', role: user.role });
+  }
+  next();
+};
+
 // Check if user is admin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   try {

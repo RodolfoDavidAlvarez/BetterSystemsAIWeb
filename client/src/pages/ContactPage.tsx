@@ -186,20 +186,6 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-6">
-            <Card className="bg-white shadow-lg overflow-hidden">
-              <CardContent className="p-6 flex items-center gap-4">
-                <img
-                  src="/rodo-portrait.png"
-                  alt="Rodo Alvarez, Founder of Better Systems AI"
-                  className="w-24 h-24 rounded-full object-cover ring-2 ring-primary/10 shrink-0"
-                />
-                <div>
-                  <div className="text-lg font-semibold">Rodo Alvarez</div>
-                  <div className="text-sm text-muted-foreground">Founder, Better Systems AI</div>
-                  <p className="text-sm mt-2">You're talking to me directly. No bots, no SDRs.</p>
-                </div>
-              </CardContent>
-            </Card>
             <div>
               <h3 className="text-xl font-semibold mb-4">Get in touch</h3>
               <Card className="bg-white shadow-lg">

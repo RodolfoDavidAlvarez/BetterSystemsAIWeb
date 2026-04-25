@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import ContactDialog from "@/components/ContactDialog";
 
 // Simplified navigation items
 const navItems = [
@@ -44,9 +45,9 @@ export default function Navigation() {
                 {item.label}
               </Link>
             ))}
-            <Button asChild variant="default">
-              <Link href="/contact">Contact Us</Link>
-            </Button>
+            <ContactDialog>
+              <Button variant="default">Contact Us</Button>
+            </ContactDialog>
           </div>
 
           {/* Mobile Menu Button */}
@@ -104,14 +105,10 @@ export default function Navigation() {
                 {item.label}
               </Link>
             ))}
-            <div className="px-3 py-2">
-              <Button
-                asChild
-                className="w-full"
-                onClick={() => setIsOpen(false)}
-              >
-                <Link href="/contact">Contact Us</Link>
-              </Button>
+            <div className="px-3 py-2" onClick={() => setIsOpen(false)}>
+              <ContactDialog>
+                <Button className="w-full">Contact Us</Button>
+              </ContactDialog>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import ContactDialog from "@/components/ContactDialog";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -21,9 +22,9 @@ export default function DesktopNav() {
           {item.label}
         </Link>
       ))}
-      <Button asChild variant="default">
-        <Link href="/contact">Contact Us</Link>
-      </Button>
+      <ContactDialog>
+        <Button variant="default">Contact Us</Button>
+      </ContactDialog>
     </div>
   );
 }

@@ -2182,7 +2182,12 @@ export function registerRoutes(app: Express) {
       const id = req.params.id;
       const user = (req as any).user;
       const b = req.body || {};
-      const ownerFields = ["version", "category", "title", "description", "charged", "commit_hash", "amount_cents", "source", "source_date", "source_context", "source_ref", "sort_order", "assignee"];
+      const ownerFields = [
+        "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
+        "source", "source_date", "source_context", "source_ref", "sort_order", "assignee",
+        // Lifecycle fields (admin-controlled): delivered → shipped → invoiced → paid
+        "delivered_at", "invoiced_at", "paid_at", "invoice_number", "stripe_charge_id",
+      ];
       const devFields = ["status"];
       const isOwnerRole = ["owner", "admin"].includes(user.role);
       const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
@@ -2208,6 +2213,24 @@ export function registerRoutes(app: Express) {
     try {
       await db.execute(sql`DELETE FROM qa_items WHERE id = ${req.params.id}::uuid`);
       res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Convenience: mark an item paid (sets paid_at = NOW + optional invoice/charge refs)
+  app.post("/api/dev-tracker/items/:id/mark-paid", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+    try {
+      const id = req.params.id;
+      const b = req.body || {};
+      const sets: any[] = [sql`paid_at = NOW()`];
+      if (b.invoice_number) sets.push(sql`invoice_number = ${b.invoice_number}`);
+      if (b.stripe_charge_id) sets.push(sql`stripe_charge_id = ${b.stripe_charge_id}`);
+      sets.push(sql`invoiced_at = COALESCE(invoiced_at, NOW())`); // ensure invoiced is also set
+      sets.push(sql`updated_at = NOW()`);
+      const setExpr = sets.reduce((acc, s, i) => (i === 0 ? s : sql`${acc}, ${s}`));
+      const r: any = await db.execute(sql`UPDATE qa_items SET ${setExpr} WHERE id = ${id}::uuid RETURNING *`);
+      res.json((r.rows || r)[0]);
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }

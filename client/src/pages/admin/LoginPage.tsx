@@ -14,7 +14,7 @@ import { getApiBaseUrl } from "../../lib/queryClient";
 
 // Form validation schema
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  email: z.string().email("Enter a valid email"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -46,6 +46,8 @@ export default function LoginPage() {
         if (validRole) {
           if (nextTarget) {
             window.location.href = nextTarget;
+          } else if (userData.role === "developer") {
+            navigate("/workspace");
           } else {
             navigate("/admin/dashboard");
           }
@@ -62,7 +64,7 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -121,7 +123,9 @@ export default function LoginPage() {
       const response = await fetch(loginUrl, {
         method: "POST",
         headers,
-        body: JSON.stringify(values),
+        // Server still expects `username` field — send the email value as username
+        // (DB has username column populated with the user's email)
+        body: JSON.stringify({ username: values.email, password: values.password }),
         credentials: "include", // Include cookies for cross-origin requests
         signal: controller.signal, // Add abort signal to allow timeout
         mode: "cors", // Explicitly request CORS mode
@@ -191,7 +195,7 @@ export default function LoginPage() {
         if (nextTarget) {
           window.location.href = nextTarget;
         } else if (data.user.role === "developer") {
-          window.location.href = "/dev-tracker.html";
+          navigate("/workspace");
         } else {
           navigate("/admin/dashboard");
         }
@@ -237,12 +241,12 @@ export default function LoginPage() {
             <CardContent className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} disabled={isLoading} />
+                      <Input type="email" autoComplete="email" placeholder="you@bettersystems.ai" {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

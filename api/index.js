@@ -8,6 +8,8 @@ import OpenAI from 'openai';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import postgres from 'postgres';
+import multer from 'multer';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // drizzle removed — using raw postgres.js (queryClient) for all queries
@@ -2344,6 +2346,16 @@ app.post('/api/presentation-leads', async (req, res) => {
 // Feature: /admin/dev-tracker — role-gated project tracker backed by qa_items + qa_notes.
 // Roles: owner = full CRUD, developer = read + update status + add/resolve notes.
 
+// Supabase Storage client (used for dev-tracker attachments)
+const supabaseStorage = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  ? createSupabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+  : null;
+const ATTACHMENTS_BUCKET = 'dev-tracker-attachments';
+const attachmentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 },
+});
+
 function devTrackerAuth(requiredRoles) {
   return async (req, res, next) => {
     try {
@@ -2388,14 +2400,22 @@ app.get('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']
       arr.push(n);
       byItem.set(n.item_id, arr);
     }
+    // Attachments
+    const attachments = await queryClient`SELECT * FROM qa_attachments WHERE item_id IN ${queryClient(ids)} ORDER BY created_at ASC`;
+    const attByItem = new Map();
+    for (const a of attachments) {
+      const arr = attByItem.get(a.item_id) || [];
+      arr.push(a);
+      attByItem.set(a.item_id, arr);
+    }
     if (project) {
-      return res.json(items.map(it => ({ ...it, notes: byItem.get(it.id) || [] })));
+      return res.json(items.map(it => ({ ...it, notes: byItem.get(it.id) || [], attachments: attByItem.get(it.id) || [] })));
     }
     const projects = {};
     for (const it of items) {
       const key = it.project;
       if (!projects[key]) projects[key] = [];
-      projects[key].push({ ...it, notes: byItem.get(it.id) || [] });
+      projects[key].push({ ...it, notes: byItem.get(it.id) || [], attachments: attByItem.get(it.id) || [] });
     }
     res.json(projects);
   } catch (e) {
@@ -2463,6 +2483,68 @@ app.delete('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin']), asy
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// === Attachments — drag/drop files (images, screenshots, videos, docs) ===
+app.post(
+  '/api/dev-tracker/items/:id/attachments',
+  devTrackerAuth(['owner', 'admin', 'developer']),
+  attachmentUpload.array('files', 10),
+  async (req, res) => {
+    try {
+      if (!supabaseStorage) return res.status(503).json({ error: 'Storage not configured' });
+      const itemId = req.params.id;
+      const files = req.files || [];
+      if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
+
+      const [itemRow] = await queryClient`SELECT assignee FROM qa_items WHERE id = ${itemId}`;
+      if (!itemRow) return res.status(404).json({ error: 'Item not found' });
+      if (req.user.role === 'developer' && itemRow.assignee !== req.user.username) {
+        return res.status(403).json({ error: 'Not your item' });
+      }
+
+      const uploaded = [];
+      for (const f of files) {
+        const safe = f.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storagePath = `${itemId}/${Date.now()}_${safe}`;
+        const { error: upErr } = await supabaseStorage.storage
+          .from(ATTACHMENTS_BUCKET)
+          .upload(storagePath, f.buffer, { contentType: f.mimetype, upsert: false });
+        if (upErr) {
+          console.error('[Attachment] upload error:', upErr);
+          return res.status(500).json({ error: upErr.message });
+        }
+        const { data: pub } = supabaseStorage.storage.from(ATTACHMENTS_BUCKET).getPublicUrl(storagePath);
+        const [row] = await queryClient`
+          INSERT INTO qa_attachments (item_id, filename, mime_type, size_bytes, storage_path, public_url, uploaded_by)
+          VALUES (${itemId}, ${f.originalname}, ${f.mimetype}, ${f.size}, ${storagePath}, ${pub.publicUrl}, ${req.user.username || 'unknown'})
+          RETURNING *
+        `;
+        uploaded.push(row);
+      }
+      await queryClient`UPDATE qa_items SET updated_at = NOW() WHERE id = ${itemId}`;
+      res.json(uploaded);
+    } catch (e) {
+      console.error('[Attachment] error:', e);
+      res.status(500).json({ error: e.message });
+    }
+  }
+);
+
+app.delete('/api/dev-tracker/attachments/:id', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    if (!supabaseStorage) return res.status(503).json({ error: 'Storage not configured' });
+    const id = req.params.id;
+    const [att] = await queryClient`SELECT * FROM qa_attachments WHERE id = ${id}`;
+    if (!att) return res.status(404).json({ error: 'Not found' });
+    if (req.user.role === 'developer' && att.uploaded_by !== req.user.username) {
+      return res.status(403).json({ error: 'Not your attachment' });
+    }
+    const { error: delErr } = await supabaseStorage.storage.from(ATTACHMENTS_BUCKET).remove([att.storage_path]);
+    if (delErr) console.warn('[Attachment] storage delete failed (continuing):', delErr.message);
+    await queryClient`DELETE FROM qa_attachments WHERE id = ${id}`;
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // Convenience: mark an item paid (sets paid_at + optional invoice/charge refs)

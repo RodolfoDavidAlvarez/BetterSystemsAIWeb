@@ -129,6 +129,17 @@ import type { OperatorActionEvent, OperatorTranscriptLine } from "./services/ope
 import { generateOperatorReply } from "./services/operatorResponder";
 import { handleVoiceTurn } from "./services/operatorVoiceChat";
 import multer from "multer";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+
+// Supabase Storage client (used for dev-tracker attachments)
+const supabaseStorage = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  ? createSupabaseClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
+  : null;
+const ATTACHMENTS_BUCKET = "dev-tracker-attachments";
+const attachmentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+});
 const voiceUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 export function registerRoutes(app: Express) {
@@ -2135,14 +2146,23 @@ export function registerRoutes(app: Express) {
         arr.push(n);
         byItem.set(n.item_id, arr);
       }
+      // Attachments
+      const attRes: any = await db.execute(sql.raw(`SELECT * FROM qa_attachments WHERE item_id IN (${idsCsv}) ORDER BY created_at ASC`));
+      const atts = attRes.rows || attRes;
+      const attByItem = new Map<string, any[]>();
+      for (const a of atts) {
+        const arr = attByItem.get(a.item_id) || [];
+        arr.push(a);
+        attByItem.set(a.item_id, arr);
+      }
       if (project) {
-        return res.json(items.map((it: any) => ({ ...it, notes: byItem.get(it.id) || [] })));
+        return res.json(items.map((it: any) => ({ ...it, notes: byItem.get(it.id) || [], attachments: attByItem.get(it.id) || [] })));
       }
       const projects: Record<string, any[]> = {};
       for (const it of items) {
         const key = it.project;
         if (!projects[key]) projects[key] = [];
-        projects[key].push({ ...it, notes: byItem.get(it.id) || [] });
+        projects[key].push({ ...it, notes: byItem.get(it.id) || [], attachments: attByItem.get(it.id) || [] });
       }
       res.json(projects);
     } catch (e: any) {
@@ -2212,6 +2232,77 @@ export function registerRoutes(app: Express) {
   app.delete("/api/dev-tracker/items/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
     try {
       await db.execute(sql`DELETE FROM qa_items WHERE id = ${req.params.id}::uuid`);
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // === Attachments — drag/drop files (images, screenshots, videos, docs) ===
+  app.post(
+    "/api/dev-tracker/items/:id/attachments",
+    authenticate,
+    hasRole(["owner", "admin", "developer"]),
+    attachmentUpload.array("files", 10),
+    async (req, res) => {
+      try {
+        if (!supabaseStorage) return res.status(503).json({ error: "Storage not configured" });
+        const itemId = req.params.id;
+        const user = (req as any).user;
+        const files = (req.files as Express.Multer.File[]) || [];
+        if (!files.length) return res.status(400).json({ error: "No files uploaded" });
+
+        // Verify item exists (and dev only attaches to assigned items)
+        const itemRes: any = await db.execute(sql`SELECT assignee FROM qa_items WHERE id = ${itemId}::uuid`);
+        const itemRow = (itemRes.rows || itemRes)[0];
+        if (!itemRow) return res.status(404).json({ error: "Item not found" });
+        if (user.role === "developer" && itemRow.assignee !== user.username) {
+          return res.status(403).json({ error: "Not your item" });
+        }
+
+        const uploaded: any[] = [];
+        for (const f of files) {
+          const safe = f.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const storagePath = `${itemId}/${Date.now()}_${safe}`;
+          const { error: upErr } = await supabaseStorage.storage
+            .from(ATTACHMENTS_BUCKET)
+            .upload(storagePath, f.buffer, { contentType: f.mimetype, upsert: false });
+          if (upErr) {
+            console.error("[Attachment] upload error:", upErr);
+            return res.status(500).json({ error: upErr.message });
+          }
+          const { data: pub } = supabaseStorage.storage.from(ATTACHMENTS_BUCKET).getPublicUrl(storagePath);
+          const r: any = await db.execute(sql`
+            INSERT INTO qa_attachments (item_id, filename, mime_type, size_bytes, storage_path, public_url, uploaded_by)
+            VALUES (${itemId}::uuid, ${f.originalname}, ${f.mimetype}, ${f.size}, ${storagePath}, ${pub.publicUrl}, ${user.username || "unknown"})
+            RETURNING *
+          `);
+          uploaded.push((r.rows || r)[0]);
+        }
+        await db.execute(sql`UPDATE qa_items SET updated_at = NOW() WHERE id = ${itemId}::uuid`);
+        res.json(uploaded);
+      } catch (e: any) {
+        console.error("[Attachment] error:", e);
+        res.status(500).json({ error: e.message });
+      }
+    }
+  );
+
+  app.delete("/api/dev-tracker/attachments/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      if (!supabaseStorage) return res.status(503).json({ error: "Storage not configured" });
+      const id = req.params.id;
+      const user = (req as any).user;
+      const r: any = await db.execute(sql`SELECT * FROM qa_attachments WHERE id = ${id}::uuid`);
+      const att = (r.rows || r)[0];
+      if (!att) return res.status(404).json({ error: "Not found" });
+      // Devs can only delete their own uploads; admins delete anything
+      if (user.role === "developer" && att.uploaded_by !== user.username) {
+        return res.status(403).json({ error: "Not your attachment" });
+      }
+      const { error: delErr } = await supabaseStorage.storage.from(ATTACHMENTS_BUCKET).remove([att.storage_path]);
+      if (delErr) console.warn("[Attachment] storage delete failed (continuing):", delErr.message);
+      await db.execute(sql`DELETE FROM qa_attachments WHERE id = ${id}::uuid`);
       res.json({ ok: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });

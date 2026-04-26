@@ -596,6 +596,94 @@
   }
   .item-meta .notes-link:hover { text-decoration: underline; }
   .item-meta .notes-link.has-unresolved { color: var(--hot); }
+  .item-meta .attach-link { color: var(--ink-3); cursor: pointer; user-select: none; font-weight: 600; }
+  .item-meta .attach-link:hover { color: var(--ink); }
+  .item-meta .attach-link.has-files { color: var(--accent); font-weight: 700; }
+
+  /* Attachments — thumbnail strip + drag-drop zone */
+  .attachments-section {
+    margin-top: 8px;
+    padding: 8px 0 8px 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .att-thumb {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: white;
+    overflow: hidden;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.12s, transform 0.12s;
+  }
+  .att-thumb:hover { border-color: var(--ink); transform: scale(1.05); }
+  .att-thumb img, .att-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .att-thumb.is-file { background: var(--paper); flex-direction: column; padding: 4px; gap: 2px; }
+  .att-thumb.is-file .att-icon { font-size: 22px; line-height: 1; }
+  .att-thumb.is-file .att-name { font-family: "Geist Mono", ui-monospace, monospace; font-size: 7.5px; font-weight: 600; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); }
+  .att-thumb.is-video::after {
+    content: "▶";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.35);
+    color: white;
+    font-size: 18px;
+  }
+  .att-del {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: 0;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  .att-thumb:hover .att-del { display: flex; }
+  .att-add {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    border: 1.5px dashed var(--line);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-4);
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .att-add:hover { border-color: var(--ink); color: var(--ink); }
+  .att-uploading { opacity: 0.5; pointer-events: none; }
+
+  /* Drag-over highlight on the entire item */
+  .item.is-dragover {
+    background: rgba(29, 62, 239, 0.05);
+    box-shadow: inset 0 0 0 2px var(--accent);
+    border-radius: 8px;
+  }
 
   .item-actions {
     display: flex;
@@ -1540,6 +1628,92 @@ function cycleStatus(id, current, btn) {
   patchItem(id, { status: STATUS_FLOW[current] });
 }
 
+// === Attachments (drag-drop upload, thumbnails, delete) ===
+function fileIconFor(mime) {
+  if (!mime) return "📄";
+  if (mime.startsWith("image/")) return "🖼";
+  if (mime.startsWith("video/")) return "🎬";
+  if (mime.startsWith("audio/")) return "🎵";
+  if (mime.includes("pdf")) return "📕";
+  if (mime.includes("zip") || mime.includes("tar") || mime.includes("gzip")) return "🗜";
+  if (mime.includes("text/") || mime.includes("json") || mime.includes("xml")) return "📝";
+  return "📄";
+}
+function renderAttachments(it) {
+  const atts = it.attachments || [];
+  if (atts.length === 0) return "";
+  return `<div class="attachments-section">
+    ${atts.map(a => {
+      const isImg = (a.mime_type || "").startsWith("image/");
+      const isVid = (a.mime_type || "").startsWith("video/");
+      const isAdmin = CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin");
+      const canDelete = isAdmin || (CURRENT_USER && a.uploaded_by === CURRENT_USER.username);
+      const tooltip = `${a.filename}${a.size_bytes ? ' · ' + Math.round(a.size_bytes/1024) + 'KB' : ''}${a.uploaded_by ? ' · @' + a.uploaded_by : ''}`;
+      const thumb = isImg
+        ? `<img src="${a.public_url}" alt="${escapeHtml(a.filename)}" loading="lazy" />`
+        : isVid
+          ? `<video src="${a.public_url}" preload="metadata"></video>`
+          : `<span class="att-icon">${fileIconFor(a.mime_type)}</span><span class="att-name">${escapeHtml(a.filename.length > 12 ? a.filename.slice(0, 10) + '…' : a.filename)}</span>`;
+      return `<div class="att-thumb ${isImg ? '' : isVid ? 'is-video' : 'is-file'}" onclick="window.open('${a.public_url}','_blank')" title="${escapeHtml(tooltip)}">
+        ${thumb}
+        ${canDelete ? `<button class="att-del" onclick="event.stopPropagation(); deleteAttachment('${a.id}', '${it.id}')" title="Delete">×</button>` : ""}
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+function handleAttachInput(itemId, inputEl) {
+  if (!inputEl.files || !inputEl.files.length) return;
+  uploadAttachments(itemId, inputEl.files);
+  inputEl.value = "";
+}
+async function uploadAttachments(itemId, fileList) {
+  const fd = new FormData();
+  for (const f of fileList) fd.append("files", f);
+  pendingFlash.add(itemId);
+  try {
+    const r = await apiFetch("/api/dev-tracker/items/" + itemId + "/attachments", {
+      method: "POST",
+      body: fd,
+      // do NOT set Content-Type; browser sets multipart boundary
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      alert("Upload failed: " + (e.error || r.statusText));
+      return;
+    }
+    load();
+  } catch (e) {
+    alert("Upload error: " + e.message);
+  }
+}
+async function deleteAttachment(attId, itemId) {
+  if (!confirm("Delete this attachment?")) return;
+  try {
+    const r = await apiFetch("/api/dev-tracker/attachments/" + attId, { method: "DELETE" });
+    if (!r.ok) { alert("Delete failed"); return; }
+    pendingFlash.add(itemId);
+    load();
+  } catch (e) { alert("Error: " + e.message); }
+}
+
+// Wire drag-and-drop on every item row (idempotent — re-attaches after each render)
+function wireDragDrop() {
+  document.querySelectorAll(".item[data-item-id]").forEach(el => {
+    if (el.__ddWired) return;
+    el.__ddWired = true;
+    el.addEventListener("dragover", (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; el.classList.add("is-dragover"); });
+    el.addEventListener("dragleave", () => el.classList.remove("is-dragover"));
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      el.classList.remove("is-dragover");
+      const itemId = el.getAttribute("data-item-id");
+      if (e.dataTransfer.files && e.dataTransfer.files.length) {
+        uploadAttachments(itemId, e.dataTransfer.files);
+      }
+    });
+  });
+}
+
 // === Lifecycle (delivered → shipped → invoiced → paid) ===
 function fmtDateShort(d) {
   if (!d) return "";
@@ -1806,6 +1980,9 @@ function render() {
   document.getElementById("deals").innerHTML = filteredDeals.length === 0
     ? `<div class="empty"><div class="empty-mark">∅</div>No items match this filter.</div>`
     : filteredDeals.map(([name, items]) => renderDeal(name, items)).join("");
+
+  // Re-wire drag-drop on item rows (newly rendered)
+  wireDragDrop();
 }
 
 function renderDeal(name, items) {
@@ -1940,6 +2117,10 @@ function renderItem(it) {
           <span class="meta-item notes-link ${unresolved > 0 ? 'has-unresolved' : ''}" onclick="toggleNotes('${it.id}')">
             ${notes.length === 0 ? "+ Add note" : (unresolved > 0 ? `${unresolved} unresolved · ${notes.length} total` : `${notes.length} note${notes.length===1?'':'s'}`)}
           </span>
+          <span class="meta-item attach-link ${(it.attachments || []).length > 0 ? 'has-files' : ''}" onclick="document.getElementById('att-input-${it.id}').click()">
+            📎 ${(it.attachments || []).length || 'Attach'}
+          </span>
+          <input type="file" id="att-input-${it.id}" multiple style="display:none" onchange="handleAttachInput('${it.id}', this)" />
         </div>
       </div>
       <div class="actions-always">
@@ -1949,6 +2130,7 @@ function renderItem(it) {
         <button class="icon-btn danger owner-only" onclick="deleteItem('${it.id}')" title="Delete">×</button>
       </div>
     </div>
+    ${renderAttachments(it)}
     ${checklist ? renderChecklist(it, checklist) : ""}
     ${showContext && hasContext ? `
       <div class="context-panel">

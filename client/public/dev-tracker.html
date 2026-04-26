@@ -93,48 +93,42 @@
     text-rendering: optimizeLegibility;
   }
   body { min-height: 100vh; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 36px 28px 120px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 14px 24px 80px; }
 
-  /* === HEADER === */
+  /* === HEADER — tight one-line === */
   .masthead {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding-bottom: 24px;
-    border-bottom: 3px solid var(--ink);
-    margin-bottom: 28px;
+    gap: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 14px;
   }
-  .masthead-left { flex: 1; }
+  .masthead-left { flex: 1; display: flex; align-items: baseline; gap: 14px; }
   .eyebrow {
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--ink);
-    margin-bottom: 8px;
+    margin: 0;
   }
   h1.masthead-title {
     font-family: "Geist", sans-serif;
-    font-size: clamp(48px, 8vw, 76px);
-    font-weight: 900;
-    line-height: 0.94;
-    letter-spacing: -0.04em;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
     color: var(--ink);
+    margin: 0;
   }
   h1.masthead-title em {
     font-style: normal;
     color: var(--accent);
   }
-  .masthead-sub {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--ink-2);
-    margin-top: 14px;
-    max-width: 460px;
-    line-height: 1.5;
-  }
+  .masthead-sub { display: none; }
   .masthead-sub kbd {
     font-family: "Geist Mono", monospace;
     font-size: 12px;
@@ -165,45 +159,61 @@
   .add-btn:active { transform: scale(0.97); }
   .add-btn .plus { font-size: 20px; line-height: 1; font-weight: 700; }
 
-  /* === BRIEF STATS === */
+  /* === BRIEF — single inline ribbon, no boxes === */
   .brief {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-bottom: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: 16px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
   .brief-cell {
-    padding: 18px 16px;
-    border-radius: 12px;
-    background: white;
-    border: 2px solid var(--line);
-    transition: border-color 0.15s;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 4px 12px 4px 0;
+    margin-right: 4px;
+    cursor: pointer;
+    color: var(--ink-3);
+    transition: color 0.12s;
   }
-  .brief-cell.has-value { border-color: var(--ink); }
+  .brief-cell:not(:last-child)::after {
+    content: "·";
+    margin-left: 12px;
+    color: var(--ink-4);
+    opacity: 0.6;
+  }
+  .brief-cell:hover { color: var(--ink); }
+  .brief-cell.is-active { color: var(--ink); font-weight: 700; }
   .brief-num {
-    font-family: "Instrument Serif", Georgia, serif;
-    font-size: 56px;
-    font-weight: 400;
-    line-height: 0.9;
-    letter-spacing: -0.02em;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 700;
     color: var(--ink);
+    letter-spacing: 0;
+    line-height: 1;
     font-feature-settings: "tnum";
   }
+  .brief-cell.zero .brief-num { color: var(--ink-4); opacity: 0.5; }
   .brief-cell.has-value.b-flight .brief-num { color: var(--orange); }
   .brief-cell.has-value.b-shipped .brief-num { color: var(--accent); }
+  .brief-cell.has-value.b-delivered .brief-num { color: var(--green); }
   .brief-cell.has-value.b-pass .brief-num { color: var(--green); }
   .brief-cell.has-value.b-fail .brief-num { color: var(--hot); }
-  .brief-cell.zero .brief-num { color: var(--ink-4); }
   .brief-label {
-    font-family: "Geist", sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--ink-2);
-    margin-top: 8px;
+    color: inherit;
+    margin: 0;
   }
-  .brief-cell.zero .brief-label { color: var(--ink-4); }
 
   /* === FILTER BAR === */
   .filterbar {
@@ -1078,18 +1088,8 @@
     color: var(--ink-2);
     margin-left: 8px;
   }
-  .global-progress {
-    background: var(--paper);
-    border: 2px solid var(--line);
-    padding: 16px 20px;
-    border-radius: 12px;
-    margin-bottom: 28px;
-  }
-  .global-progress-hd { display: flex; justify-content: space-between; align-items: baseline; }
-  .global-progress-label { font-size: 14px; font-weight: 700; color: var(--ink); }
-  .global-progress-pct { font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; color: var(--green); letter-spacing: -0.02em; line-height: 1; }
-  .global-progress .progress-bar { height: 14px; background: var(--line); margin-top: 10px; }
-  .global-progress .progress-fill { background: linear-gradient(90deg, var(--accent), var(--green)); box-shadow: 0 0 20px rgba(0,136,54,0.3); }
+  /* Global progress collapsed into the brief ribbon — no separate widget */
+  .global-progress { display: none; }
 
   /* === EMPTY === */
   .empty {
@@ -1207,11 +1207,11 @@
   <div class="wrap">
     <header class="masthead">
       <div class="masthead-left">
-        <div class="eyebrow">BSA · Pipeline</div>
         <h1 class="masthead-title">Developer <em>Tracker</em></h1>
-        <p class="masthead-sub">Click a status pill to cycle. Notes append, never delete. Press <kbd>n</kbd> to add an item.</p>
+        <span class="eyebrow" style="opacity:0.4">·</span>
+        <span id="masthead-progress" class="eyebrow" style="opacity:0.55"></span>
       </div>
-      <button class="add-btn owner-only" onclick="openAdd()"><span class="plus">+</span> New item</button>
+      <button class="add-btn owner-only" onclick="openAdd()" style="font-size:12px; padding:6px 12px; border-radius:6px;"><span class="plus" style="font-size:14px">+</span> New</button>
     </header>
 
     <div class="global-progress" id="global-progress"></div>
@@ -1716,13 +1716,9 @@ function render() {
   const g = calcStats(all);
 
   // Global progress bar
-  document.getElementById("global-progress").innerHTML = `
-    <div class="global-progress-hd">
-      <span class="global-progress-label">Overall progress · ${g.completed}/${g.total} done</span>
-      <span class="global-progress-pct">${g.pct}%</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" style="width: ${g.pct}%"></div></div>
-  `;
+  // Inline tiny progress in the masthead instead of a big widget
+  const mp = document.getElementById("masthead-progress");
+  if (mp) mp.textContent = `${g.completed} / ${g.total} done · ${g.pct}%`;
 
   // Brief stats — clickable as status filters
   const deliveredCount = all.filter(i => i.status==="shipped" && i.charged).length;

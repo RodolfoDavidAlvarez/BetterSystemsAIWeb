@@ -47,7 +47,7 @@ export default function LoginPage() {
           if (nextTarget) {
             window.location.href = nextTarget;
           } else if (userData.role === "developer") {
-            navigate("/workspace");
+            window.location.href = "/dev-tracker.html";
           } else {
             navigate("/admin/dashboard");
           }
@@ -195,7 +195,7 @@ export default function LoginPage() {
         if (nextTarget) {
           window.location.href = nextTarget;
         } else if (data.user.role === "developer") {
-          navigate("/workspace");
+          window.location.href = "/dev-tracker.html";
         } else {
           navigate("/admin/dashboard");
         }

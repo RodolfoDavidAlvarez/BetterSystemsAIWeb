@@ -11,7 +11,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const isContactCard = location === "/rodolfo";
   const isPaymentPage = location.startsWith("/pay/");
   const isAdmin = location.startsWith("/admin");
-  const hideChrome = isContactCard || isPaymentPage || isAdmin;
+  const isWorkspace = location.startsWith("/workspace");
+  const hideChrome = isContactCard || isPaymentPage || isAdmin || isWorkspace;
 
   return (
     <div className="min-h-screen flex flex-col">

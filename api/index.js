@@ -2433,7 +2433,12 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
   try {
     const id = req.params.id;
     const b = req.body || {};
-    const ownerFields = ['version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents', 'source', 'source_date', 'source_context', 'source_ref', 'sort_order', 'assignee'];
+    const ownerFields = [
+      'version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents',
+      'source', 'source_date', 'source_context', 'source_ref', 'sort_order', 'assignee',
+      // Lifecycle fields (admin-controlled): delivered → shipped → invoiced → paid
+      'delivered_at', 'invoiced_at', 'paid_at', 'invoice_number', 'stripe_charge_id',
+    ];
     const devFields = ['status'];
     const isOwnerRole = ['owner', 'admin'].includes(req.user.role);
     const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
@@ -2458,6 +2463,25 @@ app.delete('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin']), asy
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// Convenience: mark an item paid (sets paid_at + optional invoice/charge refs)
+app.post('/api/dev-tracker/items/:id/mark-paid', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const b = req.body || {};
+    const updates = {
+      paid_at: new Date(),
+      updated_at: new Date(),
+    };
+    if (b.invoice_number) updates.invoice_number = b.invoice_number;
+    if (b.stripe_charge_id) updates.stripe_charge_id = b.stripe_charge_id;
+    // Ensure invoiced_at is also set (you can't pay without invoicing)
+    const [existing] = await queryClient`SELECT invoiced_at FROM qa_items WHERE id = ${id}`;
+    if (existing && !existing.invoiced_at) updates.invoiced_at = new Date();
+    const [row] = await queryClient`UPDATE qa_items SET ${queryClient(updates)} WHERE id = ${id} RETURNING *`;
+    res.json(row);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/dev-tracker/items/:id/notes', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {

@@ -6,7 +6,7 @@
 <title>Developer Tracker · Better Systems AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
   /* Role-based visibility — hide owner-only controls for developer role */
   html[data-role="developer"] .owner-only { display: none !important; }
@@ -68,18 +68,19 @@
     overflow-y: auto;
   }
   :root {
-    --bg: #ffffff;
-    --paper: #f8f8f8;
-    --ink: #000000;
+    /* Harmonized with /workspace editorial palette — paper-and-ink */
+    --bg: #f5f3ef;
+    --paper: #ebe8e1;
+    --ink: #0a0a0a;
     --ink-2: #1a1a1a;
     --ink-3: #555555;
     --ink-4: #888888;
-    --line: #d4d4d4;
+    --line: #d4d0c8;
     --line-strong: #1a1a1a;
-    --accent: #0040c8;
+    --accent: #1d3eef;
     --hot: #d40000;
-    --green: #008836;
-    --orange: #d96a00;
+    --green: #15803d;
+    --orange: #c2410c;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -174,18 +175,19 @@
   .brief-cell {
     padding: 18px 16px;
     border-radius: 12px;
-    background: var(--paper);
+    background: white;
     border: 2px solid var(--line);
     transition: border-color 0.15s;
   }
   .brief-cell.has-value { border-color: var(--ink); }
   .brief-num {
-    font-family: "Geist", sans-serif;
-    font-size: 42px;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -0.04em;
+    font-family: "Instrument Serif", Georgia, serif;
+    font-size: 56px;
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
     color: var(--ink);
+    font-feature-settings: "tnum";
   }
   .brief-cell.has-value.b-flight .brief-num { color: var(--orange); }
   .brief-cell.has-value.b-shipped .brief-num { color: var(--accent); }
@@ -608,24 +610,42 @@
   }
   .icon-btn:hover { background: var(--paper); color: var(--ink); }
   .icon-btn.danger:hover { background: var(--hot); color: white; }
-  .charged-toggle {
-    display: flex;
+  /* Lifecycle row — four steps: delivered → shipped → invoiced → paid */
+  .lifecycle {
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-family: "Geist", sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    cursor: pointer;
-    user-select: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    transition: all 0.15s;
-    border: 2px solid var(--line);
+    gap: 4px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: white;
   }
-  .charged-toggle:hover { border-color: var(--ink); }
-  .charged-toggle input { accent-color: var(--green); cursor: pointer; width: 14px; height: 14px; }
-  .charged-toggle.is-charged { background: var(--green); color: white; border-color: var(--green); }
+  .lc-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    background: white;
+    cursor: default;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: transform 0.12s, border-color 0.12s;
+    position: relative;
+  }
+  .lc-step.is-clickable { cursor: pointer; }
+  .lc-step.is-clickable:hover { border-color: var(--ink); transform: scale(1.08); }
+  .lc-step.lc-on.lc-delivered { background: var(--green); color: white; border-color: var(--green); }
+  .lc-step.lc-on.lc-shipped   { background: var(--accent); color: white; border-color: var(--accent); }
+  .lc-step.lc-on.lc-invoiced  { background: var(--orange); color: white; border-color: var(--orange); }
+  .lc-step.lc-on.lc-paid      { background: #b8860b; color: white; border-color: #b8860b; }
+  .lc-sep { width: 6px; height: 1px; background: var(--line); }
 
   /* === STATUS PILL === */
   .pill {
@@ -1067,7 +1087,7 @@
   }
   .global-progress-hd { display: flex; justify-content: space-between; align-items: baseline; }
   .global-progress-label { font-size: 14px; font-weight: 700; color: var(--ink); }
-  .global-progress-pct { font-size: 24px; font-weight: 900; color: var(--green); letter-spacing: -0.02em; }
+  .global-progress-pct { font-family: "Instrument Serif", Georgia, serif; font-size: 32px; font-weight: 400; color: var(--green); letter-spacing: -0.02em; line-height: 1; }
   .global-progress .progress-bar { height: 14px; background: var(--line); margin-top: 10px; }
   .global-progress .progress-fill { background: linear-gradient(90deg, var(--accent), var(--green)); box-shadow: 0 0 20px rgba(0,136,54,0.3); }
 
@@ -1220,9 +1240,8 @@
         <div id="users-list"></div>
         <form class="user-form" onsubmit="createUser(event)">
           <h3>Add a developer</h3>
-          <input name="username" placeholder="Username (e.g. carlos)" required />
           <input name="name" placeholder="Full name" required />
-          <input name="email" type="email" placeholder="Email" required />
+          <input name="email" type="email" placeholder="Email (used as login)" required />
           <input name="password" placeholder="Initial password" required />
           <select name="role">
             <option value="developer" selected>developer</option>
@@ -1335,7 +1354,8 @@ async function loadCurrentUser() {
       const role = CURRENT_USER.role || "developer";
       const roleLabel = role === "owner" ? "OWNER" : role === "developer" ? "DEVELOPER" : role.toUpperCase();
       const isAdmin = role === "owner" || role === "admin";
-      banner.innerHTML = `<span>${CURRENT_USER.name || CURRENT_USER.username || CURRENT_USER.email} <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span><span style="display:flex;gap:14px;align-items:center;">${isAdmin ? `<button onclick="openUsersModal()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Manage developers</button>` : ""}<button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button></span>`;
+      const displayId = CURRENT_USER.email || CURRENT_USER.username;
+      banner.innerHTML = `<span>${CURRENT_USER.name ? CURRENT_USER.name + ' <span style="opacity:.4">·</span> ' : ''}<span style="opacity:.7">${displayId}</span> <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span><span style="display:flex;gap:14px;align-items:center;">${isAdmin ? `<button onclick="openUsersModal()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Manage developers</button>` : ""}<button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button></span>`;
       if (isAdmin) loadUsers();
     }
   } catch (e) {
@@ -1376,7 +1396,7 @@ function renderUsersList() {
     <div class="user-row">
       <div class="user-cell user-cell-main">
         <div class="user-name">${escapeHtml(u.name)}</div>
-        <div class="user-meta">${escapeHtml(u.username)} · ${escapeHtml(u.email)}</div>
+        <div class="user-meta">${escapeHtml(u.email)}</div>
       </div>
       <div class="user-cell">
         <select onchange="patchUser(${u.id}, { role: this.value })" ${u.id === CURRENT_USER.id ? "disabled" : ""}>
@@ -1386,8 +1406,8 @@ function renderUsersList() {
         </select>
       </div>
       <div class="user-cell user-cell-actions">
-        <button class="user-btn" onclick="resetUserPassword(${u.id}, '${escapeHtml(u.username)}')">Reset password</button>
-        <button class="user-btn danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')" ${u.id === CURRENT_USER.id ? "disabled" : ""}>Delete</button>
+        <button class="user-btn" onclick="resetUserPassword(${u.id}, '${escapeHtml(u.email)}')">Reset password</button>
+        <button class="user-btn danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.email)}')" ${u.id === CURRENT_USER.id ? "disabled" : ""}>Delete</button>
       </div>
     </div>
   `).join("");
@@ -1395,21 +1415,22 @@ function renderUsersList() {
 async function createUser(ev) {
   ev.preventDefault();
   const f = ev.target;
+  const email = f.email.value.trim();
   const body = {
-    username: f.username.value.trim(),
+    username: email,           // username == email — single identifier
     name: f.name.value.trim(),
-    email: f.email.value.trim(),
+    email: email,
     password: f.password.value,
     role: f.role.value,
   };
-  if (!body.username || !body.name || !body.email || !body.password) return alert("All fields required");
+  if (!body.email || !body.name || !body.password) return alert("Name, email, and password are required");
   try {
     const r = await apiFetch("/api/dev-tracker/users", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
     if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "create failed")); }
     f.reset();
     await loadUsers();
     renderUsersList();
-    alert("Created. Share these credentials with the developer:\n\nUsername: " + body.username + "\nPassword: " + body.password + "\nLogin URL: " + window.location.origin + "/admin/login");
+    alert("Created. Share these credentials with the developer:\n\nEmail: " + body.email + "\nPassword: " + body.password + "\nLogin URL: " + window.location.origin + "/admin/login");
   } catch (e) { alert("Error: " + e.message); }
 }
 async function patchUser(id, body) {
@@ -1517,6 +1538,59 @@ async function toggleNoteResolved(itemId, noteId, resolved) {
 function cycleStatus(id, current, btn) {
   if (btn) { btn.classList.add("cycling"); setTimeout(() => btn.classList.remove("cycling"), 400); }
   patchItem(id, { status: STATUS_FLOW[current] });
+}
+
+// === Lifecycle (delivered → shipped → invoiced → paid) ===
+function fmtDateShort(d) {
+  if (!d) return "";
+  const dt = new Date(d);
+  return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+function renderLifecycle(it) {
+  const isAdmin = CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin");
+  // Shipped is derived from status (status==="shipped" or deployed_at is set) — admin can't toggle here, that's the status pill's job
+  const shippedOn = it.deployed_at || (it.status === "shipped" || it.status === "tested_pass") ? (it.deployed_at || true) : null;
+  const steps = [
+    { key: "delivered_at", label: "D", className: "lc-delivered", title: "Delivered to client", on: !!it.delivered_at, date: it.delivered_at },
+    { key: "deployed_at",  label: "S", className: "lc-shipped",   title: "Shipped to production", on: !!shippedOn, date: it.deployed_at, readonly: true },
+    { key: "invoiced_at",  label: "I", className: "lc-invoiced",  title: "Invoiced", on: !!it.invoiced_at, date: it.invoiced_at, ref: it.invoice_number },
+    { key: "paid_at",      label: "P", className: "lc-paid",      title: "Paid", on: !!it.paid_at, date: it.paid_at, ref: it.stripe_charge_id },
+  ];
+  return `<span class="lifecycle" title="Delivered → Shipped → Invoiced → Paid">
+    ${steps.map((s, i) => {
+      const tooltip = s.title + (s.date ? ` · ${fmtDateShort(s.date)}` : "") + (s.ref ? ` · ${s.ref}` : "") + (s.on ? "" : " (pending)");
+      const clickable = isAdmin && !s.readonly;
+      const onclick = clickable ? `lifecycleClick('${it.id}', '${s.key}', ${s.on})` : "";
+      return `${i > 0 ? '<span class="lc-sep"></span>' : ''}<span class="lc-step ${s.className} ${s.on?'lc-on':''} ${clickable?'is-clickable':''}" title="${escapeHtml(tooltip)}" onclick="${onclick}">${s.label}</span>`;
+    }).join("")}
+  </span>`;
+}
+async function lifecycleClick(id, key, currentlyOn) {
+  // Toggle off: set null. Toggle on: prompt for date (default today) and optional ref.
+  if (currentlyOn) {
+    if (!confirm(`Clear ${key.replace('_at','')} timestamp?`)) return;
+    return patchItem(id, { [key]: null });
+  }
+  // Setting on
+  if (key === "paid_at") {
+    const inv = prompt("Invoice number (optional, e.g. BSA-2026-006):", "");
+    const charge = prompt("Stripe charge/payment intent id (optional):", "");
+    const body = {};
+    if (inv && inv.trim()) body.invoice_number = inv.trim();
+    if (charge && charge.trim()) body.stripe_charge_id = charge.trim();
+    await apiFetch("/api/dev-tracker/items/" + id + "/mark-paid", {
+      method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)
+    });
+    return load();
+  }
+  if (key === "invoiced_at") {
+    const inv = prompt("Invoice number (e.g. BSA-2026-006):", "");
+    const body = { invoiced_at: new Date().toISOString() };
+    if (inv && inv.trim()) body.invoice_number = inv.trim();
+    return patchItem(id, body);
+  }
+  // delivered_at — just stamp now
+  patchItem(id, { [key]: new Date().toISOString() });
 }
 function toggleDeal(name) {
   collapsed[name] = !collapsed[name];
@@ -1873,9 +1947,7 @@ function renderItem(it) {
         </div>
       </div>
       <div class="actions-always">
-        <label class="charged-toggle ${it.charged ? 'is-charged' : ''}" title="Charged on invoice">
-          <input type="checkbox" ${it.charged?"checked":""} onchange="patchItem('${it.id}', { charged: this.checked })" />$
-        </label>
+        ${renderLifecycle(it)}
       </div>
       <div class="item-actions">
         <button class="icon-btn danger owner-only" onclick="deleteItem('${it.id}')" title="Delete">×</button>

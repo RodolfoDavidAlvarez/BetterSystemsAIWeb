@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
-  /* Role-based visibility — hide owner-only controls for developer role */
-  html[data-role="developer"] .owner-only { display: none !important; }
+  /* Single tracker — every signed-in user (admin or developer) sees and uses everything.
+     The .owner-only class is kept for legacy markup but no longer hides anything. */
 
   /* Source context — clickable + expandable panel */
   .meta-item.source-link { transition: background .15s, color .15s, border-color .15s; }
@@ -292,7 +292,7 @@
     padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
     white-space: nowrap;
   }
   .bulk-toggle:hover { border-color: var(--ink); color: var(--ink); }
@@ -348,7 +348,7 @@
     gap: 14px;
     z-index: 100;
     font-family: "Geist", sans-serif;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.18s ease-out;
     max-width: calc(100vw - 32px);
     flex-wrap: wrap;
   }
@@ -401,7 +401,7 @@
     flex-shrink: 0;
     position: relative;
     margin-right: 4px;
-    transition: all 0.15s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
   }
   .bulk-check:hover { border-color: var(--accent); }
   .bulk-check:checked {
@@ -415,16 +415,17 @@
     color: white; font-size: 14px; font-weight: 900; line-height: 1;
   }
 
-  /* === REORDER ARROWS === */
+  /* === REORDER ARROWS (fallback for non-drag — visible only on hover, smaller) === */
   .reorder-col {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     flex-shrink: 0;
-    opacity: 0.55;
-    transition: opacity 0.15s;
+    opacity: 0;
+    transition: opacity 0.12s;
   }
-  .item:hover .reorder-col { opacity: 1; }
+  .item:hover .reorder-col { opacity: 0.7; }
+  .item:hover .reorder-col:hover { opacity: 1; }
   .reorder-btn {
     background: transparent;
     border: 1.5px solid transparent;
@@ -463,7 +464,7 @@
     font-family: "Geist Mono", monospace;
     font-size: 18px;
     color: white;
-    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.16s ease-out;
     width: 16px;
     line-height: 1;
     font-weight: 700;
@@ -497,59 +498,165 @@
   .vgroup-hd {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 4px 12px;
-    border-bottom: 2px solid var(--line);
-    margin-bottom: 12px;
+    gap: 10px;
+    padding: 12px 4px 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 10px;
   }
-  .vgroup-tag {
-    font-family: "Geist", sans-serif;
-    font-size: 16px;
-    font-weight: 900;
-    color: white;
-    background: var(--deal-color, var(--accent));
-    padding: 6px 14px;
-    border-radius: 8px;
-    letter-spacing: -0.01em;
-  }
-  .vgroup-name {
-    font-family: "Geist", sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--ink);
-    flex: 1;
-  }
-  .vgroup-count {
+  /* Single combined label: "Release [v2.5]" — the v2.5 part is editable */
+  .vgroup-label {
     font-family: "Geist", sans-serif;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     color: var(--ink-3);
-    letter-spacing: 0;
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .vgroup-num {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+    background: var(--deal-color, var(--accent));
+    padding: 3px 10px;
+    border-radius: 6px;
+    letter-spacing: -0.01em;
+    cursor: text;
+    border: 1px solid transparent;
+    outline: none;
+    min-width: 36px;
+    text-align: center;
+    transition: filter 0.1s, transform 0.1s;
+    text-transform: none;
+  }
+  .vgroup-num:hover { filter: brightness(1.08); }
+  .vgroup-num:focus { background: var(--paper); color: var(--ink); border-color: var(--ink); }
+  .vgroup-count {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+  }
+  .progress-pct-version {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
   }
 
-  /* === ITEM === */
+  /* === Drag-and-drop reorder === */
+  .item { transition: border-color 0.12s, transform 0.1s, opacity 0.12s, box-shadow 0.12s; }
+  .item.dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+    cursor: grabbing;
+  }
+  .item.drag-over-top {
+    border-top: 3px solid var(--accent) !important;
+    margin-top: 4px;
+  }
+  .item.drag-over-bottom {
+    border-bottom: 3px solid var(--accent) !important;
+    margin-bottom: 13px;
+  }
+  .drag-handle {
+    width: 14px;
+    cursor: grab;
+    color: var(--ink-4);
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.12s, color 0.12s;
+    user-select: none;
+    text-align: center;
+    flex-shrink: 0;
+    align-self: center;
+    padding: 0 2px;
+  }
+  .drag-handle:hover { color: var(--ink); }
+  .drag-handle:active { cursor: grabbing; }
+  .item:hover .drag-handle { opacity: 0.55; }
+  .item:hover .drag-handle:hover { opacity: 1; }
+
+  /* Per-item version chip (editable, click to change release) */
+  .version-chip {
+    display: inline-flex;
+    align-items: center;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-2);
+    background: var(--paper);
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    cursor: text;
+    outline: none;
+    letter-spacing: 0.02em;
+    min-width: 32px;
+    text-align: center;
+    transition: border-color 0.1s, background 0.1s, color 0.1s;
+  }
+  .version-chip:hover { border-color: var(--ink-3); color: var(--ink); }
+  .version-chip:focus { border-color: var(--ink); background: white; color: var(--ink); }
+
+  /* === ITEM (Card mode default — more open, more breathing room) === */
   .item {
-    padding: 22px 20px;
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    margin-bottom: 10px;
-    background: white;
-    transition: border-color 0.15s, transform 0.1s;
+    padding: 26px 24px 26px 28px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin-bottom: 14px;
+    background: var(--row-tint, white);
+    border-left: 4px solid var(--row-edge, var(--line));
+    box-shadow: 0 1px 0 rgba(10,10,10,0.02);
+    transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
   }
   .item:last-child { margin-bottom: 0; }
-  .item:hover { border-color: var(--deal-color, var(--ink)); }
+  .item:hover {
+    border-color: var(--ink-3);
+    border-left-color: var(--row-edge, var(--ink));
+    box-shadow: 0 2px 8px rgba(10,10,10,0.05);
+  }
   .item:hover .item-actions { opacity: 1; }
-  .item.flash { animation: itemFlash 0.5s ease-out; }
+  .item.flash { animation: itemFlash 0.28s ease-out; }
   @keyframes itemFlash {
-    0% { background: #fff7c2; transform: scale(1); }
-    50% { background: #fff7c2; transform: scale(1.005); }
-    100% { background: white; transform: scale(1); }
+    0% { background: #fff7c2; }
+    100% { background: var(--row-tint, white); }
+  }
+
+  /* === STATUS-BASED ROW TINTING — quick visual scan, not loud === */
+  /* Each row gets a subtle background + 4px left edge in its status color */
+  .item.row-s-open        { --row-tint: white;                          --row-edge: #d4d0c8; }
+  .item.row-s-in_flight   { --row-tint: rgba(194, 65, 12, 0.045);       --row-edge: var(--orange); }
+  .item.row-s-shipped     { --row-tint: rgba(29, 62, 239, 0.04);        --row-edge: var(--accent); }
+  .item.row-s-tested_pass { --row-tint: rgba(21, 128, 61, 0.045);       --row-edge: var(--green); }
+  .item.row-s-tested_fail { --row-tint: rgba(212, 0, 0, 0.05);          --row-edge: var(--hot); }
+  .item.row-s-wont_do     { --row-tint: rgba(10, 10, 10, 0.03);         --row-edge: var(--ink-4); }
+
+  /* Line-mode row tinting — subtler, just a left edge stripe */
+  .item.line {
+    --row-edge: transparent;
+    box-shadow: inset 4px 0 0 var(--row-edge);
+  }
+  .item.line.row-s-in_flight   { box-shadow: inset 3px 0 0 var(--orange); }
+  .item.line.row-s-shipped     { box-shadow: inset 3px 0 0 var(--accent); }
+  .item.line.row-s-tested_pass { box-shadow: inset 3px 0 0 var(--green); }
+  .item.line.row-s-tested_fail { box-shadow: inset 3px 0 0 var(--hot); }
+  .item.line.row-s-wont_do     { box-shadow: inset 3px 0 0 var(--ink-4); opacity: 0.7; }
+  .item.line.row-s-open        { box-shadow: inset 3px 0 0 var(--line); }
+  .item.line:hover {
+    background: var(--row-tint, rgba(29, 62, 239, 0.025));
   }
 
   .item-row {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
+    gap: 16px;
   }
   .item-pillstack {
     display: flex;
@@ -560,18 +667,18 @@
     width: 140px;
     padding-top: 1px;
   }
-  .item-main { flex: 1; min-width: 0; padding-top: 0; }
+  .item-main { flex: 1; min-width: 0; padding-top: 2px; display: flex; flex-direction: column; gap: 12px; }
   .item-title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
-    line-height: 1.4;
+    line-height: 1.45;
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.012em;
     outline: none;
     cursor: text;
-    padding: 1px 4px;
-    margin-left: -4px;
-    border-radius: 4px;
+    padding: 2px 6px;
+    margin-left: -6px;
+    border-radius: 5px;
   }
   .item-title:focus { background: #fff7c2; box-shadow: 0 0 0 2px #fff7c2; }
   .item-title:empty:before { content: "Untitled"; color: var(--ink-4); }
@@ -579,12 +686,13 @@
   .item-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
     font-family: "Geist", sans-serif;
     font-size: 13px;
     color: var(--ink-2);
-    margin-top: 8px;
+    margin-top: 0;
     font-weight: 500;
+    align-items: center;
   }
   .item-meta .meta-item { display: inline-flex; align-items: center; gap: 5px; }
   .item-meta .commit { font-family: "Geist Mono", monospace; font-weight: 600; color: var(--ink); }
@@ -596,9 +704,23 @@
   }
   .item-meta .notes-link:hover { text-decoration: underline; }
   .item-meta .notes-link.has-unresolved { color: var(--hot); }
-  .item-meta .attach-link { color: var(--ink-3); cursor: pointer; user-select: none; font-weight: 600; }
+  .item-meta .attach-link { color: var(--ink-3); cursor: pointer; user-select: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: color 0.1s; }
   .item-meta .attach-link:hover { color: var(--ink); }
   .item-meta .attach-link.has-files { color: var(--accent); font-weight: 700; }
+  /* SVG icons inside meta links — inherit currentColor, sit nicely with text */
+  .item-meta .attach-link svg,
+  .item-meta .notes-link svg {
+    flex-shrink: 0;
+    transition: transform 0.1s;
+  }
+  .item-meta .attach-link:hover svg,
+  .item-meta .notes-link:hover svg { transform: scale(1.08); }
+  .item-meta .ico-count {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
 
   /* Attachments — thumbnail strip + drag-drop zone */
   .attachments-section {
@@ -626,9 +748,11 @@
   }
   .att-thumb:hover { border-color: var(--ink); transform: scale(1.05); }
   .att-thumb img, .att-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .att-thumb.is-file { background: var(--paper); flex-direction: column; padding: 4px; gap: 2px; }
-  .att-thumb.is-file .att-icon { font-size: 22px; line-height: 1; }
-  .att-thumb.is-file .att-name { font-family: "Geist Mono", ui-monospace, monospace; font-size: 7.5px; font-weight: 600; line-height: 1.1; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); }
+  .att-thumb.is-file { background: white; flex-direction: column; padding: 6px 4px; gap: 4px; color: var(--ink-2); }
+  .att-thumb.is-file:hover { color: var(--accent); }
+  .att-thumb.is-file .att-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+  .att-thumb.is-file .att-icon svg { display: block; }
+  .att-thumb.is-file .att-name { font-family: "Geist Mono", ui-monospace, monospace; font-size: 8px; font-weight: 600; line-height: 1.15; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); letter-spacing: 0.02em; }
   .att-thumb.is-video::after {
     content: "▶";
     position: absolute;
@@ -704,7 +828,7 @@
     line-height: 0;
     font-size: 22px;
     font-weight: 700;
-    transition: all 0.15s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
   }
   .icon-btn:hover { background: var(--paper); color: var(--ink); }
   .icon-btn.danger:hover { background: var(--hot); color: white; }
@@ -770,11 +894,11 @@
   }
   .pill:hover { transform: translateY(-2px); box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
   .pill:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,0.15); }
-  .pill.cycling { animation: pillCycle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .pill.cycling { animation: pillCycle 0.18s ease-out; }
   @keyframes pillCycle {
-    0% { transform: scale(1) rotate(0); }
-    40% { transform: scale(1.15) rotate(-3deg); }
-    100% { transform: scale(1) rotate(0); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
   }
   .pill .dot {
     width: 8px;
@@ -830,7 +954,7 @@
     background: linear-gradient(180deg, #fffbeb 0%, #fef9c3 100%);
     border: 2px solid #facc15;
     border-radius: 12px;
-    animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideDown 0.15s ease-out;
   }
   .checklist-hdr {
     display: flex;
@@ -885,14 +1009,14 @@
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.14s ease-out, background 0.14s, border-color 0.14s;
     margin-top: 1px;
   }
   .checklist-row input[type="checkbox"]:hover { transform: scale(1.05); border-color: var(--green); }
   .checklist-row input[type="checkbox"]:checked {
     background: var(--green);
     border-color: var(--green);
-    animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: checkPop 0.22s ease-out;
   }
   .checklist-row input[type="checkbox"]:checked::after {
     content: "✓";
@@ -925,7 +1049,7 @@
     height: 100%;
     background: linear-gradient(90deg, #facc15 0%, var(--green) 100%);
     border-radius: 999px;
-    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: width 0.22s ease-out;
   }
 
   /* === CATEGORY TAG === */
@@ -956,7 +1080,7 @@
     background: var(--paper);
     border: 2px solid var(--line);
     border-radius: 12px;
-    animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideDown 0.15s ease-out;
   }
   @keyframes slideDown {
     from { opacity: 0; transform: translateY(-8px); }
@@ -984,19 +1108,19 @@
     background: white;
     cursor: pointer;
     position: relative;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.14s ease-out, background 0.14s, border-color 0.14s;
   }
   .note input[type="checkbox"]:hover { transform: scale(1.05); border-color: var(--green); }
   .note input[type="checkbox"]:checked {
     background: var(--green);
     border-color: var(--green);
     transform: scale(1);
-    animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: checkPop 0.22s ease-out;
   }
   @keyframes checkPop {
     0% { transform: scale(1); }
-    40% { transform: scale(1.3) rotate(-5deg); }
-    100% { transform: scale(1) rotate(0); }
+    50% { transform: scale(1.18); }
+    100% { transform: scale(1); }
   }
   .note input[type="checkbox"]:checked::after {
     content: "✓";
@@ -1051,7 +1175,7 @@
     font-weight: 700;
     cursor: pointer;
     border-radius: 8px;
-    transition: all 0.15s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
   }
   .note-add-btn:hover { background: var(--green); }
   .note-add-btn:active { transform: scale(0.94); }
@@ -1077,9 +1201,9 @@
     width: 100%;
     max-width: 500px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    animation: pop 0.2s cubic-bezier(0.16,1,0.3,1);
+    animation: pop 0.13s ease-out;
   }
-  @keyframes pop { from { transform: scale(0.96) translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes pop { from { transform: scale(0.97) translateY(4px); opacity: 0; } to { transform: none; opacity: 1; } }
   .modal h3 {
     font-family: "Geist", sans-serif;
     font-size: 28px;
@@ -1129,7 +1253,7 @@
     font-weight: 700;
     cursor: pointer;
     border: 2px solid var(--ink);
-    transition: all 0.15s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
   }
   .btn-secondary { background: white; color: var(--ink); }
   .btn-secondary:hover { background: var(--paper); }
@@ -1149,7 +1273,7 @@
     height: 100%;
     background: white;
     border-radius: 999px;
-    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: width 0.3s ease-out;
     box-shadow: 0 0 12px rgba(255,255,255,0.5);
   }
   .progress-deal { display: block; }
@@ -1272,26 +1396,735 @@
     border: 1px solid var(--line); border-radius: 6px; background: white;
   }
 
-  /* === MOBILE === */
+  /* === DENSITY SEGMENTED + GROUP-BY (filterbar controls) === */
+  .density-seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 2px;
+    background: white;
+    gap: 0;
+  }
+  .density-seg button {
+    background: transparent;
+    border: 0;
+    color: var(--ink-3);
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1;
+  }
+  .density-seg button:hover { color: var(--ink); }
+  .density-seg button.is-active {
+    background: var(--ink);
+    color: white;
+  }
+  .density-seg .seg-icon {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0.85;
+  }
+
+  /* === LINE MODE — single tight row, paper not grid === */
+  .item.line {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.08s;
+  }
+  .item.line:hover {
+    background: rgba(29, 62, 239, 0.025);
+  }
+  .item.line:last-child { border-bottom: 0; }
+  .item.line .item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 6px;
+    min-height: 36px;
+    position: relative;
+  }
+  .item.line.is-selected {
+    box-shadow: inset 3px 0 0 var(--ink);
+  }
+  .item.line .reorder-col { display: none; }
+  .item.line .item-pillstack {
+    flex-direction: row;
+    width: auto;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  /* Compact status as a colored dot, not a full pill */
+  .item.line .pill {
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border-radius: 50%;
+    border: 0;
+    box-shadow: none;
+    overflow: hidden;
+    text-indent: -9999px;
+    flex-shrink: 0;
+    background-clip: content-box;
+  }
+  .item.line .pill .dot { display: none; }
+  .item.line .cat { display: none; }
+  /* Line mode: title + meta-row inline (row direction), left-aligned */
+  .item.line .item-main { padding: 0; min-width: 0; flex: 1; display: flex; flex-direction: row; align-items: center; gap: 14px; }
+  .item.line .item-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 0;
+    padding: 1px 4px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .item.line .item-title:focus { background: var(--paper); white-space: normal; overflow: visible; text-overflow: clip; }
+  .item.line .item-meta {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    align-items: center;
+    flex-shrink: 0;
+  }
+  /* In line mode hide the chatty meta items, keep only the essentials */
+  .item.line .item-meta .source-link,
+  .item.line .item-meta .commit,
+  .item.line .item-meta > .meta-item:not(.notes-link):not(.attach-link),
+  .item.line .item-meta .delivered-badge {
+    display: none;
+  }
+  .item.line .version-chip { font-size: 10px; padding: 1px 6px; }
+  .item.line .assignee-select { font-size: 10.5px; padding: 1px 4px; max-width: 160px; }
+  .item.line .notes-link, .item.line .attach-link { font-size: 11px; }
+  .item.line .actions-always { flex-shrink: 0; }
+  .item.line .lifecycle { gap: 1px; }
+  .item.line .lc-step { width: 18px; height: 18px; font-size: 9px; }
+  .item.line .lc-sep { width: 4px; }
+  .item.line .item-actions { opacity: 0; }
+  .item.line:hover .item-actions { opacity: 1; }
+  .item.line .icon-btn {
+    width: 22px; height: 22px; font-size: 14px;
+    background: transparent; border: 0; color: var(--ink-3); cursor: pointer; border-radius: 4px;
+  }
+  .item.line .icon-btn:hover { background: var(--paper); color: var(--hot); }
+  .item.line .drag-handle { font-size: 12px; padding: 0 1px; }
+  /* Hide attachments thumb-strip when line mode is collapsed; show in drawer instead */
+  .item.line:not(.is-expanded) .attachments-section,
+  .item.line:not(.is-expanded) .checklist-wrap,
+  .item.line:not(.is-expanded) .context-panel,
+  .item.line:not(.is-expanded) .notes-section { display: none; }
+
+  /* Per-row chevron expand toggle (▸ closed, ▾ open) */
+  .row-toggle {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+  }
+  .row-chev {
+    display: inline-block;
+    font-family: "Geist Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    transition: transform 0.16s ease-out;
+    transform: translateY(-1px);
+  }
+  .row-toggle:hover { border-color: var(--line); color: var(--ink); background: var(--paper); }
+  .row-toggle.is-open .row-chev { transform: rotate(90deg) translateX(-1px); }
+  .row-toggle.is-open { color: var(--ink); }
+
+  /* === DRAWER — editorial expanded view (paper + ink + electric blue) === */
+  .row-drawer {
+    position: relative;
+    padding: 18px 22px 22px 28px;
+    background: linear-gradient(180deg, #faf8f3 0%, #f5f3ef 100%);
+    border-bottom: 1px solid var(--line);
+    animation: drawerSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+  /* Left accent bar — visually ties the drawer to its parent row */
+  .row-drawer::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0.85;
+  }
+  .item.line.is-expanded { background: rgba(29, 62, 239, 0.025); }
+  .item.line.is-expanded .row-drawer { display: block; }
+  @keyframes drawerSlide {
+    from { opacity: 0; transform: translateY(-6px); max-height: 0; }
+    to   { opacity: 1; transform: translateY(0); max-height: 2000px; }
+  }
+
+  /* Two-column responsive grid: description spans full width on top,
+     then meta + attachments side by side, then notes full width */
+  .drawer-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-auto-flow: dense;
+    gap: 18px 22px;
+    align-items: start;
+  }
+  .drawer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .drawer-section.full { grid-column: 1 / -1; }
+  .drawer-section.right { grid-column: 2 / 3; }
+
+  .drawer-label {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .drawer-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+    opacity: 0.7;
+  }
+  .drawer-label .lbl-count {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-4);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Description — feels like a writing surface */
+  .drawer-desc {
+    font-family: "Geist", sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.6;
+    background: white;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    white-space: pre-wrap;
+    outline: none;
+    cursor: text;
+    min-height: 60px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .drawer-desc:hover { border-color: var(--ink-3); }
+  .drawer-desc:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(29, 62, 239, 0.1);
+  }
+  .drawer-desc:empty:before {
+    content: "Click to add a description…";
+    color: var(--ink-4);
+    font-style: italic;
+  }
+
+  /* Meta — clean key:value pairs in a quiet card */
+  .drawer-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 14px;
+    background: white;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    font-family: "Geist", sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    align-items: baseline;
+  }
+  .drawer-meta-key {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-4);
+    white-space: nowrap;
+  }
+  .drawer-meta-val { color: var(--ink); font-weight: 500; min-width: 0; word-break: break-word; }
+  .drawer-meta-val .pillette {
+    display: inline-block;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .drawer-meta-val .ico { font-size: 11px; margin-right: 3px; opacity: 0.7; }
+
+  /* Lifecycle row inside drawer — full-width strip */
+  .drawer-lifecycle {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .drawer-lifecycle .lc-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    min-width: 56px;
+  }
+  .drawer-lifecycle .lc-stage-name {
+    font-family: "Geist Mono", monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-4);
+  }
+  .drawer-lifecycle .lc-stage-date {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-3);
+    height: 12px;
+    line-height: 1;
+  }
+  .drawer-lifecycle .lc-arrow {
+    color: var(--ink-4);
+    font-size: 14px;
+    line-height: 1;
+    transform: translateY(-7px);
+  }
+
+  /* Source context — code-like, but soft */
+  .drawer-context {
+    background: #1a1a1a;
+    color: #e8e6e0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid #0a0a0a;
+  }
+
+  /* Attachments dropzone hint when empty */
+  .drawer-dropzone {
+    background: white;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    text-align: center;
+    color: var(--ink-4);
+    font-size: 12.5px;
+    font-family: "Geist", sans-serif;
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+  .drawer-dropzone:hover { border-color: var(--accent); color: var(--accent); background: rgba(29, 62, 239, 0.025); }
+  .drawer-dropzone .dz-icon { font-size: 18px; display: block; margin-bottom: 4px; opacity: 0.6; }
+
+  /* Notes inside drawer — less padding, no double border */
+  .row-drawer .notes-section {
+    margin: 0;
+    padding: 12px 14px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    animation: none;
+  }
+  .row-drawer .note { padding: 10px 0; font-size: 13px; }
+  .row-drawer .note input[type="checkbox"] { width: 20px; height: 20px; border-width: 2px; }
+  .row-drawer .note-meta { font-size: 11px; }
+  .row-drawer .note-add { margin-top: 8px; }
+  .row-drawer .note-add-row {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .row-drawer .note-add-row input {
+    flex: 1;
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .row-drawer .note-add-row input:focus {
+    outline: 0;
+    border-color: var(--accent);
+    background: white;
+  }
+  .row-drawer .note-add-btn {
+    padding: 8px 16px;
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--ink);
+    color: white;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.08s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .row-drawer .note-add-btn:hover { background: var(--accent); }
+  .row-drawer .note-add-btn:active { transform: scale(0.97); }
+
+  /* Mobile: collapse drawer grid to single column */
   @media (max-width: 720px) {
-    .wrap { padding: 24px 16px 80px; }
-    .masthead { flex-direction: column; align-items: flex-start; gap: 18px; padding-bottom: 20px; margin-bottom: 22px; }
-    h1.masthead-title { font-size: 48px; }
-    .brief { grid-template-columns: repeat(2, 1fr); }
-    .brief-num { font-size: 32px; }
-    .brief-label { font-size: 11px; }
-    .deal-name { font-size: 18px; }
-    .item-row { gap: 10px; }
-    .item-pillstack { width: 130px; }
-    .item-title { font-size: 15px; }
-    .notes-section { margin-left: 0; }
-    .item-actions { opacity: 1; }
+    .row-drawer { padding: 14px 14px 16px 18px; }
+    .drawer-grid { grid-template-columns: 1fr; gap: 14px; }
+    .drawer-section.right { grid-column: 1 / -1; }
+    .drawer-meta { grid-template-columns: 1fr; gap: 4px; }
+    .drawer-meta-key { margin-top: 4px; }
+  }
+
+  /* === ADD-ITEM ROW (sits at the bottom of every group) === */
+  .add-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-top: 1px dashed var(--line);
+    color: var(--ink-4);
+    font-family: "Geist", sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 10px 12px 10px 6px;
+    margin-top: 2px;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.1s, background 0.1s, border-color 0.1s;
+    border-radius: 0;
+  }
+  .add-row-btn:hover {
+    color: var(--accent);
+    background: rgba(29, 62, 239, 0.025);
+    border-top-color: var(--accent);
+  }
+  .add-row-plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* === GENERIC GROUP HEADER (used when groupBy is not "project") === */
+  .group-section { margin-bottom: 28px; }
+  .group-hd {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 6px 8px;
+    border-bottom: 1.5px solid var(--ink);
+    margin-bottom: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .group-hd:hover { background: rgba(0,0,0,0.02); }
+  .group-chev {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-3);
+    transition: transform 0.16s ease-out;
+    width: 14px;
+    line-height: 1;
+  }
+  .group-section.collapsed .group-chev { transform: rotate(-90deg); }
+  .group-section.collapsed .group-body { display: none; }
+  .group-tag {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: white;
+    background: var(--group-color, var(--ink));
+    padding: 3px 9px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+  .group-name {
+    font-family: "Geist", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    flex: 1;
+    letter-spacing: -0.01em;
+  }
+  .group-count {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+  }
+  .group-body { padding-top: 4px; }
+
+  /* === TABLET (≤960) === */
+  @media (max-width: 960px) {
+    .wrap { padding: 12px 18px 64px; }
+    .item-pillstack { width: 120px; gap: 4px; }
+    .att-thumb { width: 52px; height: 52px; }
+    .attachments-section { padding-left: 0; gap: 5px; }
+  }
+
+  /* === MOBILE (≤720) === */
+  @media (max-width: 720px) {
+    /* Sticky role banner — collapsed for thumb-friendly layout */
+    #role-banner {
+      padding: 6px 14px !important;
+      font-size: 10px !important;
+      gap: 8px !important;
+      flex-wrap: wrap;
+    }
+    #role-banner > span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .wrap { padding: 12px 14px 80px; }
+
+    /* Masthead — keep tight, just shrink */
+    .masthead { gap: 8px; padding-bottom: 8px; margin-bottom: 12px; }
+    .masthead-left { gap: 8px; flex-wrap: wrap; }
+    h1.masthead-title { font-size: 15px; }
+    #masthead-progress { font-size: 10px; }
+    .add-btn { padding: 8px 14px; font-size: 12px; }
+
+    /* Brief ribbon — horizontally scrollable on phone, no wrap */
+    .brief {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 4px 0;
+      font-size: 10px;
+    }
+    .brief::-webkit-scrollbar { display: none; }
+    .brief-cell { flex-shrink: 0; padding: 3px 10px 3px 0; margin-right: 3px; }
+    .brief-cell:not(:last-child)::after { margin-left: 10px; }
+    .brief-num { font-size: 12px; }
+    .brief-label { font-size: 9px; }
+
+    /* Filter bar — search full width, selects wrap below */
+    .filterbar { gap: 8px; margin-bottom: 16px; }
+    .search-wrap { flex: 1 1 100%; min-width: 0; }
+    .search-wrap input { font-size: 16px; padding: 10px 32px 10px 12px; } /* 16px stops iOS auto-zoom */
+    .filter-select { font-size: 13px; padding: 8px 26px 8px 10px; flex: 1 1 auto; min-width: 0; }
+    .bulk-toggle, .filter-reset { font-size: 12px; padding: 7px 10px; }
+
+    /* Deal sections */
+    .deal-name { font-size: 17px; }
     .deal-mini { display: none; }
+
+    /* Item rows — pillstack collapses to a row above the title */
+    .item-row { flex-direction: column; gap: 8px; }
+    .item-pillstack {
+      flex-direction: row;
+      width: 100%;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .item-main { width: 100%; }
+    .item-title { font-size: 15px; line-height: 1.35; }
+    .item-meta { font-size: 12px; gap: 10px; margin-top: 6px; }
+    .notes-section { margin-left: 0; }
+    .item-actions { opacity: 1; } /* always show on touch */
+
+    /* Lifecycle — slightly smaller on phone */
+    .lifecycle { gap: 2px; }
+    .lc-step { width: 22px; height: 22px; font-size: 10px; }
+
+    /* Attachments — tighter */
+    .att-thumb { width: 48px; height: 48px; }
+    .att-thumb.is-file .att-icon { font-size: 18px; }
+    .att-thumb.is-file .att-name { font-size: 7px; }
+    .att-del { width: 18px; height: 18px; font-size: 12px; display: flex; } /* always visible on touch */
+
+    /* Modals — full width with breathing room */
+    .modal-card { max-width: calc(100vw - 24px); margin: 12px; padding: 16px; }
+    .modal-head h2 { font-size: 18px; }
+
+    /* Add-item form */
+    .add-form input, .add-form select, .add-form textarea { font-size: 16px; } /* no iOS zoom */
+  }
+
+  /* === CONFIRM DIALOG (custom, fast, branded) === */
+  .confirm-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(10, 10, 10, 0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 1000;
+    animation: fadein 0.1s ease-out;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .confirm-backdrop.open { display: flex; }
+  .confirm-card {
+    background: white;
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+    width: 100%;
+    max-width: 380px;
+    margin: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+    animation: pop 0.13s ease-out;
+    border: 1px solid var(--line);
+  }
+  .confirm-card h3 {
+    font-family: "Geist", sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .confirm-card p {
+    font-family: "Geist", sans-serif;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    margin: 0 0 18px;
+  }
+  .confirm-card .target {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--paper);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    margin: -6px 0 16px;
+    word-break: break-word;
+    max-height: 80px;
+    overflow: auto;
+  }
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .confirm-btn {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: white;
+    color: var(--ink-2);
+    transition: background 0.1s, border-color 0.1s, transform 0.08s;
+  }
+  .confirm-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .confirm-btn:active { transform: scale(0.97); }
+  .confirm-btn.danger {
+    background: var(--hot);
+    color: white;
+    border-color: var(--hot);
+  }
+  .confirm-btn.danger:hover { background: #b30000; border-color: #b30000; color: white; }
+
+  /* === ACCESSIBILITY — respect reduced motion preference === */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* === PHONE (≤480) — ultra-compact === */
+  @media (max-width: 480px) {
+    .wrap { padding: 10px 10px 80px; }
+    h1.masthead-title { font-size: 14px; }
+    .add-btn { padding: 7px 12px; font-size: 11px; }
+    .add-btn .plus { font-size: 13px; }
+    .deal-name { font-size: 16px; }
+    .item { padding: 12px; }
+    .item-title { font-size: 14px; }
+    .lc-step { width: 20px; height: 20px; font-size: 9.5px; }
+    .att-thumb { width: 44px; height: 44px; }
   }
 </style>
 </head>
 <body>
   <div id="role-banner" style="position:sticky;top:0;z-index:100;background:#0a0a0a;color:#f0f0f0;padding:8px 28px;font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;gap:12px;"><span>Loading…</span></div>
+
+  <!-- Custom confirm dialog (replaces native confirm()) -->
+  <div id="confirm-backdrop" class="confirm-backdrop" onclick="if(event.target===this)confirmCancel()">
+    <div class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h3 id="confirm-title">Confirm</h3>
+      <p id="confirm-message">Are you sure?</p>
+      <div id="confirm-target" class="target" style="display:none;"></div>
+      <div class="confirm-actions">
+        <button type="button" class="confirm-btn" onclick="confirmCancel()" id="confirm-cancel">Cancel</button>
+        <button type="button" class="confirm-btn danger" onclick="confirmOk()" id="confirm-ok">Delete</button>
+      </div>
+    </div>
+  </div>
   <div class="wrap">
     <header class="masthead">
       <div class="masthead-left">
@@ -1441,10 +2274,10 @@ async function loadCurrentUser() {
     if (banner) {
       const role = CURRENT_USER.role || "developer";
       const roleLabel = role === "owner" ? "OWNER" : role === "developer" ? "DEVELOPER" : role.toUpperCase();
-      const isAdmin = role === "owner" || role === "admin";
       const displayId = CURRENT_USER.email || CURRENT_USER.username;
-      banner.innerHTML = `<span>${CURRENT_USER.name ? CURRENT_USER.name + ' <span style="opacity:.4">·</span> ' : ''}<span style="opacity:.7">${displayId}</span> <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span><span style="display:flex;gap:14px;align-items:center;">${isAdmin ? `<button onclick="openUsersModal()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Manage developers</button>` : ""}<button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button></span>`;
-      if (isAdmin) loadUsers();
+      // Single tracker — every signed-in user gets full controls
+      banner.innerHTML = `<span>${CURRENT_USER.name ? CURRENT_USER.name + ' <span style="opacity:.4">·</span> ' : ''}<span style="opacity:.7">${displayId}</span> <span style="opacity:.5">·</span> <strong>${roleLabel}</strong></span><span style="display:flex;gap:14px;align-items:center;"><button onclick="openUsersModal()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Manage developers</button><button onclick="devLogout()" style="background:transparent;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Log out</button></span>`;
+      loadUsers();
     }
   } catch (e) {
     console.error("auth check failed", e);
@@ -1536,7 +2369,13 @@ async function resetUserPassword(id, username) {
   alert("Password reset for " + username + ". New password: " + pwd);
 }
 async function deleteUser(id, username) {
-  if (!confirm("Delete user '" + username + "'? Their items will be unassigned. Cannot undo.")) return;
+  const ok = await confirmDialog({
+    title: "Delete user?",
+    message: "Their items will be unassigned. This can't be undone.",
+    target: username,
+    okLabel: "Delete user",
+  });
+  if (!ok) return;
   try {
     const r = await apiFetch("/api/dev-tracker/users/" + id, { method: "DELETE" });
     if (!r.ok) { const e = await r.json(); return alert("Error: " + (e.error || "delete failed")); }
@@ -1581,19 +2420,60 @@ let collapsed = JSON.parse(localStorage.getItem("qa-collapsed") || "{}");
 let expandedNotes = new Set();
 let expandedContext = new Set();
 let pendingFlash = new Set(); // item IDs to flash after next render
+// Per-row drawer-open state (line mode only). Persists across reloads.
+let expandedRows = new Set(JSON.parse(localStorage.getItem("qa-expanded-rows") || "[]"));
+function saveExpandedRows() {
+  localStorage.setItem("qa-expanded-rows", JSON.stringify([...expandedRows]));
+}
 
-// Filter state (persisted)
-const DEFAULT_FILTERS = { status: "all", version: "all", deal: "all", category: "all", search: "" };
+// Filter state (persisted) — includes density and grouping for full session memory
+const DEFAULT_FILTERS = {
+  status: "all",
+  version: "all",
+  deal: "all",
+  category: "all",
+  search: "",
+  density: "line",     // "line" | "card" | "open"
+  groupBy: "project",  // "project" | "version" | "status" | "assignee" | "category" | "lifecycle" | "month" | "none"
+};
 let filters = { ...DEFAULT_FILTERS, ...(JSON.parse(localStorage.getItem("qa-filters") || "{}")) };
+// Migrate any legacy keys: ensure new defaults exist if loaded from older storage
+if (!filters.density) filters.density = "line";
+if (!filters.groupBy) filters.groupBy = "project";
 let bulkMode = false;
 let selected = new Set();
 function saveFilters() { localStorage.setItem("qa-filters", JSON.stringify(filters)); }
 
-async function load() {
-  const r = await apiFetch("/api/dev-tracker/items");
-  projects = await r.json();
-  document.getElementById("project-list").innerHTML = Object.keys(projects).map(k => `<option value="${k}">`).join("");
-  render();
+// Cheap diff hash — skips render if API payload unchanged.
+// Includes only fields that change (status, lifecycle, notes count, attachment count).
+let _lastPayloadHash = null;
+function payloadFingerprint(projects) {
+  const parts = [];
+  for (const k of Object.keys(projects).sort()) {
+    for (const it of projects[k]) {
+      parts.push(it.id + ":" + it.status + ":" + (it.delivered_at||"") + ":" + (it.invoiced_at||"") + ":" + (it.paid_at||"") + ":" + (it.assignee||"") + ":" + (it.notes?.length||0) + ":" + (it.attachments?.length||0) + ":" + (it.updated_at||""));
+    }
+  }
+  return parts.join("|");
+}
+async function load(force) {
+  try {
+    const r = await apiFetch("/api/dev-tracker/items");
+    const next = await r.json();
+    // Hash includes density/groupBy/expandedRows so polling never wipes a drawer
+    const hash = payloadFingerprint(next) + "|d=" + filters.density + "|g=" + filters.groupBy + "|e=" + expandedRows.size;
+    // Skip re-render if nothing meaningful changed and no flash is queued
+    if (!force && hash === _lastPayloadHash && pendingFlash.size === 0) {
+      projects = next; // still update reference for actions
+      return;
+    }
+    _lastPayloadHash = hash;
+    projects = next;
+    document.getElementById("project-list").innerHTML = Object.keys(projects).map(k => `<option value="${k}">`).join("");
+    render();
+  } catch (e) {
+    console.warn("load failed:", e);
+  }
 }
 async function patchItem(id, body) {
   pendingFlash.add(id);
@@ -1601,16 +2481,30 @@ async function patchItem(id, body) {
   load();
 }
 async function deleteItem(id) {
-  if (!confirm("Delete this item?")) return;
+  // Find item to show its title in the dialog
+  const item = Object.values(projects).flat().find(x => x.id === id);
+  const ok = await confirmDialog({
+    title: "Delete item?",
+    message: "This permanently removes the item and all its notes/attachments.",
+    target: item ? item.title : null,
+    okLabel: "Delete item",
+  });
+  if (!ok) return;
   // Fade out the element before refetch
   const el = document.querySelector(`[data-item-id="${id}"]`);
   if (el) {
-    el.style.transition = "opacity 0.2s, transform 0.2s";
+    el.style.transition = "opacity 0.12s, transform 0.12s";
     el.style.opacity = "0";
-    el.style.transform = "translateX(-20px)";
+    el.style.transform = "translateX(-12px)";
   }
-  await apiFetch("/api/dev-tracker/items/" + id, { method: "DELETE" });
-  setTimeout(load, 180);
+  const r = await apiFetch("/api/dev-tracker/items/" + id, { method: "DELETE" });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    alert("Delete failed: " + (e.error || r.statusText));
+    if (el) { el.style.opacity = "1"; el.style.transform = "none"; }
+    return;
+  }
+  setTimeout(load, 110);
 }
 async function addNote(itemId, text) {
   if (!text.trim()) return;
@@ -1628,16 +2522,58 @@ function cycleStatus(id, current, btn) {
   patchItem(id, { status: STATUS_FLOW[current] });
 }
 
+// === Custom confirm dialog (Promise-based, replaces native confirm()) ===
+let _confirmResolve = null;
+function confirmDialog({ title = "Confirm", message = "Are you sure?", target = null, okLabel = "Delete", okIsDanger = true } = {}) {
+  return new Promise((resolve) => {
+    _confirmResolve = resolve;
+    document.getElementById("confirm-title").textContent = title;
+    document.getElementById("confirm-message").textContent = message;
+    const tgt = document.getElementById("confirm-target");
+    if (target) { tgt.textContent = target; tgt.style.display = "block"; } else { tgt.style.display = "none"; }
+    const okBtn = document.getElementById("confirm-ok");
+    okBtn.textContent = okLabel;
+    okBtn.classList.toggle("danger", okIsDanger);
+    document.getElementById("confirm-backdrop").classList.add("open");
+    setTimeout(() => okBtn.focus(), 30);
+  });
+}
+function confirmOk() {
+  document.getElementById("confirm-backdrop").classList.remove("open");
+  if (_confirmResolve) { _confirmResolve(true); _confirmResolve = null; }
+}
+function confirmCancel() {
+  document.getElementById("confirm-backdrop").classList.remove("open");
+  if (_confirmResolve) { _confirmResolve(false); _confirmResolve = null; }
+}
+// Esc closes dialog
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.getElementById("confirm-backdrop").classList.contains("open")) confirmCancel();
+  if (e.key === "Enter" && document.getElementById("confirm-backdrop").classList.contains("open")) { e.preventDefault(); confirmOk(); }
+});
+
 // === Attachments (drag-drop upload, thumbnails, delete) ===
+// Inline SVG icon system — clean line-art, currentColor, 1.5px stroke (Lucide-style)
+const ICON = {
+  paperclip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="m21.44 11.05-9.19 9.19a6 6 0 1 1-8.49-8.49l9.19-9.19a4 4 0 1 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>',
+  message:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  image:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+  video:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4z"/></svg>',
+  audio:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  pdf:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h1.5a1.5 1.5 0 0 1 0 3H9z"/><path d="M14 13v3h2"/></svg>',
+  zip:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 11v1"/><path d="M10 15v1"/><path d="M10 19v1"/></svg>',
+  text:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>',
+  file:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+};
 function fileIconFor(mime) {
-  if (!mime) return "📄";
-  if (mime.startsWith("image/")) return "🖼";
-  if (mime.startsWith("video/")) return "🎬";
-  if (mime.startsWith("audio/")) return "🎵";
-  if (mime.includes("pdf")) return "📕";
-  if (mime.includes("zip") || mime.includes("tar") || mime.includes("gzip")) return "🗜";
-  if (mime.includes("text/") || mime.includes("json") || mime.includes("xml")) return "📝";
-  return "📄";
+  if (!mime) return ICON.file;
+  if (mime.startsWith("image/")) return ICON.image;
+  if (mime.startsWith("video/")) return ICON.video;
+  if (mime.startsWith("audio/")) return ICON.audio;
+  if (mime.includes("pdf")) return ICON.pdf;
+  if (mime.includes("zip") || mime.includes("tar") || mime.includes("gzip")) return ICON.zip;
+  if (mime.includes("text/") || mime.includes("json") || mime.includes("xml")) return ICON.text;
+  return ICON.file;
 }
 function renderAttachments(it) {
   const atts = it.attachments || [];
@@ -1646,8 +2582,8 @@ function renderAttachments(it) {
     ${atts.map(a => {
       const isImg = (a.mime_type || "").startsWith("image/");
       const isVid = (a.mime_type || "").startsWith("video/");
-      const isAdmin = CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin");
-      const canDelete = isAdmin || (CURRENT_USER && a.uploaded_by === CURRENT_USER.username);
+      // Single tracker — anyone signed in can delete attachments
+      const canDelete = !!CURRENT_USER;
       const tooltip = `${a.filename}${a.size_bytes ? ' · ' + Math.round(a.size_bytes/1024) + 'KB' : ''}${a.uploaded_by ? ' · @' + a.uploaded_by : ''}`;
       const thumb = isImg
         ? `<img src="${a.public_url}" alt="${escapeHtml(a.filename)}" loading="lazy" />`
@@ -1687,7 +2623,12 @@ async function uploadAttachments(itemId, fileList) {
   }
 }
 async function deleteAttachment(attId, itemId) {
-  if (!confirm("Delete this attachment?")) return;
+  const ok = await confirmDialog({
+    title: "Delete attachment?",
+    message: "The file will be removed from this item.",
+    okLabel: "Delete",
+  });
+  if (!ok) return;
   try {
     const r = await apiFetch("/api/dev-tracker/attachments/" + attId, { method: "DELETE" });
     if (!r.ok) { alert("Delete failed"); return; }
@@ -1696,14 +2637,31 @@ async function deleteAttachment(attId, itemId) {
   } catch (e) { alert("Error: " + e.message); }
 }
 
-// Wire drag-and-drop on every item row (idempotent — re-attaches after each render)
+// Wire FILE drag-and-drop on every item row (for attachment upload).
+// Idempotent — re-attaches after each render. Only triggers for file drags
+// (checked via dataTransfer.types) so it doesn't interfere with row-reorder drag.
 function wireDragDrop() {
   document.querySelectorAll(".item[data-item-id]").forEach(el => {
     if (el.__ddWired) return;
     el.__ddWired = true;
-    el.addEventListener("dragover", (e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; el.classList.add("is-dragover"); });
-    el.addEventListener("dragleave", () => el.classList.remove("is-dragover"));
+    const isFileDrag = (e) => {
+      const types = e.dataTransfer && e.dataTransfer.types;
+      if (!types) return false;
+      // Files appear as "Files" in the types list
+      return Array.from(types).includes("Files");
+    };
+    el.addEventListener("dragover", (e) => {
+      if (!isFileDrag(e)) return; // let row-reorder handlers manage this
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      el.classList.add("is-dragover");
+    });
+    el.addEventListener("dragleave", (e) => {
+      if (!isFileDrag(e)) return;
+      el.classList.remove("is-dragover");
+    });
     el.addEventListener("drop", (e) => {
+      if (!isFileDrag(e)) return;
       e.preventDefault();
       el.classList.remove("is-dragover");
       const itemId = el.getAttribute("data-item-id");
@@ -1721,7 +2679,8 @@ function fmtDateShort(d) {
   return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 function renderLifecycle(it) {
-  const isAdmin = CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin");
+  // Single tracker — anyone signed in can update lifecycle stages
+  const isAdmin = !!CURRENT_USER;
   // Shipped is derived from status (status==="shipped" or deployed_at is set) — admin can't toggle here, that's the status pill's job
   const shippedOn = it.deployed_at || (it.status === "shipped" || it.status === "tested_pass") ? (it.deployed_at || true) : null;
   const steps = [
@@ -1742,7 +2701,12 @@ function renderLifecycle(it) {
 async function lifecycleClick(id, key, currentlyOn) {
   // Toggle off: set null. Toggle on: prompt for date (default today) and optional ref.
   if (currentlyOn) {
-    if (!confirm(`Clear ${key.replace('_at','')} timestamp?`)) return;
+    const ok = await confirmDialog({
+      title: "Clear lifecycle stage?",
+      message: `This will remove the ${key.replace('_at','')} timestamp from this item.`,
+      okLabel: "Clear",
+    });
+    if (!ok) return;
     return patchItem(id, { [key]: null });
   }
   // Setting on
@@ -1777,6 +2741,24 @@ function toggleNotes(itemId) {
 }
 function toggleContext(itemId) {
   if (expandedContext.has(itemId)) expandedContext.delete(itemId); else expandedContext.add(itemId);
+  render();
+}
+// Toggle per-row drawer in line mode (the +/− behavior)
+function toggleRow(itemId) {
+  if (expandedRows.has(itemId)) expandedRows.delete(itemId); else expandedRows.add(itemId);
+  saveExpandedRows();
+  render();
+}
+// Expand or collapse every visible row at once
+function expandAllRows() {
+  const all = Object.values(projects).flat().map(it => it.id);
+  all.forEach(id => expandedRows.add(id));
+  saveExpandedRows();
+  render();
+}
+function collapseAllRows() {
+  expandedRows.clear();
+  saveExpandedRows();
   render();
 }
 function refTypeIcon(t) {
@@ -1846,7 +2828,12 @@ async function bulkApplyCategory(c) { if (!c || selected.size===0) return; await
 async function bulkToggleCharged(val) { if (selected.size===0) return; await bulkPatch({ charged: val }); }
 async function bulkDelete() {
   if (selected.size===0) return;
-  if (!confirm(`Delete ${selected.size} item(s)? Cannot undo.`)) return;
+  const ok = await confirmDialog({
+    title: `Delete ${selected.size} item${selected.size===1?'':'s'}?`,
+    message: "Selected items and their notes/attachments will be permanently removed.",
+    okLabel: `Delete ${selected.size}`,
+  });
+  if (!ok) return;
   const ids = [...selected];
   await Promise.all(ids.map(id => apiFetch("/api/dev-tracker/items/" + id, { method: "DELETE" })));
   selected.clear();
@@ -1875,6 +2862,141 @@ async function reorderItem(id, direction) {
     apiFetch("/api/dev-tracker/items/" + swap.id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ sort_order: aOrder }) }),
   ]);
   load();
+}
+
+// === Drag-and-drop reordering (HTML5 native) ===
+// Drop within the same project+version → reorders by recomputing sort_order.
+// Drop into a different version's body → also moves item to that version (smart).
+let _dragSrcId = null;
+function onItemDragStart(e) {
+  const row = e.target.closest(".item");
+  if (!row) return;
+  _dragSrcId = row.dataset.itemId;
+  row.classList.add("dragging");
+  try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", _dragSrcId); } catch (_) {}
+}
+function onItemDragEnd(e) {
+  document.querySelectorAll(".item.dragging, .item.drag-over-top, .item.drag-over-bottom").forEach(el => {
+    el.classList.remove("dragging", "drag-over-top", "drag-over-bottom");
+  });
+  _dragSrcId = null;
+}
+function onItemDragOver(e) {
+  if (!_dragSrcId) return;
+  const row = e.target.closest(".item");
+  if (!row || row.dataset.itemId === _dragSrcId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  // Decide top vs bottom based on cursor Y
+  const rect = row.getBoundingClientRect();
+  const isTop = (e.clientY - rect.top) < rect.height / 2;
+  // Clear all hint classes first to keep it tidy
+  document.querySelectorAll(".item.drag-over-top, .item.drag-over-bottom").forEach(el => {
+    if (el !== row) el.classList.remove("drag-over-top", "drag-over-bottom");
+  });
+  row.classList.toggle("drag-over-top", isTop);
+  row.classList.toggle("drag-over-bottom", !isTop);
+}
+async function onItemDrop(e) {
+  if (!_dragSrcId) return;
+  const row = e.target.closest(".item");
+  if (!row || row.dataset.itemId === _dragSrcId) return;
+  e.preventDefault();
+  const targetId = row.dataset.itemId;
+  const isTop = row.classList.contains("drag-over-top");
+  const targetVersion = row.dataset.version;
+  const targetProject = row.dataset.project;
+  // Reset hint classes immediately
+  document.querySelectorAll(".item.drag-over-top, .item.drag-over-bottom, .item.dragging").forEach(el => {
+    el.classList.remove("drag-over-top", "drag-over-bottom", "dragging");
+  });
+  await dropReorder(_dragSrcId, targetId, isTop, targetProject, targetVersion);
+  _dragSrcId = null;
+}
+async function dropReorder(srcId, targetId, insertBefore, targetProject, targetVersion) {
+  const src = findItem(srcId);
+  const target = findItem(targetId);
+  if (!src || !target) return;
+  // Compute the new sort_order list for the destination bucket (same project+version as target).
+  const destBucket = (projects[targetProject] || [])
+    .filter(x => x.version === targetVersion && x.id !== srcId)
+    .sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0) || new Date(a.created_at) - new Date(b.created_at));
+  const targetIdx = destBucket.findIndex(x => x.id === targetId);
+  const insertIdx = insertBefore ? targetIdx : targetIdx + 1;
+  destBucket.splice(insertIdx, 0, src);
+  // Renumber sort_order at 10-step intervals so future inserts have room
+  const patches = destBucket.map((it, i) => {
+    const newOrder = (i + 1) * 10;
+    if (it.sort_order === newOrder && (it.id !== srcId || it.version === targetVersion)) return null;
+    const body = { sort_order: newOrder };
+    if (it.id === srcId && (it.version !== targetVersion || it.project !== targetProject)) {
+      body.version = targetVersion;
+      // Note: project change via drag is intentionally NOT supported (drag stays within a deal)
+    }
+    return apiFetch("/api/dev-tracker/items/" + it.id, {
+      method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body),
+    });
+  }).filter(Boolean);
+  pendingFlash.add(srcId);
+  if (patches.length) await Promise.all(patches);
+  load(true);
+}
+
+// === Per-item: change which release this item belongs to ===
+async function changeItemVersion(id, original, value, el) {
+  // Strip leading "v" or "V" the user may type, normalize whitespace
+  const next = (value || "").replace(/^v/i, "").trim();
+  if (!next) {
+    el.textContent = "v" + original;
+    return;
+  }
+  if (next === original) {
+    // Just normalize display (in case they typed "v2.5" → keep as "v2.5")
+    el.textContent = "v" + original;
+    return;
+  }
+  pendingFlash.add(id);
+  try {
+    const r = await apiFetch("/api/dev-tracker/items/" + id, {
+      method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ version: next }),
+    });
+    if (!r.ok) throw new Error("PATCH failed");
+    load(true);
+  } catch (e) {
+    alert("Couldn't move item to v" + next + ": " + e.message);
+    el.textContent = "v" + original;
+  }
+}
+
+// === Rename a whole release (header click) — patches every item in the group ===
+async function renameRelease(project, original, newValue, el) {
+  const next = (newValue || "").replace(/^v/i, "").trim();
+  if (!next || next === original) {
+    el.textContent = "v" + original;
+    return;
+  }
+  const items = (projects[project] || []).filter(x => x.version === original);
+  if (!items.length) { el.textContent = "v" + original; return; }
+  const ok = await confirmDialog({
+    title: "Rename release?",
+    message: `Move ${items.length} item${items.length===1?'':'s'} from v${original} to v${next}.`,
+    target: project,
+    okLabel: `Rename to v${next}`,
+    okIsDanger: false,
+  });
+  if (!ok) { el.textContent = "v" + original; return; }
+  items.forEach(it => pendingFlash.add(it.id));
+  try {
+    await Promise.all(items.map(it =>
+      apiFetch("/api/dev-tracker/items/" + it.id, {
+        method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ version: next }),
+      })
+    ));
+    load(true);
+  } catch (e) {
+    alert("Rename failed: " + e.message);
+    el.textContent = "v" + original;
+  }
 }
 
 function calcStats(items) {
@@ -1937,14 +3059,37 @@ function render() {
     </select>`;
   };
 
+  // Density segmented + Group By select
+  const densitySeg = `
+    <div class="density-seg" role="tablist" aria-label="Density">
+      <button class="${filters.density==='line'?'is-active':''}" onclick="setFilter('density','line')" title="Line — single-row scan view"><span class="seg-icon">≡</span> Line</button>
+      <button class="${filters.density==='card'?'is-active':''}" onclick="setFilter('density','card')" title="Card — full detail per row"><span class="seg-icon">▦</span> Card</button>
+      <button class="${filters.density==='open'?'is-active':''}" onclick="setFilter('density','open')" title="Open — every row's drawer pre-expanded"><span class="seg-icon">▤</span> Open</button>
+    </div>`;
+  const groupByOpts = [
+    ["project", "Group: Project"],
+    ["version", "Group: Release"],
+    ["status", "Group: Status"],
+    ["assignee", "Group: Assignee"],
+    ["category", "Group: Category"],
+    ["lifecycle", "Group: Lifecycle"],
+    ["month", "Group: Month"],
+    ["none", "No grouping"],
+  ];
+  const groupBySelect = `<select class="filter-select ${filters.groupBy!=='project'?'is-active':''}" onchange="setFilter('groupBy', this.value)" title="Group items by…">
+    ${groupByOpts.map(([v, lbl]) => `<option value="${v}" ${filters.groupBy===v?'selected':''}>${lbl}</option>`).join("")}
+  </select>`;
+
   document.getElementById("filter-rows").innerHTML = [
+    densitySeg,
+    groupBySelect,
     renderSelect("version", versionOpts),
     allDeals.length > 1 ? renderSelect("deal", dealOpts) : "",
     allCategories.length > 1 ? renderSelect("category", catOpts) : "",
   ].filter(Boolean).join("");
 
   // Toggle Reset visibility when any filter is active
-  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "";
+  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "" || filters.groupBy !== "project" || filters.density !== "line";
   document.getElementById("filter-reset").classList.toggle("visible", anyActive);
 
   // Apply filters
@@ -1963,26 +3108,158 @@ function render() {
     return true;
   };
 
-  // Deals — sort by activity
-  const dealNames = Object.keys(projects).sort((a,b) => {
-    const sa = calcStats(projects[a]), sb = calcStats(projects[b]);
-    return (sb.open + sb.in_flight) - (sa.open + sa.in_flight);
-  });
-
-  const filteredDeals = dealNames.map(name => {
-    const items = projects[name].filter(matchesFilters);
-    return [name, items];
-  }).filter(([_, items]) => items.length > 0);
-
   // Update bulk bar
   updateBulkBar();
 
-  document.getElementById("deals").innerHTML = filteredDeals.length === 0
-    ? `<div class="empty"><div class="empty-mark">∅</div>No items match this filter.</div>`
-    : filteredDeals.map(([name, items]) => renderDeal(name, items)).join("");
+  const filteredAll = all.filter(matchesFilters);
+
+  // Dispatch by groupBy. "project" keeps the current colored deal headers + version sub-grouping.
+  // Everything else uses neutral group headers.
+  let html = "";
+  if (filteredAll.length === 0) {
+    html = `<div class="empty"><div class="empty-mark">∅</div>No items match this filter.</div>`;
+  } else if (filters.groupBy === "project") {
+    const dealNames = Object.keys(projects).sort((a,b) => {
+      const sa = calcStats(projects[a]), sb = calcStats(projects[b]);
+      return (sb.open + sb.in_flight) - (sa.open + sa.in_flight);
+    });
+    const filteredDeals = dealNames.map(name => [name, projects[name].filter(matchesFilters)]).filter(([_, items]) => items.length > 0);
+    html = filteredDeals.map(([name, items]) => renderDeal(name, items)).join("");
+  } else {
+    // Build buckets keyed by the chosen dimension
+    const buckets = bucketByDimension(filteredAll, filters.groupBy);
+    const orderedKeys = sortGroupKeys(buckets, filters.groupBy);
+    html = orderedKeys.map(key => renderGenericGroup(key, buckets.get(key), filters.groupBy)).join("");
+  }
+  document.getElementById("deals").innerHTML = html;
 
   // Re-wire drag-drop on item rows (newly rendered)
   wireDragDrop();
+}
+
+// === Bucketing & generic group rendering (for dynamic group-by) ===
+function lifecycleStage(it) {
+  if (it.paid_at) return "paid";
+  if (it.invoiced_at) return "invoiced";
+  if (it.deployed_at || it.status === "shipped" || it.status === "tested_pass") return "shipped";
+  if (it.delivered_at) return "delivered";
+  if (it.status === "in_flight") return "building";
+  if (it.status === "wont_do") return "skipped";
+  return "open";
+}
+function bucketByDimension(items, dim) {
+  const map = new Map();
+  for (const it of items) {
+    let key;
+    switch (dim) {
+      case "version":   key = it.version || "?"; break;
+      case "status":    key = it.status || "open"; break;
+      case "assignee":  key = it.assignee || "(unassigned)"; break;
+      case "category":  key = it.category || "feature"; break;
+      case "lifecycle": key = lifecycleStage(it); break;
+      case "month":     key = (it.source_date || it.created_at || "").slice(0, 7) || "?"; break;
+      case "none":      key = "All items"; break;
+      default:          key = it.project || "?";
+    }
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(it);
+  }
+  return map;
+}
+function sortGroupKeys(buckets, dim) {
+  const keys = [...buckets.keys()];
+  if (dim === "status") {
+    const order = ["in_flight", "open", "shipped", "tested_pass", "tested_fail", "wont_do"];
+    return keys.sort((a,b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b));
+  }
+  if (dim === "lifecycle") {
+    const order = ["paid", "invoiced", "shipped", "delivered", "building", "open", "skipped"];
+    return keys.sort((a,b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b));
+  }
+  if (dim === "version") {
+    return keys.sort((a,b) => b.localeCompare(a, undefined, { numeric: true }));
+  }
+  if (dim === "month") {
+    return keys.sort((a,b) => b.localeCompare(a));
+  }
+  // assignee, category, none, fallback → alpha, but pull "(unassigned)" to the end
+  return keys.sort((a,b) => {
+    if (a === "(unassigned)") return 1;
+    if (b === "(unassigned)") return -1;
+    return a.localeCompare(b);
+  });
+}
+function groupLabel(key, dim) {
+  const STATUS_FRIENDLY = {
+    open: "Not started", in_flight: "Building", shipped: "Shipped",
+    tested_pass: "Passing", tested_fail: "Failing", wont_do: "Skipped",
+  };
+  if (dim === "status") return STATUS_FRIENDLY[key] || key;
+  if (dim === "lifecycle") return key.charAt(0).toUpperCase() + key.slice(1);
+  if (dim === "category") return key.charAt(0).toUpperCase() + key.slice(1);
+  if (dim === "assignee") return key === "(unassigned)" ? "Unassigned" : "@" + key;
+  if (dim === "version") return "Release v" + key;
+  if (dim === "month") {
+    const [y, m] = key.split("-");
+    if (!y || !m) return key;
+    const dt = new Date(parseInt(y), parseInt(m) - 1, 1);
+    return dt.toLocaleString("en-US", { month: "long", year: "numeric" });
+  }
+  return key;
+}
+function groupColor(key, dim) {
+  if (dim === "status") {
+    return ({
+      open: "#0a0a0a", in_flight: "var(--orange)", shipped: "var(--accent)",
+      tested_pass: "var(--green)", tested_fail: "var(--hot)", wont_do: "var(--ink-4)",
+    })[key] || "var(--ink)";
+  }
+  if (dim === "lifecycle") {
+    return ({
+      paid: "#b8860b", invoiced: "var(--orange)", shipped: "var(--accent)",
+      delivered: "var(--green)", building: "var(--orange)", open: "var(--ink)", skipped: "var(--ink-4)",
+    })[key] || "var(--ink)";
+  }
+  return "var(--ink)";
+}
+function renderGenericGroup(key, items, dim) {
+  const stats = calcStats(items);
+  const collapsedKey = `g:${dim}:${key}`;
+  const isCollapsed = !!collapsed[collapsedKey];
+  const showProgress = ["version", "assignee", "month", "none"].includes(dim);
+  // Pre-fill context for "+ Add item" — derive sensible defaults from this group's bucket
+  const ctx = {};
+  if (dim === "version") ctx.version = key;
+  if (dim === "assignee" && key !== "(unassigned)") ctx.assignee = key;
+  // Use the most common project in this bucket for non-project groupings, so the new item lands somewhere sensible
+  if (items.length) {
+    const projCount = {};
+    items.forEach(it => { projCount[it.project] = (projCount[it.project] || 0) + 1; });
+    ctx.project = Object.entries(projCount).sort((a,b) => b[1] - a[1])[0][0];
+    if (!ctx.version) ctx.version = items[0].version;
+  }
+  const ctxJSON = escapeAttr(JSON.stringify(ctx));
+  return `
+    <section class="group-section ${isCollapsed?'collapsed':''}" data-group-key="${escapeAttr(key)}">
+      <div class="group-hd" onclick="toggleGroup('${escapeAttr(collapsedKey)}')">
+        <span class="group-chev">▾</span>
+        <span class="group-tag" style="--group-color:${groupColor(key, dim)}">${escapeHtml(items.length + '')}</span>
+        <span class="group-name">${escapeHtml(groupLabel(key, dim))}</span>
+        ${showProgress ? `<span class="group-count">${stats.completed}/${stats.total} · ${stats.pct}%</span>` : `<span class="group-count">${items.length} item${items.length===1?'':'s'}</span>`}
+      </div>
+      <div class="group-body">
+        ${items.map(renderItem).join("")}
+        <button class="add-row-btn" onclick='openAdd(${ctxJSON})' title="Add a new item to ${escapeAttr(groupLabel(key, dim))}">
+          <span class="add-row-plus">+</span> Add item to ${escapeHtml(groupLabel(key, dim))}
+        </button>
+      </div>
+    </section>
+  `;
+}
+function toggleGroup(collapsedKey) {
+  collapsed[collapsedKey] = !collapsed[collapsedKey];
+  localStorage.setItem("qa-collapsed", JSON.stringify(collapsed));
+  render();
 }
 
 function renderDeal(name, items) {
@@ -2015,17 +3292,29 @@ function renderDeal(name, items) {
     <div class="deal-body">
       ${versions.map(v => {
         const vs = calcStats(byVersion.get(v));
+        const safeV = escapeAttr(v);
         return `
-        <div class="vgroup">
+        <div class="vgroup" data-version="${safeV}" data-project="${escapeAttr(name)}">
           <div class="vgroup-hd">
-            <span class="vgroup-tag">v${v}</span>
-            <span class="vgroup-name">Release ${v}</span>
-            <span class="vgroup-count">${vs.completed}/${vs.total} done</span>
+            <span class="vgroup-label">
+              Release
+              <span class="vgroup-num"
+                    contenteditable="true"
+                    spellcheck="false"
+                    data-original="${safeV}"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}if(event.key==='Escape'){this.textContent=this.dataset.original;this.blur();}"
+                    onblur="renameRelease('${escapeAttr(name)}', this.dataset.original, this.textContent.trim(), this)"
+                    title="Click to rename this release. Updates every item in this group.">v${escapeHtml(v)}</span>
+            </span>
+            <span class="vgroup-count">${vs.completed}/${vs.total}</span>
             <span class="progress-pct-version">${vs.pct}%</span>
           </div>
           <div class="progress-bar progress-version"><div class="progress-fill" style="width: ${vs.pct}%"></div></div>
-          <div style="margin-top:14px;">
+          <div class="vgroup-body" data-version-body="${safeV}" data-project-body="${escapeAttr(name)}" style="margin-top:14px;">
             ${byVersion.get(v).map(renderItem).join("")}
+            <button class="add-row-btn" onclick="openAdd({ project: '${escapeAttr(name)}', version: '${safeV}' })" title="Add a new item to ${escapeAttr(name)} v${safeV}">
+              <span class="add-row-plus">+</span> Add item to v${escapeHtml(v)}
+            </button>
           </div>
         </div>
         `;
@@ -2073,7 +3362,192 @@ function toggleChecklistCollapsed(itemId) {
   render();
 }
 
+// Dispatch by current density. Line/Open use the compact line + drawer.
+// Card preserves the original full-card markup verbatim.
 function renderItem(it) {
+  if (filters.density === "card") return renderItemFull(it);
+  return renderItemLine(it);
+}
+
+// Compact one-line row + optional drawer beneath
+function renderItemLine(it) {
+  const notes = it.notes || [];
+  const unresolved = notes.filter(n => !n.resolved_at).length;
+  const isExpanded = filters.density === "open" || expandedRows.has(it.id);
+  const flashClass = pendingFlash.has(it.id) ? 'flash' : '';
+  pendingFlash.delete(it.id);
+  const isDelivered = it.status === 'shipped' && it.charged;
+  const isSelected = selected.has(it.id);
+  const cyclesTo = STATUS_FLOW[it.status];
+  const statusColor = it.status; // CSS .pill.s-${status} sets bg
+  return `
+  <div class="item line row-s-${it.status} ${flashClass} ${isDelivered?'is-delivered':''} ${isSelected?'is-selected':''} ${isExpanded?'is-expanded':''}"
+       data-item-id="${it.id}"
+       data-version="${escapeAttr(it.version)}"
+       data-project="${escapeAttr(it.project)}"
+       draggable="true">
+    <div class="item-row">
+      ${bulkMode ? `<input type="checkbox" class="bulk-check" ${isSelected?'checked':''} onchange="toggleSelected('${it.id}')" />` : ""}
+      <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+      <button class="row-toggle ${isExpanded?'is-open':''}" onclick="toggleRow('${it.id}')" title="${isExpanded?'Collapse':'Expand'} details" aria-label="${isExpanded?'Collapse':'Expand'} row"><span class="row-chev">›</span></button>
+      <button class="pill s-${it.status}" onclick="cycleStatus('${it.id}', '${it.status}', this)" title="${STATUS_LABEL[it.status]} → ${STATUS_LABEL[cyclesTo]}">
+        <span class="dot"></span>${STATUS_LABEL[it.status]}
+      </button>
+      <div class="item-main">
+        <div class="item-title" contenteditable="true" data-original="${escapeAttr(it.title)}"
+             onblur="if(this.textContent.trim() && this.textContent.trim() !== this.dataset.original) patchItem('${it.id}', { title: this.textContent.trim() })"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escapeHtml(it.title)}</div>
+        <div class="item-meta">
+          <span class="version-chip"
+                contenteditable="true"
+                spellcheck="false"
+                data-original="${escapeAttr(it.version)}"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}if(event.key==='Escape'){this.textContent=this.dataset.original;this.blur();}"
+                onblur="changeItemVersion('${it.id}', this.dataset.original, this.textContent.trim(), this)"
+                title="Click to change release">v${escapeHtml(it.version)}</span>
+          <select class="assignee-select" onchange="patchItem('${it.id}', { assignee: this.value || null })" title="Assignee">
+            <option value="">— unassigned —</option>
+            ${devUsernames().map(u => `<option value="${u}" ${it.assignee===u?'selected':''}>@${u}</option>`).join("")}
+          </select>
+          <span class="meta-item notes-link ${unresolved > 0 ? 'has-unresolved' : ''}" onclick="toggleNotes('${it.id}')" title="Notes">
+            ${ICON.message}<span class="ico-count">${notes.length || ''}</span>
+          </span>
+          <span class="meta-item attach-link ${(it.attachments || []).length > 0 ? 'has-files' : ''}" onclick="document.getElementById('att-input-${it.id}').click()" title="Attachments">
+            ${ICON.paperclip}<span class="ico-count">${(it.attachments || []).length || ''}</span>
+          </span>
+          <input type="file" id="att-input-${it.id}" multiple style="display:none" onchange="handleAttachInput('${it.id}', this)" />
+        </div>
+      </div>
+      <div class="actions-always">
+        ${renderLifecycle(it)}
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn danger" onclick="deleteItem('${it.id}')" title="Delete">×</button>
+      </div>
+    </div>
+    ${isExpanded ? renderItemDrawer(it) : ""}
+  </div>
+  `;
+}
+
+// The "dig deeper" drawer — editorial expanded view
+function renderItemDrawer(it) {
+  const refType = (it.source_ref && it.source_ref.type) || null;
+  const hasContext = !!(it.source_context && it.source_context.trim());
+  const checklist = parseChecklist(it);
+  const notes = it.notes || [];
+  const atts = it.attachments || [];
+  const isCheckl = it.category === 'checklist';
+
+  // Compact lifecycle band — same data as the row pills, but with dates
+  const stages = [
+    { name: "Delivered", on: !!it.delivered_at, date: it.delivered_at, color: "var(--green)" },
+    { name: "Shipped",   on: !!it.deployed_at || it.status === "shipped" || it.status === "tested_pass", date: it.deployed_at, color: "var(--accent)" },
+    { name: "Invoiced",  on: !!it.invoiced_at, date: it.invoiced_at, color: "var(--orange)" },
+    { name: "Paid",      on: !!it.paid_at,     date: it.paid_at,     color: "#b8860b" },
+  ];
+
+  // Build meta key:value pairs, only including non-empty fields
+  const metaRows = [];
+  if (it.source) metaRows.push(["Source", `<span class="ico">${refTypeIcon(refType)}</span>${escapeHtml(it.source)}`]);
+  if (it.source_date) metaRows.push(["Source date", escapeHtml(it.source_date.slice(0, 10))]);
+  if (it.commit_hash) metaRows.push(["Commit", `<span class="pillette">${escapeHtml(it.commit_hash.slice(0, 7))}</span>`]);
+  if (it.invoice_number) metaRows.push(["Invoice", `<span class="pillette">${escapeHtml(it.invoice_number)}</span>`]);
+  if (it.tested_at) metaRows.push(["Tested", new Date(it.tested_at).toLocaleDateString()]);
+  metaRows.push(["Created", new Date(it.created_at).toLocaleDateString()]);
+  if (it.updated_at) metaRows.push(["Updated", new Date(it.updated_at).toLocaleString()]);
+  if (it.assignee) metaRows.push(["Assignee", `@${escapeHtml(it.assignee)}`]);
+  metaRows.push(["Category", escapeHtml((it.category || "feature").replace(/^./, c => c.toUpperCase()))]);
+
+  return `
+    <div class="row-drawer">
+      <div class="drawer-grid">
+
+        ${!isCheckl ? `
+          <div class="drawer-section full">
+            <span class="drawer-label">Description</span>
+            <div class="drawer-desc" contenteditable="true" spellcheck="true"
+                 data-original="${escapeAttr(it.description || '')}"
+                 onblur="const v=this.textContent;if(v!==this.dataset.original){patchItem('${it.id}', { description: v });this.dataset.original=v;}">${escapeHtml(it.description || '')}</div>
+          </div>
+        ` : ''}
+
+        <div class="drawer-section full">
+          <span class="drawer-label">Lifecycle</span>
+          <div class="drawer-lifecycle">
+            ${stages.map((s, i) => `
+              ${i > 0 ? `<span class="lc-arrow">›</span>` : ''}
+              <div class="lc-stage">
+                <span class="lc-step ${s.on ? 'lc-on' : ''}" style="${s.on ? `background:${s.color};border-color:${s.color};color:white;` : ''}">${s.name.charAt(0)}</span>
+                <span class="lc-stage-name">${s.name}</span>
+                <span class="lc-stage-date">${s.date ? fmtDateShort(s.date) : ''}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <span class="drawer-label">Meta</span>
+          <div class="drawer-meta">
+            ${metaRows.map(([k, v]) => `
+              <div class="drawer-meta-key">${k}</div>
+              <div class="drawer-meta-val">${v}</div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="drawer-section right">
+          <span class="drawer-label">Attachments <span class="lbl-count">${atts.length || ''}</span></span>
+          ${atts.length ? renderAttachments(it) : `
+            <div class="drawer-dropzone" onclick="document.getElementById('att-input-${it.id}').click()">
+              <span class="dz-icon">${ICON.paperclip.replace('width="14" height="14"', 'width="22" height="22"')}</span>
+              Drop files anywhere on this row,<br/>or click here to browse.
+            </div>
+          `}
+        </div>
+
+        ${checklist ? `
+          <div class="drawer-section full">
+            <span class="drawer-label">Checklist</span>
+            ${renderChecklist(it, checklist)}
+          </div>
+        ` : ''}
+
+        ${hasContext ? `
+          <div class="drawer-section full">
+            <span class="drawer-label">Source context ${refType ? `<span class="lbl-count">${escapeHtml(refType.replace('-', ' '))}</span>` : ''}</span>
+            <pre class="drawer-context">${escapeHtml(it.source_context)}</pre>
+          </div>
+        ` : ''}
+
+        <div class="drawer-section full">
+          <span class="drawer-label">Notes <span class="lbl-count">${notes.length}</span></span>
+          <div class="notes-section">
+            ${notes.length === 0 ? '<div style="color:var(--ink-4); font-size:12.5px; font-style:italic; padding:4px 0;">No notes yet — add the first one below.</div>' : ''}
+            ${notes.map(n => `
+              <div class="note ${n.resolved_at ? 'resolved' : ''}">
+                <span class="check-wrap"><input type="checkbox" ${n.resolved_at ? 'checked' : ''} onchange="toggleNoteResolved('${it.id}', '${n.id}', this.checked)" /></span>
+                <div class="note-text">
+                  ${escapeHtml(n.text)}
+                  <div class="note-meta">${escapeHtml(n.author)} · ${new Date(n.created_at).toLocaleString()}${n.resolved_at ? ' · resolved by ' + escapeHtml(n.resolved_by || '') + ' ' + new Date(n.resolved_at).toLocaleDateString() : ''}</div>
+                </div>
+              </div>
+            `).join("")}
+            <div class="note-add">
+              <div class="note-add-row">
+                <input id="note-${it.id}" placeholder="Add a note…" onkeydown="if(event.key==='Enter') { const t=this.value; this.value=''; addNote('${it.id}', t); }" />
+                <button class="note-add-btn" onclick="const i=document.getElementById('note-${it.id}'); const t=i.value; i.value=''; addNote('${it.id}', t);">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+function renderItemFull(it) {
   const notes = it.notes || [];
   const unresolved = notes.filter(n => !n.resolved_at).length;
   const showNotes = expandedNotes.has(it.id);
@@ -2087,9 +3561,14 @@ function renderItem(it) {
   const checklist = parseChecklist(it);
   const isSelected = selected.has(it.id);
   return `
-  <div class="item ${flashClass} ${isDelivered ? 'is-delivered' : ''} ${isSelected ? 'is-selected' : ''}" data-item-id="${it.id}">
+  <div class="item row-s-${it.status} ${flashClass} ${isDelivered ? 'is-delivered' : ''} ${isSelected ? 'is-selected' : ''}"
+       data-item-id="${it.id}"
+       data-version="${escapeAttr(it.version)}"
+       data-project="${escapeAttr(it.project)}"
+       draggable="true">
     <div class="item-row">
       ${bulkMode ? `<input type="checkbox" class="bulk-check" ${isSelected?'checked':''} onchange="toggleSelected('${it.id}')" />` : ""}
+      <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
       <div class="reorder-col">
         <button class="reorder-btn" onclick="reorderItem('${it.id}','up')" title="Move up">▲</button>
         <button class="reorder-btn" onclick="reorderItem('${it.id}','down')" title="Move down">▼</button>
@@ -2103,22 +3582,27 @@ function renderItem(it) {
       <div class="item-main">
         <div class="item-title" contenteditable="true" data-original="${escapeAttr(it.title)}" onblur="if(this.textContent.trim() && this.textContent.trim() !== this.dataset.original) patchItem('${it.id}', { title: this.textContent.trim() })">${escapeHtml(it.title)}</div>
         <div class="item-meta">
+          <span class="version-chip"
+                contenteditable="true"
+                spellcheck="false"
+                data-original="${escapeAttr(it.version)}"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}if(event.key==='Escape'){this.textContent=this.dataset.original;this.blur();}"
+                onblur="changeItemVersion('${it.id}', this.dataset.original, this.textContent.trim(), this)"
+                title="Click to change which release this item belongs to">v${escapeHtml(it.version)}</span>
           ${isDelivered ? `<span class="delivered-badge"><span class="chk">✓</span>Delivered</span>` : ""}
           ${it.source ? `<span class="meta-item source-link ${hasContext ? 'has-context' : 'no-context'} ${showContext ? 'is-open' : ''}" onclick="${hasContext ? `toggleContext('${it.id}')` : ''}" title="${hasContext ? 'Click to view source context' : 'No context captured'}">${refTypeIcon(refType)} ${escapeHtml(it.source)}${hasContext ? (showContext ? ' ▾' : ' ▸') : ''}</span>` : ""}
           ${it.source_date ? `<span class="meta-item">${it.source_date.slice(0,10)}</span>` : ""}
           ${it.commit_hash ? `<span class="meta-item commit">${it.commit_hash.slice(0,7)}</span>` : ""}
           ${it.tested_at ? `<span class="meta-item">tested ${new Date(it.tested_at).toLocaleDateString()}</span>` : ""}
-          ${(CURRENT_USER && (CURRENT_USER.role === "owner" || CURRENT_USER.role === "admin"))
-            ? `<select class="assignee-select" onchange="patchItem('${it.id}', { assignee: this.value || null })" title="Assign to developer">
-                 <option value="">— unassigned —</option>
-                 ${devUsernames().map(u => `<option value="${u}" ${it.assignee===u?'selected':''}>@${u}</option>`).join("")}
-               </select>`
-            : (it.assignee ? `<span class="assignee-chip">@${escapeHtml(it.assignee)}</span>` : `<span class="assignee-chip unassigned">unassigned</span>`)}
+          <select class="assignee-select" onchange="patchItem('${it.id}', { assignee: this.value || null })" title="Assign to developer">
+            <option value="">— unassigned —</option>
+            ${devUsernames().map(u => `<option value="${u}" ${it.assignee===u?'selected':''}>@${u}</option>`).join("")}
+          </select>
           <span class="meta-item notes-link ${unresolved > 0 ? 'has-unresolved' : ''}" onclick="toggleNotes('${it.id}')">
             ${notes.length === 0 ? "+ Add note" : (unresolved > 0 ? `${unresolved} unresolved · ${notes.length} total` : `${notes.length} note${notes.length===1?'':'s'}`)}
           </span>
           <span class="meta-item attach-link ${(it.attachments || []).length > 0 ? 'has-files' : ''}" onclick="document.getElementById('att-input-${it.id}').click()">
-            📎 ${(it.attachments || []).length || 'Attach'}
+            ${ICON.paperclip}<span class="ico-count">${(it.attachments || []).length || 'Attach'}</span>
           </span>
           <input type="file" id="att-input-${it.id}" multiple style="display:none" onchange="handleAttachInput('${it.id}', this)" />
         </div>
@@ -2127,7 +3611,7 @@ function renderItem(it) {
         ${renderLifecycle(it)}
       </div>
       <div class="item-actions">
-        <button class="icon-btn danger owner-only" onclick="deleteItem('${it.id}')" title="Delete">×</button>
+        <button class="icon-btn danger" onclick="deleteItem('${it.id}')" title="Delete">×</button>
       </div>
     </div>
     ${renderAttachments(it)}
@@ -2194,7 +3678,20 @@ function renderChecklist(it, cl) {
 function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]); }
 function escapeAttr(s) { return escapeHtml(s).replace(/`/g, "&#96;"); }
 
-function openAdd() { document.getElementById("add-modal").style.display = "flex"; setTimeout(() => document.getElementById("m-title").focus(), 50); }
+// openAdd can be called bare (defaults from last item) or with a context
+// like { project: "mitchs-map", version: "2.5" } to pre-fill the modal.
+function openAdd(ctx) {
+  const titleEl = document.getElementById("m-title");
+  const projEl  = document.getElementById("m-project");
+  const verEl   = document.getElementById("m-version");
+  if (titleEl) titleEl.value = "";
+  if (ctx && typeof ctx === "object") {
+    if (ctx.project && projEl) projEl.value = ctx.project;
+    if (ctx.version && verEl)  verEl.value  = ctx.version;
+  }
+  document.getElementById("add-modal").style.display = "flex";
+  setTimeout(() => titleEl && titleEl.focus(), 50);
+}
 function closeAdd() { document.getElementById("add-modal").style.display = "none"; document.getElementById("m-title").value = ""; }
 async function createItem() {
   const body = {
@@ -2220,7 +3717,41 @@ document.addEventListener("keydown", e => {
   }
 });
 
-loadCurrentUser().then(() => { load(); setInterval(load, 30000); });
+// Smart polling: pause when tab hidden, skip when user is typing in an input/textarea.
+let _pollTimer = null;
+function startPolling() {
+  if (_pollTimer) return;
+  _pollTimer = setInterval(() => {
+    if (document.hidden) return; // tab not visible — skip
+    const ae = document.activeElement;
+    if (ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.isContentEditable)) return; // user is typing — skip
+    load();
+  }, 30000);
+}
+function stopPolling() { if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; } }
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { stopPolling(); }
+  else { load(); startPolling(); } // refresh + resume immediately when tab returns
+});
+// Delegated drag-and-drop on the items container — survives every re-render
+function bindDragDelegation() {
+  const root = document.getElementById("deals");
+  if (!root || root.__dragBound) return;
+  root.__dragBound = true;
+  root.addEventListener("dragstart", onItemDragStart);
+  root.addEventListener("dragend", onItemDragEnd);
+  root.addEventListener("dragover", onItemDragOver);
+  root.addEventListener("drop", onItemDrop);
+  // Also bind dragleave to clear stale hint classes
+  root.addEventListener("dragleave", (e) => {
+    const row = e.target.closest(".item");
+    if (row && !row.contains(e.relatedTarget)) {
+      row.classList.remove("drag-over-top", "drag-over-bottom");
+    }
+  });
+}
+
+loadCurrentUser().then(() => { load(true); startPolling(); bindDragDelegation(); });
 </script>
 </body>
 </html>

@@ -2421,6 +2421,28 @@ app.get('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']
   }
 });
 
+app.get('/api/dev-tracker/invoices', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    const project = req.query.project;
+    const invoices = project
+      ? await queryClient`SELECT * FROM qa_invoices WHERE project = ${project} ORDER BY issued_date DESC`
+      : await queryClient`SELECT * FROM qa_invoices ORDER BY issued_date DESC`;
+    if (!invoices.length) return res.json([]);
+    const linkedAll = project
+      ? await queryClient`SELECT id, invoice_number, bundle, title, version, status, sort_order, paid_at, invoiced_at FROM qa_items WHERE invoice_number IS NOT NULL AND project = ${project} ORDER BY invoice_number, bundle NULLS LAST, sort_order`
+      : await queryClient`SELECT id, invoice_number, bundle, title, version, status, sort_order, paid_at, invoiced_at FROM qa_items WHERE invoice_number IS NOT NULL ORDER BY invoice_number, bundle NULLS LAST, sort_order`;
+    const grouped = {};
+    for (const it of linkedAll) {
+      if (!grouped[it.invoice_number]) grouped[it.invoice_number] = [];
+      grouped[it.invoice_number].push(it);
+    }
+    res.json(invoices.map(inv => ({ ...inv, linked_items: grouped[inv.invoice_number] || [] })));
+  } catch (e) {
+    console.error('dev-tracker invoices error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/dev-tracker/projects', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const rows = await queryClient`SELECT project, COUNT(*)::int AS count FROM qa_items GROUP BY project ORDER BY project`;
@@ -2454,7 +2476,7 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
     const allowed = [
       'status', 'version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents',
       'source', 'source_date', 'source_context', 'source_ref', 'sort_order', 'assignee',
-      'delivered_at', 'invoiced_at', 'paid_at', 'invoice_number', 'stripe_charge_id',
+      'delivered_at', 'invoiced_at', 'paid_at', 'invoice_number', 'bundle', 'stripe_charge_id',
     ];
     const updates = {};
     for (const k of allowed) if (k in b) updates[k] = b[k];

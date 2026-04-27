@@ -2176,6 +2176,30 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.get("/api/dev-tracker/invoices", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      const project = (req.query.project as string) || null;
+      const invR: any = project
+        ? await db.execute(sql`SELECT * FROM qa_invoices WHERE project = ${project} ORDER BY issued_date DESC`)
+        : await db.execute(sql`SELECT * FROM qa_invoices ORDER BY issued_date DESC`);
+      const invoices = invR.rows || invR;
+      if (!invoices.length) return res.json([]);
+      const linkedR: any = project
+        ? await db.execute(sql`SELECT id, invoice_number, bundle, title, version, status, sort_order, paid_at, invoiced_at FROM qa_items WHERE invoice_number IS NOT NULL AND project = ${project} ORDER BY invoice_number, bundle NULLS LAST, sort_order`)
+        : await db.execute(sql`SELECT id, invoice_number, bundle, title, version, status, sort_order, paid_at, invoiced_at FROM qa_items WHERE invoice_number IS NOT NULL ORDER BY invoice_number, bundle NULLS LAST, sort_order`);
+      const linkedAll = linkedR.rows || linkedR;
+      const grouped: Record<string, any[]> = {};
+      for (const it of linkedAll) {
+        if (!grouped[it.invoice_number]) grouped[it.invoice_number] = [];
+        grouped[it.invoice_number].push(it);
+      }
+      res.json(invoices.map((inv: any) => ({ ...inv, linked_items: grouped[inv.invoice_number] || [] })));
+    } catch (e: any) {
+      console.error("dev-tracker invoices error:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.post("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const b = req.body || {};
@@ -2201,7 +2225,7 @@ export function registerRoutes(app: Express) {
       const allowed = [
         "status", "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
         "source", "source_date", "source_context", "source_ref", "sort_order", "assignee",
-        "delivered_at", "invoiced_at", "paid_at", "invoice_number", "stripe_charge_id",
+        "delivered_at", "invoiced_at", "paid_at", "invoice_number", "bundle", "stripe_charge_id",
       ];
       const sets: any[] = [];
       for (const k of allowed) {

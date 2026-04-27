@@ -2124,16 +2124,12 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
-      const user = (req as any).user;
       const project = req.query.project as string | undefined;
-      const isDevOnly = user.role === "developer";
+      // Developers see ALL items (full context like admin); they're still gated by role above.
+      // Write access is restricted in PATCH/DELETE handlers below.
       const itemsRes: any = project
-        ? (isDevOnly
-            ? await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} AND assignee = ${user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`)
-            : await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`))
-        : (isDevOnly
-            ? await db.execute(sql`SELECT * FROM qa_items WHERE assignee = ${user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`)
-            : await db.execute(sql`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`));
+        ? await db.execute(sql`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`)
+        : await db.execute(sql`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`);
       const items = itemsRes.rows || itemsRes;
       if (!items.length) return res.json(project ? [] : {});
       const ids = items.map((i: any) => i.id);
@@ -2180,7 +2176,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+  app.post("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const b = req.body || {};
       const r: any = await db.execute(sql`
@@ -2200,17 +2196,13 @@ export function registerRoutes(app: Express) {
   app.patch("/api/dev-tracker/items/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const id = req.params.id;
-      const user = (req as any).user;
       const b = req.body || {};
-      const ownerFields = [
-        "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
+      // Single tracker — every signed-in user can edit any field.
+      const allowed = [
+        "status", "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
         "source", "source_date", "source_context", "source_ref", "sort_order", "assignee",
-        // Lifecycle fields (admin-controlled): delivered → shipped → invoiced → paid
         "delivered_at", "invoiced_at", "paid_at", "invoice_number", "stripe_charge_id",
       ];
-      const devFields = ["status"];
-      const isOwnerRole = ["owner", "admin"].includes(user.role);
-      const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
       const sets: any[] = [];
       for (const k of allowed) {
         if (k in b) sets.push(sql`${sql.raw(`"${k}"`)} = ${b[k]}`);
@@ -2229,8 +2221,9 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/dev-tracker/items/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+  app.delete("/api/dev-tracker/items/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
+      // Single tracker — every signed-in user can delete any item.
       await db.execute(sql`DELETE FROM qa_items WHERE id = ${req.params.id}::uuid`);
       res.json({ ok: true });
     } catch (e: any) {
@@ -2252,13 +2245,9 @@ export function registerRoutes(app: Express) {
         const files = (req.files as Express.Multer.File[]) || [];
         if (!files.length) return res.status(400).json({ error: "No files uploaded" });
 
-        // Verify item exists (and dev only attaches to assigned items)
-        const itemRes: any = await db.execute(sql`SELECT assignee FROM qa_items WHERE id = ${itemId}::uuid`);
-        const itemRow = (itemRes.rows || itemRes)[0];
-        if (!itemRow) return res.status(404).json({ error: "Item not found" });
-        if (user.role === "developer" && itemRow.assignee !== user.username) {
-          return res.status(403).json({ error: "Not your item" });
-        }
+        // Verify item exists. Single tracker — anyone signed in can attach to anything.
+        const itemRes: any = await db.execute(sql`SELECT id FROM qa_items WHERE id = ${itemId}::uuid`);
+        if (!(itemRes.rows || itemRes)[0]) return res.status(404).json({ error: "Item not found" });
 
         const uploaded: any[] = [];
         for (const f of files) {
@@ -2292,14 +2281,10 @@ export function registerRoutes(app: Express) {
     try {
       if (!supabaseStorage) return res.status(503).json({ error: "Storage not configured" });
       const id = req.params.id;
-      const user = (req as any).user;
       const r: any = await db.execute(sql`SELECT * FROM qa_attachments WHERE id = ${id}::uuid`);
       const att = (r.rows || r)[0];
       if (!att) return res.status(404).json({ error: "Not found" });
-      // Devs can only delete their own uploads; admins delete anything
-      if (user.role === "developer" && att.uploaded_by !== user.username) {
-        return res.status(403).json({ error: "Not your attachment" });
-      }
+      // Single tracker — anyone signed in can delete attachments
       const { error: delErr } = await supabaseStorage.storage.from(ATTACHMENTS_BUCKET).remove([att.storage_path]);
       if (delErr) console.warn("[Attachment] storage delete failed (continuing):", delErr.message);
       await db.execute(sql`DELETE FROM qa_attachments WHERE id = ${id}::uuid`);
@@ -2310,7 +2295,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Convenience: mark an item paid (sets paid_at = NOW + optional invoice/charge refs)
-  app.post("/api/dev-tracker/items/:id/mark-paid", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+  app.post("/api/dev-tracker/items/:id/mark-paid", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const id = req.params.id;
       const b = req.body || {};
@@ -2370,7 +2355,7 @@ export function registerRoutes(app: Express) {
   });
 
   // === User management (admin only) — onboard developers, reset passwords, manage roles ===
-  app.get("/api/dev-tracker/users", authenticate, hasRole(["owner", "admin"]), async (_req, res) => {
+  app.get("/api/dev-tracker/users", authenticate, hasRole(["owner", "admin", "developer"]), async (_req, res) => {
     try {
       const r: any = await db.execute(sql`SELECT id, username, name, email, role, "createdAt" FROM bettersystems.users ORDER BY id`);
       res.json(r.rows || r);
@@ -2379,7 +2364,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/dev-tracker/users", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+  app.post("/api/dev-tracker/users", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const b = req.body || {};
       if (!b.username || !b.name || !b.email || !b.password) {
@@ -2400,7 +2385,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.patch("/api/dev-tracker/users/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+  app.patch("/api/dev-tracker/users/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       const b = req.body || {};
@@ -2423,7 +2408,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.delete("/api/dev-tracker/users/:id", authenticate, hasRole(["owner", "admin"]), async (req, res) => {
+  app.delete("/api/dev-tracker/users/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       const me = (req as any).user;

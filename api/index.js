@@ -2383,14 +2383,11 @@ function devTrackerAuth(requiredRoles) {
 app.get('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const project = req.query.project;
-    const isDevOnly = req.user.role === 'developer';
+    // Single tracker view — developers see ALL items (full context, same as admin).
+    // Write access is gated separately in PATCH/DELETE handlers.
     const items = project
-      ? (isDevOnly
-          ? await queryClient`SELECT * FROM qa_items WHERE project = ${project} AND assignee = ${req.user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`
-          : await queryClient`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`)
-      : (isDevOnly
-          ? await queryClient`SELECT * FROM qa_items WHERE assignee = ${req.user.username} ORDER BY version DESC, sort_order ASC, created_at ASC`
-          : await queryClient`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`);
+      ? await queryClient`SELECT * FROM qa_items WHERE project = ${project} ORDER BY version DESC, sort_order ASC, created_at ASC`
+      : await queryClient`SELECT * FROM qa_items ORDER BY version DESC, sort_order ASC, created_at ASC`;
     if (!items.length) return res.json(project ? [] : {});
     const ids = items.map(i => i.id);
     const notes = await queryClient`SELECT * FROM qa_notes WHERE item_id IN ${queryClient(ids)} ORDER BY created_at ASC`;
@@ -2433,7 +2430,7 @@ app.get('/api/dev-tracker/projects', devTrackerAuth(['owner', 'admin', 'develope
   }
 });
 
-app.post('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+app.post('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const b = req.body || {};
     const [row] = await queryClient`
@@ -2453,15 +2450,12 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
   try {
     const id = req.params.id;
     const b = req.body || {};
-    const ownerFields = [
-      'version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents',
+    // Single tracker — every signed-in user can edit any field.
+    const allowed = [
+      'status', 'version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents',
       'source', 'source_date', 'source_context', 'source_ref', 'sort_order', 'assignee',
-      // Lifecycle fields (admin-controlled): delivered → shipped → invoiced → paid
       'delivered_at', 'invoiced_at', 'paid_at', 'invoice_number', 'stripe_charge_id',
     ];
-    const devFields = ['status'];
-    const isOwnerRole = ['owner', 'admin'].includes(req.user.role);
-    const allowed = isOwnerRole ? [...ownerFields, ...devFields] : devFields;
     const updates = {};
     for (const k of allowed) if (k in b) updates[k] = b[k];
     if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid fields' });
@@ -2476,8 +2470,9 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
   }
 });
 
-app.delete('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+app.delete('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
+    // Single tracker — every signed-in user can delete any item.
     await queryClient`DELETE FROM qa_items WHERE id = ${req.params.id}`;
     res.json({ ok: true });
   } catch (e) {
@@ -2497,11 +2492,9 @@ app.post(
       const files = req.files || [];
       if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
 
-      const [itemRow] = await queryClient`SELECT assignee FROM qa_items WHERE id = ${itemId}`;
+      // Verify item exists. Single tracker — anyone signed in can attach to anything.
+      const [itemRow] = await queryClient`SELECT id FROM qa_items WHERE id = ${itemId}`;
       if (!itemRow) return res.status(404).json({ error: 'Item not found' });
-      if (req.user.role === 'developer' && itemRow.assignee !== req.user.username) {
-        return res.status(403).json({ error: 'Not your item' });
-      }
 
       const uploaded = [];
       for (const f of files) {
@@ -2537,9 +2530,7 @@ app.delete('/api/dev-tracker/attachments/:id', devTrackerAuth(['owner', 'admin',
     const id = req.params.id;
     const [att] = await queryClient`SELECT * FROM qa_attachments WHERE id = ${id}`;
     if (!att) return res.status(404).json({ error: 'Not found' });
-    if (req.user.role === 'developer' && att.uploaded_by !== req.user.username) {
-      return res.status(403).json({ error: 'Not your attachment' });
-    }
+    // Single tracker — anyone signed in can delete attachments
     const { error: delErr } = await supabaseStorage.storage.from(ATTACHMENTS_BUCKET).remove([att.storage_path]);
     if (delErr) console.warn('[Attachment] storage delete failed (continuing):', delErr.message);
     await queryClient`DELETE FROM qa_attachments WHERE id = ${id}`;
@@ -2548,7 +2539,7 @@ app.delete('/api/dev-tracker/attachments/:id', devTrackerAuth(['owner', 'admin',
 });
 
 // Convenience: mark an item paid (sets paid_at + optional invoice/charge refs)
-app.post('/api/dev-tracker/items/:id/mark-paid', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+app.post('/api/dev-tracker/items/:id/mark-paid', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const id = req.params.id;
     const b = req.body || {};
@@ -2606,14 +2597,14 @@ app.patch('/api/dev-tracker/items/:id/notes/:noteId', devTrackerAuth(['owner', '
 });
 
 // === User management (admin only) ===
-app.get('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin']), async (_req, res) => {
+app.get('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin', 'developer']), async (_req, res) => {
   try {
     const rows = await queryClient`SELECT id, username, name, email, role, "createdAt" FROM bettersystems.users ORDER BY id`;
     res.json(rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+app.post('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const b = req.body || {};
     if (!b.username || !b.name || !b.email || !b.password) {
@@ -2633,7 +2624,7 @@ app.post('/api/dev-tracker/users', devTrackerAuth(['owner', 'admin']), async (re
   }
 });
 
-app.patch('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+app.patch('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const b = req.body || {};
@@ -2649,7 +2640,7 @@ app.patch('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin']), asyn
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+app.delete('/api/dev-tracker/users/:id', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (req.user.id === id) return res.status(400).json({ error: 'Cannot delete yourself' });

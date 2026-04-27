@@ -974,6 +974,477 @@
   .s-tested_fail { background: var(--hot); border-color: var(--hot); color: white; }
   .s-wont_do { background: var(--paper); border-color: var(--ink-4); color: var(--ink-4); text-decoration: line-through; }
 
+  /* === FILTER ACTIVE BANNER — wire-service alert bar ===
+     Editorial alert tape. Black bar with crimson eyebrow stamp, monospace tags.
+     Sticky so the user always sees it; click anywhere clears every filter. */
+  .filter-banner {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    color: #f5f3ef;
+    padding: 0;
+    margin: 0 -24px 14px -24px;
+    border-top: 3px solid var(--hot);
+    border-bottom: 1px solid var(--ink);
+    display: none;
+    cursor: pointer;
+    transition: background 0.18s ease;
+    overflow: hidden;
+    position: sticky;
+  }
+  .filter-banner.visible {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: stretch;
+  }
+  .filter-banner:hover { background: #1c0808; }
+  .filter-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgba(212,0,0,0.05) 6px 7px);
+    pointer-events: none;
+  }
+  .filter-banner-stamp {
+    background: var(--hot);
+    color: white;
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+  .filter-banner-stamp::before {
+    content: "●";
+    color: white;
+    animation: fbPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes fbPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .filter-banner-text {
+    padding: 12px 18px;
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(245, 243, 239, 0.85);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+    line-height: 1.4;
+  }
+  .filter-banner-text .fb-prefix {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-right: 4px;
+  }
+  .filter-banner-text .fb-key {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(245,243,239,0.08);
+    border: 1px solid rgba(245,243,239,0.18);
+    padding: 3px 9px;
+    border-radius: 3px;
+    color: #f5f3ef;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .filter-banner-cta {
+    background: #f5f3ef;
+    color: var(--ink);
+    padding: 0 22px;
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    position: relative;
+    z-index: 1;
+    border-left: 1px solid rgba(245,243,239,0.15);
+    transition: background 0.15s, color 0.15s;
+  }
+  .filter-banner:hover .filter-banner-cta {
+    background: var(--hot);
+    color: white;
+  }
+  @media (max-width: 640px) {
+    .filter-banner.visible { grid-template-columns: 1fr; }
+    .filter-banner-stamp, .filter-banner-cta { padding: 8px 14px; justify-content: flex-start; border: 0; }
+    .filter-banner-cta { border-top: 1px solid rgba(245,243,239,0.15); justify-content: center; padding: 10px; }
+  }
+
+  /* === VIDEO CARD — filmstrip cell, ink rule, monospace REC tag ===
+     The thumbnail is the centerpiece. Click anywhere on the card → modal plays.
+     Designed to feel like a single cell pulled from a contact sheet. */
+  .video-card {
+    margin-top: 6px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--paper), 4px 4px 0 1px var(--ink);
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .video-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--paper), 6px 6px 0 1px var(--ink);
+  }
+  .video-card:active {
+    transform: translate(0, 0);
+    box-shadow: 2px 2px 0 var(--paper), 2px 2px 0 1px var(--ink);
+  }
+  .video-card-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-color: #000;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .video-card-thumb::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 22%, transparent 60%, rgba(0,0,0,0.7) 100%),
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,0.025) 3px 4px);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .video-card-thumb--blank {
+    background:
+      repeating-linear-gradient(45deg, #1a1a1a 0 8px, #2a2a2a 8px 9px),
+      var(--ink);
+  }
+  .video-card-thumb--blank::after {
+    content: "NO PREVIEW";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.35);
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    z-index: 2;
+  }
+  .video-card-overlay-tag {
+    position: absolute;
+    top: 12px; left: 12px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(0,0,0,0.78);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 5px 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: rgba(255,255,255,0.92);
+    text-transform: uppercase;
+  }
+  .vc-tag-key { color: var(--hot); font-weight: 800; }
+  .vc-tag-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--hot);
+    animation: vcPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes vcPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .vc-tag-provider { color: rgba(255,255,255,0.7); }
+  .video-card-play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 76px; height: 76px;
+    background: var(--bg);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 4;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s, color 0.15s;
+    padding: 0;
+  }
+  .video-card-play svg { margin-left: 4px; }
+  .video-card:hover .video-card-play {
+    transform: scale(1.12);
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .video-card-cta-strip {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 3;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transform: translateY(100%);
+    transition: transform 0.22s ease;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.85));
+  }
+  .video-card:hover .video-card-cta-strip { transform: translateY(0); }
+  .vc-strip-arrow { font-size: 14px; }
+  .video-card-meta {
+    background: var(--bg);
+    color: var(--ink);
+    padding: 11px 14px 12px;
+    border-top: 1px solid var(--ink);
+  }
+  .video-card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .video-card-eyebrow {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .video-card-provider {
+    font-family: "Geist Mono", monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border: 1px solid var(--ink-3);
+    padding: 2px 7px;
+  }
+  .video-card-url {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    color: var(--ink-4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  /* Empty state — filmstrip frame with corner registration marks */
+  .video-empty { margin-top: 6px; }
+  .video-empty-frame {
+    position: relative;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 18px, rgba(10,10,10,0.04) 18px 19px),
+      var(--paper);
+    border: 1px dashed var(--ink-3);
+    padding: 28px 24px;
+    text-align: center;
+    aspect-ratio: 16 / 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .video-empty-corner {
+    position: absolute;
+    width: 12px; height: 12px;
+    border: 1.5px solid var(--ink);
+  }
+  .video-empty-corner.tl { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+  .video-empty-corner.tr { top: 6px; right: 6px; border-left: 0; border-bottom: 0; }
+  .video-empty-corner.bl { bottom: 6px; left: 6px; border-right: 0; border-top: 0; }
+  .video-empty-corner.br { bottom: 6px; right: 6px; border-left: 0; border-top: 0; }
+  .video-empty-stamp {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 4px 12px;
+    border: 1px solid var(--ink-3);
+  }
+  .video-empty-hint {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    color: var(--ink-3);
+    max-width: 360px;
+    line-height: 1.5;
+  }
+
+  /* Edit row sits under the card or empty state */
+  .video-edit-row {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    margin-top: 10px;
+    border: 1px solid var(--ink);
+    background: white;
+  }
+  .video-edit-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: white;
+    background: var(--ink);
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+  }
+  .video-edit-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 0;
+    background: transparent;
+    font-family: "Geist Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .video-edit-row input::placeholder { color: var(--ink-4); font-weight: 500; }
+  .video-edit-row input:focus { outline: none; background: #fffce8; }
+  .video-edit-row .video-clear {
+    background: transparent;
+    border: 0;
+    border-left: 1px solid var(--line);
+    color: var(--ink-4);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 14px;
+    font-family: "Geist Mono", monospace;
+    font-weight: 700;
+  }
+  .video-edit-row .video-clear:hover { color: white; background: var(--hot); }
+
+  /* === WATCH PILL — sits in the row meta line, ink-on-paper, hot accent dot === */
+  .video-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px 2px 7px;
+    border-radius: 0;
+    background: var(--ink);
+    color: white;
+    border: 1px solid var(--ink);
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s, transform 0.1s;
+  }
+  .video-pill:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+  .video-pill svg { color: var(--hot); flex-shrink: 0; }
+
+  /* === VIDEO MODAL — projector reveal, ink frame with paper bezel === */
+  .video-modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(10, 10, 10, 0.94);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: vmFade 0.2s ease;
+  }
+  @keyframes vmFade { from { opacity: 0; } to { opacity: 1; } }
+  .video-modal-bg.visible { display: flex; }
+  .video-modal {
+    background: #000;
+    border: 4px solid var(--bg);
+    width: 100%;
+    max-width: 1180px;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.05);
+    animation: vmZoom 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes vmZoom {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .video-modal iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .video-modal-close {
+    position: absolute;
+    top: -48px; right: 0;
+    background: var(--bg);
+    color: var(--ink);
+    border: 0;
+    padding: 8px 18px;
+    font-family: "Geist Mono", monospace;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .video-modal-close:hover { background: var(--hot); color: white; }
+  .video-modal-strip {
+    position: absolute;
+    top: -48px; left: 0;
+    color: var(--ink-4);
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+  }
+  .video-modal-strip::before {
+    content: "";
+    width: 6px; height: 6px;
+    background: var(--hot);
+    border-radius: 50%;
+    animation: vcPulse 1.6s ease-in-out infinite;
+  }
+
   /* === BUNDLE PILL + INVOICE STATUS PILL === */
   .bundle-pill {
     background: rgba(0, 64, 200, 0.08);
@@ -1001,56 +1472,190 @@
   .inv-pill.billed   { background: #fff3cd; color: #7c2d12; border-color: #d96a00; }
   .inv-pill.notinv   { background: #f4f4f4; color: var(--ink-3); border-color: var(--line); }
 
-  /* === INVOICES SECTION (bottom of page) === */
-  .invoices-wrap { margin-top: 48px; padding-top: 32px; border-top: 3px solid var(--ink); }
+  /* === INVOICES SECTION — accounting ledger, paper-and-ink ===
+     Reads like a ruled accounts page. No card backgrounds — bold rules,
+     tabular monospace numbers, status as a stamped tag. */
+  .invoices-wrap {
+    margin-top: 56px;
+    padding-top: 28px;
+    border-top: 3px double var(--ink);
+  }
+  .invoices-hdr-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 16px;
+  }
   .invoices-hdr {
-    font-family: "Geist", sans-serif;
-    font-size: 36px;
-    font-weight: 900;
+    font-family: "Instrument Serif", "Geist", serif;
+    font-size: 44px;
+    font-weight: 400;
+    font-style: italic;
     letter-spacing: -0.02em;
-    margin-bottom: 8px;
+    line-height: 1;
+    color: var(--ink);
   }
-  .invoices-sub { color: var(--ink-3); margin-bottom: 28px; font-size: 14px; }
+  .invoices-meta-strip {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border-bottom: 1px solid var(--ink-3);
+    padding-bottom: 4px;
+  }
+  .invoices-sub {
+    color: var(--ink-3);
+    margin-bottom: 28px;
+    font-size: 13px;
+    font-family: "Geist", sans-serif;
+    max-width: 640px;
+    line-height: 1.55;
+  }
   .invoice-card {
-    border: 1.5px solid var(--line-strong);
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    background: white;
+    border: 0;
+    border-top: 1px solid var(--ink);
+    padding: 24px 0 0;
+    margin-bottom: 32px;
+    background: transparent;
+    border-radius: 0;
   }
-  .invoice-card.paid { background: #f4fff4; border-color: var(--green); }
-  .invoice-card.sent { background: #fffbeb; border-color: var(--orange); }
-  .invoice-card.draft { background: #f8f8f8; border-color: var(--ink-4); }
-  .invoice-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .invoice-num { font-family: "Geist Mono", monospace; font-size: 12px; font-weight: 700; color: var(--ink-3); }
-  .invoice-client { font-size: 20px; font-weight: 800; margin-top: 2px; }
-  .invoice-total { font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .invoice-card.paid, .invoice-card.sent, .invoice-card.draft { background: transparent; }
+  .invoice-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .invoice-num {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .invoice-client {
+    font-family: "Instrument Serif", serif;
+    font-size: 28px;
+    font-weight: 400;
+    margin-top: 2px;
+    line-height: 1.1;
+  }
+  .invoice-total-stack { text-align: right; }
+  .invoice-total {
+    font-family: "Geist Mono", monospace;
+    font-size: 30px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
   .invoice-status-tag {
     display: inline-block;
     font-family: "Geist Mono", monospace;
-    font-size: 11px; font-weight: 800;
-    padding: 5px 12px; border-radius: 999px;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-top: 8px;
+    border: 1px solid var(--ink);
   }
-  .invoice-status-tag.paid { background: var(--green); color: white; }
-  .invoice-status-tag.sent { background: var(--orange); color: white; }
-  .invoice-status-tag.draft { background: var(--ink-4); color: white; }
-  .bundle-list { margin-top: 16px; padding-left: 0; list-style: none; }
-  .bundle-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
-  .bundle-row:last-child { border-bottom: 0; }
+  .invoice-status-tag.paid { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .invoice-status-tag.sent { background: var(--hot); color: white; border-color: var(--hot); }
+  .invoice-status-tag.draft { background: transparent; color: var(--ink-3); border-color: var(--ink-3); }
+  .bundle-list {
+    margin-top: 4px;
+    padding-left: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+  .bundle-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 18px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
+  }
+  .bundle-row:last-child {
+    border-bottom: 1px solid var(--ink);
+  }
   .bundle-key {
     font-family: "Geist Mono", monospace;
     font-weight: 700;
-    min-width: 64px;
+    min-width: 56px;
     color: var(--accent);
-    font-size: 13px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding-top: 1px;
   }
-  .bundle-label { flex: 1; font-weight: 700; font-size: 14px; color: var(--ink); }
-  .bundle-detail { font-size: 12px; color: var(--ink-3); margin-top: 4px; line-height: 1.5; }
-  .bundle-amt { font-family: "Geist Mono", monospace; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 15px; color: var(--ink); }
-  .bundle-items { margin-top: 8px; padding-left: 14px; font-size: 12px; color: var(--ink-2); }
-  .bundle-items li { padding: 3px 0; list-style: '· '; line-height: 1.5; }
+  .bundle-label {
+    font-family: "Geist", sans-serif;
+    font-weight: 700;
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .bundle-detail {
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-top: 4px;
+    line-height: 1.55;
+  }
+  .bundle-amt {
+    font-family: "Geist Mono", monospace;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--ink);
+    text-align: right;
+    min-width: 70px;
+  }
+  .bundle-items {
+    grid-column: 2 / 4;
+    margin-top: 8px;
+    padding-left: 0;
+    font-size: 12px;
+    color: var(--ink-2);
+    list-style: none;
+    border-left: 2px solid var(--paper);
+    padding-left: 12px;
+  }
+  .bundle-items li {
+    padding: 3px 0;
+    line-height: 1.5;
+    font-family: "Geist Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    position: relative;
+    padding-left: 14px;
+  }
+  .bundle-items li::before {
+    content: "└";
+    position: absolute;
+    left: 0;
+    color: var(--line-strong);
+    font-weight: 700;
+  }
+  .bundle-items li:not(:last-child)::before { content: "├"; }
+  @media (max-width: 640px) {
+    .invoice-row { grid-template-columns: 1fr; }
+    .invoice-total-stack { text-align: left; }
+    .bundle-row { grid-template-columns: auto 1fr; }
+    .bundle-amt { grid-column: 2; text-align: left; padding-top: 4px; }
+  }
 
   /* === DELIVERED BADGE (invoiced + shipped) === */
   .delivered-badge {
@@ -2389,6 +2994,12 @@
       </div>
     </header>
 
+    <div class="filter-banner" id="filter-banner" onclick="resetFilters()" title="Click anywhere to clear every active filter">
+      <div class="filter-banner-stamp">Filter active</div>
+      <div class="filter-banner-text" id="filter-banner-text"></div>
+      <div class="filter-banner-cta">✕ Clear all</div>
+    </div>
+
     <div class="global-progress" id="global-progress"></div>
 
     <div class="brief" id="brief"></div>
@@ -2405,6 +3016,15 @@
 
     <div id="deals"></div>
     <div id="invoices-host"></div>
+
+    <!-- Video embed modal (Loom / YouTube / Vimeo) -->
+    <div class="video-modal-bg" id="video-modal-bg" onclick="if(event.target===this)closeVideoModal()">
+      <div class="video-modal">
+        <div class="video-modal-strip">Now playing — press ESC or click outside to close</div>
+        <button class="video-modal-close" onclick="closeVideoModal()">Close ✕</button>
+        <iframe id="video-modal-iframe" src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
 
     <!-- Users management modal (admin only) -->
     <div class="modal-backdrop" id="users-modal" onclick="if(event.target===this)closeUsersModal()">
@@ -2691,13 +3311,19 @@ const DEFAULT_FILTERS = {
   density: "line",     // "line" | "card" | "open"
   groupBy: "project",  // "project" | "version" | "status" | "assignee" | "category" | "lifecycle" | "month" | "none"
 };
-let filters = { ...DEFAULT_FILTERS, ...(JSON.parse(localStorage.getItem("qa-filters") || "{}")) };
+// One-time migration: bump key to force-clear stale "delivered" filter that traps users.
+// Anyone with the old qa-filters key gets a fresh start once.
+const LS_FILTERS_KEY = "qa-filters-v3";
+if (localStorage.getItem("qa-filters") && !localStorage.getItem(LS_FILTERS_KEY)) {
+  localStorage.removeItem("qa-filters"); // discard old, start fresh
+}
+let filters = { ...DEFAULT_FILTERS, ...(JSON.parse(localStorage.getItem(LS_FILTERS_KEY) || "{}")) };
 // Migrate any legacy keys: ensure new defaults exist if loaded from older storage
 if (!filters.density) filters.density = "line";
 if (!filters.groupBy) filters.groupBy = "project";
 let bulkMode = false;
 let selected = new Set();
-function saveFilters() { localStorage.setItem("qa-filters", JSON.stringify(filters)); }
+function saveFilters() { localStorage.setItem(LS_FILTERS_KEY, JSON.stringify(filters)); }
 
 // Cheap diff hash — skips render if API payload unchanged.
 // Includes only fields that change (status, lifecycle, notes count, attachment count).
@@ -2746,6 +3372,134 @@ async function patchItem(id, body) {
   load();
 }
 
+// === VIDEO EMBED (Loom + YouTube) ===
+function videoEmbedUrl(url) {
+  if (!url) return null;
+  const u = url.trim();
+  // Loom share/embed
+  let m = u.match(/loom\.com\/share\/([a-z0-9]+)/i);
+  if (m) return `https://www.loom.com/embed/${m[1]}?hide_owner=true&hideEmbedTopBar=true`;
+  if (u.includes("loom.com/embed/")) return u;
+  // YouTube
+  m = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (m) return `https://www.youtube.com/embed/${m[1]}`;
+  if (u.includes("youtube.com/embed/")) return u;
+  // Vimeo
+  m = u.match(/vimeo\.com\/(\d+)/);
+  if (m) return `https://player.vimeo.com/video/${m[1]}`;
+  return u;
+}
+// Returns a thumbnail image URL for known providers; null if no preview available
+function videoThumbnailUrl(url) {
+  if (!url) return null;
+  const u = url.trim();
+  // Loom share — exposes a public thumbnail jpg
+  let m = u.match(/loom\.com\/share\/([a-z0-9]+)/i);
+  if (m) return `https://cdn.loom.com/sessions/thumbnails/${m[1]}-with-play.gif`;
+  m = u.match(/loom\.com\/embed\/([a-z0-9]+)/i);
+  if (m) return `https://cdn.loom.com/sessions/thumbnails/${m[1]}-with-play.gif`;
+  // YouTube
+  m = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/);
+  if (m) return `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`;
+  return null;
+}
+function videoProviderLabel(url) {
+  if (!url) return "video";
+  if (/loom\.com/i.test(url)) return "Loom";
+  if (/youtube\.com|youtu\.be/i.test(url)) return "YouTube";
+  if (/vimeo\.com/i.test(url)) return "Vimeo";
+  return "video";
+}
+function openVideoModal(url) {
+  const embed = videoEmbedUrl(url);
+  if (!embed) return;
+  document.getElementById("video-modal-iframe").src = embed;
+  document.getElementById("video-modal-bg").classList.add("visible");
+  document.body.style.overflow = "hidden";
+}
+function closeVideoModal() {
+  document.getElementById("video-modal-iframe").src = "";
+  document.getElementById("video-modal-bg").classList.remove("visible");
+  document.body.style.overflow = "";
+}
+// ESC key closes modal
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.getElementById("video-modal-bg")?.classList.contains("visible")) closeVideoModal();
+});
+function watchPillFor(it) {
+  if (!it.video_url) return "";
+  return `<span class="meta-item video-pill" onclick="event.stopPropagation(); openVideoModal('${escapeAttr(it.video_url)}')" title="Watch video walkthrough">
+    <svg viewBox="0 0 12 12" width="9" height="9" fill="currentColor"><path d="M2 1.5v9l8-4.5z"/></svg>
+    Watch
+  </span>`;
+}
+
+// Polished drawer video section: thumbnail card → click plays in modal.
+// Empty state: tasteful filmstrip prompt with paste input.
+function renderVideoSection(it) {
+  const url = it.video_url || "";
+  const safe = escapeAttr(url);
+  const editRow = `
+    <div class="video-edit-row">
+      <span class="video-edit-label">Source</span>
+      <input type="text"
+             placeholder="Paste Loom / YouTube / Vimeo URL — saves on blur"
+             value="${safe}"
+             data-original="${safe}"
+             onblur="if(this.value.trim() !== this.dataset.original) patchItem('${it.id}', { video_url: this.value.trim() || null })"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" />
+      ${url ? `<button class="video-clear" onclick="if(confirm('Remove video link?')) patchItem('${it.id}', { video_url: null })" title="Remove video">✕</button>` : ""}
+    </div>`;
+
+  if (!url) {
+    return `
+      <div class="video-empty">
+        <div class="video-empty-frame">
+          <div class="video-empty-corner tl"></div>
+          <div class="video-empty-corner tr"></div>
+          <div class="video-empty-corner bl"></div>
+          <div class="video-empty-corner br"></div>
+          <div class="video-empty-stamp">No video</div>
+          <div class="video-empty-hint">Paste a Loom URL below to attach a walkthrough. Click thumbnail to play inline.</div>
+        </div>
+        ${editRow}
+      </div>`;
+  }
+
+  const thumb = videoThumbnailUrl(url);
+  const provider = videoProviderLabel(url);
+  const thumbHtml = thumb
+    ? `<div class="video-card-thumb" style="background-image:url('${escapeAttr(thumb)}')">`
+    : `<div class="video-card-thumb video-card-thumb--blank">`;
+
+  return `
+    <div class="video-card" onclick="openVideoModal('${safe}')" title="Click to play">
+      ${thumbHtml}
+        <div class="video-card-overlay-tag">
+          <span class="vc-tag-key">REC</span>
+          <span class="vc-tag-dot"></span>
+          <span class="vc-tag-provider">${escapeHtml(provider)}</span>
+        </div>
+        <button class="video-card-play" aria-label="Play video">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M5 3.5v17l15-8.5z"/></svg>
+        </button>
+        <div class="video-card-cta-strip">
+          <span class="vc-strip-label">Tap to play</span>
+          <span class="vc-strip-arrow">→</span>
+        </div>
+      </div>
+      <div class="video-card-meta">
+        <div class="video-card-title-row">
+          <span class="video-card-eyebrow">Walkthrough</span>
+          <span class="video-card-provider">${escapeHtml(provider)}</span>
+        </div>
+        <div class="video-card-url" title="${safe}">${escapeHtml(url)}</div>
+      </div>
+    </div>
+    ${editRow}
+  `;
+}
+
 // === INVOICE STATUS BADGE (3 states) ===
 function invoiceBadgeFor(it) {
   const isShipped = it.status === "shipped" || it.status === "tested_pass" || !!it.deployed_at;
@@ -2759,10 +3513,20 @@ function invoiceBadgeFor(it) {
 function fmtMoney(cents) { return "$" + (cents/100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function renderInvoicesSection() {
   if (!invoices || invoices.length === 0) return "";
+  const totalPaid = invoices.filter(i => i.status === "paid").reduce((s,i)=>s+i.total_cents, 0);
+  const totalSent = invoices.filter(i => i.status === "sent").reduce((s,i)=>s+i.total_cents, 0);
+  const ledgerStrip = [
+    `${invoices.length} ${invoices.length === 1 ? "invoice" : "invoices"}`,
+    totalPaid > 0 ? `${fmtMoney(totalPaid)} paid` : null,
+    totalSent > 0 ? `${fmtMoney(totalSent)} outstanding` : null,
+  ].filter(Boolean).join(" · ");
   return `
-    <section class="invoices-wrap">
-      <div class="invoices-hdr">Invoices</div>
-      <div class="invoices-sub">Each invoice + the bundles that were billed + the dev-tracker items rolled into each bundle.</div>
+    <section class="invoices-wrap" id="invoices-section">
+      <div class="invoices-hdr-row">
+        <h2 class="invoices-hdr">Invoices</h2>
+        <div class="invoices-meta-strip">${escapeHtml(ledgerStrip)}</div>
+      </div>
+      <div class="invoices-sub">Each invoice, the line-item bundles billed to the client, and the dev-tracker items rolled into each bundle. The wording matches what the client saw on the actual invoice.</div>
       ${invoices.map(inv => {
         const linked = inv.linked_items || [];
         const byBundle = {};
@@ -2771,16 +3535,24 @@ function renderInvoicesSection() {
           if (!byBundle[k]) byBundle[k] = [];
           byBundle[k].push(it);
         }
+        const issuedFmt = inv.issued_date ? new Date(inv.issued_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+        const statusLabel = inv.status === "paid" && inv.paid_at
+          ? "Paid · " + new Date(inv.paid_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          : inv.status;
         return `
-        <div class="invoice-card ${inv.status}">
+        <article class="invoice-card ${inv.status}">
           <div class="invoice-row">
             <div>
-              <div class="invoice-num">${escapeHtml(inv.invoice_number)} · ${escapeHtml(inv.project)} · issued ${inv.issued_date ? new Date(inv.issued_date).toLocaleDateString() : "—"}</div>
+              <div class="invoice-num">
+                <span>${escapeHtml(inv.invoice_number)}</span>
+                <span>${escapeHtml(inv.project)}</span>
+                <span>Issued ${escapeHtml(issuedFmt)}</span>
+              </div>
               <div class="invoice-client">${escapeHtml(inv.client_name)}</div>
             </div>
-            <div style="text-align:right">
+            <div class="invoice-total-stack">
               <div class="invoice-total">${fmtMoney(inv.total_cents)}</div>
-              <span class="invoice-status-tag ${inv.status}">${inv.status === "paid" && inv.paid_at ? "Paid · " + new Date(inv.paid_at).toLocaleDateString() : inv.status}</span>
+              <span class="invoice-status-tag ${inv.status}">${escapeHtml(statusLabel)}</span>
             </div>
           </div>
           <ul class="bundle-list">
@@ -2788,12 +3560,10 @@ function renderInvoicesSection() {
               const tracked = byBundle[b.bundle] || [];
               return `
                 <li class="bundle-row">
-                  <div style="flex:1">
-                    <div style="display:flex;gap:10px;align-items:baseline">
-                      <span class="bundle-key">${escapeHtml(b.bundle)}</span>
-                      <span class="bundle-label">${escapeHtml(b.label)}</span>
-                    </div>
-                    <div class="bundle-detail">${escapeHtml(b.detail || "")}</div>
+                  <span class="bundle-key">${escapeHtml(b.bundle)}</span>
+                  <div>
+                    <div class="bundle-label">${escapeHtml(b.label)}</div>
+                    ${b.detail ? `<div class="bundle-detail">${escapeHtml(b.detail)}</div>` : ""}
                     ${tracked.length ? `<ul class="bundle-items">${tracked.map(t => `<li>${escapeHtml(t.title)}</li>`).join("")}</ul>` : ""}
                   </div>
                   <div class="bundle-amt">${fmtMoney(b.amount_cents)}</div>
@@ -2801,15 +3571,16 @@ function renderInvoicesSection() {
             }).join("")}
             ${byBundle._unbundled ? `
               <li class="bundle-row">
-                <div style="flex:1">
-                  <div class="bundle-key" style="color:var(--ink-4)">bonus</div>
-                  <div class="bundle-detail">Items shipped under this invoice but not on a specific line item (extras / polish):</div>
+                <span class="bundle-key" style="color:var(--ink-4)">bonus</span>
+                <div>
+                  <div class="bundle-label" style="color:var(--ink-3)">Polish &amp; extras included</div>
+                  <div class="bundle-detail">Shipped under this invoice but not tied to a specific bundle line item.</div>
                   <ul class="bundle-items">${byBundle._unbundled.map(t => `<li>${escapeHtml(t.title)}</li>`).join("")}</ul>
                 </div>
                 <div class="bundle-amt" style="color:var(--ink-4)">incl.</div>
               </li>` : ""}
           </ul>
-        </div>`;
+        </article>`;
       }).join("")}
     </section>`;
 }
@@ -3371,6 +4142,8 @@ function render() {
   const mp = document.getElementById("masthead-progress");
   if (mp) mp.textContent = `${g.completed} / ${g.total} done · ${g.pct}%`;
 
+  // Filter banner is updated AFTER matchesFilters is defined — see updateFilterBanner() below.
+
   // Brief stats — clickable as status filters
   const deliveredCount = all.filter(i => i.status==="shipped" && i.charged).length;
   const skippedCount = all.filter(i => i.status==="wont_do").length;
@@ -3489,6 +4262,25 @@ function render() {
   document.getElementById("deals").innerHTML = html;
   const invHost = document.getElementById("invoices-host");
   if (invHost) invHost.innerHTML = renderInvoicesSection();
+
+  // === Filter banner (now matchesFilters is in scope) ===
+  const fbEl = document.getElementById("filter-banner");
+  const fbText = document.getElementById("filter-banner-text");
+  if (fbEl && fbText) {
+    const activeBits = [];
+    if (filters.status !== "all") activeBits.push(`<span class="fb-key">${escapeHtml(filters.status)}</span>`);
+    if (filters.version !== "all") activeBits.push(`<span class="fb-key">v${escapeHtml(filters.version)}</span>`);
+    if (filters.deal !== "all") activeBits.push(`<span class="fb-key">${escapeHtml(filters.deal)}</span>`);
+    if (filters.category !== "all") activeBits.push(`<span class="fb-key">${escapeHtml(filters.category)}</span>`);
+    if ((filters.search || "").trim()) activeBits.push(`<span class="fb-key">"${escapeHtml(filters.search.trim())}"</span>`);
+    if (activeBits.length > 0) {
+      const visibleCount = filteredAll.length;
+      fbText.innerHTML = `<span class="fb-prefix">Showing</span> ${visibleCount} of ${all.length} <span class="fb-prefix">·</span> ${activeBits.join(" ")}`;
+      fbEl.classList.add("visible");
+    } else {
+      fbEl.classList.remove("visible");
+    }
+  }
 
   // Show/update the "Invoices →" jump button in the header
   const jumpBtn = document.getElementById("invoices-jump");
@@ -3785,6 +4577,7 @@ function renderItemLine(it) {
           </span>
           <input type="file" id="att-input-${it.id}" multiple style="display:none" onchange="handleAttachInput('${it.id}', this)" />
           ${it.bundle ? `<span class="meta-item bundle-pill" title="Invoice line-item bundle">${escapeHtml(it.bundle)}</span>` : ""}
+          ${watchPillFor(it)}
           ${invoiceBadgeFor(it)}
         </div>
       </div>
@@ -3869,6 +4662,11 @@ function renderItemDrawer(it) {
               <div class="drawer-meta-val">${v}</div>
             `).join('')}
           </div>
+        </div>
+
+        <div class="drawer-section full">
+          <span class="drawer-label">Video walkthrough</span>
+          ${renderVideoSection(it)}
         </div>
 
         <div class="drawer-section right">

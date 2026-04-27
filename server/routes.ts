@@ -2225,7 +2225,7 @@ export function registerRoutes(app: Express) {
       const allowed = [
         "status", "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
         "source", "source_date", "source_context", "source_ref", "sort_order", "assignee",
-        "delivered_at", "invoiced_at", "paid_at", "invoice_number", "bundle", "stripe_charge_id",
+        "delivered_at", "invoiced_at", "paid_at", "invoice_number", "bundle", "stripe_charge_id", "video_url",
       ];
       const sets: any[] = [];
       for (const k of allowed) {

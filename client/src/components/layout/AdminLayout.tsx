@@ -41,7 +41,7 @@ const tabs: TabItem[] = [
   },
   {
     title: "Dev",
-    url: "/admin/dev-tracker",
+    url: "/dev-tracker.html",
     icon: KanbanSquare,
   },
 ];
@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             return (
               <button
                 key={tab.url}
-                onClick={() => navigate(tab.url)}
+                onClick={() => tab.url.endsWith(".html") ? (window.location.href = tab.url) : navigate(tab.url)}
                 className={`flex flex-col items-center justify-center flex-1 py-3 px-2 transition-colors active:opacity-70 ${
                   isActive
                     ? "text-primary"

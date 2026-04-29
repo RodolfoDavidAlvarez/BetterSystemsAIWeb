@@ -138,7 +138,7 @@ const supabaseStorage = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVIC
 const ATTACHMENTS_BUCKET = "dev-tracker-attachments";
 const attachmentUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB — accept videos and large files
 });
 const voiceUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 

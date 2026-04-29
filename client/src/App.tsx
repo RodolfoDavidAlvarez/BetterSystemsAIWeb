@@ -35,8 +35,6 @@ import MorePage from "./pages/admin/MorePage";
 import DealsPage from "./pages/admin/DealsPage";
 import DealDetailPage from "./pages/admin/DealDetailPage";
 import TasksPage from "./pages/admin/TasksPage";
-import DevTrackerPage from "./pages/admin/DevTrackerPage";
-import WorkspacePage from "./pages/admin/WorkspacePage";
 
 // Simple redirect component that doesn't cause infinite re-renders
 function RedirectTo({ path }: { path: string }) {
@@ -132,20 +130,6 @@ function App() {
                   <AdminLayout>
                     <TasksPage />
                   </AdminLayout>
-                </ProtectedRoute>
-              </Route>
-
-              {/* Dev Tracker — role-gated project tracker (owner + developer + admin) */}
-              <Route path="/admin/dev-tracker">
-                <ProtectedRoute requiredRole={["owner", "developer", "admin"]}>
-                  <DevTrackerPage />
-                </ProtectedRoute>
-              </Route>
-
-              {/* Workspace — operational landing for devs and admins */}
-              <Route path="/workspace">
-                <ProtectedRoute requiredRole={["owner", "developer", "admin"]}>
-                  <WorkspacePage />
                 </ProtectedRoute>
               </Route>
 

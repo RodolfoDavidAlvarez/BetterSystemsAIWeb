@@ -823,55 +823,74 @@
   .att-thumb.is-file .att-icon { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
   .att-thumb.is-file .att-icon svg { display: block; }
   .att-thumb.is-file .att-name { font-family: "Geist Mono", ui-monospace, monospace; font-size: 8px; font-weight: 600; line-height: 1.15; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); letter-spacing: 0.02em; }
-  .att-thumb.is-video::after {
-    content: "▶";
+  /* Video: overlay play badge */
+  .att-play-badge {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0,0,0,0.35);
-    color: white;
-    font-size: 18px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    pointer-events: none;
+    transition: opacity 0.15s;
   }
+  .att-play-badge svg { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  .att-thumb:hover .att-play-badge { opacity: 0; }
+  /* PDF: red tint */
+  .att-thumb.is-pdf { background: #fff4f2; }
+  .att-thumb.is-pdf .att-icon svg { color: #d93025; }
+  .att-thumb.is-pdf .att-ext { font-family: "Geist Mono", ui-monospace, monospace; font-size: 9px; font-weight: 800; color: #d93025; letter-spacing: 0.06em; line-height: 1; }
+  /* Bottom hover bar with action buttons */
+  .att-hover-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 4px 6px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+    border-radius: 0 0 10px 10px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .att-thumb:hover .att-hover-bar { opacity: 1; pointer-events: auto; }
+  .att-hbtn {
+    display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.9);
+    color: #111;
+    border: 0;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.08s;
+    backdrop-filter: blur(6px);
+  }
+  .att-hbtn:hover { background: #fff; transform: scale(1.1); }
+  .att-hbtn svg { width: 12px; height: 12px; display: block; pointer-events: none; }
+  /* Delete button — top-right corner */
   .att-del {
     position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 16px;
-    height: 16px;
+    top: 3px; right: 3px;
+    width: 18px; height: 18px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.65);
     color: white;
     border: 0;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1;
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1;
+    z-index: 3;
+    transition: background 0.1s;
   }
+  .att-del:hover { background: var(--hot); }
   .att-thumb:hover .att-del { display: flex; }
-  .att-dl {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: 0;
-    cursor: pointer;
-    line-height: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
-  }
-  .att-dl svg { width: 10px; height: 10px; }
-  .att-thumb:hover .att-dl { display: flex; }
   /* Upload progress chip — appears in attachments section while files are uploading */
   .att-uploading {
     display: inline-flex;
@@ -1874,11 +1893,17 @@
     background: var(--paper);
     border: 1px solid var(--line);
   }
-  .cat-feature { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
-  .cat-fix { background: #ffedd5; color: #7c2d12; border-color: #fdba74; }
-  .cat-compliance { background: #ffe4e6; color: #881337; border-color: #fda4af; }
-  .cat-data { background: #ccfbf1; color: #134e4a; border-color: #5eead4; }
-  .cat-content { background: #fef9c3; color: #713f12; border-color: #fde047; }
+  .cat-feature         { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
+  .cat-feature_request { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+  .cat-bug             { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .cat-fix             { background: #ffedd5; color: #7c2d12; border-color: #fdba74; }
+  .cat-enhancement     { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+  .cat-design          { background: #fce7f3; color: #831843; border-color: #f9a8d4; }
+  .cat-research        { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+  .cat-chore           { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+  .cat-compliance      { background: #ffe4e6; color: #881337; border-color: #fda4af; }
+  .cat-data            { background: #ccfbf1; color: #134e4a; border-color: #5eead4; }
+  .cat-content         { background: #fef9c3; color: #713f12; border-color: #fde047; }
   .cat-priority {
     background: #fef3c7;
     color: #92400e;
@@ -2692,7 +2717,17 @@
     background: var(--accent);
     opacity: 0.85;
   }
-  .item.line.is-expanded { background: rgba(29, 62, 239, 0.025); }
+  /* In sidebar mode, the inline drawer is suppressed and the source row gets a strong highlight */
+  body.has-sidebar .item.line .row-drawer { display: none !important; }
+  body.has-sidebar .item.line.is-expanded {
+    background: rgba(29,62,239,0.06) !important;
+    box-shadow: inset 3px 0 0 var(--accent), 0 0 0 2px rgba(29,62,239,0.28);
+    border-radius: 4px;
+    position: relative;
+    z-index: 50;
+  }
+  /* Legacy fallback — if for some reason sidebar is closed but row is expanded */
+  .item.line.is-expanded:not(body.has-sidebar *) { background: rgba(29, 62, 239, 0.025); }
   .item.line.is-expanded .row-drawer { display: block; }
   @keyframes drawerSlide {
     from { opacity: 0; transform: translateY(-6px); max-height: 0; }
@@ -2715,7 +2750,24 @@
     min-width: 0;
   }
   .drawer-section.full { grid-column: 1 / -1; }
+  .drawer-section.half { grid-column: span 1; }
   .drawer-section.right { grid-column: 2 / 3; }
+  .drawer-select {
+    font-family: "Geist", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 7px 10px;
+    cursor: pointer;
+    appearance: auto;
+    width: 100%;
+    transition: border-color 0.12s;
+  }
+  .drawer-select:hover { border-color: var(--ink-3); }
+  .drawer-select:focus { outline: none; border-color: var(--accent); }
 
   .drawer-label {
     font-family: "Geist Mono", ui-monospace, monospace;
@@ -2855,45 +2907,49 @@
   .status-chip.is-active.s-wont_do     { background: var(--ink-4); color: white; border-color: var(--ink-4); }
   .status-chip.is-active .status-chip-dot { opacity: 1; background: white; }
 
-  /* Lifecycle row inside drawer — full-width strip */
-  .drawer-lifecycle {
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 12px 16px;
+  /* Category picker — same pattern as status-picker */
+  .category-picker {
     display: flex;
-    align-items: center;
-    gap: 14px;
     flex-wrap: wrap;
+    gap: 6px;
+    background: white;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
   }
-  .drawer-lifecycle .lc-stage {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  .cat-chip {
+    display: inline-flex;
     align-items: center;
-    min-width: 56px;
-  }
-  .drawer-lifecycle .lc-stage-name {
-    font-family: "Geist Mono", monospace;
-    font-size: 9.5px;
+    gap: 5px;
+    padding: 6px 11px;
+    font-family: "Geist", sans-serif;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-4);
-  }
-  .drawer-lifecycle .lc-stage-date {
-    font-family: "Geist Mono", monospace;
-    font-size: 10px;
+    letter-spacing: 0.06em;
+    border-radius: 999px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    background: var(--paper);
     color: var(--ink-3);
-    height: 12px;
-    line-height: 1;
+    transition: background 0.1s, color 0.1s, border-color 0.1s, transform 0.08s;
+    white-space: nowrap;
   }
-  .drawer-lifecycle .lc-arrow {
-    color: var(--ink-4);
-    font-size: 14px;
-    line-height: 1;
-    transform: translateY(-7px);
-  }
+  .cat-chip:hover { color: var(--ink); border-color: var(--line); background: white; }
+  .cat-chip:active { transform: scale(0.96); }
+  /* Active states — use the cat-* color vars */
+  .cat-chip.is-active { border-color: currentColor; }
+  .cat-chip.is-active.c-feature         { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
+  .cat-chip.is-active.c-feature_request { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+  .cat-chip.is-active.c-bug             { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .cat-chip.is-active.c-fix             { background: #ffedd5; color: #7c2d12; border-color: #fdba74; }
+  .cat-chip.is-active.c-enhancement     { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+  .cat-chip.is-active.c-design          { background: #fce7f3; color: #831843; border-color: #f9a8d4; }
+  .cat-chip.is-active.c-research        { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+  .cat-chip.is-active.c-chore           { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+  /* Category chip in line item rows — layered on top of .cat + .cat-* */
+  .row-cat-chip { cursor: pointer; transition: filter 0.1s; }
+  .row-cat-chip:hover { filter: brightness(0.88); }
 
   /* Source context — code-like, but soft */
   .drawer-context {
@@ -3369,6 +3425,16 @@
     <div id="deals"></div>
     <div id="invoices-host"></div>
 
+    <!-- Item detail sidebar — replaces inline row-drawer when an item is opened -->
+    <div id="item-sidebar-backdrop" onclick="closeItemSidebar()"></div>
+    <aside id="item-sidebar" aria-hidden="true" aria-labelledby="item-sidebar-title">
+      <header id="item-sidebar-header">
+        <span id="item-sidebar-title">Item details</span>
+        <button id="item-sidebar-close" onclick="closeItemSidebar()" aria-label="Close" title="Close (Esc)">×</button>
+      </header>
+      <div id="item-sidebar-content"></div>
+    </aside>
+
     <!-- Video embed modal (Loom / YouTube / Vimeo) -->
     <div class="video-modal-bg" id="video-modal-bg" onclick="if(event.target===this)closeVideoModal()">
       <div class="video-modal">
@@ -3422,12 +3488,17 @@
         <option value="wont_do">Skipped</option>
       </select>
       <select id="bulk-cat" onchange="bulkApplyCategory(this.value); this.value='';">
-        <option value="">Set category…</option>
+        <option value="">Set type…</option>
         <option value="feature">Feature</option>
+        <option value="feature_request">Client Request</option>
+        <option value="bug">Bug</option>
         <option value="fix">Fix</option>
-        <option value="compliance">Compliance</option>
-        <option value="data">Data</option>
+        <option value="enhancement">Enhancement</option>
+        <option value="design">Design</option>
+        <option value="research">Research</option>
+        <option value="chore">Chore</option>
         <option value="content">Content</option>
+        <option value="compliance">Compliance</option>
         <option value="checklist">Checklist</option>
       </select>
       <button onclick="bulkToggleCharged(true)">Mark charged $</button>
@@ -3460,10 +3531,15 @@
           <label>Category</label>
           <select id="m-category">
             <option value="feature">Feature</option>
+            <option value="feature_request">Client Request</option>
+            <option value="bug">Bug</option>
             <option value="fix">Fix</option>
-            <option value="compliance">Compliance</option>
-            <option value="data">Data</option>
+            <option value="enhancement">Enhancement</option>
+            <option value="design">Design</option>
+            <option value="research">Research</option>
+            <option value="chore">Chore</option>
             <option value="content">Content</option>
+            <option value="compliance">Compliance</option>
           </select>
         </div>
         <div>
@@ -4121,22 +4197,35 @@ function renderAttachments(it) {
   const atts = it.attachments || [];
   const up = uploadingMap.get(it.id);
   if (atts.length === 0 && !up) return "";
+  const OPEN_SVG  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+  const PLAY_SVG  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21"/></svg>`;
+  const PLAY_BIG  = `<svg viewBox="0 0 24 24" fill="white" stroke="none" width="22" height="22"><polygon points="6 3 20 12 6 21"/></svg>`;
   return `<div class="attachments-section">
     ${atts.map(a => {
-      const isImg = (a.mime_type || "").startsWith("image/");
-      const isVid = (a.mime_type || "").startsWith("video/");
-      // Single tracker — anyone signed in can delete attachments
+      const mime = a.mime_type || "";
+      const isImg = mime.startsWith("image/");
+      const isVid = mime.startsWith("video/");
+      const isPdf = mime.includes("pdf");
       const canDelete = !!CURRENT_USER;
       const tooltip = `${a.filename}${a.size_bytes ? ' · ' + Math.round(a.size_bytes/1024) + 'KB' : ''}${a.uploaded_by ? ' · @' + a.uploaded_by : ''}`;
+      const ext = a.filename.includes(".") ? a.filename.split(".").pop().toUpperCase().slice(0, 5) : "";
+      const thumbClass = isImg ? "" : isVid ? "is-video" : isPdf ? "is-file is-pdf" : "is-file";
       const thumb = isImg
         ? `<img src="${a.public_url}" alt="${escapeHtml(a.filename)}" loading="lazy" />`
         : isVid
-          ? `<video src="${a.public_url}" preload="metadata"></video>`
-          : `<span class="att-icon">${fileIconFor(a.mime_type)}</span><span class="att-name">${escapeHtml(a.filename.length > 12 ? a.filename.slice(0, 10) + '…' : a.filename)}</span>`;
-      return `<div class="att-thumb ${isImg ? '' : isVid ? 'is-video' : 'is-file'}" onclick="window.open('${a.public_url}','_blank')" title="${escapeHtml(tooltip)}">
+          ? `<video src="${a.public_url}" preload="metadata"></video><div class="att-play-badge">${PLAY_BIG}</div>`
+          : `<span class="att-icon">${fileIconFor(a.mime_type)}</span><span class="${isPdf ? 'att-ext' : 'att-name'}">${isPdf ? ext : escapeHtml(a.filename.length > 10 ? a.filename.slice(0, 8) + '…' : a.filename)}</span>`;
+      const openFn  = isVid
+        ? `openVideoPlayer(${JSON.stringify(a.public_url)}, ${JSON.stringify(a.filename)})`
+        : isImg
+          ? `openImageViewer(${JSON.stringify(a.public_url)}, ${JSON.stringify(a.filename)})`
+          : `window.open(${JSON.stringify(a.public_url)},'_blank')`;
+      const openBtn = `<button class="att-hbtn" onclick="event.stopPropagation();${openFn}" title="${isVid ? 'Play' : 'Open'}">${isVid ? PLAY_SVG : OPEN_SVG}</button>`;
+      const dlBtn   = `<button class="att-hbtn" onclick="event.stopPropagation();downloadAttachment('${a.id}',${JSON.stringify(a.public_url)},${JSON.stringify(a.filename)})" title="Download">${ICON.download}</button>`;
+      return `<div class="att-thumb ${thumbClass}" onclick="${openFn}" title="${escapeHtml(tooltip)}">
         ${thumb}
-        <button class="att-dl" onclick="event.stopPropagation(); downloadAttachment('${a.id}', ${JSON.stringify(a.public_url)}, ${JSON.stringify(a.filename)})" title="Download">${ICON.download}</button>
-        ${canDelete ? `<button class="att-del" onclick="event.stopPropagation(); deleteAttachment('${a.id}', '${it.id}')" title="Delete">×</button>` : ""}
+        <div class="att-hover-bar">${openBtn}${dlBtn}</div>
+        ${canDelete ? `<button class="att-del" onclick="event.stopPropagation();deleteAttachment('${a.id}','${it.id}')" title="Delete">×</button>` : ""}
       </div>`;
     }).join("")}
     ${up ? `<div class="att-uploading" title="${escapeHtml(up.fileNames.join(', '))}">
@@ -4164,6 +4253,41 @@ async function downloadAttachment(attId, url, filename) {
     // Fallback: open in new tab if download blocked (CORS, etc.)
     window.open(url, "_blank");
   }
+}
+function openVideoPlayer(url, filename) {
+  const id = "att-video-modal";
+  document.getElementById(id)?.remove();
+  const el = document.createElement("div");
+  el.id = id;
+  el.style.cssText = "position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.82);padding:20px;";
+  el.innerHTML = `
+    <div style="position:relative;max-width:min(860px,90vw);width:100%;background:#111;border-radius:12px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#1a1a1a;gap:12px;">
+        <span style="color:#fff;font-size:11.5px;font-weight:600;opacity:0.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${escapeHtml(filename)}</span>
+        <button onclick="document.getElementById('att-video-modal').remove()" style="background:none;border:0;color:#999;font-size:22px;cursor:pointer;line-height:1;flex-shrink:0;" title="Close (Esc)">×</button>
+      </div>
+      <video src="${url}" controls autoplay style="display:block;width:100%;max-height:76vh;background:#000;"></video>
+    </div>`;
+  el.addEventListener("click", e => { if (e.target === el) el.remove(); });
+  document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { el.remove(); document.removeEventListener("keydown", esc); }});
+  document.body.appendChild(el);
+}
+function openImageViewer(url, filename) {
+  const id = "att-img-modal";
+  document.getElementById(id)?.remove();
+  const el = document.createElement("div");
+  el.id = id;
+  el.style.cssText = "position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(0,0,0,0.88);padding:20px;";
+  el.innerHTML = `
+    <img src="${url}" alt="${escapeHtml(filename)}" style="max-width:min(1080px,90vw);max-height:80vh;border-radius:8px;box-shadow:0 24px 64px rgba(0,0,0,0.6);object-fit:contain;" />
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="color:rgba(255,255,255,0.5);font-size:12px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(filename)}</span>
+      <button onclick="downloadAttachment('',${JSON.stringify(url)},${JSON.stringify(filename)})" style="background:rgba(255,255,255,0.15);border:0;color:white;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;">Download</button>
+      <button onclick="document.getElementById('att-img-modal').remove()" style="background:rgba(255,255,255,0.08);border:0;color:rgba(255,255,255,0.6);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;">Close</button>
+    </div>`;
+  el.addEventListener("click", e => { if (e.target === el) el.remove(); });
+  document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { el.remove(); document.removeEventListener("keydown", esc); }});
+  document.body.appendChild(el);
 }
 function handleAttachInput(itemId, inputEl) {
   if (!inputEl.files || !inputEl.files.length) return;
@@ -4284,57 +4408,47 @@ function fmtDateShort(d) {
   const dt = new Date(d);
   return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
-function renderLifecycle(it) {
-  // Single tracker — anyone signed in can update lifecycle stages
-  const isAdmin = !!CURRENT_USER;
-  // Shipped is derived from status (status==="shipped" or deployed_at is set) — admin can't toggle here, that's the status pill's job
-  const shippedOn = it.deployed_at || (it.status === "shipped" || it.status === "tested_pass") ? (it.deployed_at || true) : null;
-  const steps = [
-    { key: "delivered_at", label: "D", className: "lc-delivered", title: "Delivered to client", on: !!it.delivered_at, date: it.delivered_at },
-    { key: "deployed_at",  label: "S", className: "lc-shipped",   title: "Shipped to production", on: !!shippedOn, date: it.deployed_at, readonly: true },
-    { key: "invoiced_at",  label: "I", className: "lc-invoiced",  title: "Invoiced", on: !!it.invoiced_at, date: it.invoiced_at, ref: it.invoice_number },
-    { key: "paid_at",      label: "P", className: "lc-paid",      title: "Paid", on: !!it.paid_at, date: it.paid_at, ref: it.stripe_charge_id },
-  ];
-  return `<span class="lifecycle" title="Delivered → Shipped → Invoiced → Paid">
-    ${steps.map((s, i) => {
-      const tooltip = s.title + (s.date ? ` · ${fmtDateShort(s.date)}` : "") + (s.ref ? ` · ${s.ref}` : "") + (s.on ? "" : " (pending)");
-      const clickable = isAdmin && !s.readonly;
-      const onclick = clickable ? `lifecycleClick('${it.id}', '${s.key}', ${s.on})` : "";
-      return `${i > 0 ? '<span class="lc-sep"></span>' : ''}<span class="lc-step ${s.className} ${s.on?'lc-on':''} ${clickable?'is-clickable':''}" title="${escapeHtml(tooltip)}" onclick="${onclick}">${s.label}</span>`;
-    }).join("")}
-  </span>`;
+// ─── Category helpers ────────────────────────────────────────────────────────
+const CAT_LIST = [
+  { value: "feature",         label: "Feature",         },
+  { value: "feature_request", label: "Client Request",  },
+  { value: "bug",             label: "Bug",             },
+  { value: "fix",             label: "Fix",             },
+  { value: "enhancement",     label: "Enhancement",     },
+  { value: "design",          label: "Design",          },
+  { value: "research",        label: "Research",        },
+  { value: "chore",           label: "Chore",           },
+  { value: "content",         label: "Content",         },
+  { value: "compliance",      label: "Compliance",      },
+  { value: "checklist",       label: "Checklist",       },
+];
+const CAT_CYCLE = ["feature","feature_request","bug","fix","enhancement","design","research","chore"];
+function catLabel(val) {
+  const c = CAT_LIST.find(x => x.value === (val || "feature"));
+  return c ? c.label : (val || "feature");
 }
-async function lifecycleClick(id, key, currentlyOn) {
-  // Toggle off: set null. Toggle on: prompt for date (default today) and optional ref.
-  if (currentlyOn) {
-    const ok = await confirmDialog({
-      title: "Clear lifecycle stage?",
-      message: `This will remove the ${key.replace('_at','')} timestamp from this item.`,
-      okLabel: "Clear",
-    });
-    if (!ok) return;
-    return patchItem(id, { [key]: null });
-  }
-  // Setting on
-  if (key === "paid_at") {
-    const inv = prompt("Invoice number (optional, e.g. BSA-2026-006):", "");
-    const charge = prompt("Stripe charge/payment intent id (optional):", "");
-    const body = {};
-    if (inv && inv.trim()) body.invoice_number = inv.trim();
-    if (charge && charge.trim()) body.stripe_charge_id = charge.trim();
-    await apiFetch("/api/dev-tracker/items/" + id + "/mark-paid", {
-      method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)
-    });
-    return load();
-  }
-  if (key === "invoiced_at") {
-    const inv = prompt("Invoice number (e.g. BSA-2026-006):", "");
-    const body = { invoiced_at: new Date().toISOString() };
-    if (inv && inv.trim()) body.invoice_number = inv.trim();
-    return patchItem(id, body);
-  }
-  // delivered_at — just stamp now
-  patchItem(id, { [key]: new Date().toISOString() });
+function renderCatChip(it) {
+  const cat = it.category || "feature";
+  const label = catLabel(cat);
+  const nextIdx = (CAT_CYCLE.indexOf(cat) + 1) % CAT_CYCLE.length;
+  const next = CAT_CYCLE[nextIdx] || "feature";
+  return `<span class="cat cat-${cat} row-cat-chip" onclick="patchItem('${it.id}',{category:'${next}'})" title="Type: ${label} — click to cycle">${label}</span>`;
+}
+function renderCategoryPicker(it) {
+  const cur = it.category || "feature";
+  return `
+    <div class="category-picker" role="radiogroup" aria-label="Type">
+      ${CAT_LIST.map(c => `
+        <button class="cat-chip c-${c.value} ${cur === c.value ? 'is-active' : ''}"
+                role="radio"
+                aria-checked="${cur === c.value}"
+                onclick="patchItem('${it.id}', { category: '${c.value}' }); render();"
+                title="Set type to ${c.label}">
+          ${c.label}
+        </button>
+      `).join('')}
+    </div>
+  `;
 }
 function toggleDeal(name) {
   collapsed[name] = !collapsed[name];
@@ -4351,7 +4465,15 @@ function toggleContext(itemId) {
 }
 // Toggle per-row drawer in line mode (the +/− behavior)
 function toggleRow(itemId) {
-  if (expandedRows.has(itemId)) expandedRows.delete(itemId); else expandedRows.add(itemId);
+  // Sidebar mode: only one item open at a time. Same id = close. New id = swap.
+  if (expandedRows.has(itemId)) {
+    expandedRows.clear();
+    closeItemSidebar();
+  } else {
+    expandedRows.clear();
+    expandedRows.add(itemId);
+    openItemSidebar(itemId);
+  }
   saveExpandedRows();
   render();
 }
@@ -4797,6 +4919,10 @@ function render() {
 
   // Re-wire drag-drop on item rows (newly rendered)
   wireDragDrop();
+  // If the detail sidebar is open, refresh its content with latest data.
+  if (typeof updateItemSidebar === "function" && document.body.classList.contains("has-sidebar")) {
+    updateItemSidebar();
+  }
 }
 
 // === Bucketing & generic group rendering (for dynamic group-by) ===
@@ -5081,7 +5207,7 @@ function renderItemLine(it) {
         </div>
       </div>
       <div class="actions-always">
-        ${renderLifecycle(it)}
+        ${renderCatChip(it)}
       </div>
       <div class="item-actions">
         <button class="icon-btn danger" onclick="deleteItem('${it.id}')" title="Delete">×</button>
@@ -5101,14 +5227,6 @@ function renderItemDrawer(it) {
   const atts = it.attachments || [];
   const isCheckl = it.category === 'checklist';
 
-  // Compact lifecycle band — same data as the row pills, but with dates
-  const stages = [
-    { name: "Delivered", on: !!it.delivered_at, date: it.delivered_at, color: "var(--green)" },
-    { name: "Shipped",   on: !!it.deployed_at || it.status === "shipped" || it.status === "tested_pass", date: it.deployed_at, color: "var(--accent)" },
-    { name: "Invoiced",  on: !!it.invoiced_at, date: it.invoiced_at, color: "var(--orange)" },
-    { name: "Paid",      on: !!it.paid_at,     date: it.paid_at,     color: "#b8860b" },
-  ];
-
   // Build meta key:value pairs, only including non-empty fields
   const metaRows = [];
   if (it.source) metaRows.push(["Source", `<span class="ico">${refTypeIcon(refType)}</span>${escapeHtml(it.source)}`]);
@@ -5119,7 +5237,7 @@ function renderItemDrawer(it) {
   metaRows.push(["Created", new Date(it.created_at).toLocaleDateString()]);
   if (it.updated_at) metaRows.push(["Updated", new Date(it.updated_at).toLocaleString()]);
   if (it.assignee) metaRows.push(["Assignee", `@${escapeHtml(it.assignee)}`]);
-  metaRows.push(["Category", escapeHtml((it.category || "feature").replace(/^./, c => c.toUpperCase()))]);
+  // category shown in dedicated Type picker above
 
   return `
     <div class="row-drawer">
@@ -5134,23 +5252,23 @@ function renderItemDrawer(it) {
           </div>
         ` : ''}
 
-        <div class="drawer-section full">
+        <div class="drawer-section half">
           <span class="drawer-label">Status</span>
-          ${renderStatusPicker(it)}
+          <select class="drawer-select" onchange="setItemStatus('${it.id}', this.value)">
+            <option value="open"         ${it.status==='open'         ?'selected':''}>Not started</option>
+            <option value="in_flight"    ${it.status==='in_flight'    ?'selected':''}>Building</option>
+            <option value="shipped"      ${it.status==='shipped'      ?'selected':''}>Shipped</option>
+            <option value="tested_pass"  ${it.status==='tested_pass'  ?'selected':''}>Passing</option>
+            <option value="tested_fail"  ${it.status==='tested_fail'  ?'selected':''}>Failing</option>
+            <option value="wont_do"      ${it.status==='wont_do'      ?'selected':''}>Skipped</option>
+          </select>
         </div>
 
-        <div class="drawer-section full">
-          <span class="drawer-label">Lifecycle</span>
-          <div class="drawer-lifecycle">
-            ${stages.map((s, i) => `
-              ${i > 0 ? `<span class="lc-arrow">›</span>` : ''}
-              <div class="lc-stage">
-                <span class="lc-step ${s.on ? 'lc-on' : ''}" style="${s.on ? `background:${s.color};border-color:${s.color};color:white;` : ''}">${s.name.charAt(0)}</span>
-                <span class="lc-stage-name">${s.name}</span>
-                <span class="lc-stage-date">${s.date ? fmtDateShort(s.date) : ''}</span>
-              </div>
-            `).join('')}
-          </div>
+        <div class="drawer-section half">
+          <span class="drawer-label">Type</span>
+          <select class="drawer-select" onchange="patchItem('${it.id}', { category: this.value }); render();">
+            ${CAT_LIST.map(c => `<option value="${c.value}" ${(it.category||'feature')===c.value?'selected':''}>${c.label}</option>`).join('')}
+          </select>
         </div>
 
         <div class="drawer-section">
@@ -5280,7 +5398,7 @@ function renderItemFull(it) {
         </div>
       </div>
       <div class="actions-always">
-        ${renderLifecycle(it)}
+        ${renderCatChip(it)}
       </div>
       <div class="item-actions">
         <button class="icon-btn danger" onclick="deleteItem('${it.id}')" title="Delete">×</button>
@@ -5504,6 +5622,54 @@ function bindTouchDrag(root) {
   });
 }
 
+// === Item detail SIDEBAR — replaces inline row-drawer ===
+function openItemSidebar(itemId) {
+  document.body.classList.add("has-sidebar");
+  // Push URL hash so this record is deep-linkable
+  history.replaceState(null, "", "#item-" + itemId);
+  setTimeout(() => updateItemSidebar(), 0);
+}
+function closeItemSidebar() {
+  document.body.classList.remove("has-sidebar");
+  expandedRows.clear();
+  saveExpandedRows();
+  // Clear hash from URL
+  history.replaceState(null, "", window.location.pathname + window.location.search);
+  // render() is needed here: inline drawer is in the DOM (rendered when sidebar was open)
+  // and becomes visible as soon as has-sidebar is removed without a re-render.
+  render();
+}
+function updateItemSidebar() {
+  if (!document.body.classList.contains("has-sidebar")) return;
+  const id = [...expandedRows][0];
+  if (!id) { closeItemSidebar(); return; }
+  const it = findItem(id);
+  if (!it) { closeItemSidebar(); return; }
+  const titleEl = document.getElementById("item-sidebar-title");
+  const contentEl = document.getElementById("item-sidebar-content");
+  if (titleEl) titleEl.textContent = it.title || "Item details";
+  if (contentEl) contentEl.innerHTML = renderItemDrawer(it);
+  if (typeof wireDragDrop === "function") wireDragDrop();
+}
+// ESC closes the sidebar
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.body.classList.contains("has-sidebar")) {
+    if (e.target.matches("input,textarea,[contenteditable=true]")) return;
+    closeItemSidebar(); // closeItemSidebar already calls render()
+  }
+});
+// Deep-link: open sidebar for #item-<id> on load (handled after first load() call)
+function checkDeepLink() {
+  const hash = window.location.hash;
+  if (!hash.startsWith("#item-")) return;
+  const id = hash.slice(6);
+  if (!id) return;
+  expandedRows.clear();
+  expandedRows.add(id);
+  openItemSidebar(id);
+  render();
+}
+
 // === Right-click context menu (Insert above / below, Duplicate, Delete) ===
 function ensureCtxMenu() {
   let m = document.getElementById("row-ctx-menu");
@@ -5662,7 +5828,7 @@ function bindColResizers() {
 applyColWidths();
 bindColResizers();
 
-loadCurrentUser().then(() => { load(true); startPolling(); bindDragDelegation(); });
+loadCurrentUser().then(() => { load(true).then(() => checkDeepLink()); startPolling(); bindDragDelegation(); });
 </script>
 </body>
 </html>

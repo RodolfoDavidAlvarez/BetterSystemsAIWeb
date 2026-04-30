@@ -5933,17 +5933,40 @@ async function insertItemAt(refId, where) {
   const ref = findItem(refId);
   if (!ref) return;
   // Place new row's sort_order between ref and its neighbor in the same project+version
-  const bucket = (projects[ref.project] || [])
+  let bucket = (projects[ref.project] || [])
     .filter(x => x.version === ref.version)
     .sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0) || new Date(a.created_at) - new Date(b.created_at));
+
+  // If sort_orders are missing or collide, midpoint math collapses to 0 and the new
+  // row lands unpredictably. Detect that and renumber the bucket at 100-step intervals
+  // first, then compute a clean insert order.
+  const seen = new Set();
+  let needsRenumber = false;
+  for (const it of bucket) {
+    const v = it.sort_order;
+    if (v == null || seen.has(v)) { needsRenumber = true; break; }
+    seen.add(v);
+  }
+  if (needsRenumber) {
+    await Promise.all(bucket.map((it, i) => {
+      const newOrder = (i + 1) * 100;
+      if (it.sort_order === newOrder) return null;
+      it.sort_order = newOrder; // local mirror so subsequent math is correct
+      return apiFetch("/api/dev-tracker/items/" + it.id, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sort_order: newOrder }),
+      });
+    }).filter(Boolean));
+  }
+
   const idx = bucket.findIndex(x => x.id === refId);
   let order;
   if (where === "above") {
     const prev = bucket[idx - 1];
-    order = prev ? ((prev.sort_order || 0) + (ref.sort_order || 0)) / 2 : (ref.sort_order || 10) - 5;
+    order = prev ? (prev.sort_order + ref.sort_order) / 2 : ref.sort_order - 50;
   } else {
     const next = bucket[idx + 1];
-    order = next ? ((ref.sort_order || 0) + (next.sort_order || 0)) / 2 : (ref.sort_order || 0) + 10;
+    order = next ? (ref.sort_order + next.sort_order) / 2 : ref.sort_order + 50;
   }
   const body = {
     project: ref.project,

@@ -2717,11 +2717,25 @@
     background: var(--accent);
     opacity: 0.85;
   }
-  /* In sidebar mode, the inline drawer is suppressed and the source row gets a strong highlight */
+  /* In sidebar mode: all non-active rows are dimmed + blurred; active row stays crisp and highlighted */
   body.has-sidebar .item.line .row-drawer { display: none !important; }
+  body.has-sidebar .item.line:not(.is-expanded),
+  body.has-sidebar .deal-hd {
+    opacity: 0.28;
+    filter: blur(0.6px) grayscale(0.3);
+    transition: opacity 0.2s, filter 0.2s;
+    pointer-events: none;
+  }
+  body.has-sidebar .vgroup-hd {
+    opacity: 0.3;
+    transition: opacity 0.2s;
+  }
   body.has-sidebar .item.line.is-expanded {
-    background: rgba(29,62,239,0.06) !important;
-    box-shadow: inset 3px 0 0 var(--accent), 0 0 0 2px rgba(29,62,239,0.28);
+    opacity: 1 !important;
+    filter: none !important;
+    pointer-events: auto !important;
+    background: rgba(29,62,239,0.05) !important;
+    box-shadow: inset 3px 0 0 var(--accent), 0 2px 16px rgba(29,62,239,0.12);
     border-radius: 4px;
     position: relative;
     z-index: 50;

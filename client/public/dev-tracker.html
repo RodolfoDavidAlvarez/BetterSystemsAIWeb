@@ -3594,10 +3594,32 @@
   </div>
 
 <script>
-// =====  AUTH  =====
-const AUTH_TOKEN = localStorage.getItem("authToken") || localStorage.getItem("token");
+// =====  AUTH (resilient: live-read token, capture refreshes, defer 401 redirect) =====
+function getAuthToken() {
+  return localStorage.getItem("authToken") || localStorage.getItem("token") || "";
+}
+function setAuthToken(t) {
+  if (!t) return;
+  localStorage.setItem("authToken", t);
+  localStorage.setItem("token", t);
+}
+// Backwards-compat — some old callers reference AUTH_TOKEN directly.
+let AUTH_TOKEN = getAuthToken();
 if (!AUTH_TOKEN) {
   window.location.href = "/admin/login?next=/dev-tracker.html";
+}
+let _authBannerShown = false;
+function showAuthBanner() {
+  if (_authBannerShown) return;
+  _authBannerShown = true;
+  const b = document.createElement("div");
+  b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#fee2e2;color:#7f1d1d;border-bottom:1px solid #fca5a5;padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:14px;font:600 13px Geist,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.08);";
+  b.innerHTML = `Your session has expired. <button id="auth-banner-login" style="background:#7f1d1d;color:white;border:0;padding:6px 14px;border-radius:6px;font:600 12px Geist,sans-serif;cursor:pointer;">Sign in again</button>`;
+  document.body.appendChild(b);
+  document.getElementById("auth-banner-login").onclick = () => {
+    localStorage.removeItem("authToken"); localStorage.removeItem("token");
+    window.location.href = "/admin/login?next=" + encodeURIComponent(location.pathname + location.search);
+  };
 }
 let CURRENT_USER = null;
 async function loadCurrentUser() {
@@ -3785,11 +3807,17 @@ async function deleteUser(id, username) {
 }
 // fetch wrapper that auto-adds Authorization header and handles 401
 async function apiFetch(url, opts = {}) {
-  const headers = Object.assign({}, opts.headers || {}, { Authorization: "Bearer " + AUTH_TOKEN });
+  const tok = getAuthToken();
+  const headers = Object.assign({}, opts.headers || {}, tok ? { Authorization: "Bearer " + tok } : {});
   const r = await fetch(url, Object.assign({}, opts, { headers }));
+  // Pick up server-issued refreshed token (prevents silent expiry on long sessions)
+  const refreshed = r.headers.get("X-Refresh-Token");
+  if (refreshed) { setAuthToken(refreshed); AUTH_TOKEN = refreshed; }
   if (r.status === 401) {
-    localStorage.removeItem("authToken"); localStorage.removeItem("token");
-    window.location.href = "/admin/login?next=/dev-tracker.html";
+    // Don't auto-redirect — show a non-destructive banner and let the caller
+    // decide what to do. localStorage is preserved so the user doesn't lose
+    // any in-flight edits if the token comes back valid (e.g., server restart).
+    showAuthBanner();
     throw new Error("unauthorized");
   }
   return r;
@@ -4600,10 +4628,7 @@ function uploadViaMultipart(itemId, files) {
   const token = (typeof AUTH_TOKEN !== "undefined" && AUTH_TOKEN) || localStorage.getItem("authToken") || localStorage.getItem("token");
   if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
   xhr.addEventListener("load", () => {
-    if (xhr.status === 401) {
-      localStorage.removeItem("authToken"); localStorage.removeItem("token");
-      window.location.href = "/admin/login?next=/dev-tracker.html";
-    }
+    if (xhr.status === 401) showAuthBanner();
   });
   xhr.upload.onprogress = (e) => {
     if (!e.lengthComputable) return;

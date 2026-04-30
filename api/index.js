@@ -2390,6 +2390,18 @@ function devTrackerAuth(requiredRoles) {
         return res.status(403).json({ error: 'Forbidden', role: user.role });
       }
       req.user = user;
+      // If token is within 24h of expiry, mint a fresh one and surface it via header
+      try {
+        const now = Math.floor(Date.now() / 1000);
+        if (decoded.exp && (decoded.exp - now < 24 * 60 * 60)) {
+          const newToken = jwt.sign(
+            { id: decoded.id, username: decoded.username, role: decoded.role },
+            JWT_SECRET, { expiresIn: '7d' }
+          );
+          res.setHeader('X-Refresh-Token', newToken);
+          res.setHeader('Access-Control-Expose-Headers', 'X-Refresh-Token');
+        }
+      } catch (_) {}
       next();
     } catch (e) {
       return res.status(401).json({ error: 'Invalid token' });

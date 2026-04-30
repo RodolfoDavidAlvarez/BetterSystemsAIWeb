@@ -2221,23 +2221,41 @@ export function registerRoutes(app: Express) {
     try {
       const id = req.params.id;
       const b = req.body || {};
-      // Single tracker — every signed-in user can edit any field.
+      const changedBy = (req as any).user?.email || (req as any).user?.username || null;
       const allowed = [
         "status", "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
         "source", "source_date", "source_context", "source_ref", "sort_order", "assignee",
         "delivered_at", "invoiced_at", "paid_at", "invoice_number", "bundle", "stripe_charge_id", "video_url",
+        "time_estimate_hours",
       ];
+      // Fetch current row for audit diff
+      const beforeRes: any = await db.execute(sql`SELECT * FROM qa_items WHERE id = ${id}::uuid`);
+      const before = (beforeRes.rows || beforeRes)[0];
       const sets: any[] = [];
       for (const k of allowed) {
         if (k in b) sets.push(sql`${sql.raw(`"${k}"`)} = ${b[k]}`);
       }
       if (b.status === "tested_pass" || b.status === "tested_fail") sets.push(sql`tested_at = NOW()`);
-      if (b.status === "shipped") sets.push(sql`deployed_at = COALESCE(deployed_at, NOW())`);
+      if (b.status === "shipped") {
+        sets.push(sql`deployed_at = COALESCE(deployed_at, NOW())`);
+        sets.push(sql`shipped_at = NOW()`);
+      }
       sets.push(sql`updated_at = NOW()`);
       if (sets.length === 1) return res.status(400).json({ error: "No valid fields" });
       const setExpr = sets.reduce((acc, s, i) => (i === 0 ? s : sql`${acc}, ${s}`));
       const r: any = await db.execute(sql`UPDATE qa_items SET ${setExpr} WHERE id = ${id}::uuid RETURNING *`);
       const row = (r.rows || r)[0];
+      // Write audit log
+      const AUDIT_FIELDS = ["status", "category", "title", "assignee", "version", "time_estimate_hours"];
+      if (before) {
+        for (const f of AUDIT_FIELDS) {
+          if (!(f in b)) continue;
+          const oldVal = before[f] != null ? String(before[f]) : null;
+          const newVal = b[f] != null ? String(b[f]) : null;
+          if (oldVal === newVal) continue;
+          await db.execute(sql`INSERT INTO qa_item_edits (item_id, changed_by, field, old_value, new_value) VALUES (${id}::uuid, ${changedBy}, ${f}, ${oldVal}, ${newVal})`);
+        }
+      }
       const notesRes: any = await db.execute(sql`SELECT * FROM qa_notes WHERE item_id = ${id}::uuid ORDER BY created_at ASC`);
       res.json({ ...row, notes: notesRes.rows || notesRes });
     } catch (e: any) {

@@ -2489,19 +2489,33 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
   try {
     const id = req.params.id;
     const b = req.body || {};
-    // Single tracker — every signed-in user can edit any field.
+    const changedBy = req.user?.email || req.user?.username || null;
     const allowed = [
       'status', 'version', 'category', 'title', 'description', 'charged', 'commit_hash', 'amount_cents',
       'source', 'source_date', 'source_context', 'source_ref', 'sort_order', 'assignee',
       'delivered_at', 'invoiced_at', 'paid_at', 'invoice_number', 'bundle', 'stripe_charge_id', 'video_url',
+      'time_estimate_hours',
     ];
     const updates = {};
     for (const k of allowed) if (k in b) updates[k] = b[k];
     if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid fields' });
     if (b.status === 'tested_pass' || b.status === 'tested_fail') updates.tested_at = new Date();
-    if (b.status === 'shipped' && !b.deployed_at) updates.deployed_at = new Date();
+    if (b.status === 'shipped') {
+      updates.deployed_at = updates.deployed_at || new Date();
+      updates.shipped_at = new Date();
+    }
     updates.updated_at = new Date();
+    // Fetch current row for audit diff
+    const [before] = await queryClient`SELECT * FROM qa_items WHERE id = ${id}`;
     const [row] = await queryClient`UPDATE qa_items SET ${queryClient(updates)} WHERE id = ${id} RETURNING *`;
+    // Write audit log entries for meaningful field changes
+    const AUDIT_FIELDS = ['status', 'category', 'title', 'assignee', 'version', 'time_estimate_hours'];
+    if (before) {
+      const edits = AUDIT_FIELDS
+        .filter(f => f in updates && String(before[f] ?? '') !== String(updates[f] ?? ''))
+        .map(f => ({ item_id: id, changed_by: changedBy, field: f, old_value: before[f] != null ? String(before[f]) : null, new_value: updates[f] != null ? String(updates[f]) : null }));
+      if (edits.length) await queryClient`INSERT INTO qa_item_edits ${queryClient(edits)}`;
+    }
     const notes = await queryClient`SELECT * FROM qa_notes WHERE item_id = ${id} ORDER BY created_at ASC`;
     res.json({ ...row, notes });
   } catch (e) {

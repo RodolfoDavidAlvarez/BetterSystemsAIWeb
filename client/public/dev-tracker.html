@@ -4126,13 +4126,48 @@ async function toggleNoteResolved(itemId, noteId, resolved) {
 }
 function cycleStatus(id, current, btn) {
   if (btn) { btn.classList.add("cycling"); setTimeout(() => btn.classList.remove("cycling"), 400); }
-  patchItem(id, { status: STATUS_FLOW[current] });
+  const next = STATUS_FLOW[current];
+  setItemStatus(id, next); // setItemStatus handles the shipped time-estimate prompt
 }
 // Direct status set — used by the drawer's status picker (no cycling, just pick)
-function setItemStatus(id, status) {
+async function setItemStatus(id, status) {
   pendingFlash.add(id);
+  if (status === 'shipped') {
+    const hours = await promptTimeEstimate(id);
+    const body = { status };
+    if (hours !== null) body.time_estimate_hours = hours;
+    return patchItem(id, body);
+  }
   patchItem(id, { status });
 }
+function promptTimeEstimate(itemId) {
+  return new Promise((resolve) => {
+    const existing = document.getElementById('time-estimate-modal');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'time-estimate-modal';
+    el.style.cssText = 'position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);padding:20px;';
+    el.innerHTML = `
+      <div style="background:white;border-radius:14px;padding:28px 28px 24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.18);">
+        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#888;margin-bottom:8px;">Mark as Shipped</div>
+        <div style="font-size:17px;font-weight:700;color:#111;margin-bottom:6px;">How long did this take?</div>
+        <div style="font-size:13px;color:#888;margin-bottom:20px;">Estimate in hours — used for analytics. Rough guess is fine.</div>
+        <input id="te-input" type="number" min="0.1" max="9999" step="0.5" placeholder="e.g. 3.5"
+          style="width:100%;font-size:18px;font-weight:600;padding:10px 14px;border:2px solid #e5e7eb;border-radius:8px;outline:none;box-sizing:border-box;margin-bottom:16px;"
+          onkeydown="if(event.key==='Enter'){document.getElementById('te-ok').click();}if(event.key==='Escape'){document.getElementById('te-skip').click();}" />
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button id="te-skip" style="background:#f3f4f6;border:0;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;color:#555;" onclick="document.getElementById('time-estimate-modal').remove();resolve_te(null)">Skip</button>
+          <button id="te-ok" style="background:#2563eb;color:white;border:0;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;" onclick="const v=parseFloat(document.getElementById('te-input').value);document.getElementById('time-estimate-modal').remove();resolve_te(isNaN(v)||v<=0?null:v)">Save &amp; Ship</button>
+        </div>
+      </div>`;
+    window._te_resolve = resolve;
+    el.addEventListener('click', e => { if (e.target === el) { el.remove(); resolve(null); } });
+    document.body.appendChild(el);
+    setTimeout(() => el.querySelector('#te-input')?.focus(), 50);
+  });
+}
+// Called by the modal buttons via inline onclick
+function resolve_te(val) { if (window._te_resolve) { window._te_resolve(val); window._te_resolve = null; } }
 // Render a row of clickable status chips — current one highlighted, click any to set
 function renderStatusPicker(it) {
   const STATUSES = ["open", "in_flight", "shipped", "tested_pass", "tested_fail", "wont_do"];
@@ -4273,14 +4308,18 @@ function openVideoPlayer(url, filename) {
   document.getElementById(id)?.remove();
   const el = document.createElement("div");
   el.id = id;
-  el.style.cssText = "position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.82);padding:20px;";
+  el.style.cssText = "position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);padding:20px;";
   el.innerHTML = `
-    <div style="position:relative;max-width:min(860px,90vw);width:100%;background:#111;border-radius:12px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+    <div style="position:relative;max-width:min(900px,92vw);width:100%;background:#111;border-radius:14px;overflow:hidden;box-shadow:0 28px 72px rgba(0,0,0,0.7);">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#1a1a1a;gap:12px;">
-        <span style="color:#fff;font-size:11.5px;font-weight:600;opacity:0.65;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${escapeHtml(filename)}</span>
-        <button onclick="document.getElementById('att-video-modal').remove()" style="background:none;border:0;color:#999;font-size:22px;cursor:pointer;line-height:1;flex-shrink:0;" title="Close (Esc)">×</button>
+        <span style="color:#fff;font-size:11.5px;font-weight:600;opacity:0.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${escapeHtml(filename)}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <span style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:600;margin-right:2px;">SPEED</span>
+          ${[0.5,1,1.5,2,2.5].map(s=>`<button onclick="document.getElementById('att-vplayer').playbackRate=${s};document.querySelectorAll('.vspd-btn').forEach(b=>b.style.background='rgba(255,255,255,0.1)');this.style.background='rgba(255,255,255,0.35)';" class="vspd-btn" style="background:${s===1?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.1)'};border:0;color:white;padding:4px 8px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">${s}×</button>`).join('')}
+          <button onclick="document.getElementById('att-video-modal').remove()" style="background:none;border:0;color:#999;font-size:22px;cursor:pointer;line-height:1;margin-left:6px;" title="Close (Esc)">×</button>
+        </div>
       </div>
-      <video src="${url}" controls autoplay style="display:block;width:100%;max-height:76vh;background:#000;"></video>
+      <video id="att-vplayer" src="${url}" controls autoplay style="display:block;width:100%;max-height:78vh;background:#000;"></video>
     </div>`;
   el.addEventListener("click", e => { if (e.target === el) el.remove(); });
   document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { el.remove(); document.removeEventListener("keydown", esc); }});
@@ -5247,6 +5286,8 @@ function renderItemDrawer(it) {
   if (it.source_date) metaRows.push(["Source date", escapeHtml(it.source_date.slice(0, 10))]);
   if (it.commit_hash) metaRows.push(["Commit", `<span class="pillette">${escapeHtml(it.commit_hash.slice(0, 7))}</span>`]);
   if (it.invoice_number) metaRows.push(["Invoice", `<span class="pillette">${escapeHtml(it.invoice_number)}</span>`]);
+  if (it.shipped_at) metaRows.push(["Shipped", new Date(it.shipped_at).toLocaleString()]);
+  if (it.time_estimate_hours != null) metaRows.push(["Est. time", `<span class="pillette">${it.time_estimate_hours}h</span>`]);
   if (it.tested_at) metaRows.push(["Tested", new Date(it.tested_at).toLocaleDateString()]);
   metaRows.push(["Created", new Date(it.created_at).toLocaleDateString()]);
   if (it.updated_at) metaRows.push(["Updated", new Date(it.updated_at).toLocaleString()]);

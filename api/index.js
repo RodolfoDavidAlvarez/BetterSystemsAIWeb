@@ -2577,6 +2577,53 @@ app.post(
   }
 );
 
+// Direct-to-storage upload (bypasses Vercel 4.5MB body limit for big videos).
+// Step 1: client requests a signed upload URL with the desired filename.
+app.post('/api/dev-tracker/items/:id/attachments/sign', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    if (!supabaseStorage) return res.status(503).json({ error: 'Storage not configured' });
+    const itemId = req.params.id;
+    const { filename } = req.body || {};
+    if (!filename) return res.status(400).json({ error: 'filename required' });
+    const [itemRow] = await queryClient`SELECT id FROM qa_items WHERE id = ${itemId}`;
+    if (!itemRow) return res.status(404).json({ error: 'Item not found' });
+    const safe = String(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${itemId}/${Date.now()}_${safe}`;
+    const { data, error } = await supabaseStorage.storage.from(ATTACHMENTS_BUCKET).createSignedUploadUrl(storagePath);
+    if (error) {
+      console.error('[Attachment sign] error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    res.json({ storagePath, token: data.token, signedUrl: data.signedUrl });
+  } catch (e) {
+    console.error('[Attachment sign] error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Step 2: after the client has uploaded directly to Supabase, finalize the row.
+app.post('/api/dev-tracker/items/:id/attachments/finalize', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  try {
+    if (!supabaseStorage) return res.status(503).json({ error: 'Storage not configured' });
+    const itemId = req.params.id;
+    const { storagePath, filename, mimeType, sizeBytes } = req.body || {};
+    if (!storagePath || !filename) return res.status(400).json({ error: 'storagePath and filename required' });
+    const [itemRow] = await queryClient`SELECT id FROM qa_items WHERE id = ${itemId}`;
+    if (!itemRow) return res.status(404).json({ error: 'Item not found' });
+    const { data: pub } = supabaseStorage.storage.from(ATTACHMENTS_BUCKET).getPublicUrl(storagePath);
+    const [row] = await queryClient`
+      INSERT INTO qa_attachments (item_id, filename, mime_type, size_bytes, storage_path, public_url, uploaded_by)
+      VALUES (${itemId}, ${filename}, ${mimeType || 'application/octet-stream'}, ${sizeBytes || 0}, ${storagePath}, ${pub.publicUrl}, ${req.user.username || 'unknown'})
+      RETURNING *
+    `;
+    await queryClient`UPDATE qa_items SET updated_at = NOW() WHERE id = ${itemId}`;
+    res.json(row);
+  } catch (e) {
+    console.error('[Attachment finalize] error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.delete('/api/dev-tracker/attachments/:id', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
   try {
     if (!supabaseStorage) return res.status(503).json({ error: 'Storage not configured' });

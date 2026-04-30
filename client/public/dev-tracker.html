@@ -4418,18 +4418,29 @@ function uploadAttachments(itemId, fileList) {
     alert("Too big (max 500MB): " + oversized.map(f => f.name + " (" + Math.round(f.size/1024/1024) + "MB)").join(", "));
     return;
   }
-  const fd = new FormData();
-  for (const f of files) fd.append("files", f);
   const total = files.reduce((s, f) => s + f.size, 0);
   uploadingMap.set(itemId, { loaded: 0, total, count: files.length, fileNames: files.map(f => f.name) });
   pendingFlash.add(itemId);
   render();
 
+  // Files >4MB go direct to Supabase Storage to skirt the Vercel 4.5MB body cap.
+  // Smaller files keep the simple multipart path through our API.
+  const DIRECT_THRESHOLD = 4 * 1024 * 1024;
+  const useDirect = files.some(f => f.size > DIRECT_THRESHOLD);
+  if (useDirect) {
+    uploadDirectToStorage(itemId, files);
+  } else {
+    uploadViaMultipart(itemId, files);
+  }
+}
+
+function uploadViaMultipart(itemId, files) {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/dev-tracker/items/" + itemId + "/attachments");
   const token = (typeof AUTH_TOKEN !== "undefined" && AUTH_TOKEN) || localStorage.getItem("authToken") || localStorage.getItem("token");
   if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
-  // Mirror apiFetch 401 behavior — kick to login if token rejected
   xhr.addEventListener("load", () => {
     if (xhr.status === 401) {
       localStorage.removeItem("authToken"); localStorage.removeItem("token");
@@ -4461,6 +4472,79 @@ function uploadAttachments(itemId, fileList) {
     render();
   };
   xhr.send(fd);
+}
+
+async function uploadDirectToStorage(itemId, files) {
+  // Per-file: sign → PUT → finalize. Aggregate progress across all files.
+  const totalBytes = files.reduce((s, f) => s + f.size, 0);
+  const perFileLoaded = new Map();
+  const updateProgress = () => {
+    const cur = uploadingMap.get(itemId);
+    if (!cur) return;
+    let sum = 0;
+    perFileLoaded.forEach(v => { sum += v; });
+    cur.loaded = sum;
+    cur.total = totalBytes;
+    render();
+  };
+  try {
+    for (const f of files) {
+      // 1. Sign
+      const signRes = await apiFetch("/api/dev-tracker/items/" + itemId + "/attachments/sign", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: f.name }),
+      });
+      if (!signRes.ok) {
+        let reason = "sign failed (HTTP " + signRes.status + ")";
+        try { const j = await signRes.json(); if (j.error) reason = j.error; } catch (_) {}
+        throw new Error(reason);
+      }
+      const { storagePath, signedUrl, token } = await signRes.json();
+
+      // 2. Direct PUT to Supabase Storage with progress
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", signedUrl);
+        xhr.setRequestHeader("Authorization", "Bearer " + token);
+        xhr.setRequestHeader("x-upsert", "false");
+        xhr.setRequestHeader("Content-Type", f.type || "application/octet-stream");
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            perFileLoaded.set(f.name, e.loaded);
+            updateProgress();
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            perFileLoaded.set(f.name, f.size);
+            updateProgress();
+            resolve(null);
+          } else {
+            reject(new Error("Storage upload failed: HTTP " + xhr.status));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Network error during direct upload"));
+        xhr.send(f);
+      });
+
+      // 3. Finalize — record the row in our DB
+      const finRes = await apiFetch("/api/dev-tracker/items/" + itemId + "/attachments/finalize", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storagePath, filename: f.name, mimeType: f.type, sizeBytes: f.size }),
+      });
+      if (!finRes.ok) {
+        let reason = "finalize failed (HTTP " + finRes.status + ")";
+        try { const j = await finRes.json(); if (j.error) reason = j.error; } catch (_) {}
+        throw new Error(reason);
+      }
+    }
+    uploadingMap.delete(itemId);
+    load();
+  } catch (e) {
+    uploadingMap.delete(itemId);
+    alert("Upload failed: " + e.message);
+    render();
+  }
 }
 async function deleteAttachment(attId, itemId) {
   const ok = await confirmDialog({

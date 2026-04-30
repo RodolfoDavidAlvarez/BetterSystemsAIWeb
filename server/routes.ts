@@ -2319,6 +2319,52 @@ export function registerRoutes(app: Express) {
     }
   );
 
+  // Direct-to-storage upload (bypasses Vercel 4.5MB body limit for big videos).
+  app.post("/api/dev-tracker/items/:id/attachments/sign", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      if (!supabaseStorage) return res.status(503).json({ error: "Storage not configured" });
+      const itemId = req.params.id;
+      const { filename } = (req.body || {}) as any;
+      if (!filename) return res.status(400).json({ error: "filename required" });
+      const itemRes: any = await db.execute(sql`SELECT id FROM qa_items WHERE id = ${itemId}::uuid`);
+      if (!(itemRes.rows || itemRes)[0]) return res.status(404).json({ error: "Item not found" });
+      const safe = String(filename).replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = `${itemId}/${Date.now()}_${safe}`;
+      const { data, error } = await supabaseStorage.storage.from(ATTACHMENTS_BUCKET).createSignedUploadUrl(storagePath);
+      if (error) {
+        console.error("[Attachment sign] error:", error);
+        return res.status(500).json({ error: error.message });
+      }
+      res.json({ storagePath, token: data.token, signedUrl: data.signedUrl });
+    } catch (e: any) {
+      console.error("[Attachment sign] error:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/dev-tracker/items/:id/attachments/finalize", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    try {
+      if (!supabaseStorage) return res.status(503).json({ error: "Storage not configured" });
+      const itemId = req.params.id;
+      const user = (req as any).user;
+      const { storagePath, filename, mimeType, sizeBytes } = (req.body || {}) as any;
+      if (!storagePath || !filename) return res.status(400).json({ error: "storagePath and filename required" });
+      const itemRes: any = await db.execute(sql`SELECT id FROM qa_items WHERE id = ${itemId}::uuid`);
+      if (!(itemRes.rows || itemRes)[0]) return res.status(404).json({ error: "Item not found" });
+      const { data: pub } = supabaseStorage.storage.from(ATTACHMENTS_BUCKET).getPublicUrl(storagePath);
+      const r: any = await db.execute(sql`
+        INSERT INTO qa_attachments (item_id, filename, mime_type, size_bytes, storage_path, public_url, uploaded_by)
+        VALUES (${itemId}::uuid, ${filename}, ${mimeType || "application/octet-stream"}, ${sizeBytes || 0}, ${storagePath}, ${pub.publicUrl}, ${user.username || "unknown"})
+        RETURNING *
+      `);
+      await db.execute(sql`UPDATE qa_items SET updated_at = NOW() WHERE id = ${itemId}::uuid`);
+      res.json((r.rows || r)[0]);
+    } catch (e: any) {
+      console.error("[Attachment finalize] error:", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.delete("/api/dev-tracker/attachments/:id", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
     try {
       if (!supabaseStorage) return res.status(503).json({ error: "Storage not configured" });

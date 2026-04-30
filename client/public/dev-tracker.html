@@ -4447,44 +4447,98 @@ function openImageGallery(itemId, attId) {
     <button id="atg-prev" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);color:white;border:0;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
     <button id="atg-next" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.08);color:white;border:0;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>
     <div id="atg-stage" style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;">
-      <img id="atg-img" alt="" style="max-width:90vw;max-height:84vh;object-fit:contain;border-radius:8px;box-shadow:0 24px 64px rgba(0,0,0,0.6);transform-origin:center center;transition:transform 0.12s ease;will-change:transform;user-select:none;-webkit-user-drag:none;" draggable="false" />
+      <div id="atg-imgwrap" style="position:relative;display:inline-block;line-height:0;transform-origin:center center;transition:transform 0.12s ease;will-change:transform;">
+        <img id="atg-img" alt="" style="display:block;max-width:90vw;max-height:84vh;object-fit:contain;border-radius:8px;box-shadow:0 24px 64px rgba(0,0,0,0.6);user-select:none;-webkit-user-drag:none;" draggable="false" />
+        <canvas id="atg-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:8px;"></canvas>
+      </div>
     </div>
     <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.55);padding:7px 14px;border-radius:999px;backdrop-filter:blur(6px);">
       <span id="atg-counter" style="color:white;font-size:11.5px;font-weight:700;letter-spacing:0.04em;"></span>
       <span style="color:rgba(255,255,255,0.4);font-size:11px;">·</span>
       <span id="atg-filename" style="color:rgba(255,255,255,0.7);font-size:11.5px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     </div>
-    <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);padding:6px 8px;border-radius:999px;backdrop-filter:blur(6px);">
+    <div id="atg-toolbar-view" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.55);padding:6px 8px;border-radius:999px;backdrop-filter:blur(6px);">
       <button id="atg-zout" style="background:rgba(255,255,255,0.1);border:0;color:white;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;">−</button>
       <span id="atg-zoom" style="color:white;font-size:11px;font-weight:700;min-width:46px;text-align:center;">100%</span>
       <button id="atg-zin" style="background:rgba(255,255,255,0.1);border:0;color:white;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;">+</button>
       <button id="atg-zreset" style="background:rgba(255,255,255,0.1);border:0;color:white;padding:0 12px;height:30px;border-radius:15px;font-size:11px;cursor:pointer;font-weight:600;margin-left:4px;">Reset</button>
+      <button id="atg-draw" style="background:rgba(255,255,255,0.15);border:0;color:white;padding:0 12px;height:30px;border-radius:15px;font-size:11px;cursor:pointer;font-weight:700;">✎ Draw</button>
       <button id="atg-dl" style="background:rgba(255,255,255,0.1);border:0;color:white;padding:0 12px;height:30px;border-radius:15px;font-size:11px;cursor:pointer;font-weight:600;">Download</button>
+    </div>
+    <div id="atg-toolbar-draw" style="display:none;position:absolute;bottom:18px;left:50%;transform:translateX(-50%);align-items:center;gap:6px;background:rgba(0,0,0,0.65);padding:6px 8px;border-radius:999px;backdrop-filter:blur(6px);">
+      <span style="display:flex;gap:4px;padding:0 4px;" id="atg-colors"></span>
+      <span style="width:1px;height:20px;background:rgba(255,255,255,0.18);margin:0 4px;"></span>
+      <input id="atg-width" type="range" min="2" max="20" step="1" value="4" style="width:80px;accent-color:#fff;" />
+      <span id="atg-width-label" style="color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;min-width:24px;text-align:right;">4</span>
+      <span style="width:1px;height:20px;background:rgba(255,255,255,0.18);margin:0 4px;"></span>
+      <button id="atg-undo" style="background:rgba(255,255,255,0.1);border:0;color:white;padding:0 10px;height:28px;border-radius:14px;font-size:11px;cursor:pointer;font-weight:600;">Undo</button>
+      <button id="atg-clear" style="background:rgba(255,255,255,0.1);border:0;color:white;padding:0 10px;height:28px;border-radius:14px;font-size:11px;cursor:pointer;font-weight:600;">Clear</button>
+      <span style="width:1px;height:20px;background:rgba(255,255,255,0.18);margin:0 4px;"></span>
+      <button id="atg-cancel" style="background:rgba(255,255,255,0.08);border:0;color:rgba(255,255,255,0.7);padding:0 12px;height:28px;border-radius:14px;font-size:11px;cursor:pointer;font-weight:600;">Cancel</button>
+      <button id="atg-save" style="background:#1d3eef;border:0;color:white;padding:0 14px;height:28px;border-radius:14px;font-size:11.5px;cursor:pointer;font-weight:700;">Save</button>
     </div>
     <button id="atg-close" style="position:absolute;top:14px;right:16px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);border:0;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;line-height:1;">×</button>
   `;
   document.body.appendChild(el);
 
   const imgEl = el.querySelector("#atg-img");
+  const wrapEl = el.querySelector("#atg-imgwrap");
+  const canvasEl = el.querySelector("#atg-canvas");
   const stageEl = el.querySelector("#atg-stage");
   const counterEl = el.querySelector("#atg-counter");
   const filenameEl = el.querySelector("#atg-filename");
   const zoomEl = el.querySelector("#atg-zoom");
   const prevBtn = el.querySelector("#atg-prev");
   const nextBtn = el.querySelector("#atg-next");
+  const toolView = el.querySelector("#atg-toolbar-view");
+  const toolDraw = el.querySelector("#atg-toolbar-draw");
 
   let zoom = 1, panX = 0, panY = 0;
+  let drawMode = false;
+  let strokes = [];           // { color, width, points: [[x,y]…] } in [0,1] normalized to image natural size
+  let currentStroke = null;
+  let curColor = "#ef4444";
+  let curWidth = 4;
+
   const applyTransform = () => {
-    imgEl.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    wrapEl.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     zoomEl.textContent = Math.round(zoom * 100) + "%";
-    stageEl.style.cursor = zoom > 1 ? "grab" : "default";
+    stageEl.style.cursor = drawMode ? "crosshair" : (zoom > 1 ? "grab" : "default");
   };
-  const setZoom = (z) => { zoom = Math.max(0.25, Math.min(8, z)); applyTransform(); };
+  const setZoom = (z) => { if (drawMode) return; zoom = Math.max(0.25, Math.min(8, z)); applyTransform(); };
   const resetView = () => { zoom = 1; panX = 0; panY = 0; applyTransform(); };
+
+  const sizeCanvas = () => {
+    const r = imgEl.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    canvasEl.width = Math.round(r.width);
+    canvasEl.height = Math.round(r.height);
+    redrawStrokes();
+  };
+  const redrawStrokes = () => {
+    const ctx = canvasEl.getContext("2d");
+    ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (const s of strokes) drawStroke(ctx, s, canvasEl.width, canvasEl.height);
+    if (currentStroke) drawStroke(ctx, currentStroke, canvasEl.width, canvasEl.height);
+  };
+  const drawStroke = (ctx, s, w, h) => {
+    if (s.points.length < 1) return;
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = s.width * (w / Math.max(canvasEl.width, 1));
+    ctx.lineWidth = s.width; // brush size in CSS pixels of the displayed canvas
+    ctx.beginPath();
+    ctx.moveTo(s.points[0][0] * w, s.points[0][1] * h);
+    for (let i = 1; i < s.points.length; i++) ctx.lineTo(s.points[i][0] * w, s.points[i][1] * h);
+    if (s.points.length === 1) { ctx.lineTo(s.points[0][0] * w + 0.01, s.points[0][1] * h + 0.01); }
+    ctx.stroke();
+  };
 
   const show = (newIdx) => {
     idx = (newIdx + images.length) % images.length;
     const a = images[idx];
+    strokes = []; currentStroke = null;
+    imgEl.onload = () => sizeCanvas();
     imgEl.src = a.public_url;
     imgEl.alt = a.filename;
     counterEl.textContent = (idx + 1) + " / " + images.length;
@@ -4503,6 +4557,124 @@ function openImageGallery(itemId, attId) {
   el.querySelector("#atg-zreset").onclick = resetView;
   el.querySelector("#atg-close").onclick = () => close();
 
+  // Build color swatches
+  const COLORS = ["#ef4444","#f59e0b","#eab308","#22c55e","#3b82f6","#a855f7","#ec4899","#ffffff","#000000"];
+  const colorsBox = el.querySelector("#atg-colors");
+  COLORS.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.col = c;
+    b.style.cssText = `width:20px;height:20px;border-radius:50%;border:2px solid ${i===0?'#fff':'rgba(255,255,255,0.3)'};background:${c};cursor:pointer;padding:0;`;
+    b.onclick = () => {
+      curColor = c;
+      [...colorsBox.children].forEach(x => x.style.borderColor = "rgba(255,255,255,0.3)");
+      b.style.borderColor = "#fff";
+    };
+    colorsBox.appendChild(b);
+  });
+  const widthSlider = el.querySelector("#atg-width");
+  const widthLabel = el.querySelector("#atg-width-label");
+  widthSlider.oninput = () => { curWidth = parseInt(widthSlider.value); widthLabel.textContent = curWidth; };
+
+  const enterDrawMode = () => {
+    drawMode = true;
+    resetView(); // reset zoom so canvas overlays cleanly
+    canvasEl.style.pointerEvents = "auto";
+    toolView.style.display = "none";
+    toolDraw.style.display = "flex";
+    prevBtn.style.display = "none"; nextBtn.style.display = "none";
+    sizeCanvas();
+    applyTransform();
+  };
+  const exitDrawMode = () => {
+    drawMode = false;
+    canvasEl.style.pointerEvents = "none";
+    toolView.style.display = "flex";
+    toolDraw.style.display = "none";
+    if (images.length >= 2) { prevBtn.style.display = "flex"; nextBtn.style.display = "flex"; }
+    strokes = []; currentStroke = null;
+    redrawStrokes();
+    applyTransform();
+  };
+  el.querySelector("#atg-draw").onclick = enterDrawMode;
+  el.querySelector("#atg-cancel").onclick = exitDrawMode;
+  el.querySelector("#atg-undo").onclick = () => { strokes.pop(); redrawStrokes(); };
+  el.querySelector("#atg-clear").onclick = () => { strokes = []; redrawStrokes(); };
+
+  // Draw input — pointer events on the canvas (only when drawMode pointerEvents=auto)
+  const canvasPos = (e) => {
+    const r = canvasEl.getBoundingClientRect();
+    return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+  };
+  let drawingNow = false;
+  canvasEl.addEventListener("pointerdown", (e) => {
+    if (!drawMode) return;
+    drawingNow = true;
+    canvasEl.setPointerCapture(e.pointerId);
+    currentStroke = { color: curColor, width: curWidth, points: [canvasPos(e)] };
+    redrawStrokes();
+    e.preventDefault();
+  });
+  canvasEl.addEventListener("pointermove", (e) => {
+    if (!drawingNow || !currentStroke) return;
+    currentStroke.points.push(canvasPos(e));
+    redrawStrokes();
+  });
+  canvasEl.addEventListener("pointerup", (e) => {
+    if (!drawingNow) return;
+    drawingNow = false;
+    if (currentStroke && currentStroke.points.length) strokes.push(currentStroke);
+    currentStroke = null;
+    redrawStrokes();
+  });
+
+  // Save flow — flatten image + strokes at natural resolution, upload as new attachment
+  el.querySelector("#atg-save").onclick = async () => {
+    if (!strokes.length) { alert("Draw something first."); return; }
+    const saveBtn = el.querySelector("#atg-save");
+    saveBtn.disabled = true; saveBtn.textContent = "Saving…";
+    try {
+      const a = images[idx];
+      const natW = imgEl.naturalWidth, natH = imgEl.naturalHeight;
+      // Re-fetch as blob to bypass any taint issues
+      const res = await fetch(a.public_url);
+      const blob0 = await res.blob();
+      const bmpUrl = URL.createObjectURL(blob0);
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise((res2, rej) => { img.onload = res2; img.onerror = rej; img.src = bmpUrl; });
+      const off = document.createElement("canvas");
+      off.width = natW; off.height = natH;
+      const octx = off.getContext("2d");
+      octx.drawImage(img, 0, 0, natW, natH);
+      // Stroke widths were in display-pixel units; scale to natural-pixel units
+      const widthScale = natW / Math.max(canvasEl.width, 1);
+      octx.lineCap = "round"; octx.lineJoin = "round";
+      for (const s of strokes) {
+        if (s.points.length < 1) continue;
+        octx.strokeStyle = s.color;
+        octx.lineWidth = s.width * widthScale;
+        octx.beginPath();
+        octx.moveTo(s.points[0][0] * natW, s.points[0][1] * natH);
+        for (let i = 1; i < s.points.length; i++) octx.lineTo(s.points[i][0] * natW, s.points[i][1] * natH);
+        if (s.points.length === 1) octx.lineTo(s.points[0][0] * natW + 0.5, s.points[0][1] * natH + 0.5);
+        octx.stroke();
+      }
+      URL.revokeObjectURL(bmpUrl);
+      const outBlob = await new Promise(r => off.toBlob(r, "image/png"));
+      const baseName = (a.filename.replace(/\.[^.]+$/, "") || "image") + "_annotated.png";
+      const file = new File([outBlob], baseName, { type: "image/png" });
+      // Pipe through existing upload flow (handles direct-to-Supabase for big files)
+      uploadAttachments(itemId, [file]);
+      // Close gallery — load() will refresh attachments and the user can re-open
+      close();
+    } catch (e) {
+      console.error(e);
+      alert("Save failed: " + (e && e.message ? e.message : e));
+      saveBtn.disabled = false; saveBtn.textContent = "Save";
+    }
+  };
+
   // Wheel zoom
   stageEl.addEventListener("wheel", (e) => {
     e.preventDefault();
@@ -4517,6 +4689,7 @@ function openImageGallery(itemId, attId) {
   // Pan when zoomed
   let dragging = false, sx = 0, sy = 0, spx = 0, spy = 0;
   stageEl.addEventListener("mousedown", (e) => {
+    if (drawMode) return;
     if (zoom <= 1) return;
     dragging = true; sx = e.clientX; sy = e.clientY; spx = panX; spy = panY;
     stageEl.style.cursor = "grabbing";
@@ -4536,7 +4709,10 @@ function openImageGallery(itemId, attId) {
   el.addEventListener("click", (e) => { if (e.target === el || e.target === stageEl) close(); });
 
   const onKey = (e) => {
-    if (e.key === "Escape") close();
+    if (e.key === "Escape") { drawMode ? exitDrawMode() : close(); }
+    else if (drawMode) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") { strokes.pop(); redrawStrokes(); }
+    }
     else if (e.key === "ArrowLeft") show(idx - 1);
     else if (e.key === "ArrowRight") show(idx + 1);
     else if (e.key === "+" || e.key === "=") setZoom(zoom * 1.25);

@@ -310,6 +310,23 @@ const INVOICE_PAYMENTS = {
       { description: "Additional Agreed Scope", detail: "SMS, installation confirmation, payment confirmation, and related updates — 3.5 hrs @ $65/hr", amount: 227.50 },
     ],
   },
+  "BSA-2026-007": {
+    invoiceNumber: "BSA-2026-007",
+    clientName: "Fernando Hernandez",
+    projectName: "Testal Growth Partnership — Kickoff",
+    issuedDate: "April 29, 2026",
+    dueDate: "Upon Signing",
+    subtotal: 1000.00,
+    fullTotal: 1000.00,
+    discountPercent: 0,
+    discountDeadline: "2026-05-15T23:59:59-07:00",
+    discountPaymentUrl: "https://buy.stripe.com/5kQ3cw80Oftjayj91mc3m0k",
+    fullPaymentUrl: "https://buy.stripe.com/5kQ3cw80Oftjayj91mc3m0k",
+    lineItems: [
+      { description: "Month 1 Service Fee", detail: "First monthly payment of the 18-month Growth Partnership. Phase 1: website + online ordering + Square POS migration + AI Reviews + Customer Surveys.", amount: 500.00 },
+      { description: "Commitment Deposit", detail: "Held against the 18-month commitment. Refunded with the final payment in Month 18, or applied toward Month 19 service.", amount: 500.00 },
+    ],
+  },
   "BSA-2026-006": {
     invoiceNumber: "BSA-2026-006",
     clientName: "Brian Mitchell",

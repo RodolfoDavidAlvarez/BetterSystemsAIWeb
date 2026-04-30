@@ -96,7 +96,7 @@
     text-rendering: optimizeLegibility;
   }
   body { min-height: 100vh; }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 14px 24px 80px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 10px 24px 80px; }
 
   /* === HEADER — tight one-line === */
   .masthead {
@@ -104,9 +104,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
     border-bottom: 1px solid var(--line);
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
   .masthead-left { flex: 1; display: flex; align-items: baseline; gap: 14px; }
   .eyebrow {
@@ -167,8 +167,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0;
-    margin-bottom: 16px;
-    padding: 6px 0;
+    margin-bottom: 8px;
+    padding: 4px 0;
     border-bottom: 1px solid var(--line);
     font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 11px;
@@ -179,11 +179,13 @@
     display: inline-flex;
     align-items: baseline;
     gap: 5px;
-    padding: 4px 12px 4px 0;
+    padding: 4px 10px;
     margin-right: 4px;
+    border-radius: 6px;
     cursor: pointer;
     color: var(--ink-3);
-    transition: color 0.12s;
+    border: 1px solid transparent;
+    transition: color 0.12s, background 0.12s, border-color 0.12s, transform 0.12s;
   }
   .brief-cell:not(:last-child)::after {
     content: "·";
@@ -191,8 +193,25 @@
     color: var(--ink-4);
     opacity: 0.6;
   }
-  .brief-cell:hover { color: var(--ink); }
-  .brief-cell.is-active { color: var(--ink); font-weight: 700; }
+  .brief-cell:hover { color: var(--ink); background: rgba(0,0,0,0.03); }
+  /* Active filter — strong, color-coded pill so the selected filter is unmistakable */
+  .brief-cell.is-active {
+    color: white;
+    background: var(--ink);
+    border-color: var(--ink);
+    font-weight: 700;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .brief-cell.is-active::after { color: var(--ink-4); }
+  .brief-cell.is-active .brief-num,
+  .brief-cell.is-active .brief-label { color: white; }
+  .brief-cell.is-active.b-flight    { background: var(--orange);  border-color: var(--orange); }
+  .brief-cell.is-active.b-shipped   { background: var(--accent);  border-color: var(--accent); }
+  .brief-cell.is-active.b-delivered { background: var(--green);   border-color: var(--green); }
+  .brief-cell.is-active.b-pass      { background: var(--green);   border-color: var(--green); }
+  .brief-cell.is-active.b-fail      { background: var(--hot);     border-color: var(--hot); }
+  .brief-cell.is-active.b-skipped   { background: var(--ink-4);   border-color: var(--ink-4); }
   .brief-num {
     font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 13px;
@@ -220,10 +239,10 @@
 
   /* === FILTER BAR === */
   .filterbar {
-    margin-bottom: 24px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .search-wrap {
@@ -447,64 +466,69 @@
   }
 
   /* === DEAL SECTION === */
-  .deal { margin-bottom: 40px; }
+  .deal { margin-bottom: 10px; }
   .deal-hd {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 18px 22px;
+    gap: 10px;
+    padding: 8px 14px;
     background: var(--deal-color, var(--ink));
     color: white;
-    border-radius: 14px;
+    border-radius: 8px;
     cursor: pointer;
     user-select: none;
-    transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 4px 0 var(--deal-shadow, rgba(0,0,0,0.6));
+    transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+    box-shadow: 0 1px 0 var(--deal-shadow, rgba(0,0,0,0.4));
   }
-  .deal-hd:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--deal-shadow, rgba(0,0,0,0.6)); }
-  .deal-hd:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--deal-shadow, rgba(0,0,0,0.6)); }
+  .deal-hd:hover { opacity: 0.92; }
+  .deal-hd:active { transform: translateY(1px); box-shadow: 0 0 0 var(--deal-shadow, rgba(0,0,0,0.4)); }
   .deal-chev {
     font-family: "Geist Mono", monospace;
-    font-size: 18px;
-    color: white;
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
     transition: transform 0.16s ease-out;
-    width: 16px;
+    width: 10px;
     line-height: 1;
     font-weight: 700;
   }
   .deal.collapsed .deal-chev { transform: rotate(-90deg); }
   .deal-name {
     font-family: "Geist", sans-serif;
-    font-size: 26px;
-    font-weight: 900;
-    letter-spacing: -0.025em;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     color: white;
-    line-height: 1;
+    line-height: 1.1;
     flex: 1;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .deal-mini {
     display: flex;
-    gap: 14px;
+    gap: 10px;
+    align-items: center;
     font-family: "Geist", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 600;
     letter-spacing: 0;
-    color: rgba(255,255,255,0.95);
+    color: rgba(255,255,255,0.85);
   }
-  .deal-mini b { color: white; font-weight: 900; font-size: 16px; margin-right: 2px; }
-  .deal-body { padding-top: 4px; }
+  .deal-mini b { color: white; font-weight: 800; font-size: 12px; margin-right: 1px; }
+  .deal-body { padding-top: 2px; }
   .deal.collapsed .deal-body { display: none; }
 
   /* === VERSION GROUP === */
-  .vgroup { margin-top: 20px; }
-  .vgroup:first-child { margin-top: 16px; }
+  .vgroup { margin-top: 6px; }
+  .vgroup:first-child { margin-top: 4px; }
   .vgroup-hd {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 4px 10px;
+    padding: 5px 4px 5px;
     border-bottom: 1px solid var(--line);
-    margin-bottom: 10px;
+    margin-bottom: 4px;
   }
   /* Single combined label: "Release [v2.5]" — the v2.5 part is editable */
   .vgroup-label {
@@ -699,61 +723,47 @@
   }
   .item-meta .meta-item { display: inline-flex; align-items: center; gap: 5px; }
   .item-meta .commit { font-family: "Geist Mono", monospace; font-weight: 600; color: var(--ink); }
-  /* Notes & attach links — modern pill chips with icon + count */
+  /* Notes & attach — minimal icon + count, no pill chrome */
   .item-meta .notes-link,
   .item-meta .attach-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 10px 5px 9px;
-    background: var(--paper);
-    border: 1px solid transparent;
-    border-radius: 999px;
-    color: var(--ink-3);
+    gap: 4px;
+    padding: 3px 6px;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--ink-4);
     cursor: pointer;
     user-select: none;
-    font-family: "Geist", sans-serif;
-    font-size: 12px;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px;
     font-weight: 600;
     line-height: 1;
-    transition: background 0.1s, color 0.1s, border-color 0.1s, transform 0.08s;
+    transition: background 0.1s, color 0.1s;
     white-space: nowrap;
   }
   .item-meta .notes-link:hover,
   .item-meta .attach-link:hover {
-    background: white;
-    border-color: var(--ink-3);
+    background: rgba(0,0,0,0.04);
     color: var(--ink);
   }
-  .item-meta .notes-link:active,
-  .item-meta .attach-link:active { transform: scale(0.97); }
-  .item-meta .notes-link.has-unresolved {
-    background: rgba(212, 0, 0, 0.08);
-    color: var(--hot);
-    border-color: rgba(212, 0, 0, 0.25);
-  }
-  .item-meta .notes-link.has-unresolved:hover { background: rgba(212, 0, 0, 0.12); border-color: var(--hot); }
-  .item-meta .attach-link.has-files {
-    background: rgba(29, 62, 239, 0.08);
-    color: var(--accent);
-    border-color: rgba(29, 62, 239, 0.25);
-  }
-  .item-meta .attach-link.has-files:hover { background: rgba(29, 62, 239, 0.12); border-color: var(--accent); }
+  /* Active state — subtle, just color, no big pill */
+  .item-meta .notes-link.has-unresolved { color: var(--hot); }
+  .item-meta .notes-link.has-unresolved:hover { background: rgba(212, 0, 0, 0.06); }
+  .item-meta .attach-link.has-files { color: var(--accent); }
+  .item-meta .attach-link.has-files:hover { background: rgba(29, 62, 239, 0.06); }
   .item-meta .attach-link svg,
   .item-meta .notes-link svg {
     flex-shrink: 0;
-    transition: transform 0.1s;
   }
-  .item-meta .attach-link:hover svg,
-  .item-meta .notes-link:hover svg { transform: scale(1.06); }
   .item-meta .ico-count {
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     line-height: 1;
-    min-width: 8px;
-    text-align: center;
   }
+  .item-meta .ico-count:empty { display: none; }
 
   /* Attachments — integrated thumbnail strip with eyebrow label */
   .attachments-section {
@@ -2073,19 +2083,18 @@
 
   /* === PROGRESS BARS === */
   .progress-bar {
-    height: 10px;
+    height: 4px;
     background: rgba(255,255,255,0.25);
     border-radius: 999px;
     overflow: hidden;
     width: 100%;
-    margin-top: 12px;
+    margin-top: 6px;
   }
   .progress-fill {
     height: 100%;
     background: white;
     border-radius: 999px;
     transition: width 0.3s ease-out;
-    box-shadow: 0 0 12px rgba(255,255,255,0.5);
   }
   .progress-deal { display: block; }
   .progress-version {
@@ -2206,6 +2215,204 @@
     font-family: "Geist", sans-serif; font-size: 11px; padding: 2px 6px;
     border: 1px solid var(--line); border-radius: 6px; background: white;
   }
+  /* === Assignee dropdown — custom UI component === */
+  .assignee-dd { position: relative; display: inline-flex; }
+  .assignee-dd-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: white;
+    color: var(--ink);
+    font-family: "Geist", sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    max-width: 180px;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .assignee-dd-trigger:hover { border-color: var(--ink-3); }
+  .assignee-dd.is-unassigned .assignee-dd-trigger { color: var(--ink-4); font-style: italic; }
+  .assignee-dd.is-open .assignee-dd-trigger { border-color: var(--accent); background: rgba(29,62,239,0.04); }
+  .assignee-dd-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 140px;
+  }
+  .assignee-dd-chev {
+    font-size: 9px;
+    color: var(--ink-4);
+    line-height: 1;
+    margin-left: 2px;
+  }
+  .assignee-dd-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    min-width: 220px;
+    max-width: 280px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    padding: 4px;
+    z-index: 100;
+  }
+  .assignee-dd.is-open .assignee-dd-menu { display: block; }
+  .assignee-dd-opt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 8px;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: "Geist", sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    text-align: left;
+    transition: background 0.08s;
+  }
+  .assignee-dd-opt:hover { background: rgba(0,0,0,0.04); }
+  .assignee-dd-opt.is-selected { background: rgba(29,62,239,0.06); color: var(--accent); font-weight: 600; }
+  .assignee-dd-check {
+    width: 14px;
+    flex-shrink: 0;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    visibility: hidden;
+  }
+  .assignee-dd-opt.is-selected .assignee-dd-check { visibility: visible; }
+  .assignee-dd-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .assignee-dd-email {
+    font-size: 10px;
+    color: var(--ink-3);
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 130px;
+  }
+  .assignee-dd-role {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink-3);
+  }
+  .assignee-dd-opt.is-selected .assignee-dd-role { background: rgba(29,62,239,0.12); color: var(--accent); }
+  /* === Airtable-style row numbers === */
+  #deals { counter-reset: rownum; }
+  .item.line { counter-increment: rownum; }
+  .row-num {
+    flex-shrink: 0;
+    width: 24px;
+    text-align: right;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-4);
+    line-height: 1;
+    user-select: none;
+    padding-right: 4px;
+  }
+  .row-num::before { content: counter(rownum); }
+  /* === Item detail SIDEBAR === */
+  #item-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,10,0.42);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
+    z-index: 199;
+  }
+  #item-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(580px, 94vw);
+    background: var(--paper);
+    box-shadow: -10px 0 36px rgba(0,0,0,0.18);
+    transform: translateX(100%);
+    transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 200;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  body.has-sidebar #item-sidebar { transform: translateX(0); }
+  body.has-sidebar #item-sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #item-sidebar-header {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 10px 18px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    z-index: 2;
+    gap: 10px;
+  }
+  #item-sidebar-title {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+  #item-sidebar-close {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--ink-3);
+    transition: background 0.12s, color 0.12s;
+  }
+  #item-sidebar-close:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
+  #item-sidebar-content { padding: 0 12px 32px; }
+  /* When sidebar is open, the source row gets a strong highlight */
+  .item.line.is-active {
+    background: rgba(29,62,239,0.06) !important;
+    box-shadow: inset 3px 0 0 var(--accent), 0 0 0 2px rgba(29,62,239,0.28);
+    position: relative;
+    z-index: 50;
+    border-radius: 4px;
+  }
+  /* Hide row-drawer when sidebar mode is active (it's now in the sidebar) */
+  body.sidebar-mode .item.line .row-drawer { display: none !important; }
+  @media (max-width: 640px) {
+    #item-sidebar { width: 100vw; }
+  }
 
   /* === DENSITY SEGMENTED + GROUP-BY (filterbar controls) === */
   .density-seg {
@@ -2278,36 +2485,126 @@
     align-items: center;
     flex-shrink: 0;
   }
-  /* Compact status as a colored dot, not a full pill */
+  /* Status pill in line mode — compact labeled chip so the stage is always readable */
   .item.line .pill {
-    width: 12px;
-    height: 12px;
-    padding: 0;
-    border-radius: 50%;
-    border: 0;
+    width: auto;
+    height: 22px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border-width: 1px;
     box-shadow: none;
-    overflow: hidden;
-    text-indent: -9999px;
-    flex-shrink: 0;
-    background-clip: content-box;
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-start;
+    white-space: nowrap;
   }
-  .item.line .pill .dot { display: none; }
+  .item.line .pill .dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+  .item.line .pill:hover { transform: none; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
   .item.line .cat { display: none; }
   /* Line mode: title + meta-row inline (row direction), left-aligned */
-  .item.line .item-main { padding: 0; min-width: 0; flex: 1; display: flex; flex-direction: row; align-items: center; gap: 14px; }
+  .item.line .item-main { padding: 0; min-width: 0; flex: 1; display: flex; flex-direction: row; align-items: center; gap: 6px; }
   .item.line .item-title {
     font-size: 14px;
     font-weight: 500;
     line-height: 1.3;
     margin: 0;
     padding: 1px 4px;
-    flex: 1;
-    min-width: 0;
+    /* User-resizable width via global CSS variable; hover the right edge to drag. */
+    flex: 0 0 var(--col-title-w, 320px);
+    width: var(--col-title-w, 320px);
+    min-width: 80px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .item.line .item-title:focus { background: var(--paper); white-space: normal; overflow: visible; text-overflow: clip; }
+  /* Column resize handle — sits on the right edge of every title cell */
+  .col-resizer {
+    flex-shrink: 0;
+    width: 6px;
+    align-self: stretch;
+    cursor: col-resize;
+    background: transparent;
+    border-left: 1px solid transparent;
+    transition: border-color 0.12s, background 0.12s;
+    user-select: none;
+  }
+  .col-resizer:hover,
+  .col-resizer.is-dragging,
+  .item.line:hover .col-resizer { border-left-color: var(--line); }
+  .col-resizer:hover,
+  .col-resizer.is-dragging { background: rgba(29,62,239,0.08); border-left-color: var(--accent); }
+  body.col-dragging { cursor: col-resize !important; user-select: none; }
+  body.col-dragging * { cursor: col-resize !important; user-select: none !important; }
+  /* === Right-click context menu === */
+  .row-ctx-menu {
+    position: fixed;
+    display: none;
+    flex-direction: column;
+    min-width: 200px;
+    padding: 4px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.08);
+    z-index: 300;
+    font-family: "Geist", sans-serif;
+  }
+  .row-ctx-menu.is-open { display: flex; }
+  .row-ctx-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--ink);
+    text-align: left;
+    transition: background 0.08s, color 0.08s;
+  }
+  .row-ctx-menu button > span:first-child {
+    width: 16px;
+    text-align: center;
+    color: var(--ink-3);
+    font-weight: 700;
+  }
+  .row-ctx-menu button:hover { background: rgba(29,62,239,0.06); color: var(--accent); }
+  .row-ctx-menu button:hover > span:first-child { color: var(--accent); }
+  .row-ctx-menu button.danger:hover { background: rgba(212,0,0,0.06); color: var(--hot); }
+  .row-ctx-menu button.danger:hover > span:first-child { color: var(--hot); }
+  .row-ctx-menu .ctx-sep {
+    height: 1px;
+    background: var(--line);
+    margin: 4px 6px;
+  }
+  /* Optional toggle: "wrap" lets long titles wrap onto multiple lines */
+  body.titles-wrap .item.line .item-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.35;
+  }
   .item.line .item-meta {
     display: flex;
     flex-wrap: nowrap;
@@ -2375,10 +2672,10 @@
   .row-toggle.is-open .row-chev { transform: rotate(90deg) translateX(-1px); }
   .row-toggle.is-open { color: var(--ink); }
 
-  /* === DRAWER — editorial expanded view (paper + ink + electric blue) === */
+  /* === DRAWER — compact expanded view (fits as much info as possible at a glance) === */
   .row-drawer {
     position: relative;
-    padding: 18px 22px 22px 28px;
+    padding: 10px 14px 12px 18px;
     background: linear-gradient(180deg, #faf8f3 0%, #f5f3ef 100%);
     border-bottom: 1px solid var(--line);
     animation: drawerSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2408,13 +2705,13 @@
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     grid-auto-flow: dense;
-    gap: 18px 22px;
+    gap: 8px 14px;
     align-items: start;
   }
   .drawer-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     min-width: 0;
   }
   .drawer-section.full { grid-column: 1 / -1; }
@@ -2446,20 +2743,20 @@
     letter-spacing: 0.05em;
   }
 
-  /* Description — feels like a writing surface */
+  /* Description — compact writing surface */
   .drawer-desc {
     font-family: "Geist", sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     color: var(--ink);
-    line-height: 1.6;
+    line-height: 1.45;
     background: white;
-    padding: 14px 16px;
-    border-radius: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
     border: 1px solid var(--line);
     white-space: pre-wrap;
     outline: none;
     cursor: text;
-    min-height: 60px;
+    min-height: 32px;
     transition: border-color 0.12s, box-shadow 0.12s;
   }
   .drawer-desc:hover { border-color: var(--ink-3); }
@@ -3233,6 +3530,69 @@ async function loadUsers() {
 function devUsernames() {
   return USERS.filter(u => u.role === "developer").map(u => u.username);
 }
+// All people the tracker can assign work to (owner + admin + developer).
+function assignableUsers() {
+  return USERS.filter(u => ["owner", "admin", "developer"].includes(u.role));
+}
+// Short, clean display name for an assignee.
+// Prefers user.name's first word; falls back to email local-part. Caps at 6 chars.
+function shortNameFor(username) {
+  if (!username) return "";
+  const u = USERS.find(x => x.username === username);
+  let label = "";
+  if (u && u.name) {
+    label = String(u.name).trim().split(/\s+/)[0];
+  } else {
+    label = String(username).split("@")[0];
+  }
+  return label.length > 6 ? label.slice(0, 6) : label;
+}
+// Custom assignee dropdown — open/close + selection
+function toggleAssigneeDd(itemId, ev) {
+  if (ev) { ev.stopPropagation(); }
+  document.querySelectorAll('.assignee-dd.is-open').forEach(el => {
+    if (el.dataset.itemId !== itemId) el.classList.remove('is-open');
+  });
+  const el = document.querySelector('.assignee-dd[data-item-id="' + itemId + '"]');
+  if (el) el.classList.toggle('is-open');
+}
+async function selectAssignee(itemId, username, ev) {
+  if (ev) { ev.stopPropagation(); }
+  document.querySelectorAll('.assignee-dd.is-open').forEach(el => el.classList.remove('is-open'));
+  await patchItem(itemId, { assignee: username || null });
+}
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.assignee-dd')) {
+    document.querySelectorAll('.assignee-dd.is-open').forEach(el => el.classList.remove('is-open'));
+  }
+});
+// Build the markup for one item's assignee dropdown
+function renderAssigneeDd(it) {
+  const cur = it.assignee || "";
+  const label = cur ? shortNameFor(cur) : "Unassigned";
+  const stateClass = cur ? "has-value" : "is-unassigned";
+  const opts = assignableUsers();
+  const optHtml = (val, name, email, roleBadge, isSelected) => `
+    <button class="assignee-dd-opt ${isSelected ? 'is-selected' : ''}"
+            onclick="selectAssignee('${it.id}', ${val === null ? 'null' : "'" + val + "'"}, event)">
+      <span class="assignee-dd-check">✓</span>
+      <span class="assignee-dd-name">${escapeHtml(name)}</span>
+      ${email ? `<span class="assignee-dd-email">${escapeHtml(email)}</span>` : ''}
+      ${roleBadge ? `<span class="assignee-dd-role">${roleBadge}</span>` : ''}
+    </button>`;
+  return `
+    <div class="assignee-dd ${stateClass}" data-item-id="${it.id}">
+      <button class="assignee-dd-trigger" onclick="toggleAssigneeDd('${it.id}', event)" title="${cur ? '@' + escapeAttr(cur) : 'Assign'}">
+        <span class="assignee-dd-label">${escapeHtml(label)}</span>
+        <span class="assignee-dd-chev">▾</span>
+      </button>
+      <div class="assignee-dd-menu" onclick="event.stopPropagation()">
+        ${optHtml(null, "— Unassigned —", "", "", !cur)}
+        ${opts.map(u => optHtml(u.username, shortNameFor(u.username), u.username, u.role, cur === u.username)).join("")}
+      </div>
+    </div>`;
+}
 function openUsersModal() {
   const m = document.getElementById("users-modal");
   m.classList.add("visible");
@@ -3363,7 +3723,6 @@ const DEFAULT_FILTERS = {
   deal: "all",
   category: "all",
   search: "",
-  density: "line",     // "line" | "card" | "open"
   groupBy: "project",  // "project" | "version" | "status" | "assignee" | "category" | "lifecycle" | "month" | "none"
 };
 // One-time migration: bump key to force-clear stale "delivered" filter that traps users.
@@ -3374,7 +3733,6 @@ if (localStorage.getItem("qa-filters") && !localStorage.getItem(LS_FILTERS_KEY))
 }
 let filters = { ...DEFAULT_FILTERS, ...(JSON.parse(localStorage.getItem(LS_FILTERS_KEY) || "{}")) };
 // Migrate any legacy keys: ensure new defaults exist if loaded from older storage
-if (!filters.density) filters.density = "line";
 if (!filters.groupBy) filters.groupBy = "project";
 let bulkMode = false;
 let selected = new Set();
@@ -3407,7 +3765,7 @@ async function load(force) {
       for (const inv of invoices) invoiceStatusByNum[inv.invoice_number] = inv.status;
     }
     // Hash includes density/groupBy/expandedRows so polling never wipes a drawer
-    const hash = payloadFingerprint(next) + "|d=" + filters.density + "|g=" + filters.groupBy + "|e=" + expandedRows.size + "|inv=" + invoices.length;
+    const hash = payloadFingerprint(next) + "|g=" + filters.groupBy + "|e=" + expandedRows.size + "|inv=" + invoices.length;
     // Skip re-render if nothing meaningful changed and no flash is queued
     if (!force && hash === _lastPayloadHash && pendingFlash.size === 0) {
       projects = next; // still update reference for actions
@@ -3892,8 +4250,12 @@ function wireDragDrop() {
       // Files appear as "Files" in the types list
       return Array.from(types).includes("Files");
     };
+    // If the drag is happening over the open drawer (where user selects text/notes),
+    // skip the file-drop overlay so it doesn't interfere with reading or selection.
+    const isOverDrawer = (e) => !!(e.target && e.target.closest && e.target.closest(".row-drawer"));
     el.addEventListener("dragover", (e) => {
       if (!isFileDrag(e)) return; // let row-reorder handlers manage this
+      if (isOverDrawer(e)) { el.classList.remove("is-dragover"); return; }
       e.preventDefault();
       e.dataTransfer.dropEffect = "copy";
       el.classList.add("is-dragover");
@@ -3904,6 +4266,8 @@ function wireDragDrop() {
     });
     el.addEventListener("drop", (e) => {
       if (!isFileDrag(e)) return;
+      // Don't capture drops inside the drawer — let normal browser/text behavior win.
+      if (isOverDrawer(e)) { el.classList.remove("is-dragover"); return; }
       e.preventDefault();
       el.classList.remove("is-dragover");
       const itemId = el.getAttribute("data-item-id");
@@ -4110,6 +4474,34 @@ async function reorderItem(id, direction) {
 // Drop within the same project+version → reorders by recomputing sort_order.
 // Drop into a different version's body → also moves item to that version (smart).
 let _dragSrcId = null;
+let _autoScrollRaf = null;
+let _autoScrollDir = 0;
+function _stopAutoScroll() {
+  if (_autoScrollRaf) cancelAnimationFrame(_autoScrollRaf);
+  _autoScrollRaf = null;
+  _autoScrollDir = 0;
+}
+// Continuously scrolls window while drag is near a viewport edge.
+// Speed scales with how close the cursor is to the edge (max ~24px/frame).
+function _autoScrollTick() {
+  if (!_dragSrcId || !_autoScrollDir) { _autoScrollRaf = null; return; }
+  window.scrollBy(0, _autoScrollDir);
+  _autoScrollRaf = requestAnimationFrame(_autoScrollTick);
+}
+function _updateAutoScroll(clientY) {
+  const EDGE = 80;          // distance from edge that triggers scroll
+  const MAX_SPEED = 24;     // px per frame at the very edge
+  const vh = window.innerHeight;
+  let dir = 0;
+  if (clientY < EDGE) {
+    dir = -Math.ceil(((EDGE - clientY) / EDGE) * MAX_SPEED);
+  } else if (clientY > vh - EDGE) {
+    dir = Math.ceil(((clientY - (vh - EDGE)) / EDGE) * MAX_SPEED);
+  }
+  _autoScrollDir = dir;
+  if (dir && !_autoScrollRaf) _autoScrollRaf = requestAnimationFrame(_autoScrollTick);
+  if (!dir) _stopAutoScroll();
+}
 function onItemDragStart(e) {
   const row = e.target.closest(".item");
   if (!row) return;
@@ -4122,9 +4514,12 @@ function onItemDragEnd(e) {
     el.classList.remove("dragging", "drag-over-top", "drag-over-bottom");
   });
   _dragSrcId = null;
+  _stopAutoScroll();
 }
 function onItemDragOver(e) {
   if (!_dragSrcId) return;
+  // Auto-scroll the window when cursor is near the top/bottom edge of the viewport.
+  _updateAutoScroll(e.clientY);
   const row = e.target.closest(".item");
   if (!row || row.dataset.itemId === _dragSrcId) return;
   e.preventDefault();
@@ -4303,13 +4698,6 @@ function render() {
     </select>`;
   };
 
-  // Density segmented + Group By select
-  const densitySeg = `
-    <div class="density-seg" role="tablist" aria-label="Density">
-      <button class="${filters.density==='line'?'is-active':''}" onclick="setFilter('density','line')" title="Line — single-row scan view"><span class="seg-icon">≡</span> Line</button>
-      <button class="${filters.density==='card'?'is-active':''}" onclick="setFilter('density','card')" title="Card — full detail per row"><span class="seg-icon">▦</span> Card</button>
-      <button class="${filters.density==='open'?'is-active':''}" onclick="setFilter('density','open')" title="Open — every row's drawer pre-expanded"><span class="seg-icon">▤</span> Open</button>
-    </div>`;
   const groupByOpts = [
     ["project", "Group: Project"],
     ["version", "Group: Release"],
@@ -4325,7 +4713,6 @@ function render() {
   </select>`;
 
   document.getElementById("filter-rows").innerHTML = [
-    densitySeg,
     groupBySelect,
     renderSelect("version", versionOpts),
     allDeals.length > 1 ? renderSelect("deal", dealOpts) : "",
@@ -4333,7 +4720,7 @@ function render() {
   ].filter(Boolean).join("");
 
   // Toggle Reset visibility when any filter is active
-  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "" || filters.groupBy !== "project" || filters.density !== "line";
+  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "" || filters.groupBy !== "project";
   document.getElementById("filter-reset").classList.toggle("visible", anyActive);
 
   // Apply filters
@@ -4637,10 +5024,7 @@ function toggleChecklistCollapsed(itemId) {
   render();
 }
 
-// Dispatch by current density. Line/Open use the compact line + drawer.
-// Card preserves the original full-card markup verbatim.
 function renderItem(it) {
-  if (filters.density === "card") return renderItemFull(it);
   return renderItemLine(it);
 }
 
@@ -4648,7 +5032,7 @@ function renderItem(it) {
 function renderItemLine(it) {
   const notes = it.notes || [];
   const unresolved = notes.filter(n => !n.resolved_at).length;
-  const isExpanded = filters.density === "open" || expandedRows.has(it.id);
+  const isExpanded = expandedRows.has(it.id);
   const flashClass = pendingFlash.has(it.id) ? 'flash' : '';
   pendingFlash.delete(it.id);
   const isDelivered = it.status === 'shipped' && it.charged;
@@ -4664,6 +5048,7 @@ function renderItemLine(it) {
        draggable="true">
     <div class="item-row">
       ${bulkMode ? `<input type="checkbox" class="bulk-check" ${isSelected?'checked':''} onchange="toggleSelected('${it.id}')" />` : ""}
+      <span class="row-num" aria-hidden="true"></span>
       <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
       <button class="row-toggle ${isExpanded?'is-open':''}" onclick="toggleRow('${it.id}')" title="${isExpanded?'Collapse':'Expand'} details" aria-label="${isExpanded?'Collapse':'Expand'} row"><span class="row-chev">›</span></button>
       <button class="pill s-${it.status}" onclick="cycleStatus('${it.id}', '${it.status}', this)" title="${STATUS_LABEL[it.status]} → ${STATUS_LABEL[cyclesTo]}">
@@ -4673,6 +5058,7 @@ function renderItemLine(it) {
         <div class="item-title" contenteditable="true" data-original="${escapeAttr(it.title)}"
              onblur="if(this.textContent.trim() && this.textContent.trim() !== this.dataset.original) patchItem('${it.id}', { title: this.textContent.trim() })"
              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${escapeHtml(it.title)}</div>
+        <span class="col-resizer" data-col="title" title="Drag to resize title column"></span>
         <div class="item-meta">
           <span class="version-chip"
                 contenteditable="true"
@@ -4681,10 +5067,7 @@ function renderItemLine(it) {
                 onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}if(event.key==='Escape'){this.textContent=this.dataset.original;this.blur();}"
                 onblur="changeItemVersion('${it.id}', this.dataset.original, this.textContent.trim(), this)"
                 title="Click to change release">v${escapeHtml(it.version)}</span>
-          <select class="assignee-select" onchange="patchItem('${it.id}', { assignee: this.value || null })" title="Assignee">
-            <option value="">— unassigned —</option>
-            ${devUsernames().map(u => `<option value="${u}" ${it.assignee===u?'selected':''}>@${u}</option>`).join("")}
-          </select>
+          ${renderAssigneeDd(it)}
           <span class="meta-item notes-link ${unresolved > 0 ? 'has-unresolved' : ''}" onclick="toggleNotes('${it.id}')" title="Notes">
             ${ICON.message}<span class="ico-count">${notes.length || ''}</span>
           </span>
@@ -5120,6 +5503,164 @@ function bindTouchDrag(root) {
     clearHints();
   });
 }
+
+// === Right-click context menu (Insert above / below, Duplicate, Delete) ===
+function ensureCtxMenu() {
+  let m = document.getElementById("row-ctx-menu");
+  if (m) return m;
+  m = document.createElement("div");
+  m.id = "row-ctx-menu";
+  m.className = "row-ctx-menu";
+  m.innerHTML = `
+    <button data-action="insert-above"><span>↑</span> Insert row above</button>
+    <button data-action="insert-below"><span>↓</span> Insert row below</button>
+    <button data-action="duplicate"><span>⎘</span> Duplicate</button>
+    <button data-action="copy-id"><span>#</span> Copy item ID</button>
+    <div class="ctx-sep"></div>
+    <button data-action="delete" class="danger"><span>×</span> Delete</button>`;
+  document.body.appendChild(m);
+  m.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const itemId = m.dataset.itemId;
+    closeCtxMenu();
+    if (!itemId) return;
+    if (action === "insert-above") await insertItemAt(itemId, "above");
+    else if (action === "insert-below") await insertItemAt(itemId, "below");
+    else if (action === "duplicate") await duplicateItem(itemId);
+    else if (action === "copy-id") { try { await navigator.clipboard.writeText(itemId); } catch (_) {} }
+    else if (action === "delete") await deleteItem(itemId);
+  });
+  return m;
+}
+function openCtxMenu(itemId, x, y) {
+  const m = ensureCtxMenu();
+  m.dataset.itemId = itemId;
+  // Clamp to viewport
+  const W = 200, H = 220;
+  const vx = Math.min(x, window.innerWidth - W - 8);
+  const vy = Math.min(y, window.innerHeight - H - 8);
+  m.style.left = vx + "px";
+  m.style.top = vy + "px";
+  m.classList.add("is-open");
+}
+function closeCtxMenu() {
+  const m = document.getElementById("row-ctx-menu");
+  if (m) m.classList.remove("is-open");
+}
+document.addEventListener("contextmenu", (e) => {
+  const row = e.target.closest(".item[data-item-id]");
+  if (!row) return;
+  // Don't intercept right-click on editable fields (let user use system menu)
+  if (e.target.closest("[contenteditable=true], input, textarea")) return;
+  e.preventDefault();
+  openCtxMenu(row.dataset.itemId, e.clientX, e.clientY);
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#row-ctx-menu")) closeCtxMenu();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCtxMenu(); });
+async function insertItemAt(refId, where) {
+  const ref = findItem(refId);
+  if (!ref) return;
+  // Place new row's sort_order between ref and its neighbor in the same project+version
+  const bucket = (projects[ref.project] || [])
+    .filter(x => x.version === ref.version)
+    .sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0) || new Date(a.created_at) - new Date(b.created_at));
+  const idx = bucket.findIndex(x => x.id === refId);
+  let order;
+  if (where === "above") {
+    const prev = bucket[idx - 1];
+    order = prev ? ((prev.sort_order || 0) + (ref.sort_order || 0)) / 2 : (ref.sort_order || 10) - 5;
+  } else {
+    const next = bucket[idx + 1];
+    order = next ? ((ref.sort_order || 0) + (next.sort_order || 0)) / 2 : (ref.sort_order || 0) + 10;
+  }
+  const body = {
+    project: ref.project,
+    title: "New item",
+    version: ref.version,
+    category: ref.category || "feature",
+    source: ref.source || "manual",
+    source_date: new Date().toISOString().slice(0, 10),
+    sort_order: order,
+  };
+  const r = await apiFetch("/api/dev-tracker/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (r.ok) {
+    const created = await r.json();
+    if (created && created.id) pendingFlash.add(created.id);
+    load();
+  }
+}
+async function duplicateItem(refId) {
+  const ref = findItem(refId);
+  if (!ref) return;
+  const body = {
+    project: ref.project,
+    title: ref.title + " (copy)",
+    version: ref.version,
+    category: ref.category || "feature",
+    source: ref.source || "manual",
+    description: ref.description || "",
+    source_date: new Date().toISOString().slice(0, 10),
+    sort_order: (ref.sort_order || 0) + 5,
+  };
+  const r = await apiFetch("/api/dev-tracker/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (r.ok) {
+    const created = await r.json();
+    if (created && created.id) pendingFlash.add(created.id);
+    load();
+  }
+}
+
+// === Column resize — drag the right edge of any title to widen/narrow it ===
+const COL_LS_KEY = "qa-col-widths-v1";
+function applyColWidths() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(COL_LS_KEY) || "{}"); } catch (_) {}
+  if (saved.title) document.documentElement.style.setProperty("--col-title-w", saved.title + "px");
+}
+function saveColWidth(col, px) {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(COL_LS_KEY) || "{}"); } catch (_) {}
+  saved[col] = Math.round(px);
+  localStorage.setItem(COL_LS_KEY, JSON.stringify(saved));
+}
+function bindColResizers() {
+  // Event delegation — works regardless of how often render() rewrites the DOM.
+  document.addEventListener("mousedown", (e) => {
+    const handle = e.target.closest(".col-resizer");
+    if (!handle) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const col = handle.dataset.col || "title";
+    // Anchor: the title cell to the LEFT of this handle
+    const titleEl = handle.previousElementSibling;
+    if (!titleEl) return;
+    const startX = e.clientX;
+    const startW = titleEl.getBoundingClientRect().width;
+    handle.classList.add("is-dragging");
+    document.body.classList.add("col-dragging");
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX;
+      const next = Math.max(80, Math.min(900, startW + dx));
+      document.documentElement.style.setProperty("--col-" + col + "-w", next + "px");
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      handle.classList.remove("is-dragging");
+      document.body.classList.remove("col-dragging");
+      const final = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--col-" + col + "-w"));
+      if (final) saveColWidth(col, final);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+}
+applyColWidths();
+bindColResizers();
 
 loadCurrentUser().then(() => { load(true); startPolling(); bindDragDelegation(); });
 </script>

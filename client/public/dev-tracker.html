@@ -4269,15 +4269,13 @@ function renderAttachments(it) {
         : isVid
           ? `<video src="${a.public_url}" preload="metadata"></video><div class="att-play-badge">${PLAY_BIG}</div>`
           : `<span class="att-icon">${fileIconFor(a.mime_type)}</span><span class="${isPdf ? 'att-ext' : 'att-name'}">${isPdf ? ext : escapeHtml(a.filename.length > 10 ? a.filename.slice(0, 8) + '…' : a.filename)}</span>`;
-      const openFn = isImg
-        ? `openImageGallery(${JSON.stringify(it.id)}, ${JSON.stringify(a.id)})`
-        : `openAttachmentPreview(${JSON.stringify(a.public_url)}, ${JSON.stringify(a.filename)}, ${JSON.stringify(mime)})`;
-      const openBtn = `<button class="att-hbtn" onclick="event.stopPropagation();${openFn}" title="${isVid ? 'Play' : 'Preview'}">${isVid ? PLAY_SVG : OPEN_SVG}</button>`;
-      const dlBtn   = `<button class="att-hbtn" onclick="event.stopPropagation();downloadAttachment('${a.id}',${JSON.stringify(a.public_url)},${JSON.stringify(a.filename)})" title="Download">${ICON.download}</button>`;
-      return `<div class="att-thumb ${thumbClass}" onclick="${openFn}" title="${escapeHtml(tooltip)}">
+      const dataAttrs = `data-att-id="${a.id}" data-item-id="${it.id}" data-att-url="${escapeAttr(a.public_url)}" data-att-name="${escapeAttr(a.filename)}" data-att-mime="${escapeAttr(mime)}" data-att-img="${isImg ? '1' : '0'}"`;
+      const openBtn = `<button class="att-hbtn" data-att-action="open" ${dataAttrs} title="${isVid ? 'Play' : 'Preview'}">${isVid ? PLAY_SVG : OPEN_SVG}</button>`;
+      const dlBtn   = `<button class="att-hbtn" data-att-action="download" ${dataAttrs} title="Download">${ICON.download}</button>`;
+      return `<div class="att-thumb ${thumbClass}" data-att-action="open" ${dataAttrs} title="${escapeHtml(tooltip)}">
         ${thumb}
         <div class="att-hover-bar">${openBtn}${dlBtn}</div>
-        ${canDelete ? `<button class="att-del" onclick="event.stopPropagation();deleteAttachment('${a.id}','${it.id}')" title="Delete">×</button>` : ""}
+        ${canDelete ? `<button class="att-del" data-att-action="delete" ${dataAttrs} title="Delete">×</button>` : ""}
       </div>`;
     }).join("")}
     ${up ? `<div class="att-uploading" title="${escapeHtml(up.fileNames.join(', '))}">
@@ -4288,6 +4286,30 @@ function renderAttachments(it) {
     </div>` : ""}
   </div>`;
 }
+// Delegated click handler — replaces inline onclick attributes that broke when
+// JSON-stringified URLs/filenames contained quotes that collided with the HTML
+// attribute's enclosing quotes.
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-att-action]");
+  if (!el) return;
+  const action = el.dataset.attAction;
+  const attId = el.dataset.attId;
+  const itemId = el.dataset.itemId;
+  const url = el.dataset.attUrl;
+  const name = el.dataset.attName;
+  const mime = el.dataset.attMime;
+  const isImg = el.dataset.attImg === "1";
+  e.stopPropagation();
+  if (action === "open") {
+    if (isImg) openImageGallery(itemId, attId);
+    else openAttachmentPreview(url, name, mime);
+  } else if (action === "download") {
+    downloadAttachment(attId, url, name);
+  } else if (action === "delete") {
+    deleteAttachment(attId, itemId);
+  }
+});
+
 async function downloadAttachment(attId, url, filename) {
   try {
     const res = await fetch(url);

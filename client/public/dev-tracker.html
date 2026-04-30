@@ -660,6 +660,7 @@
   /* Each row gets a subtle background + 4px left edge in its status color */
   .item.row-s-open        { --row-tint: white;                          --row-edge: #d4d0c8; }
   .item.row-s-in_flight   { --row-tint: rgba(194, 65, 12, 0.045);       --row-edge: var(--orange); }
+  .item.row-s-built       { --row-tint: rgba(99, 102, 241, 0.05);       --row-edge: #6366f1; }
   .item.row-s-shipped     { --row-tint: rgba(29, 62, 239, 0.04);        --row-edge: var(--accent); }
   .item.row-s-tested_pass { --row-tint: rgba(21, 128, 61, 0.045);       --row-edge: var(--green); }
   .item.row-s-tested_fail { --row-tint: rgba(212, 0, 0, 0.05);          --row-edge: var(--hot); }
@@ -671,6 +672,7 @@
     box-shadow: inset 4px 0 0 var(--row-edge);
   }
   .item.line.row-s-in_flight   { box-shadow: inset 3px 0 0 var(--orange); }
+  .item.line.row-s-built       { box-shadow: inset 3px 0 0 #6366f1; }
   .item.line.row-s-shipped     { box-shadow: inset 3px 0 0 var(--accent); }
   .item.line.row-s-tested_pass { box-shadow: inset 3px 0 0 var(--green); }
   .item.line.row-s-tested_fail { box-shadow: inset 3px 0 0 var(--hot); }
@@ -1053,6 +1055,7 @@
   }
   .s-open { background: white; border-color: var(--ink); color: var(--ink); }
   .s-in_flight { background: var(--orange); border-color: var(--orange); color: white; }
+  .s-built { background: #6366f1; border-color: #6366f1; color: white; }
   .s-shipped { background: var(--accent); border-color: var(--accent); color: white; }
   .s-tested_pass { background: var(--green); border-color: var(--green); color: white; }
   .s-tested_fail { background: var(--hot); border-color: var(--hot); color: white; }
@@ -2954,6 +2957,7 @@
   .status-chip:active { transform: scale(0.96); }
   .status-chip.is-active.s-open        { background: var(--ink); color: white; border-color: var(--ink); }
   .status-chip.is-active.s-in_flight   { background: var(--orange); color: white; border-color: var(--orange); }
+  .status-chip.is-active.s-built       { background: #6366f1; color: white; border-color: #6366f1; }
   .status-chip.is-active.s-shipped     { background: var(--accent); color: white; border-color: var(--accent); }
   .status-chip.is-active.s-tested_pass { background: var(--green); color: white; border-color: var(--green); }
   .status-chip.is-active.s-tested_fail { background: var(--hot); color: white; border-color: var(--hot); }
@@ -3535,6 +3539,7 @@
         <option value="">Set status…</option>
         <option value="open">Not started</option>
         <option value="in_flight">Building</option>
+        <option value="built">Built</option>
         <option value="shipped">Shipped</option>
         <option value="tested_pass">Passing</option>
         <option value="tested_fail">Failing</option>
@@ -3842,8 +3847,8 @@ async function apiFetch(url, opts = {}) {
   return r;
 }
 
-const STATUS_FLOW = { open:"in_flight", in_flight:"shipped", shipped:"tested_pass", tested_pass:"tested_fail", tested_fail:"open", wont_do:"open" };
-const STATUS_LABEL = { open:"Not started", in_flight:"Building", shipped:"Shipped", tested_pass:"Passing", tested_fail:"Failing", wont_do:"Skipped" };
+const STATUS_FLOW = { open:"in_flight", in_flight:"built", built:"shipped", shipped:"tested_pass", tested_pass:"tested_fail", tested_fail:"open", wont_do:"open" };
+const STATUS_LABEL = { open:"Not started", in_flight:"Building", built:"Built", shipped:"Shipped", tested_pass:"Passing", tested_fail:"Failing", wont_do:"Skipped" };
 const COMPLETED_STATUSES = new Set(["tested_pass", "wont_do"]);
 
 // Deal color palette — vibrant but not gaudy. Hashed by deal name.
@@ -4237,7 +4242,7 @@ function promptTimeEstimate(itemId) {
 function resolve_te(val) { if (window._te_resolve) { window._te_resolve(val); window._te_resolve = null; } }
 // Render a row of clickable status chips — current one highlighted, click any to set
 function renderStatusPicker(it) {
-  const STATUSES = ["open", "in_flight", "shipped", "tested_pass", "tested_fail", "wont_do"];
+  const STATUSES = ["open", "in_flight", "built", "shipped", "tested_pass", "tested_fail", "wont_do"];
   return `
     <div class="status-picker" role="radiogroup" aria-label="Status">
       ${STATUSES.map(s => `
@@ -5343,7 +5348,7 @@ async function renameRelease(project, original, newValue, el) {
 }
 
 function calcStats(items) {
-  const s = { total: items.length, open: 0, in_flight: 0, shipped: 0, tested_pass: 0, tested_fail: 0, wont_do: 0 };
+  const s = { total: items.length, open: 0, in_flight: 0, built: 0, shipped: 0, tested_pass: 0, tested_fail: 0, wont_do: 0 };
   for (const i of items) if (i.status in s) s[i.status]++;
   s.completed = s.tested_pass + s.wont_do;
   s.pct = s.total ? Math.round((s.completed / s.total) * 100) : 0;
@@ -5368,6 +5373,7 @@ function render() {
     ["b-total","total",g.total,true,"all"],
     ["b-open","not started",g.open,g.open>0,"open"],
     ["b-flight","building",g.in_flight,g.in_flight>0,"in_flight"],
+    ["b-built","built",g.built,g.built>0,"built"],
     ["b-shipped","shipped",g.shipped,g.shipped>0,"shipped"],
     ["b-delivered","delivered",deliveredCount,deliveredCount>0,"delivered"],
     ["b-pass","passing",g.tested_pass,g.tested_pass>0,"tested_pass"],
@@ -5515,6 +5521,7 @@ function lifecycleStage(it) {
   if (it.invoiced_at) return "invoiced";
   if (it.deployed_at || it.status === "shipped" || it.status === "tested_pass") return "shipped";
   if (it.delivered_at) return "delivered";
+  if (it.status === "built") return "built";
   if (it.status === "in_flight") return "building";
   if (it.status === "wont_do") return "skipped";
   return "open";
@@ -5541,11 +5548,11 @@ function bucketByDimension(items, dim) {
 function sortGroupKeys(buckets, dim) {
   const keys = [...buckets.keys()];
   if (dim === "status") {
-    const order = ["in_flight", "open", "shipped", "tested_pass", "tested_fail", "wont_do"];
+    const order = ["in_flight", "built", "open", "shipped", "tested_pass", "tested_fail", "wont_do"];
     return keys.sort((a,b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b));
   }
   if (dim === "lifecycle") {
-    const order = ["paid", "invoiced", "shipped", "delivered", "building", "open", "skipped"];
+    const order = ["paid", "invoiced", "shipped", "delivered", "built", "building", "open", "skipped"];
     return keys.sort((a,b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b));
   }
   if (dim === "version") {
@@ -5563,7 +5570,7 @@ function sortGroupKeys(buckets, dim) {
 }
 function groupLabel(key, dim) {
   const STATUS_FRIENDLY = {
-    open: "Not started", in_flight: "Building", shipped: "Shipped",
+    open: "Not started", in_flight: "Building", built: "Built", shipped: "Shipped",
     tested_pass: "Passing", tested_fail: "Failing", wont_do: "Skipped",
   };
   if (dim === "status") return STATUS_FRIENDLY[key] || key;
@@ -5582,7 +5589,7 @@ function groupLabel(key, dim) {
 function groupColor(key, dim) {
   if (dim === "status") {
     return ({
-      open: "#0a0a0a", in_flight: "var(--orange)", shipped: "var(--accent)",
+      open: "#0a0a0a", in_flight: "var(--orange)", built: "#6366f1", shipped: "var(--accent)",
       tested_pass: "var(--green)", tested_fail: "var(--hot)", wont_do: "var(--ink-4)",
     })[key] || "var(--ink)";
   }
@@ -5844,6 +5851,7 @@ function renderItemDrawer(it) {
           <select class="drawer-select" onchange="setItemStatus('${it.id}', this.value)">
             <option value="open"         ${it.status==='open'         ?'selected':''}>Not started</option>
             <option value="in_flight"    ${it.status==='in_flight'    ?'selected':''}>Building</option>
+            <option value="built"        ${it.status==='built'        ?'selected':''}>Built</option>
             <option value="shipped"      ${it.status==='shipped'      ?'selected':''}>Shipped</option>
             <option value="tested_pass"  ${it.status==='tested_pass'  ?'selected':''}>Passing</option>
             <option value="tested_fail"  ${it.status==='tested_fail'  ?'selected':''}>Failing</option>

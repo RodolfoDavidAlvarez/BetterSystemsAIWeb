@@ -3278,6 +3278,126 @@
     .add-form input, .add-form select, .add-form textarea { font-size: 16px; } /* no iOS zoom */
   }
 
+  /* === FULL MOBILE OVERHAUL — line rows, sidebar, gallery, drawing on phone === */
+  @media (max-width: 720px) {
+    /* Line rows: let the title stretch and meta chips wrap */
+    .item.line .item-row {
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 10px 10px 4px;
+      min-height: 0;
+    }
+    .item.line .row-num {
+      min-width: 22px;
+      width: 22px;
+      font-size: 9px;
+    }
+    .item.line .pill {
+      height: 24px;
+      padding: 0 11px;
+      font-size: 10.5px;
+      flex-shrink: 0;
+    }
+    .item.line .item-main {
+      flex: 1 1 100%;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+      min-width: 0;
+    }
+    .item.line .item-title {
+      flex: 1 1 auto !important;
+      width: auto !important;
+      max-width: 100% !important;
+      white-space: normal;
+      font-size: 15px;
+      line-height: 1.35;
+      padding: 4px 2px;
+    }
+    .item.line .col-resizer { display: none; }
+    .item.line .item-meta {
+      flex-wrap: wrap;
+      gap: 6px 8px;
+      padding-left: 2px;
+    }
+    .item.line .actions-always {
+      flex-wrap: wrap;
+      width: 100%;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+    .item.line .item-actions { flex-shrink: 0; }
+    /* Stable ID chip — slightly bigger tap target */
+    .item-id-chip { font-size: 10.5px; padding: 3px 7px; }
+    /* Category chip wraps into meta */
+    .item.line .cat { font-size: 10px; padding: 3px 8px; }
+
+    /* Right-side sidebar → fullscreen on mobile (scrollable) */
+    #item-sidebar { width: 100vw !important; max-width: 100vw; }
+    #item-sidebar-header { padding: 10px 12px; gap: 8px; }
+    #item-sidebar-title { font-size: 15px !important; }
+    #item-sidebar-title .seq-id { font-size: 10px; padding: 2px 6px; }
+    #item-sidebar-content { padding: 0 10px 40px; }
+    /* Drawer two-column grid → stack to single column */
+    .drawer-grid { grid-template-columns: 1fr !important; gap: 10px; padding: 10px 0; }
+    .drawer-section, .drawer-section.full, .drawer-section.right, .drawer-section.half {
+      grid-column: span 1 !important;
+    }
+    .drawer-desc { font-size: 14.5px; min-height: 70px; padding: 12px 14px; }
+    .drawer-select { font-size: 14px; padding: 9px 12px; }
+
+    /* Filter row chips: bigger tap targets, allow horizontal scroll */
+    .filterbar { flex-wrap: wrap; }
+
+    /* Attachments — always show overlay actions on touch (no hover) */
+    .att-thumb .att-hover-bar { opacity: 1 !important; pointer-events: auto !important; padding: 4px; }
+    .att-hbtn { width: 30px; height: 30px; }
+    .att-thumb .att-del { display: flex !important; }
+
+    /* Image gallery — fullscreen-friendly, allow wide toolbars to scroll */
+    #att-gallery-modal #atg-prev, #att-gallery-modal #atg-next {
+      width: 38px !important; height: 38px !important; left: 6px !important; right: 6px !important;
+    }
+    #att-gallery-modal #atg-img { max-width: 100vw !important; max-height: 75vh !important; }
+    #att-gallery-modal #atg-toolbar-view,
+    #att-gallery-modal #atg-toolbar-draw {
+      bottom: 12px !important;
+      left: 8px !important;
+      right: 8px !important;
+      transform: none !important;
+      max-width: calc(100vw - 16px);
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      justify-content: flex-start;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #att-gallery-modal #atg-toolbar-view::-webkit-scrollbar,
+    #att-gallery-modal #atg-toolbar-draw::-webkit-scrollbar { display: none; }
+    /* Drawing toolbar — slightly compact controls so all fit on a phone */
+    #atg-colors button { width: 24px !important; height: 24px !important; }
+    #atg-width { width: 70px !important; }
+
+    /* Video / audio / preview modal — tighter padding */
+    #att-video-modal > div, #att-preview-modal > div, #att-img-modal > div {
+      max-width: calc(100vw - 16px) !important;
+    }
+
+    /* Right-click ctx menu → larger tap targets */
+    .row-ctx-menu button { padding: 12px 14px; font-size: 14px; }
+  }
+
+  /* === EXTRA-NARROW (≤420 px / iPhone SE) === */
+  @media (max-width: 420px) {
+    .wrap { padding: 8px 8px 80px; }
+    h1.masthead-title { font-size: 13px; }
+    .add-btn { padding: 7px 10px; font-size: 11px; }
+    .item.line .item-row { padding: 8px 6px 8px 2px; gap: 6px; }
+    .item.line .pill { font-size: 10px; padding: 0 9px; }
+    .item.line .row-num { display: none; } /* spare width on phone */
+    .item.line .drag-handle { display: none; } /* HTML5 drag is broken on touch anyway */
+  }
+
   /* === CONFIRM DIALOG (custom, fast, branded) === */
   .confirm-backdrop {
     position: fixed; inset: 0;

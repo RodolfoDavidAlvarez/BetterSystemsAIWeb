@@ -725,6 +725,26 @@
   }
   .item-meta .meta-item { display: inline-flex; align-items: center; gap: 5px; }
   .item-meta .commit { font-family: "Geist Mono", monospace; font-weight: 600; color: var(--ink); }
+  .item-meta .created-date {
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding: 2px 0;
+    cursor: help;
+    white-space: nowrap;
+  }
+  .item-meta .created-date::before {
+    content: "";
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    opacity: .4;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
   /* Notes & attach — minimal icon + count, no pill chrome */
   .item-meta .notes-link,
   .item-meta .attach-link {
@@ -5913,6 +5933,7 @@ function renderItemLine(it) {
             ${ICON.paperclip}<span class="ico-count">${(it.attachments || []).length || ''}</span>
           </span>
           <input type="file" id="att-input-${it.id}" multiple accept="*/*" style="display:none" onchange="handleAttachInput('${it.id}', this)" />
+          ${(() => { const c = formatCreatedDate(it.created_at); return c.short ? `<span class="meta-item created-date" title="${escapeAttr(c.full)}">${escapeHtml(c.short)}</span>` : ""; })()}
           ${it.bundle ? `<span class="meta-item bundle-pill" title="Invoice line-item bundle">${escapeHtml(it.bundle)}</span>` : ""}
           ${watchPillFor(it)}
           ${invoiceBadgeFor(it)}
@@ -6180,6 +6201,18 @@ function renderChecklist(it, cl) {
   `;
 }
 
+function formatCreatedDate(iso) {
+  if (!iso) return { short: "", full: "" };
+  const d = new Date(iso);
+  if (isNaN(d)) return { short: "", full: "" };
+  const now = new Date();
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const month = d.toLocaleString(undefined, { month: "short" });
+  const day = d.getDate();
+  const short = sameYear ? `${month} ${day}` : `${month} ${day} '${String(d.getFullYear()).slice(-2)}`;
+  const full = `Created ${d.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}`;
+  return { short, full };
+}
 function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]); }
 function escapeAttr(s) { return escapeHtml(s).replace(/`/g, "&#96;"); }
 

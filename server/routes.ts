@@ -2355,7 +2355,7 @@ export function registerRoutes(app: Express) {
       INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
       VALUES (${b.project || "mitchs-map"}, ${b.version || "2.4"}, ${b.category || "feature"},
               ${b.title || "Untitled"}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
-              ${b.status || "open"}, ${b.sort_order ?? 0}, ${b.assignee || null})
+              ${b.status || "not_started"}, ${b.sort_order ?? 0}, ${b.assignee || null})
       RETURNING *
     `);
     try {
@@ -2397,10 +2397,15 @@ export function registerRoutes(app: Express) {
       for (const k of allowed) {
         if (k in b) sets.push(sql`${sql.raw(`"${k}"`)} = ${b[k]}`);
       }
-      if (b.status === "tested_pass" || b.status === "tested_fail") sets.push(sql`tested_at = NOW()`);
-      if (b.status === "shipped") {
+      // Time-tracking timestamps for new 5-status pipeline.
+      // Accept both new ("completed", "failing") and legacy ("shipped", "tested_pass", "tested_fail") names.
+      if (b.status === "failing" || b.status === "tested_fail" || b.status === "tested_pass") {
+        sets.push(sql`tested_at = NOW()`);
+      }
+      if (b.status === "completed" || b.status === "shipped" || b.status === "tested_pass") {
         sets.push(sql`deployed_at = COALESCE(deployed_at, NOW())`);
-        sets.push(sql`shipped_at = NOW()`);
+        // Preserve prior shipped_at — only stamp the first time it's marked completed.
+        sets.push(sql`shipped_at = COALESCE(shipped_at, NOW())`);
       }
       sets.push(sql`updated_at = NOW()`);
       if (sets.length === 1) return res.status(400).json({ error: "No valid fields" });

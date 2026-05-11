@@ -668,26 +668,22 @@
 
   /* === STATUS-BASED ROW TINTING — quick visual scan, not loud === */
   /* Each row gets a subtle background + 4px left edge in its status color */
-  .item.row-s-open        { --row-tint: white;                          --row-edge: #d4d0c8; }
-  .item.row-s-in_flight   { --row-tint: rgba(194, 65, 12, 0.045);       --row-edge: var(--orange); }
-  .item.row-s-built       { --row-tint: rgba(99, 102, 241, 0.05);       --row-edge: #6366f1; }
-  .item.row-s-shipped     { --row-tint: rgba(29, 62, 239, 0.04);        --row-edge: var(--accent); }
-  .item.row-s-tested_pass { --row-tint: rgba(21, 128, 61, 0.045);       --row-edge: var(--green); }
-  .item.row-s-tested_fail { --row-tint: rgba(212, 0, 0, 0.05);          --row-edge: var(--hot); }
-  .item.row-s-wont_do     { --row-tint: rgba(10, 10, 10, 0.03);         --row-edge: var(--ink-4); }
+  .item.row-s-not_started { --row-tint: white;                          --row-edge: #d4d0c8; }
+  .item.row-s-in_progress { --row-tint: rgba(194, 65, 12, 0.045);       --row-edge: var(--orange); }
+  .item.row-s-completed   { --row-tint: rgba(21, 128, 61, 0.045);       --row-edge: var(--green); }
+  .item.row-s-failing     { --row-tint: rgba(212, 0, 0, 0.05);          --row-edge: var(--hot); }
+  .item.row-s-on_hold     { --row-tint: rgba(10, 10, 10, 0.03);         --row-edge: var(--ink-4); }
 
   /* Line-mode row tinting — subtler, just a left edge stripe */
   .item.line {
     --row-edge: transparent;
     box-shadow: inset 4px 0 0 var(--row-edge);
   }
-  .item.line.row-s-in_flight   { box-shadow: inset 3px 0 0 var(--orange); }
-  .item.line.row-s-built       { box-shadow: inset 3px 0 0 #6366f1; }
-  .item.line.row-s-shipped     { box-shadow: inset 3px 0 0 var(--accent); }
-  .item.line.row-s-tested_pass { box-shadow: inset 3px 0 0 var(--green); }
-  .item.line.row-s-tested_fail { box-shadow: inset 3px 0 0 var(--hot); }
-  .item.line.row-s-wont_do     { box-shadow: inset 3px 0 0 var(--ink-4); opacity: 0.7; }
-  .item.line.row-s-open        { box-shadow: inset 3px 0 0 var(--line); }
+  .item.line.row-s-not_started { box-shadow: inset 3px 0 0 var(--line); }
+  .item.line.row-s-in_progress { box-shadow: inset 3px 0 0 var(--orange); }
+  .item.line.row-s-completed   { box-shadow: inset 3px 0 0 var(--green); }
+  .item.line.row-s-failing     { box-shadow: inset 3px 0 0 var(--hot); }
+  .item.line.row-s-on_hold     { box-shadow: inset 3px 0 0 var(--ink-4); opacity: 0.7; }
   .item.line:hover {
     background: var(--row-tint, rgba(29, 62, 239, 0.025));
   }
@@ -1083,13 +1079,11 @@
     background: currentColor;
     flex-shrink: 0;
   }
-  .s-open { background: white; border-color: var(--ink); color: var(--ink); }
-  .s-in_flight { background: var(--orange); border-color: var(--orange); color: white; }
-  .s-built { background: #6366f1; border-color: #6366f1; color: white; }
-  .s-shipped { background: var(--accent); border-color: var(--accent); color: white; }
-  .s-tested_pass { background: var(--green); border-color: var(--green); color: white; }
-  .s-tested_fail { background: var(--hot); border-color: var(--hot); color: white; }
-  .s-wont_do { background: var(--paper); border-color: var(--ink-4); color: var(--ink-4); text-decoration: line-through; }
+  .s-not_started { background: white; border-color: var(--ink); color: var(--ink); }
+  .s-in_progress { background: var(--orange); border-color: var(--orange); color: white; }
+  .s-completed { background: var(--green); border-color: var(--green); color: white; }
+  .s-failing { background: var(--hot); border-color: var(--hot); color: white; }
+  .s-on_hold { background: var(--paper); border-color: var(--ink-4); color: var(--ink-4); }
 
   /* === FILTER ACTIVE BANNER — wire-service alert bar ===
      Editorial alert tape. Black bar with crimson eyebrow stamp, monospace tags.
@@ -2985,13 +2979,11 @@
   }
   .status-chip:hover { color: var(--ink); border-color: var(--line); background: white; }
   .status-chip:active { transform: scale(0.96); }
-  .status-chip.is-active.s-open        { background: var(--ink); color: white; border-color: var(--ink); }
-  .status-chip.is-active.s-in_flight   { background: var(--orange); color: white; border-color: var(--orange); }
-  .status-chip.is-active.s-built       { background: #6366f1; color: white; border-color: #6366f1; }
-  .status-chip.is-active.s-shipped     { background: var(--accent); color: white; border-color: var(--accent); }
-  .status-chip.is-active.s-tested_pass { background: var(--green); color: white; border-color: var(--green); }
-  .status-chip.is-active.s-tested_fail { background: var(--hot); color: white; border-color: var(--hot); }
-  .status-chip.is-active.s-wont_do     { background: var(--ink-4); color: white; border-color: var(--ink-4); }
+  .status-chip.is-active.s-not_started { background: var(--ink); color: white; border-color: var(--ink); }
+  .status-chip.is-active.s-in_progress { background: var(--orange); color: white; border-color: var(--orange); }
+  .status-chip.is-active.s-completed   { background: var(--green); color: white; border-color: var(--green); }
+  .status-chip.is-active.s-failing     { background: var(--hot); color: white; border-color: var(--hot); }
+  .status-chip.is-active.s-on_hold     { background: var(--ink-4); color: white; border-color: var(--ink-4); }
   .status-chip.is-active .status-chip-dot { opacity: 1; background: white; }
 
   /* Category picker — same pattern as status-picker */
@@ -4431,11 +4423,10 @@
       box-shadow: none !important;
     }
     .item.line .pill .dot { background: var(--line-strong) !important; }
-    .item.line .pill.s-in_flight .dot { background: var(--orange) !important; }
-    .item.line .pill.s-built .dot { background: #6366f1 !important; }
-    .item.line .pill.s-shipped .dot,
-    .item.line .pill.s-tested_pass .dot { background: var(--accent) !important; }
-    .item.line .pill.s-tested_fail .dot { background: var(--hot) !important; }
+    .item.line .pill.s-in_progress .dot { background: var(--orange) !important; }
+    .item.line .pill.s-completed .dot { background: var(--green) !important; }
+    .item.line .pill.s-failing .dot { background: var(--hot) !important; }
+    .item.line .pill.s-on_hold .dot { background: var(--ink-4) !important; }
     .item.line .row-toggle {
       min-width: 48px !important;
       height: 28px !important;
@@ -4677,13 +4668,11 @@
       </select>
       <select id="bulk-status" onchange="bulkApplyStatus(this.value); this.value='';">
         <option value="">Set status…</option>
-        <option value="open">Not started</option>
-        <option value="in_flight">Building</option>
-        <option value="built">Built</option>
-        <option value="shipped">Shipped</option>
-        <option value="tested_pass">Passing</option>
-        <option value="tested_fail">Failing</option>
-        <option value="wont_do">Skipped</option>
+        <option value="not_started">Not started</option>
+        <option value="in_progress">In-progress</option>
+        <option value="completed">Completed</option>
+        <option value="failing">Failing</option>
+        <option value="on_hold">On-hold</option>
       </select>
       <select id="bulk-cat" onchange="bulkApplyCategory(this.value); this.value='';">
         <option value="">Set type…</option>
@@ -4855,7 +4844,20 @@ function toggleAssigneeDd(itemId, ev) {
 async function selectAssignee(itemId, username, ev) {
   if (ev) { ev.stopPropagation(); }
   document.querySelectorAll('.assignee-dd.is-open').forEach(el => el.classList.remove('is-open'));
-  await patchItem(itemId, { assignee: username || null });
+  // In-place update to avoid full re-render (which causes flicker/shifts)
+  const it = findItem(itemId);
+  if (it) it.assignee = username || null;
+  const trigger = document.querySelector('.assignee-dd[data-item-id="' + itemId + '"] .assignee-dd-trigger');
+  if (trigger) {
+    trigger.textContent = username || "Unassigned";
+    trigger.title = username ? "@" + username : "Assign";
+  }
+  // Quiet save — no scheduleRender / scheduleRefresh
+  apiFetch("/api/dev-tracker/items/" + itemId, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ assignee: username || null }),
+  }).catch(() => {});
 }
 // Close dropdowns when clicking outside
 document.addEventListener('click', (e) => {
@@ -4987,9 +4989,10 @@ async function apiFetch(url, opts = {}) {
   return r;
 }
 
-const STATUS_FLOW = { open:"in_flight", in_flight:"built", built:"shipped", shipped:"tested_pass", tested_pass:"tested_fail", tested_fail:"open", wont_do:"open" };
-const STATUS_LABEL = { open:"Not started", in_flight:"Building", built:"Built", shipped:"Shipped", tested_pass:"Passing", tested_fail:"Failing", wont_do:"Skipped" };
-const COMPLETED_STATUSES = new Set(["tested_pass", "wont_do"]);
+// Pipeline: Not started → In-progress → Completed → Failing → On-hold (cycles back to Not started)
+const STATUS_FLOW = { not_started:"in_progress", in_progress:"completed", completed:"failing", failing:"on_hold", on_hold:"not_started" };
+const STATUS_LABEL = { not_started:"Not started", in_progress:"In-progress", completed:"Completed", failing:"Failing", on_hold:"On-hold" };
+const COMPLETED_STATUSES = new Set(["completed", "on_hold"]);
 
 // Deal color palette — vibrant but not gaudy. Hashed by deal name.
 const DEAL_PALETTE = [
@@ -5135,11 +5138,12 @@ function itemLocalPatch(id, body) {
   if (!it) return null;
   if (body.status) body = { ...body, status: canonicalStatus(body.status) };
   Object.assign(it, body, { updated_at: new Date().toISOString() });
-  if (body.status === "shipped") {
+  // Time tracking: "completed" stamps shipped_at + deployed_at; "failing" stamps tested_at
+  if (body.status === "completed") {
     it.deployed_at = it.deployed_at || new Date().toISOString();
-    it.shipped_at = new Date().toISOString();
+    it.shipped_at = it.shipped_at || new Date().toISOString();
   }
-  if (body.status === "tested_pass" || body.status === "tested_fail") {
+  if (body.status === "failing") {
     it.tested_at = new Date().toISOString();
   }
   _lastPayloadHash = null;
@@ -5161,8 +5165,27 @@ function itemLocalReplace(row) {
   _lastPayloadHash = null;
 }
 
+// Map any legacy status value → current 5-status pipeline.
+// Old values: open, in_flight, built, shipped, tested_pass, tested_fail, wont_do
+// New values: not_started, in_progress, completed, failing, on_hold
 function canonicalStatus(status) {
-  return status === "in_progress" ? "in_flight" : (status || "open");
+  const s = status || "not_started";
+  switch (s) {
+    case "open":         return "not_started";
+    case "in_flight":    return "in_progress";
+    case "built":        return "in_progress";
+    case "shipped":      return "completed";
+    case "tested_pass":  return "completed";
+    case "tested_fail":  return "failing";
+    case "wont_do":      return "on_hold";
+    // Already-current values pass through:
+    case "not_started":
+    case "in_progress":
+    case "completed":
+    case "failing":
+    case "on_hold":      return s;
+    default:             return "not_started";
+  }
 }
 
 function normalizeProjectPayload(payload) {
@@ -5394,9 +5417,9 @@ function renderVideoSection(it) {
 
 // === INVOICE STATUS BADGE (3 states) ===
 function invoiceBadgeFor(it) {
-  const isShipped = it.status === "shipped" || it.status === "tested_pass" || !!it.deployed_at;
+  const isShipped = it.status === "completed" || !!it.deployed_at;
   if (!isShipped) return "";
-  if (!it.invoice_number) return `<span class="meta-item inv-pill notinv" title="Shipped, not yet on any invoice">Not invoiced</span>`;
+  if (!it.invoice_number) return `<span class="meta-item inv-pill notinv" title="Completed, not yet on any invoice">Not invoiced</span>`;
   const st = invoiceStatusByNum[it.invoice_number];
   if (st === "paid" || it.paid_at) return `<span class="meta-item inv-pill invoiced" title="${escapeAttr(it.invoice_number)} paid">✓ Invoiced &amp; Paid</span>`;
   if (st === "sent" || st === "draft" || it.invoiced_at) return `<span class="meta-item inv-pill billed" title="${escapeAttr(it.invoice_number)} sent, awaiting payment">Billed (unpaid)</span>`;
@@ -5562,12 +5585,42 @@ async function toggleNoteResolved(itemId, noteId, resolved) {
 function cycleStatus(id, current, btn) {
   if (btn) { btn.classList.add("cycling"); setTimeout(() => btn.classList.remove("cycling"), 400); }
   const next = STATUS_FLOW[current];
-  setItemStatus(id, next); // setItemStatus handles the shipped time-estimate prompt
+  // For "completed" we need the time-estimate modal — fall back to the heavy path
+  if (next === "completed") return setItemStatus(id, next);
+  // Otherwise update the pill in place — no full re-render
+  setStatusInPlace(id, next, btn);
+}
+// In-place status pill update — keeps viewport perfectly still
+function setStatusInPlace(id, next, btn) {
+  const it = findItem(id);
+  if (it) it.status = next;
+  // Update the pill's class + label without rebuilding the row
+  if (btn) {
+    for (const c of [...btn.classList]) if (c.startsWith("s-")) btn.classList.remove(c);
+    btn.classList.add("s-" + next);
+    const dot = btn.querySelector(".dot");
+    btn.innerHTML = (dot ? dot.outerHTML : '<span class="dot"></span>') + STATUS_LABEL[next];
+    const cyclesTo = STATUS_FLOW[next];
+    btn.title = `${STATUS_LABEL[next]} → ${STATUS_LABEL[cyclesTo]}`;
+    btn.setAttribute("onclick", `cycleStatus('${id}', '${next}', this)`);
+  }
+  // Update row's status class so left-edge tint matches
+  const row = document.querySelector(itemSelector(id));
+  if (row) {
+    for (const c of [...row.classList]) if (c.startsWith("row-s-")) row.classList.remove(c);
+    row.classList.add("row-s-" + next);
+  }
+  // Quiet save
+  apiFetch("/api/dev-tracker/items/" + id, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: next }),
+  }).catch(() => {});
 }
 // Direct status set — used by the drawer's status picker (no cycling, just pick)
 async function setItemStatus(id, status) {
   pendingFlash.add(id);
-  if (status === 'shipped') {
+  if (status === 'completed') {
     const hours = await promptTimeEstimate(id);
     const body = { status };
     if (hours !== null) body.time_estimate_hours = hours;
@@ -5605,7 +5658,7 @@ function promptTimeEstimate(itemId) {
 function resolve_te(val) { if (window._te_resolve) { window._te_resolve(val); window._te_resolve = null; } }
 // Render a row of clickable status chips — current one highlighted, click any to set
 function renderStatusPicker(it) {
-  const STATUSES = ["open", "in_flight", "built", "shipped", "tested_pass", "tested_fail", "wont_do"];
+  const STATUSES = ["not_started", "in_progress", "completed", "failing", "on_hold"];
   return `
     <div class="status-picker" role="radiogroup" aria-label="Status">
       ${STATUSES.map(s => `
@@ -6376,9 +6429,34 @@ function catLabel(val) {
 function renderCatChip(it) {
   const cat = it.category || "feature";
   const label = catLabel(cat);
-  const nextIdx = (CAT_CYCLE.indexOf(cat) + 1) % CAT_CYCLE.length;
+  return `<span class="cat cat-${cat} row-cat-chip" data-item-id="${it.id}" data-cat="${cat}" onclick="event.stopPropagation();cycleCatChip(this)" title="Type: ${label} — click to cycle">${label}</span>`;
+}
+// In-place cat chip cycle — updates the span's class + text without
+// triggering render(). Sends the patch to the server quietly.
+function cycleCatChip(chip) {
+  const id = chip.dataset.itemId;
+  const cur = chip.dataset.cat || "feature";
+  const nextIdx = (CAT_CYCLE.indexOf(cur) + 1) % CAT_CYCLE.length;
   const next = CAT_CYCLE[nextIdx] || "feature";
-  return `<span class="cat cat-${cat} row-cat-chip" onclick="event.stopPropagation();patchItem('${it.id}',{category:'${next}'})" title="Type: ${label} — click to cycle">${label}</span>`;
+  const nextLabel = catLabel(next);
+  // Update local data so future renders are correct
+  const it = findItem(id);
+  if (it) it.category = next;
+  // Surgical DOM update — no rebuild, no scroll jump, no flicker
+  for (const c of [...chip.classList]) if (c.startsWith("cat-")) chip.classList.remove(c);
+  chip.classList.add("cat-" + next);
+  chip.dataset.cat = next;
+  chip.textContent = nextLabel;
+  chip.title = `Type: ${nextLabel} — click to cycle`;
+  // Also update the row's data-category attribute (used by some CSS selectors)
+  const row = chip.closest("[data-item-id]");
+  if (row) row.setAttribute("data-category", next);
+  // Fire the patch without scheduleRender / scheduleRefresh — fully quiet save
+  apiFetch("/api/dev-tracker/items/" + id, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: next }),
+  }).catch(() => {});
 }
 function renderCategoryPicker(it) {
   const cur = it.category || "feature";
@@ -6756,14 +6834,23 @@ async function renameRelease(project, original, newValue, el) {
 }
 
 function calcStats(items) {
-  const s = { total: items.length, open: 0, in_flight: 0, built: 0, shipped: 0, tested_pass: 0, tested_fail: 0, wont_do: 0 };
-  for (const i of items) if (i.status in s) s[i.status]++;
-  s.completed = s.tested_pass + s.wont_do;
-  s.pct = s.total ? Math.round((s.completed / s.total) * 100) : 0;
+  const s = { total: items.length, not_started: 0, in_progress: 0, completed: 0, failing: 0, on_hold: 0 };
+  for (const i of items) {
+    const st = canonicalStatus(i.status);
+    if (st in s) s[st]++;
+  }
+  // % complete is "completed" + "on_hold" (treated as accepted/closed)
+  s.done = s.completed + s.on_hold;
+  s.pct = s.total ? Math.round((s.done / s.total) * 100) : 0;
   return s;
 }
 
 function render() {
+  // Snapshot the exact scrollY before any DOM mutation. Restored at the end so
+  // in-place patches (category, title, status cycle) don't bounce the viewport.
+  // If layout actually changed (new content appeared above), the user may end
+  // up looking at slightly different content, but they DON'T get yanked.
+  const savedScrollY = window.scrollY;
   const scrollAnchor = captureScrollAnchor();
   const all = Object.values(projects).flat();
   const g = calcStats(all);
@@ -6771,23 +6858,20 @@ function render() {
   // Global progress bar
   // Inline tiny progress in the masthead instead of a big widget
   const mp = document.getElementById("masthead-progress");
-  if (mp) mp.textContent = `${g.completed} / ${g.total} done · ${g.pct}%`;
+  if (mp) mp.textContent = `${g.done} / ${g.total} done · ${g.pct}%`;
 
   // Filter banner is updated AFTER matchesFilters is defined — see updateFilterBanner() below.
 
   // Brief stats — clickable as status filters
-  const deliveredCount = all.filter(i => i.status==="shipped" && i.charged).length;
-  const skippedCount = all.filter(i => i.status==="wont_do").length;
+  const deliveredCount = all.filter(i => i.status==="completed" && i.charged).length;
   const briefCells = [
     ["b-total","total",g.total,true,"all"],
-    ["b-open","not started",g.open,g.open>0,"open"],
-    ["b-flight","building",g.in_flight,g.in_flight>0,"in_flight"],
-    ["b-built","built",g.built,g.built>0,"built"],
-    ["b-shipped","shipped",g.shipped,g.shipped>0,"shipped"],
+    ["b-not_started","not started",g.not_started,g.not_started>0,"not_started"],
+    ["b-in_progress","in-progress",g.in_progress,g.in_progress>0,"in_progress"],
+    ["b-completed","completed",g.completed,g.completed>0,"completed"],
     ["b-delivered","delivered",deliveredCount,deliveredCount>0,"delivered"],
-    ["b-pass","passing",g.tested_pass,g.tested_pass>0,"tested_pass"],
-    ["b-fail","failing",g.tested_fail,g.tested_fail>0,"tested_fail"],
-    ["b-skipped","skipped",g.wont_do,skippedCount>0,"wont_do"],
+    ["b-failing","failing",g.failing,g.failing>0,"failing"],
+    ["b-on_hold","on-hold",g.on_hold,g.on_hold>0,"on_hold"],
   ];
   document.getElementById("brief").innerHTML = briefCells.map(([cls,label,n,hasValue,statusVal]) => `
     <div class="brief-cell ${cls} ${hasValue?'has-value':'zero'} ${filters.status===statusVal?'is-active':''}" onclick="setFilter('status','${statusVal}')" title="Filter: ${label}">
@@ -6862,7 +6946,7 @@ function render() {
     if (filters.version !== "all" && it.version !== filters.version) return false;
     if (filters.category !== "all" && (it.category || "feature") !== filters.category) return false;
     if (filters.status === "delivered") {
-      if (!(it.status === "shipped" && it.charged)) return false;
+      if (!(it.status === "completed" && it.charged)) return false;
     } else if (filters.status !== "all" && it.status !== filters.status) return false;
     if (q) {
       const hay = [it.title, it.source, it.commit_hash, ...(it.notes||[]).map(n=>n.text)].join(" ").toLowerCase();
@@ -6932,18 +7016,22 @@ function render() {
   }
   _isFirstRender = false;
   restoreScrollAnchor(scrollAnchor);
+  // Hard-restore exact scroll position. If layout shifted (rare — only on
+  // group-changing patches like project/version), the user's view stays put
+  // even if the clicked row moves. Far less disruptive than bouncing.
+  if (window.scrollY !== savedScrollY) window.scrollTo(0, savedScrollY);
 }
 
 // === Bucketing & generic group rendering (for dynamic group-by) ===
 function lifecycleStage(it) {
   if (it.paid_at) return "paid";
   if (it.invoiced_at) return "invoiced";
-  if (it.deployed_at || it.status === "shipped" || it.status === "tested_pass") return "shipped";
+  if (it.deployed_at || it.status === "completed") return "completed";
   if (it.delivered_at) return "delivered";
-  if (it.status === "built") return "built";
-  if (it.status === "in_flight") return "building";
-  if (it.status === "wont_do") return "skipped";
-  return "open";
+  if (it.status === "in_progress") return "in-progress";
+  if (it.status === "failing") return "failing";
+  if (it.status === "on_hold") return "on-hold";
+  return "not started";
 }
 function bucketByDimension(items, dim) {
   const map = new Map();
@@ -6951,7 +7039,7 @@ function bucketByDimension(items, dim) {
     let key;
     switch (dim) {
       case "version":   key = it.version || "?"; break;
-      case "status":    key = it.status || "open"; break;
+      case "status":    key = it.status || "not_started"; break;
       case "assignee":  key = it.assignee || "(unassigned)"; break;
       case "category":  key = it.category || "feature"; break;
       case "lifecycle": key = lifecycleStage(it); break;
@@ -6967,11 +7055,11 @@ function bucketByDimension(items, dim) {
 function sortGroupKeys(buckets, dim) {
   const keys = [...buckets.keys()];
   if (dim === "status") {
-    const order = ["in_flight", "built", "open", "shipped", "tested_pass", "tested_fail", "wont_do"];
+    const order = ["in_progress", "not_started", "completed", "failing", "on_hold"];
     return keys.sort((a,b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b));
   }
   if (dim === "lifecycle") {
-    const order = ["paid", "invoiced", "shipped", "delivered", "built", "building", "open", "skipped"];
+    const order = ["paid", "invoiced", "completed", "delivered", "in-progress", "not started", "failing", "on-hold"];
     return keys.sort((a,b) => (order.indexOf(a) - order.indexOf(b)) || a.localeCompare(b));
   }
   if (dim === "version") {
@@ -6988,11 +7076,7 @@ function sortGroupKeys(buckets, dim) {
   });
 }
 function groupLabel(key, dim) {
-  const STATUS_FRIENDLY = {
-    open: "Not started", in_flight: "Building", built: "Built", shipped: "Shipped",
-    tested_pass: "Passing", tested_fail: "Failing", wont_do: "Skipped",
-  };
-  if (dim === "status") return STATUS_FRIENDLY[key] || key;
+  if (dim === "status") return STATUS_LABEL[key] || key;
   if (dim === "lifecycle") return key.charAt(0).toUpperCase() + key.slice(1);
   if (dim === "category") return key.charAt(0).toUpperCase() + key.slice(1);
   if (dim === "assignee") return key === "(unassigned)" ? "Unassigned" : "@" + key;
@@ -7008,14 +7092,15 @@ function groupLabel(key, dim) {
 function groupColor(key, dim) {
   if (dim === "status") {
     return ({
-      open: "#0a0a0a", in_flight: "var(--orange)", built: "#6366f1", shipped: "var(--accent)",
-      tested_pass: "var(--green)", tested_fail: "var(--hot)", wont_do: "var(--ink-4)",
+      not_started: "#0a0a0a", in_progress: "var(--orange)", completed: "var(--green)",
+      failing: "var(--hot)", on_hold: "var(--ink-4)",
     })[key] || "var(--ink)";
   }
   if (dim === "lifecycle") {
     return ({
-      paid: "#b8860b", invoiced: "var(--orange)", shipped: "var(--accent)",
-      delivered: "var(--green)", building: "var(--orange)", open: "var(--ink)", skipped: "var(--ink-4)",
+      paid: "#b8860b", invoiced: "var(--orange)", completed: "var(--green)",
+      delivered: "var(--green)", "in-progress": "var(--orange)", "not started": "var(--ink)",
+      failing: "var(--hot)", "on-hold": "var(--ink-4)",
     })[key] || "var(--ink)";
   }
   return "var(--ink)";
@@ -7043,7 +7128,7 @@ function renderGenericGroup(key, items, dim) {
         <span class="group-chev">▾</span>
         <span class="group-tag" style="--group-color:${groupColor(key, dim)}">${escapeHtml(items.length + '')}</span>
         <span class="group-name">${escapeHtml(groupLabel(key, dim))}</span>
-        ${showProgress ? `<span class="group-count">${stats.completed}/${stats.total} · ${stats.pct}%</span>` : `<span class="group-count">${items.length} item${items.length===1?'':'s'}</span>`}
+        ${showProgress ? `<span class="group-count">${stats.done}/${stats.total} · ${stats.pct}%</span>` : `<span class="group-count">${items.length} item${items.length===1?'':'s'}</span>`}
       </div>
       <div class="group-body">
         ${[...items].sort(itemSorter()).map(renderItem).join("")}
@@ -7083,7 +7168,7 @@ function renderDeal(name, items) {
         <div class="progress-bar progress-deal"><div class="progress-fill" style="width: ${s.pct}%"></div></div>
       </div>
       <div class="deal-mini">
-        <span><b>${s.completed}</b>/${s.total}</span>
+        <span><b>${s.done}</b>/${s.total}</span>
         <span class="progress-pct">${s.pct}%</span>
       </div>
     </div>
@@ -7104,7 +7189,7 @@ function renderDeal(name, items) {
                     onblur="renameRelease('${escapeAttr(name)}', this.dataset.original, this.textContent.trim(), this)"
                     title="Click to rename this release. Updates every item in this group.">v${escapeHtml(v)}</span>
             </span>
-            <span class="vgroup-count">${vs.completed}/${vs.total}</span>
+            <span class="vgroup-count">${vs.done}/${vs.total}</span>
             <span class="progress-pct-version">${vs.pct}%</span>
           </div>
           <div class="progress-bar progress-version"><div class="progress-fill" style="width: ${vs.pct}%"></div></div>
@@ -7171,7 +7256,7 @@ function renderItemLine(it) {
   const isExpanded = expandedRows.has(it.id);
   const flashClass = pendingFlash.has(it.id) ? 'flash' : '';
   pendingFlash.delete(it.id);
-  const isDelivered = it.status === 'shipped' && it.charged;
+  const isDelivered = it.status === 'completed' && it.charged;
   const isSelected = selected.has(it.id);
   const cyclesTo = STATUS_FLOW[it.status];
   const statusColor = it.status; // CSS .pill.s-${status} sets bg
@@ -7269,13 +7354,11 @@ function renderItemDrawer(it) {
         <div class="drawer-section half">
           <span class="drawer-label">Status</span>
           <select class="drawer-select" onchange="setItemStatus('${it.id}', this.value)">
-            <option value="open"         ${it.status==='open'         ?'selected':''}>Not started</option>
-            <option value="in_flight"    ${it.status==='in_flight'    ?'selected':''}>Building</option>
-            <option value="built"        ${it.status==='built'        ?'selected':''}>Built</option>
-            <option value="shipped"      ${it.status==='shipped'      ?'selected':''}>Shipped</option>
-            <option value="tested_pass"  ${it.status==='tested_pass'  ?'selected':''}>Passing</option>
-            <option value="tested_fail"  ${it.status==='tested_fail'  ?'selected':''}>Failing</option>
-            <option value="wont_do"      ${it.status==='wont_do'      ?'selected':''}>Skipped</option>
+            <option value="not_started" ${it.status==='not_started' ?'selected':''}>Not started</option>
+            <option value="in_progress" ${it.status==='in_progress' ?'selected':''}>In-progress</option>
+            <option value="completed"   ${it.status==='completed'   ?'selected':''}>Completed</option>
+            <option value="failing"     ${it.status==='failing'     ?'selected':''}>Failing</option>
+            <option value="on_hold"     ${it.status==='on_hold'     ?'selected':''}>On-hold</option>
           </select>
         </div>
 
@@ -7362,7 +7445,7 @@ function renderItemFull(it) {
   const cyclesTo = STATUS_FLOW[it.status];
   const flashClass = pendingFlash.has(it.id) ? 'flash' : '';
   pendingFlash.delete(it.id);
-  const isDelivered = it.status === 'shipped' && it.charged;
+  const isDelivered = it.status === 'completed' && it.charged;
   const checklist = parseChecklist(it);
   const isSelected = selected.has(it.id);
   return `

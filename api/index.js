@@ -2509,7 +2509,7 @@ app.post('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer'
     INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
     VALUES (${b.project || 'mitchs-map'}, ${b.version || '2.4'}, ${b.category || 'feature'},
             ${b.title || 'Untitled'}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
-            ${b.status || 'open'}, ${b.sort_order ?? 0}, ${b.assignee || null})
+            ${b.status || 'not_started'}, ${b.sort_order ?? 0}, ${b.assignee || null})
     RETURNING *
   `;
   try {
@@ -2547,14 +2547,19 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
     const updates = {};
     for (const k of allowed) if (k in b) updates[k] = b[k];
     if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No valid fields' });
-    if (b.status === 'tested_pass' || b.status === 'tested_fail') updates.tested_at = new Date();
-    if (b.status === 'shipped') {
-      updates.deployed_at = updates.deployed_at || new Date();
-      updates.shipped_at = new Date();
+    // Fetch current row for audit diff + to preserve existing shipped_at on completed
+    const [before] = await queryClient`SELECT * FROM qa_items WHERE id = ${id}`;
+    // Time-tracking timestamps for new 5-status pipeline.
+    // Accept both new ("completed", "failing") and legacy ("shipped", "tested_pass", "tested_fail") names.
+    if (b.status === 'failing' || b.status === 'tested_fail' || b.status === 'tested_pass') {
+      updates.tested_at = new Date();
+    }
+    if (b.status === 'completed' || b.status === 'shipped' || b.status === 'tested_pass') {
+      updates.deployed_at = updates.deployed_at || before?.deployed_at || new Date();
+      // Preserve prior shipped_at if the row already has one — only stamp the first time it's marked completed.
+      if (!before?.shipped_at) updates.shipped_at = new Date();
     }
     updates.updated_at = new Date();
-    // Fetch current row for audit diff
-    const [before] = await queryClient`SELECT * FROM qa_items WHERE id = ${id}`;
     const [row] = await queryClient`UPDATE qa_items SET ${queryClient(updates)} WHERE id = ${id} RETURNING *`;
     // Write audit log entries for meaningful field changes
     const AUDIT_FIELDS = ['status', 'category', 'title', 'assignee', 'version', 'time_estimate_hours'];

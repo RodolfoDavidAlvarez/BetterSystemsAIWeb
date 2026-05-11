@@ -5106,18 +5106,12 @@ function captureScrollAnchor() {
 }
 
 function restoreScrollAnchor(anchor) {
-  if (!anchor?.id) return;
-  const row = document.querySelector(itemSelector(anchor.id));
-  if (!row) return;
-  const delta = row.getBoundingClientRect().top - anchor.top;
-  if (Math.abs(delta) <= 1) return;
-  // Cap the auto-scroll: if a re-render shifted the row by more than half the
-  // viewport (e.g. an invoices/details section just rendered above), DON'T
-  // follow it — that yanks the user away from what they were looking at.
-  // Better UX: keep the viewport still and let the row drift.
-  const cap = Math.floor(window.innerHeight * 0.5);
-  if (Math.abs(delta) > cap) return;
-  window.scrollBy(0, delta);
+  // DISABLED: the manual scroll-anchor was causing visible jumps on every
+  // patch (category click, status cycle, etc) because every render() re-ran
+  // it, and even tiny layout shifts produced janky compensations. Modern
+  // browsers do scroll anchoring natively via CSS `overflow-anchor: auto`
+  // (the default), which is good enough and doesn't fight the user.
+  return;
 }
 
 function scheduleRender() {

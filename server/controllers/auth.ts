@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { db } from "../../db/index";
 import { users, insertUserSchema } from "../../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { AuthenticatedRequest, createAuthToken, setAuthCookie } from "../middleware/auth";
 
 // Constants
@@ -81,7 +81,9 @@ export const login = async (req: Request, res: Response) => {
       headers: req.headers,
     });
 
-    const username = typeof req.body?.username === "string" ? req.body.username.trim() : req.body?.username;
+    // Accept either `username` or `email` (login form sends `email`, server uses username field)
+    const rawIdentifier = req.body?.username ?? req.body?.email;
+    const username = typeof rawIdentifier === "string" ? rawIdentifier.trim() : rawIdentifier;
     const password = typeof req.body?.password === "string" ? req.body.password : req.body?.password;
 
     console.log("Environment info:", {
@@ -107,7 +109,12 @@ export const login = async (req: Request, res: Response) => {
     let foundUsers;
     try {
       // Wrap database query in a Promise.race to add timeout protection
-      const queryPromise = db.select().from(users).where(eq(users.username, username)).limit(1);
+      const queryPromise = db.execute(sql`
+        SELECT id, username, password, name, email, role
+        FROM bettersystems.users
+        WHERE username = ${username}
+        LIMIT 1
+      `).then((result: any) => result.rows || result);
 
       const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Database query timeout")), 8000));
 
@@ -219,7 +226,13 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
     }
 
     // Find user by id
-    const foundUsers = await db.select().from(users).where(eq(users.id, user.id)).limit(1);
+    const foundUsersResult: any = await db.execute(sql`
+      SELECT id, username, password, name, email, role
+      FROM bettersystems.users
+      WHERE id = ${user.id}
+      LIMIT 1
+    `);
+    const foundUsers = foundUsersResult.rows || foundUsersResult;
 
     if (foundUsers.length === 0) {
       return res.status(404).json({

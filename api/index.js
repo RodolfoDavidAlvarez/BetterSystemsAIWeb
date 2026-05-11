@@ -82,7 +82,9 @@ app.get('/api/audio/:filename', async (req, res) => {
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    // Accept either `username` or `email` (login form sends `email`)
+    const username = req.body?.username ?? req.body?.email;
+    const { password } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({
@@ -421,7 +423,7 @@ app.post('/api/book', async (req, res) => {
     let bookingRecord;
     try {
       const result = await queryClient`
-        INSERT INTO bookings (date, time, name, email, company, interest, notes, status, confirmation_sent)
+        INSERT INTO discovery_bookings (date, time, name, email, company, interest, notes, status, confirmation_sent)
         VALUES (${date}, ${time}, ${name}, ${email}, ${company || null}, ${interest || null}, ${notes || null}, 'pending', true)
         RETURNING id
       `;
@@ -523,7 +525,7 @@ app.get('/api/bookings/slots/:date', async (req, res) => {
   try {
     const { date } = req.params;
     const bookedSlots = await queryClient`
-      SELECT time FROM bookings WHERE date = ${date} AND status != 'cancelled'
+      SELECT time FROM discovery_bookings WHERE date = ${date} AND status != 'cancelled'
     `;
     res.json({ success: true, date, bookedTimes: bookedSlots.map(s => s.time) });
   } catch (error) {
@@ -570,7 +572,7 @@ app.get('/api/elevenlabs/signed-url', async (req, res) => {
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    const { formIdentifier, name, email, phone, company, notes } = req.body;
+    const { formIdentifier, name, email, phone, company, notes, message, question, page } = req.body;
 
     // Validate required fields
     if (!name) {
@@ -589,6 +591,7 @@ app.post('/api/contact', async (req, res) => {
 
     const submittedAt = new Date().toISOString();
     const formType = formIdentifier || 'Contact Form';
+    const submittedMessage = message || question || notes || '';
 
     // Save to Airtable
     try {
@@ -606,13 +609,16 @@ app.post('/api/contact', async (req, res) => {
           phone,
           company,
           notes,
+          message: submittedMessage,
+          question: question || submittedMessage,
+          page,
           formType,
           submittedAt
         })
       };
 
-      if (notes) {
-        record['Additional Notes'] = notes;
+      if (submittedMessage) {
+        record['Additional Notes'] = submittedMessage;
       }
 
       await base(process.env.AIRTABLE_TABLE_NAME).create(record);
@@ -663,7 +669,9 @@ app.post('/api/contact', async (req, res) => {
     try {
       const subjectLine = formType === 'Contact Card Form'
         ? `New Contact Card Submission from ${name}${company ? ` - ${company}` : ''}`
-        : `New ${formType} submission from ${name}`;
+        : formType === 'Quick Question'
+          ? `Quick website question from ${name}`
+          : `New ${formType} submission from ${name}`;
 
       const htmlContent = formType === 'Contact Card Form'
         ? `
@@ -682,6 +690,19 @@ app.post('/api/contact', async (req, res) => {
             <p style="color: #666; font-size: 12px;">Submitted at: ${submittedAt}</p>
           </div>
         `
+        : formType === 'Quick Question'
+          ? `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #F26B1F;">New Quick Question</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email || 'Not provided'}</p>
+            <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+            <p><strong>Page:</strong> ${page || 'Not provided'}</p>
+            <p><strong>Question:</strong><br>${submittedMessage || 'No question provided'}</p>
+            <hr style="margin: 20px 0;">
+            <p style="color: #666; font-size: 12px;">Submitted at: ${submittedAt}</p>
+          </div>
+        `
         : `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #4285F4;">New Contact Form Submission</h2>
@@ -689,6 +710,7 @@ app.post('/api/contact', async (req, res) => {
             <p><strong>Email:</strong> ${email || 'Not provided'}</p>
             <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
             <p><strong>Company:</strong> ${company || 'Not provided'}</p>
+            <p><strong>Message:</strong><br>${submittedMessage || 'No message provided'}</p>
           </div>
         `;
 
@@ -2482,15 +2504,29 @@ app.get('/api/dev-tracker/projects', devTrackerAuth(['owner', 'admin', 'develope
 });
 
 app.post('/api/dev-tracker/items', devTrackerAuth(['owner', 'admin', 'developer']), async (req, res) => {
+  const b = req.body || {};
+  const doInsert = () => queryClient`
+    INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
+    VALUES (${b.project || 'mitchs-map'}, ${b.version || '2.4'}, ${b.category || 'feature'},
+            ${b.title || 'Untitled'}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
+            ${b.status || 'open'}, ${b.sort_order ?? 0}, ${b.assignee || null})
+    RETURNING *
+  `;
   try {
-    const b = req.body || {};
-    const [row] = await queryClient`
-      INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
-      VALUES (${b.project || 'mitchs-map'}, ${b.version || '2.4'}, ${b.category || 'feature'},
-              ${b.title || 'Untitled'}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
-              ${b.status || 'open'}, ${b.sort_order ?? 0}, ${b.assignee || null})
-      RETURNING *
-    `;
+    let row;
+    try {
+      [row] = await doInsert();
+    } catch (e) {
+      // Self-heal: bulk imports can drop rows in with explicit seq_num values, leaving
+      // the sequence behind MAX(seq_num) and breaking the next API insert. If that's
+      // what we hit, bump the sequence and retry once.
+      if (e?.code === '23505' && /seq_num/.test(e?.constraint_name || e?.detail || '')) {
+        await queryClient`SELECT setval('bettersystems.qa_items_seq_num_seq', GREATEST((SELECT COALESCE(MAX(seq_num), 0) FROM qa_items), 1))`;
+        [row] = await doInsert();
+      } else {
+        throw e;
+      }
+    }
     res.json({ ...row, notes: [] });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -2526,7 +2562,13 @@ app.patch('/api/dev-tracker/items/:id', devTrackerAuth(['owner', 'admin', 'devel
       const edits = AUDIT_FIELDS
         .filter(f => f in updates && String(before[f] ?? '') !== String(updates[f] ?? ''))
         .map(f => ({ item_id: id, changed_by: changedBy, field: f, old_value: before[f] != null ? String(before[f]) : null, new_value: updates[f] != null ? String(updates[f]) : null }));
-      if (edits.length) await queryClient`INSERT INTO qa_item_edits ${queryClient(edits)}`;
+      if (edits.length) {
+        try {
+          await queryClient`INSERT INTO qa_item_edits ${queryClient(edits)}`;
+        } catch (auditError) {
+          console.warn('dev-tracker audit write failed:', auditError?.message || auditError);
+        }
+      }
     }
     const notes = await queryClient`SELECT * FROM qa_notes WHERE item_id = ${id} ORDER BY created_at ASC`;
     res.json({ ...row, notes });

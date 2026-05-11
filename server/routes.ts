@@ -1,7 +1,7 @@
 import "./loadEnv";
 import type { Express } from "express";
 import express from "express";
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { execSync } from "child_process";
 import path from "path";
 import { login, register, getCurrentUser } from "./controllers/auth";
@@ -141,6 +141,51 @@ const attachmentUpload = multer({
   limits: { fileSize: 500 * 1024 * 1024 }, // 500MB — accept videos and large files
 });
 const voiceUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+type VisitorRecord = {
+  firstSeen: string;
+  lastSeen: string;
+  page: string;
+  referrer?: string;
+  userAgent?: string;
+  emailSentAt?: string;
+};
+
+type VisitorAnalytics = {
+  totalVisits: number;
+  visitors: Record<string, VisitorRecord>;
+};
+
+const analyticsDir = path.resolve(process.cwd(), "data");
+const analyticsFile = path.join(analyticsDir, "visitor-analytics.json");
+const activeVisitorMs = 5 * 60 * 1000;
+const visitEmailThrottleMs = 30 * 60 * 1000;
+
+function loadVisitorAnalytics(): VisitorAnalytics {
+  try {
+    if (!existsSync(analyticsFile)) {
+      return { totalVisits: 0, visitors: {} };
+    }
+    return JSON.parse(readFileSync(analyticsFile, "utf8")) as VisitorAnalytics;
+  } catch (error) {
+    console.error("[Analytics] Failed to load visitor analytics:", error);
+    return { totalVisits: 0, visitors: {} };
+  }
+}
+
+function saveVisitorAnalytics(data: VisitorAnalytics) {
+  try {
+    if (!existsSync(analyticsDir)) mkdirSync(analyticsDir, { recursive: true });
+    writeFileSync(analyticsFile, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("[Analytics] Failed to save visitor analytics:", error);
+  }
+}
+
+function activeVisitorCount(data: VisitorAnalytics) {
+  const cutoff = Date.now() - activeVisitorMs;
+  return Object.values(data.visitors).filter((visitor) => new Date(visitor.lastSeen).getTime() >= cutoff).length;
+}
 
 export function registerRoutes(app: Express) {
 
@@ -283,6 +328,106 @@ export function registerRoutes(app: Express) {
 
   // Public API routes
   app.post("/api/reviews", submitReview);
+
+  app.post("/api/analytics/visit", async (req, res) => {
+    try {
+      const now = new Date();
+      const visitorId = String(req.body.visitorId || "").slice(0, 120);
+      if (!visitorId) {
+        return res.status(400).json({ success: false, message: "visitorId is required" });
+      }
+
+      const analytics = loadVisitorAnalytics();
+      const existing = analytics.visitors[visitorId];
+      const shouldCountVisit = !existing;
+      const shouldSendEmail =
+        !existing?.emailSentAt ||
+        now.getTime() - new Date(existing.emailSentAt).getTime() > visitEmailThrottleMs;
+
+      analytics.visitors[visitorId] = {
+        firstSeen: existing?.firstSeen || now.toISOString(),
+        lastSeen: now.toISOString(),
+        page: String(req.body.page || "/").slice(0, 500),
+        referrer: String(req.body.referrer || "").slice(0, 500),
+        userAgent: String(req.get("user-agent") || "").slice(0, 500),
+        emailSentAt: shouldSendEmail ? now.toISOString() : existing?.emailSentAt,
+      };
+
+      if (shouldCountVisit) {
+        analytics.totalVisits += 1;
+      }
+
+      saveVisitorAnalytics(analytics);
+
+      const activeVisitors = activeVisitorCount(analytics);
+
+      if (shouldSendEmail) {
+        sendAdminNotification({
+          name: "Website visitor",
+          email: "visitor@bettersystems.ai",
+          formType: "Website Visit",
+          page: analytics.visitors[visitorId].page,
+          referrer: analytics.visitors[visitorId].referrer,
+          userAgent: analytics.visitors[visitorId].userAgent,
+          activeVisitors,
+          totalVisits: analytics.totalVisits,
+          timeZone: req.body.timeZone,
+          submittedAt: now.toISOString(),
+        }).catch((error) => {
+          console.error("[Analytics] Failed to send visit email:", error);
+        });
+      }
+
+      res.json({
+        success: true,
+        totalVisits: analytics.totalVisits,
+        activeVisitors,
+      });
+    } catch (error) {
+      console.error("[Analytics] Visit error:", error);
+      res.status(500).json({ success: false, message: "Failed to track visit" });
+    }
+  });
+
+  app.post("/api/analytics/heartbeat", (req, res) => {
+    try {
+      const visitorId = String(req.body.visitorId || "").slice(0, 120);
+      if (!visitorId) {
+        return res.status(400).json({ success: false, message: "visitorId is required" });
+      }
+
+      const analytics = loadVisitorAnalytics();
+      const now = new Date().toISOString();
+      analytics.visitors[visitorId] = {
+        firstSeen: analytics.visitors[visitorId]?.firstSeen || now,
+        lastSeen: now,
+        page: String(req.body.page || analytics.visitors[visitorId]?.page || "/").slice(0, 500),
+        referrer: analytics.visitors[visitorId]?.referrer || "",
+        userAgent: String(req.get("user-agent") || analytics.visitors[visitorId]?.userAgent || "").slice(0, 500),
+        emailSentAt: analytics.visitors[visitorId]?.emailSentAt,
+      };
+      saveVisitorAnalytics(analytics);
+
+      res.json({
+        success: true,
+        totalVisits: analytics.totalVisits,
+        activeVisitors: activeVisitorCount(analytics),
+      });
+    } catch (error) {
+      console.error("[Analytics] Heartbeat error:", error);
+      res.status(500).json({ success: false, message: "Failed to update visitor" });
+    }
+  });
+
+  app.get("/api/analytics/stats", (_req, res) => {
+    const analytics = loadVisitorAnalytics();
+    res.json({
+      success: true,
+      totalVisits: analytics.totalVisits,
+      activeVisitors: activeVisitorCount(analytics),
+      knownVisitors: Object.keys(analytics.visitors).length,
+    });
+  });
 
   app.post("/api/contact", async (req, res) => {
     console.log("Contact API endpoint hit");
@@ -485,9 +630,11 @@ export function registerRoutes(app: Express) {
       }
 
       // Also save to Airtable as backup
+      // Pass bookingDate/bookingTime so saveToAirtable can record them in
+      // "Additional information" without colliding with reserved field names.
       const bookingData = {
-        date,
-        time,
+        bookingDate: date,
+        bookingTime: time,
         name,
         email,
         company: company || "Not provided",
@@ -2134,7 +2281,10 @@ export function registerRoutes(app: Express) {
       if (!items.length) return res.json(project ? [] : {});
       const ids = items.map((i: any) => i.id);
       const idsCsv = ids.map((x: string) => `'${x}'::uuid`).join(",");
-      const notesRes: any = await db.execute(sql.raw(`SELECT * FROM qa_notes WHERE item_id IN (${idsCsv}) ORDER BY created_at ASC`));
+      const [notesRes, attRes]: any[] = await Promise.all([
+        db.execute(sql.raw(`SELECT * FROM qa_notes WHERE item_id IN (${idsCsv}) ORDER BY created_at ASC`)),
+        db.execute(sql.raw(`SELECT * FROM qa_attachments WHERE item_id IN (${idsCsv}) ORDER BY created_at ASC`)),
+      ]);
       const notes = notesRes.rows || notesRes;
       const byItem = new Map<string, any[]>();
       for (const n of notes) {
@@ -2143,7 +2293,6 @@ export function registerRoutes(app: Express) {
         byItem.set(n.item_id, arr);
       }
       // Attachments
-      const attRes: any = await db.execute(sql.raw(`SELECT * FROM qa_attachments WHERE item_id IN (${idsCsv}) ORDER BY created_at ASC`));
       const atts = attRes.rows || attRes;
       const attByItem = new Map<string, any[]>();
       for (const a of atts) {
@@ -2201,15 +2350,28 @@ export function registerRoutes(app: Express) {
   });
 
   app.post("/api/dev-tracker/items", authenticate, hasRole(["owner", "admin", "developer"]), async (req, res) => {
+    const b = req.body || {};
+    const doInsert = () => db.execute(sql`
+      INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
+      VALUES (${b.project || "mitchs-map"}, ${b.version || "2.4"}, ${b.category || "feature"},
+              ${b.title || "Untitled"}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
+              ${b.status || "open"}, ${b.sort_order ?? 0}, ${b.assignee || null})
+      RETURNING *
+    `);
     try {
-      const b = req.body || {};
-      const r: any = await db.execute(sql`
-        INSERT INTO qa_items (project, version, category, title, description, source, source_date, status, sort_order, assignee)
-        VALUES (${b.project || "mitchs-map"}, ${b.version || "2.4"}, ${b.category || "feature"},
-                ${b.title || "Untitled"}, ${b.description || null}, ${b.source || null}, ${b.source_date || null},
-                ${b.status || "open"}, ${b.sort_order ?? 0}, ${b.assignee || null})
-        RETURNING *
-      `);
+      let r: any;
+      try {
+        r = await doInsert();
+      } catch (e: any) {
+        // Self-heal: if seq_num sequence drifted behind MAX(seq_num) (e.g. after a bulk
+        // import that wrote explicit seq_num values), bump the sequence and retry once.
+        if (e?.code === "23505" && /seq_num/.test(e?.constraint || e?.detail || "")) {
+          await db.execute(sql`SELECT setval('qa_items_seq_num_seq', GREATEST((SELECT COALESCE(MAX(seq_num), 0) FROM qa_items), 1))`);
+          r = await doInsert();
+        } else {
+          throw e;
+        }
+      }
       const row = (r.rows || r)[0];
       res.json({ ...row, notes: [] });
     } catch (e: any) {
@@ -2253,7 +2415,11 @@ export function registerRoutes(app: Express) {
           const oldVal = before[f] != null ? String(before[f]) : null;
           const newVal = b[f] != null ? String(b[f]) : null;
           if (oldVal === newVal) continue;
-          await db.execute(sql`INSERT INTO qa_item_edits (item_id, changed_by, field, old_value, new_value) VALUES (${id}::uuid, ${changedBy}, ${f}, ${oldVal}, ${newVal})`);
+          try {
+            await db.execute(sql`INSERT INTO qa_item_edits (item_id, changed_by, field, old_value, new_value) VALUES (${id}::uuid, ${changedBy}, ${f}, ${oldVal}, ${newVal})`);
+          } catch (auditError: any) {
+            console.warn("dev-tracker audit write failed:", auditError?.message || auditError);
+          }
         }
       }
       const notesRes: any = await db.execute(sql`SELECT * FROM qa_notes WHERE item_id = ${id}::uuid ORDER BY created_at ASC`);

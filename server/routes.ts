@@ -2316,6 +2316,95 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // ==================== DEV TRACKER NOTIFICATIONS ====================
+  // Fire-and-forget Resend emails on item create + assignee change.
+  // Recipients: rodolfo@bettersystems.ai + developer@bettersystems.ai always.
+  const DEV_TRACKER_RECIPIENTS = ["rodolfo@bettersystems.ai", "developer@bettersystems.ai"];
+  const DEV_TRACKER_URL = "https://www.bettersystems.ai/dev-tracker.html";
+  const devTrackerAssigneeName = (email: string | null | undefined): string => {
+    if (!email) return "Unassigned";
+    if (email === "rodolfo@bettersystems.ai") return "Rodo";
+    if (email === "developer@bettersystems.ai") return "Alejandra";
+    return email.split("@")[0];
+  };
+  const devTrackerItemRef = (item: any): string => {
+    const seq = item?.seq_num ? `#${item.seq_num}` : "";
+    return `${seq} ${item?.title || "Untitled"}`.trim();
+  };
+  const devTrackerEmailHtml = (opts: { heading: string; lede: string; item: any; ctaLabel?: string }): string => {
+    const { heading, lede, item, ctaLabel = "Open Developer Tracker" } = opts;
+    const seq = item?.seq_num ? `#${item.seq_num}` : "—";
+    const project = item?.project || "—";
+    const version = item?.version ? `v${item.version}` : "—";
+    const category = item?.category || "—";
+    const source = item?.source || "—";
+    const sourceDate = item?.source_date ? new Date(item.source_date).toLocaleDateString("en-US", { timeZone: "America/Phoenix" }) : "—";
+    const assigneeName = devTrackerAssigneeName(item?.assignee);
+    const description = item?.description ? String(item.description).replace(/\n/g, "<br>") : '<em style="color:#94a3b8">No description</em>';
+    return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:640px;margin:0 auto;background:#0a0f1a;color:#fff;padding:32px;border-radius:14px;">
+      <h1 style="color:#fff;margin:0 0 6px;font-size:22px;">${heading}</h1>
+      <p style="color:#94a3b8;margin:0 0 20px;font-size:14px;">${lede}</p>
+      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:18px;margin-bottom:14px;">
+        <div style="font-size:18px;font-weight:600;color:#fff;margin-bottom:10px;">${seq} · ${item?.title || "Untitled"}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr><td style="color:#94a3b8;padding:4px 0;width:110px;">Project</td><td style="color:#fff;padding:4px 0;">${project}</td></tr>
+          <tr><td style="color:#94a3b8;padding:4px 0;">Release</td><td style="color:#fff;padding:4px 0;">${version}</td></tr>
+          <tr><td style="color:#94a3b8;padding:4px 0;">Category</td><td style="color:#fff;padding:4px 0;">${category}</td></tr>
+          <tr><td style="color:#94a3b8;padding:4px 0;">Source</td><td style="color:#fff;padding:4px 0;">${source} · ${sourceDate}</td></tr>
+          <tr><td style="color:#94a3b8;padding:4px 0;">Assignee</td><td style="color:#fff;padding:4px 0;">${assigneeName}</td></tr>
+        </table>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:18px;margin-bottom:18px;color:#cbd5e1;font-size:13.5px;line-height:1.55;">
+        ${description}
+      </div>
+      <div style="text-align:center;">
+        <a href="${DEV_TRACKER_URL}" style="display:inline-block;background:#1d3eef;color:#fff;text-decoration:none;font-weight:600;padding:11px 22px;border-radius:8px;font-size:14px;">${ctaLabel}</a>
+      </div>
+      <p style="color:#64748b;font-size:11px;text-align:center;margin-top:22px;">Better Systems AI · Developer Tracker</p>
+    </div>`;
+  };
+  const notifyDevTracker = async (kind: "created" | "assigned", item: any, extra: { oldAssignee?: string | null; newAssignee?: string | null } = {}): Promise<void> => {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn(`[dev-tracker notify] RESEND_API_KEY missing — skipping ${kind}`);
+      return;
+    }
+    try {
+      const ref = devTrackerItemRef(item);
+      let subject: string;
+      let html: string;
+      if (kind === "created") {
+        subject = `[Dev Tracker] New: ${ref}`;
+        html = devTrackerEmailHtml({
+          heading: "New tracker item",
+          lede: "An item has been added to the Developer Tracker. It's currently <strong>unassigned</strong> — first one to claim it owns it.",
+          item,
+          ctaLabel: "Claim this item",
+        });
+      } else {
+        const newName = devTrackerAssigneeName(extra.newAssignee);
+        const oldName = devTrackerAssigneeName(extra.oldAssignee);
+        const verb = extra.oldAssignee ? `reassigned from ${oldName} to ${newName}` : `taken by ${newName}`;
+        subject = `[Dev Tracker] ${ref} → ${newName}`;
+        html = devTrackerEmailHtml({
+          heading: `Item ${verb}`,
+          lede: `${ref} has been ${verb}.`,
+          item: { ...item, assignee: extra.newAssignee },
+          ctaLabel: "View in tracker",
+        });
+      }
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: "Better Systems AI <developer@bettersystems.ai>",
+        to: DEV_TRACKER_RECIPIENTS,
+        subject,
+        html,
+      });
+      console.log(`[dev-tracker notify] ${kind} sent for ${ref}`);
+    } catch (e: any) {
+      console.error(`[dev-tracker notify] failed (${kind}):`, e?.message || e);
+    }
+  };
+
   app.get("/api/dev-tracker/projects", authenticate, hasRole(["owner", "admin", "developer"]), async (_req, res) => {
     try {
       const r: any = await db.execute(sql`SELECT project, COUNT(*)::int AS count FROM qa_items GROUP BY project ORDER BY project`);
@@ -2374,6 +2463,8 @@ export function registerRoutes(app: Express) {
       }
       const row = (r.rows || r)[0];
       res.json({ ...row, notes: [] });
+      // Fire-and-forget notification (don't block the response).
+      notifyDevTracker("created", row).catch(() => {});
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
@@ -2429,6 +2520,13 @@ export function registerRoutes(app: Express) {
       }
       const notesRes: any = await db.execute(sql`SELECT * FROM qa_notes WHERE item_id = ${id}::uuid ORDER BY created_at ASC`);
       res.json({ ...row, notes: notesRes.rows || notesRes });
+      // Fire-and-forget assignment notification — only when assignee actually changed.
+      if ("assignee" in b && (before?.assignee || null) !== (b.assignee || null)) {
+        notifyDevTracker("assigned", row, {
+          oldAssignee: before?.assignee || null,
+          newAssignee: b.assignee || null,
+        }).catch(() => {});
+      }
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }

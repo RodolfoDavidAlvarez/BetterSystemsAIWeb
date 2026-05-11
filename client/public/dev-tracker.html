@@ -2269,6 +2269,9 @@
   }
   /* === Assignee dropdown — custom UI component === */
   .assignee-dd { position: relative; display: inline-flex; }
+  /* When open, lift this dropdown's parent stacking context above the bulk-bar
+     (z-index: 100) so the menu is never occluded by floating overlays. */
+  .assignee-dd.is-open { z-index: 1001; }
   .assignee-dd-trigger {
     display: inline-flex;
     align-items: center;
@@ -2313,7 +2316,9 @@
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     padding: 4px;
-    z-index: 100;
+    /* Must sit above .bulk-bar (z-index: 100) and any sticky chrome so options
+       are always clickable while the dropdown is open. */
+    z-index: 1000;
   }
   .assignee-dd.is-open .assignee-dd-menu { display: block; }
   .assignee-dd-opt {

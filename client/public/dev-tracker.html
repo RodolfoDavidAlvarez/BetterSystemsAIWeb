@@ -466,7 +466,12 @@
   }
 
   /* === DEAL SECTION === */
-  .deal { margin-bottom: 10px; }
+  .deal {
+    margin-bottom: 10px;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 720px;
+  }
   .deal-hd {
     display: flex;
     align-items: center;
@@ -577,7 +582,12 @@
   }
 
   /* === Drag-and-drop reorder === */
-  .item { transition: border-color 0.12s, transform 0.1s, opacity 0.12s, box-shadow 0.12s; }
+  .item {
+    transition: border-color 0.08s, transform 0.08s, opacity 0.1s, box-shadow 0.08s;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 74px;
+  }
   .item.dragging {
     opacity: 0.4;
     transform: scale(0.98);
@@ -2705,7 +2715,7 @@
   /* In line mode hide the chatty meta items, keep only the essentials */
   .item.line .item-meta .source-link,
   .item.line .item-meta .commit,
-  .item.line .item-meta > .meta-item:not(.notes-link):not(.attach-link),
+  .item.line .item-meta > .meta-item:not(.notes-link):not(.attach-link):not(.created-date),
   .item.line .item-meta .delivered-badge {
     display: none;
   }
@@ -3160,7 +3170,12 @@
   }
 
   /* === GENERIC GROUP HEADER (used when groupBy is not "project") === */
-  .group-section { margin-bottom: 28px; }
+  .group-section {
+    margin-bottom: 28px;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 720px;
+  }
   .group-hd {
     display: flex;
     align-items: baseline;
@@ -3566,6 +3581,991 @@
     .row-drawer .note-add-btn { min-height: 44px; padding: 10px 18px; font-size: 13px; }
     /* Drawer description editor needs more breathing room */
     .drawer-desc { font-size: 15px; min-height: 80px; padding: 14px 16px; }
+  }
+  /* === MOBILE EDITING EXPERIENCE — final phone-first layer === */
+  @media (max-width: 720px) {
+    body { overflow-x: hidden; }
+    .wrap { padding: 8px 10px 96px; }
+
+    #role-banner {
+      min-height: 34px;
+      padding: 6px 10px !important;
+      font-size: 10px !important;
+      flex-wrap: wrap;
+    }
+    #role-banner > span:first-child {
+      flex: 1 1 100%;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #role-banner > span:last-child {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      margin: 0 0 8px;
+    }
+    .masthead-left {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+    h1.masthead-title {
+      font-size: 23px;
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+    #masthead-progress {
+      font-size: 12px;
+      letter-spacing: .16em;
+    }
+    #invoices-jump { display: none !important; }
+    .add-btn {
+      min-height: 44px;
+      padding: 0 16px !important;
+      border-radius: 10px !important;
+      font-size: 15px !important;
+    }
+
+    .brief {
+      margin: 0 -10px 10px;
+      padding: 8px 10px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+    }
+    .brief::-webkit-scrollbar { display: none; }
+    .brief-cell {
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      scroll-snap-align: start;
+    }
+    .brief-cell::after { display: none !important; }
+    .brief-cell.is-active {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .filterbar {
+      position: sticky;
+      top: 0;
+      z-index: 80;
+      background: rgba(245,243,239,.97);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      margin: 0 -10px 12px;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .search-wrap { flex: 1 1 100%; }
+    .search-wrap input {
+      min-height: 48px;
+      border-radius: 12px;
+      border-color: var(--line-strong);
+      font-size: 16px;
+    }
+    .filter-select,
+    .bulk-toggle,
+    .filter-reset {
+      min-height: 44px;
+      border-radius: 12px;
+      background-color: white;
+      font-size: 16px;
+    }
+    .filter-select {
+      flex: 1 1 calc(50% - 4px);
+      max-width: calc(50% - 4px);
+    }
+    .bulk-toggle { flex: 1 1 calc(50% - 4px); }
+    .filter-reset.visible { visibility: visible; }
+
+    .deal {
+      content-visibility: visible;
+      contain: layout paint;
+      margin-bottom: 16px;
+    }
+    .deal-hd {
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .deal-name {
+      font-size: 22px;
+      line-height: 1.1;
+    }
+    .deal-mini { display: none; }
+    .vgroup-hd {
+      padding: 10px 2px 8px;
+      margin-bottom: 6px;
+    }
+    .vgroup-label { font-size: 14px; }
+    .vgroup-num {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    .item.line {
+      content-visibility: auto;
+      contain-intrinsic-size: 168px;
+      background: white;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--row-edge, var(--line));
+      border-radius: 12px;
+      margin: 10px 0;
+      box-shadow: 0 1px 0 rgba(10,10,10,.04);
+      overflow: hidden;
+    }
+    .item.line:hover { background: white; }
+    .item.line .item-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 8px;
+      padding: 10px;
+      min-height: 0;
+    }
+    .item.line .row-num,
+    .item.line .drag-handle,
+    .item.line .col-resizer {
+      display: none !important;
+    }
+    .item.line .row-toggle {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--ink);
+      position: relative;
+    }
+    .item.line .row-toggle::after {
+      content: "Edit";
+      position: absolute;
+      top: 31px;
+      left: 0;
+      right: 0;
+      font-family: "Geist Mono", monospace;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .item.line .pill {
+      grid-column: 2;
+      grid-row: 1;
+      width: max-content;
+      max-width: 100%;
+      min-height: 34px;
+      padding: 0 13px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+    .item.line .item-main {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      display: block;
+      width: 100%;
+      padding: 0;
+    }
+    .item.line .item-title {
+      display: block;
+      width: 100% !important;
+      max-width: 100% !important;
+      font-size: 18px;
+      font-weight: 650;
+      line-height: 1.28;
+      padding: 10px 2px 5px;
+      white-space: normal;
+    }
+    .item.line .item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 6px;
+    }
+    .item.line .version-chip,
+    .item-id-chip,
+    .assignee-dd-trigger,
+    .item.line .notes-link,
+    .item.line .attach-link,
+    .item.line .created-date {
+      min-height: 34px;
+      border-radius: 10px;
+      padding: 7px 10px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .item.line .actions-always {
+      grid-column: 2 / 4;
+      grid-row: 2;
+      width: 100%;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .item.line .cat {
+      min-height: 34px;
+      padding: 0 11px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .item.line .item-actions {
+      grid-column: 3;
+      grid-row: 1;
+      opacity: 1;
+    }
+    .item.line .icon-btn {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 12px;
+      color: var(--hot);
+      font-size: 22px;
+    }
+
+    body.has-sidebar .item.line:not(.is-expanded),
+    body.has-sidebar .deal-hd,
+    body.has-sidebar .vgroup-hd {
+      opacity: 1;
+      filter: none;
+      pointer-events: auto;
+    }
+
+    #item-sidebar-backdrop {
+      background: rgba(10,10,10,.42);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    #item-sidebar {
+      inset: auto 0 0 0;
+      top: 6vh;
+      width: 100vw !important;
+      height: 94vh;
+      max-width: none;
+      border-left: 0;
+      border-radius: 18px 18px 0 0;
+      transform: translateY(110%);
+      box-shadow: 0 -18px 48px rgba(0,0,0,.24);
+    }
+    body.has-sidebar #item-sidebar { transform: translateY(0); }
+    #item-sidebar-header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 18px 18px 0 0;
+      min-height: 60px;
+      padding: 14px;
+    }
+    #item-sidebar-header::before {
+      content: "";
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      width: 46px;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--line);
+      transform: translateX(-50%);
+    }
+    #item-sidebar-title {
+      padding-top: 8px;
+      white-space: normal;
+      line-height: 1.25;
+    }
+    #item-sidebar-close {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 24px;
+    }
+    #item-sidebar-content { padding: 0 12px 120px; }
+    .row-drawer {
+      padding: 12px 2px 16px;
+      background: transparent;
+      border: 0;
+      grid-column: 1 / -1;
+    }
+    .row-drawer::before { display: none; }
+    .drawer-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .drawer-section {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 1px 0 rgba(10,10,10,.03);
+    }
+    .drawer-label { margin-bottom: 6px; }
+    .drawer-desc {
+      min-height: 100px;
+      border-radius: 10px;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    .status-picker,
+    .category-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .status-chip,
+    .cat-chip {
+      min-height: 44px;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    .drawer-select {
+      min-height: 46px;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+    .row-drawer .note-add-row {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .row-drawer .note-add-btn {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 12px;
+    }
+
+    .bulk-bar {
+      left: 8px;
+      right: 8px;
+      bottom: max(8px, env(safe-area-inset-bottom));
+      transform: translateY(130%);
+      max-width: none;
+      border-radius: 16px;
+      padding: 10px;
+      gap: 8px;
+      justify-content: stretch;
+    }
+    .bulk-bar.visible { transform: translateY(0); }
+    .bulk-bar .count {
+      flex: 1 1 100%;
+      text-align: center;
+    }
+    .bulk-bar select,
+    .bulk-bar button {
+      flex: 1 1 calc(50% - 4px);
+      min-height: 42px;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .filter-select,
+    .bulk-toggle {
+      flex-basis: 100%;
+      max-width: 100%;
+    }
+    .item.line .item-row {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .item.line .item-actions {
+      grid-column: 2;
+      justify-self: end;
+    }
+    .item.line .actions-always {
+      grid-column: 1 / -1;
+    }
+    .status-picker,
+    .category-picker {
+      grid-template-columns: 1fr;
+    }
+  }
+  /* === MOBILE POLISH PASS — compact editor, no squeezed desktop table === */
+  @media (max-width: 720px) {
+    body { background: #f5f3ef; }
+    .wrap { padding: 0 12px 88px; }
+
+    #role-banner {
+      position: static !important;
+      min-height: 0;
+      padding: 7px 12px !important;
+      font-size: 9px !important;
+      letter-spacing: .06em !important;
+      gap: 8px !important;
+    }
+    #role-banner > span:first-child {
+      flex: 1 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #role-banner > span:last-child {
+      width: auto;
+      flex: 0 0 auto;
+      gap: 10px;
+    }
+
+    .masthead {
+      position: sticky;
+      top: 0;
+      z-index: 70;
+      margin: 0 -12px 0;
+      padding: 12px;
+      background: rgba(245,243,239,.97);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    h1.masthead-title { font-size: 21px; line-height: 1.05; }
+    #masthead-progress { font-size: 11px; letter-spacing: .14em; }
+    .add-btn {
+      min-height: 40px;
+      padding: 0 13px !important;
+      border-radius: 9px !important;
+      font-size: 14px !important;
+      box-shadow: none !important;
+    }
+
+    .brief {
+      margin: 0 -12px 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brief-cell {
+      min-height: 34px;
+      padding: 5px 9px;
+      border-radius: 9px;
+      font-size: 11px;
+    }
+    .brief-cell b { font-size: 15px; }
+
+    .filterbar {
+      position: static !important;
+      margin: 0 -12px 12px;
+      padding: 10px 12px 12px;
+      gap: 8px;
+      background: transparent;
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    .search-wrap { flex: 1 1 100%; }
+    .search-wrap input {
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+    .filter-select,
+    .bulk-toggle,
+    .filter-reset {
+      min-height: 38px;
+      border-radius: 10px;
+      font-size: 13px;
+      padding-left: 12px;
+    }
+    .filter-select {
+      flex: 1 1 calc(50% - 4px);
+      max-width: calc(50% - 4px);
+    }
+    .bulk-toggle {
+      flex: 1 1 calc(50% - 4px);
+      font-size: 13px;
+    }
+
+    .deal { margin: 0 0 14px; }
+    .deal-hd {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      box-shadow: inset 0 -2px 0 rgba(10,10,10,.16);
+    }
+    .deal-hd::before { display: none; }
+    .deal-name { font-size: 18px; line-height: 1.12; }
+    .deal-toggle { width: 28px; height: 28px; }
+    .deal-progress { height: 5px; }
+    .vgroup-hd {
+      padding: 8px 0;
+      margin: 0;
+      gap: 8px;
+    }
+    .vgroup-label { font-size: 12px; letter-spacing: .12em; }
+    .vgroup-num {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    .vgroup-stats { font-size: 13px; gap: 16px; }
+
+    .item.line {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--row-edge, var(--line));
+      border-radius: 10px;
+      margin: 8px 0;
+      box-shadow: none;
+      overflow: hidden;
+      contain-intrinsic-size: 132px;
+    }
+    .item.line .item-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px 10px;
+      padding: 11px;
+      align-items: start;
+    }
+    .item.line .row-num,
+    .item.line .drag-handle,
+    .item.line .col-resizer,
+    .item.line .item-actions,
+    .item.line .created-date {
+      display: none !important;
+    }
+    .item.line .row-toggle {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      width: auto !important;
+      min-width: 58px;
+      height: 32px !important;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--ink);
+      color: white;
+      align-self: start;
+    }
+    .item.line .row-toggle .row-chev { display: none; }
+    .item.line .row-toggle::after {
+      content: "Edit";
+      position: static !important;
+      display: block;
+      transform: none !important;
+      font-family: "Geist Mono", ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      line-height: 32px;
+      text-transform: uppercase;
+      color: white;
+    }
+    .item.line .row-toggle.is-open {
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .item.line .row-toggle.is-open::after {
+      content: "Close";
+      color: var(--ink);
+      line-height: 30px;
+    }
+    .item.line .pill {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      width: max-content;
+      max-width: 100%;
+      min-height: 30px;
+      padding: 0 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+    .item.line .item-main {
+      grid-column: 1 / -1 !important;
+      grid-row: 2 !important;
+      display: block;
+      width: 100%;
+      padding: 0;
+      min-width: 0;
+    }
+    .item.line .item-title {
+      display: block;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 2px 0 4px;
+      font-size: 15.5px;
+      font-weight: 650;
+      line-height: 1.28;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+    .item.line .item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 2px 0 0;
+    }
+    .item.line .version-chip,
+    .item-id-chip,
+    .assignee-dd-trigger,
+    .item.line .notes-link,
+    .item.line .attach-link {
+      min-height: 28px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+    }
+    .item.line .actions-always {
+      grid-column: 1 / -1 !important;
+      grid-row: 3 !important;
+      width: 100%;
+      justify-content: flex-start;
+      gap: 6px;
+    }
+    .item.line .cat {
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 8px;
+      font-size: 10px;
+      letter-spacing: .04em;
+    }
+
+    .row-drawer {
+      grid-column: 1 / -1;
+      padding: 0 11px 12px;
+      border: 0;
+      background: white;
+    }
+    .drawer-grid { gap: 10px; }
+    .drawer-section {
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: none;
+    }
+    .drawer-label { font-size: 10px; margin-bottom: 6px; }
+    .status-picker,
+    .category-picker {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+    .status-chip,
+    .cat-chip {
+      min-height: 38px;
+      border-radius: 9px;
+      font-size: 11px;
+      justify-content: center;
+    }
+    .drawer-desc,
+    .drawer-select {
+      border-radius: 9px;
+      font-size: 15px;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .status-picker,
+    .category-picker {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .filterbar {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      align-items: stretch;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+    }
+    .filterbar::-webkit-scrollbar { display: none; }
+    .search-wrap {
+      flex: 0 0 min(70vw, 300px) !important;
+      min-width: 0;
+      scroll-snap-align: start;
+    }
+    .filter-select,
+    .bulk-toggle,
+    .filter-reset {
+      flex: 0 0 158px !important;
+      max-width: none !important;
+      scroll-snap-align: start;
+    }
+    .bulk-toggle { flex-basis: 116px !important; }
+  }
+
+  /* === MOBILE SOBER PASS — dense admin list/editor === */
+  @media (max-width: 720px) {
+    .wrap { padding: 0 12px 72px; }
+
+    #role-banner {
+      display: flex !important;
+      padding: 5px 10px !important;
+      font-size: 8.5px !important;
+      line-height: 1.2;
+    }
+    #role-banner a { font-size: 9px !important; }
+
+    .masthead {
+      position: static !important;
+      padding: 10px 12px 8px !important;
+      margin: 0 -12px !important;
+      background: #f5f3ef !important;
+      border-bottom: 1px solid var(--line);
+      box-shadow: none !important;
+    }
+    h1.masthead-title { font-size: 20px !important; }
+    #masthead-progress { font-size: 10px !important; }
+    .add-btn {
+      min-height: 38px !important;
+      border-radius: 8px !important;
+      padding: 0 12px !important;
+      font-size: 13px !important;
+    }
+
+    .brief {
+      margin: 0 -12px 6px !important;
+      padding: 7px 12px !important;
+      gap: 6px !important;
+    }
+    .brief-cell {
+      min-height: 30px !important;
+      padding: 4px 8px !important;
+      border-radius: 7px !important;
+      font-size: 10px !important;
+    }
+    .brief-cell b { font-size: 14px !important; }
+
+    .filterbar {
+      margin: 0 -12px 10px !important;
+      padding: 8px 12px 9px !important;
+      gap: 7px !important;
+      border-bottom: 1px solid var(--line);
+    }
+    .search-wrap { flex-basis: 210px !important; }
+    .search-wrap input,
+    .filter-select,
+    .bulk-toggle,
+    .filter-reset {
+      min-height: 36px !important;
+      border-radius: 8px !important;
+      font-size: 12.5px !important;
+      box-shadow: none !important;
+    }
+    .filter-select { flex-basis: 136px !important; }
+    .bulk-toggle { flex-basis: 96px !important; }
+
+    .deal { margin-bottom: 10px !important; }
+    .deal-hd {
+      margin-top: 6px !important;
+      padding: 8px 10px !important;
+      border-radius: 8px !important;
+      background: #fff !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line) !important;
+      border-left: 4px solid var(--row-edge, #c81046) !important;
+      box-shadow: none !important;
+    }
+    .deal-hd .deal-toggle,
+    .deal-name {
+      color: var(--ink) !important;
+      text-shadow: none !important;
+    }
+    .deal-name { font-size: 16px !important; }
+    .deal-progress {
+      height: 4px !important;
+      background: var(--line) !important;
+    }
+    .deal-progress > span { background: #c81046 !important; }
+    .vgroup-hd {
+      padding: 7px 0 !important;
+      border-bottom: 1px solid var(--line);
+    }
+    .vgroup-label { font-size: 11px !important; }
+    .vgroup-num {
+      min-height: 28px !important;
+      padding: 0 10px !important;
+      border-radius: 7px !important;
+      font-size: 13px !important;
+      background: #fff !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line-strong) !important;
+    }
+
+    .item.line {
+      margin: 0 !important;
+      border: 0 !important;
+      border-left: 3px solid var(--row-edge, var(--line)) !important;
+      border-bottom: 1px solid var(--line) !important;
+      border-radius: 0 !important;
+      background: #fff !important;
+      box-shadow: none !important;
+      contain-intrinsic-size: 104px !important;
+    }
+    .item.line:first-child { border-top: 1px solid var(--line) !important; }
+    .item.line .item-row {
+      padding: 9px 10px !important;
+      gap: 6px 8px !important;
+    }
+    .item.line .pill {
+      min-height: 24px !important;
+      padding: 0 8px !important;
+      font-size: 9.5px !important;
+      letter-spacing: .03em !important;
+      background: #fff !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line-strong) !important;
+      box-shadow: none !important;
+    }
+    .item.line .pill .dot { background: var(--line-strong) !important; }
+    .item.line .pill.s-in_flight .dot { background: var(--orange) !important; }
+    .item.line .pill.s-built .dot { background: #6366f1 !important; }
+    .item.line .pill.s-shipped .dot,
+    .item.line .pill.s-tested_pass .dot { background: var(--accent) !important; }
+    .item.line .pill.s-tested_fail .dot { background: var(--hot) !important; }
+    .item.line .row-toggle {
+      min-width: 48px !important;
+      height: 28px !important;
+      padding: 0 9px !important;
+      border-radius: 999px !important;
+      background: #fff !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line-strong) !important;
+    }
+    .item.line .row-toggle::after {
+      font-size: 9px !important;
+      line-height: 28px !important;
+      letter-spacing: .06em !important;
+      color: var(--ink) !important;
+    }
+    .item.line .row-toggle.is-open {
+      background: #fff !important;
+      border: 1px solid var(--line-strong) !important;
+    }
+    .item.line .row-toggle.is-open::after { line-height: 26px !important; }
+    .item.line .item-title {
+      padding: 0 0 3px !important;
+      font-size: 14px !important;
+      line-height: 1.25 !important;
+      font-weight: 650 !important;
+    }
+    .item.line .item-meta { gap: 5px !important; }
+    .item.line .version-chip,
+    .item-id-chip,
+    .assignee-dd-trigger,
+    .item.line .notes-link,
+    .item.line .attach-link,
+    .item.line .cat {
+      min-height: 24px !important;
+      padding: 4px 7px !important;
+      border-radius: 6px !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+    }
+    .item.line .actions-always { gap: 5px !important; }
+
+    .row-drawer {
+      padding: 0 10px 10px !important;
+      border-top: 1px solid var(--line) !important;
+      background: #fff !important;
+    }
+    .drawer-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+      padding-top: 8px;
+    }
+    .drawer-section {
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .drawer-section.full,
+    .drawer-section.right,
+    .drawer-section:not(.half) {
+      grid-column: 1 / -1 !important;
+    }
+    .drawer-section.half { grid-column: auto !important; }
+    .drawer-label {
+      display: block !important;
+      margin: 0 0 4px !important;
+      padding: 0 !important;
+      border: 0 !important;
+      font-size: 9px !important;
+      letter-spacing: .14em !important;
+      color: var(--ink-3) !important;
+    }
+    .drawer-label::after { display: none !important; }
+    .drawer-desc {
+      min-height: 104px !important;
+      max-height: 190px !important;
+      overflow: auto !important;
+      padding: 10px !important;
+      border-radius: 7px !important;
+      font-size: 13.5px !important;
+      line-height: 1.4 !important;
+    }
+    .drawer-select {
+      min-height: 38px !important;
+      width: 100% !important;
+      border-radius: 7px !important;
+      font-size: 13px !important;
+      padding: 0 9px !important;
+    }
+    .drawer-meta {
+      display: grid !important;
+      grid-template-columns: 86px minmax(0, 1fr) !important;
+      gap: 5px 8px !important;
+      padding: 8px !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 7px !important;
+      background: var(--paper) !important;
+      font-size: 11px !important;
+    }
+    .drawer-meta-key,
+    .drawer-meta-val {
+      margin: 0 !important;
+      padding: 0 !important;
+      font-size: 11px !important;
+      min-width: 0;
+    }
+    .drawer-dropzone {
+      min-height: 62px !important;
+      padding: 10px !important;
+      border-radius: 7px !important;
+      font-size: 12px !important;
+    }
+    .notes-section,
+    .checklist-wrap,
+    .context-panel {
+      margin-top: 0 !important;
+    }
+    .row-drawer .note-add-row {
+      display: grid !important;
+      grid-template-columns: 1fr auto !important;
+      gap: 6px !important;
+    }
+    .row-drawer .note-add-row input,
+    .row-drawer .note-add-btn {
+      min-height: 38px !important;
+      border-radius: 7px !important;
+      font-size: 13px !important;
+    }
   }
 </style>
 </head>
@@ -4026,6 +5026,7 @@ const DEFAULT_FILTERS = {
   category: "all",
   search: "",
   groupBy: "project",  // "project" | "version" | "status" | "assignee" | "category" | "lifecycle" | "month" | "none"
+  sortBy: "manual",    // "manual" (sort_order, then created asc) | "created_desc" | "created_asc" | "updated_desc"
 };
 // One-time migration: bump key to force-clear stale "delivered" filter that traps users.
 // Anyone with the old qa-filters key gets a fresh start once.
@@ -4036,6 +5037,17 @@ if (localStorage.getItem("qa-filters") && !localStorage.getItem(LS_FILTERS_KEY))
 let filters = { ...DEFAULT_FILTERS, ...(JSON.parse(localStorage.getItem(LS_FILTERS_KEY) || "{}")) };
 // Migrate any legacy keys: ensure new defaults exist if loaded from older storage
 if (!filters.groupBy) filters.groupBy = "project";
+if (!filters.sortBy) filters.sortBy = "manual";
+
+// Comparator factory honoring filters.sortBy. Falls back to manual sort_order when items tie.
+function itemSorter() {
+  const mode = filters.sortBy || "manual";
+  if (mode === "created_desc") return (a,b) => new Date(b.created_at) - new Date(a.created_at);
+  if (mode === "created_asc")  return (a,b) => new Date(a.created_at) - new Date(b.created_at);
+  if (mode === "updated_desc") return (a,b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+  // manual
+  return (a,b) => (a.sort_order||0) - (b.sort_order||0) || new Date(a.created_at) - new Date(b.created_at);
+}
 let bulkMode = false;
 let selected = new Set();
 function saveFilters() { localStorage.setItem(LS_FILTERS_KEY, JSON.stringify(filters)); }
@@ -4054,20 +5066,157 @@ function payloadFingerprint(projects) {
 }
 let invoices = [];
 let invoiceStatusByNum = {};
+let _refreshTimer = null;
+let _renderRaf = null;
+let _searchTimer = null;
+let _itemPatchSeq = new Map();
+let _pendingPatchIds = new Set();
+let _isFirstRender = true;
+let _mutationScrollAnchor = null;
+
+function itemSelector(id) {
+  const escapedId = window.CSS && CSS.escape ? CSS.escape(id) : String(id).replace(/"/g, '\\"');
+  return `[data-item-id="${escapedId}"]`;
+}
+
+function pinMutationScrollAnchor(id) {
+  if (!id || _isFirstRender) return;
+  const row = document.querySelector(itemSelector(id));
+  if (!row) return;
+  _mutationScrollAnchor = {
+    id,
+    top: row.getBoundingClientRect().top,
+    expiresAt: Date.now() + 5000,
+  };
+}
+
+function captureScrollAnchor() {
+  if (_isFirstRender) return null;
+  if (_mutationScrollAnchor && _mutationScrollAnchor.expiresAt > Date.now()) {
+    return _mutationScrollAnchor;
+  }
+  const rows = [...document.querySelectorAll("[data-item-id]")];
+  if (!rows.length) return null;
+  const viewportTop = 92;
+  const row = rows.find((el) => el.getBoundingClientRect().bottom > viewportTop) || rows[0];
+  return {
+    id: row.getAttribute("data-item-id"),
+    top: row.getBoundingClientRect().top,
+  };
+}
+
+function restoreScrollAnchor(anchor) {
+  if (!anchor?.id) return;
+  const row = document.querySelector(itemSelector(anchor.id));
+  if (!row) return;
+  const delta = row.getBoundingClientRect().top - anchor.top;
+  if (Math.abs(delta) <= 1) return;
+  // Cap the auto-scroll: if a re-render shifted the row by more than half the
+  // viewport (e.g. an invoices/details section just rendered above), DON'T
+  // follow it — that yanks the user away from what they were looking at.
+  // Better UX: keep the viewport still and let the row drift.
+  const cap = Math.floor(window.innerHeight * 0.5);
+  if (Math.abs(delta) > cap) return;
+  window.scrollBy(0, delta);
+}
+
+function scheduleRender() {
+  if (_renderRaf) return;
+  _renderRaf = requestAnimationFrame(() => {
+    _renderRaf = null;
+    render();
+  });
+}
+
+function scheduleRefresh(delay = 1200) {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  _refreshTimer = setTimeout(() => {
+    _refreshTimer = null;
+    load();
+  }, delay);
+}
+
+function itemLocalPatch(id, body) {
+  const it = findItem(id);
+  if (!it) return null;
+  if (body.status) body = { ...body, status: canonicalStatus(body.status) };
+  Object.assign(it, body, { updated_at: new Date().toISOString() });
+  if (body.status === "shipped") {
+    it.deployed_at = it.deployed_at || new Date().toISOString();
+    it.shipped_at = new Date().toISOString();
+  }
+  if (body.status === "tested_pass" || body.status === "tested_fail") {
+    it.tested_at = new Date().toISOString();
+  }
+  _lastPayloadHash = null;
+  return it;
+}
+
+function itemLocalReplace(row) {
+  if (!row || !row.id) return;
+  row = { ...row, status: canonicalStatus(row.status) };
+  const current = findItem(row.id);
+  if (!current) return;
+  const merged = {
+    ...current,
+    ...row,
+    notes: row.notes || current.notes || [],
+    attachments: row.attachments || current.attachments || [],
+  };
+  Object.assign(current, merged);
+  _lastPayloadHash = null;
+}
+
+function canonicalStatus(status) {
+  return status === "in_progress" ? "in_flight" : (status || "open");
+}
+
+function normalizeProjectPayload(payload) {
+  for (const arr of Object.values(payload || {})) {
+    if (!Array.isArray(arr)) continue;
+    arr.forEach(it => { it.status = canonicalStatus(it.status); });
+  }
+  return payload;
+}
+
+function preservePendingLocalItems(nextPayload) {
+  if (!_pendingPatchIds.size) return nextPayload;
+  for (const id of _pendingPatchIds) {
+    const local = findItem(id);
+    if (!local) continue;
+    let replaced = false;
+    for (const arr of Object.values(nextPayload || {})) {
+      if (!Array.isArray(arr)) continue;
+      const idx = arr.findIndex(it => it.id === id);
+      if (idx >= 0) {
+        arr[idx] = { ...arr[idx], ...local };
+        replaced = true;
+        break;
+      }
+    }
+    if (!replaced) {
+      if (!nextPayload[local.project]) nextPayload[local.project] = [];
+      nextPayload[local.project].push(local);
+    }
+  }
+  return nextPayload;
+}
+
 async function load(force) {
   try {
+    const shouldLoadInvoices = force || invoices.length === 0;
     const [r, ri] = await Promise.all([
       apiFetch("/api/dev-tracker/items"),
-      apiFetch("/api/dev-tracker/invoices").catch(() => null),
+      shouldLoadInvoices ? apiFetch("/api/dev-tracker/invoices").catch(() => null) : Promise.resolve(null),
     ]);
-    const next = await r.json();
+    const next = preservePendingLocalItems(normalizeProjectPayload(await r.json()));
     if (ri && ri.ok) {
       invoices = await ri.json();
       invoiceStatusByNum = {};
       for (const inv of invoices) invoiceStatusByNum[inv.invoice_number] = inv.status;
     }
     // Hash includes density/groupBy/expandedRows so polling never wipes a drawer
-    const hash = payloadFingerprint(next) + "|g=" + filters.groupBy + "|e=" + expandedRows.size + "|inv=" + invoices.length;
+    const hash = payloadFingerprint(next) + "|g=" + filters.groupBy + "|s=" + filters.sortBy + "|e=" + expandedRows.size + "|inv=" + invoices.length;
     // Skip re-render if nothing meaningful changed and no flash is queued
     if (!force && hash === _lastPayloadHash && pendingFlash.size === 0) {
       projects = next; // still update reference for actions
@@ -4082,9 +5231,43 @@ async function load(force) {
   }
 }
 async function patchItem(id, body) {
+  const seq = (_itemPatchSeq.get(id) || 0) + 1;
+  _itemPatchSeq.set(id, seq);
+  _pendingPatchIds.add(id);
+  pinMutationScrollAnchor(id);
   pendingFlash.add(id);
-  await apiFetch("/api/dev-tracker/items/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
-  load();
+  const before = findItem(id) ? JSON.parse(JSON.stringify(findItem(id))) : null;
+  itemLocalPatch(id, body);
+  scheduleRender();
+  try {
+    const r = await apiFetch("/api/dev-tracker/items/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (!r.ok) {
+      const err = await r.json().catch(() => null);
+      throw new Error(err?.error || ("HTTP " + r.status));
+    }
+    const row = await r.json().catch(() => null);
+    if (_itemPatchSeq.get(id) !== seq) return row;
+    itemLocalReplace(row);
+    _pendingPatchIds.delete(id);
+    if (!_pendingPatchIds.size && _mutationScrollAnchor?.id === id) {
+      _mutationScrollAnchor.expiresAt = Date.now() + 1800;
+    }
+    pendingFlash.delete(id);
+    scheduleRender();
+    scheduleRefresh();
+    return row;
+  } catch (e) {
+    if (_itemPatchSeq.get(id) !== seq) throw e;
+    if (before) itemLocalReplace(before);
+    _pendingPatchIds.delete(id);
+    if (!_pendingPatchIds.size && _mutationScrollAnchor?.id === id) {
+      _mutationScrollAnchor.expiresAt = Date.now() + 1800;
+    }
+    pendingFlash.delete(id);
+    render();
+    alert("Update failed: " + e.message);
+    throw e;
+  }
 }
 
 // === VIDEO EMBED (Loom + YouTube) ===
@@ -4316,25 +5499,71 @@ async function deleteItem(id) {
     el.style.opacity = "0";
     el.style.transform = "translateX(-12px)";
   }
+  const before = findItem(id);
+  if (before && projects[before.project]) {
+    projects[before.project] = projects[before.project].filter(x => x.id !== id);
+    _lastPayloadHash = null;
+  }
   const r = await apiFetch("/api/dev-tracker/items/" + id, { method: "DELETE" });
   if (!r.ok) {
     const e = await r.json().catch(() => ({}));
     alert("Delete failed: " + (e.error || r.statusText));
     if (el) { el.style.opacity = "1"; el.style.transform = "none"; }
+    if (before && projects[before.project] && !findItem(id)) projects[before.project].push(before);
+    render();
     return;
   }
-  setTimeout(load, 110);
+  render();
+  scheduleRefresh();
 }
 async function addNote(itemId, text) {
   if (!text.trim()) return;
   pendingFlash.add(itemId);
-  await apiFetch("/api/dev-tracker/items/" + itemId + "/notes", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ text }) });
-  load();
+  const it = findItem(itemId);
+  const tempId = "tmp-" + Date.now();
+  if (it) {
+    it.notes = [...(it.notes || []), { id: tempId, item_id: itemId, text, author: CURRENT_USER?.username || "me", created_at: new Date().toISOString(), resolved_at: null }];
+    itemLocalPatch(itemId, {});
+    render();
+  }
+  try {
+    const r = await apiFetch("/api/dev-tracker/items/" + itemId + "/notes", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ text }) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const note = await r.json().catch(() => null);
+    if (note && it) it.notes = (it.notes || []).map(n => n.id === tempId ? note : n);
+    pendingFlash.delete(itemId);
+    render();
+    scheduleRefresh();
+  } catch (e) {
+    if (it) it.notes = (it.notes || []).filter(n => n.id !== tempId);
+    pendingFlash.delete(itemId);
+    render();
+    alert("Note failed: " + e.message);
+  }
 }
 async function toggleNoteResolved(itemId, noteId, resolved) {
   pendingFlash.add(itemId);
-  await apiFetch("/api/dev-tracker/items/" + itemId + "/notes/" + noteId, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ resolved, resolved_by: "rodo" }) });
-  load();
+  const it = findItem(itemId);
+  const note = it ? (it.notes || []).find(n => n.id === noteId) : null;
+  const before = note ? { ...note } : null;
+  if (note) {
+    note.resolved_at = resolved ? new Date().toISOString() : null;
+    note.resolved_by = resolved ? (CURRENT_USER?.username || "me") : null;
+    itemLocalPatch(itemId, {});
+    render();
+  }
+  try {
+    const r = await apiFetch("/api/dev-tracker/items/" + itemId + "/notes/" + noteId, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ resolved, resolved_by: "rodo" }) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    pendingFlash.delete(itemId);
+    scheduleRender();
+    scheduleRefresh();
+  } catch (e) {
+    if (note && before) Object.assign(note, before);
+    pendingFlash.delete(itemId);
+    render();
+    alert("Note update failed: " + e.message);
+  }
 }
 function cycleStatus(id, current, btn) {
   if (btn) { btn.classList.add("cycling"); setTimeout(() => btn.classList.remove("cycling"), 400); }
@@ -5155,7 +6384,7 @@ function renderCatChip(it) {
   const label = catLabel(cat);
   const nextIdx = (CAT_CYCLE.indexOf(cat) + 1) % CAT_CYCLE.length;
   const next = CAT_CYCLE[nextIdx] || "feature";
-  return `<span class="cat cat-${cat} row-cat-chip" onclick="patchItem('${it.id}',{category:'${next}'})" title="Type: ${label} — click to cycle">${label}</span>`;
+  return `<span class="cat cat-${cat} row-cat-chip" onclick="event.stopPropagation();patchItem('${it.id}',{category:'${next}'})" title="Type: ${label} — click to cycle">${label}</span>`;
 }
 function renderCategoryPicker(it) {
   const cur = it.category || "feature";
@@ -5187,7 +6416,24 @@ function toggleContext(itemId) {
   render();
 }
 // Toggle per-row drawer in line mode (the +/− behavior)
+function isMobileTracker() {
+  return window.matchMedia && window.matchMedia("(max-width: 720px)").matches;
+}
 function toggleRow(itemId) {
+  if (isMobileTracker()) {
+    document.body.classList.remove("has-sidebar");
+    if (expandedRows.has(itemId)) expandedRows.delete(itemId);
+    else {
+      expandedRows.clear();
+      expandedRows.add(itemId);
+    }
+    saveExpandedRows();
+    render();
+    setTimeout(() => {
+      document.querySelector(`[data-item-id="${itemId}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+    return;
+  }
   // Sidebar mode: only one item open at a time. Same id = close. New id = swap.
   if (expandedRows.has(itemId)) {
     expandedRows.clear();
@@ -5223,7 +6469,7 @@ function refTypeIcon(t) {
 function setFilter(key, value) {
   filters[key] = value;
   saveFilters();
-  render();
+  scheduleRender();
 }
 function resetFilters() {
   filters = { ...DEFAULT_FILTERS };
@@ -5238,11 +6484,22 @@ function onSearchInput(v) {
   filters.search = v;
   saveFilters();
   document.getElementById("search-wrap").classList.toggle("has-value", !!v);
-  render();
+  if (_searchTimer) clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    _searchTimer = null;
+    scheduleRender();
+  }, 70);
 }
 function clearSearch() {
+  if (_searchTimer) {
+    clearTimeout(_searchTimer);
+    _searchTimer = null;
+  }
   document.getElementById("search-input").value = "";
-  onSearchInput("");
+  filters.search = "";
+  saveFilters();
+  document.getElementById("search-wrap").classList.remove("has-value");
+  render();
 }
 
 // === Bulk mode ===
@@ -5269,9 +6526,26 @@ function updateBulkBar() {
 }
 async function bulkPatch(body) {
   const ids = [...selected];
-  await Promise.all(ids.map(id => apiFetch("/api/dev-tracker/items/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) })));
   ids.forEach(id => pendingFlash.add(id));
-  load();
+  const before = new Map(ids.map(id => [id, findItem(id) ? JSON.parse(JSON.stringify(findItem(id))) : null]));
+  ids.forEach(id => itemLocalPatch(id, body));
+  render();
+  try {
+    const rows = await Promise.all(ids.map(async id => {
+      const r = await apiFetch("/api/dev-tracker/items/" + id, { method: "PATCH", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json().catch(() => null);
+    }));
+    rows.forEach(itemLocalReplace);
+    ids.forEach(id => pendingFlash.delete(id));
+    render();
+    scheduleRefresh();
+  } catch (e) {
+    before.forEach((row) => { if (row) itemLocalReplace(row); });
+    ids.forEach(id => pendingFlash.delete(id));
+    render();
+    alert("Bulk update failed: " + e.message);
+  }
 }
 async function bulkApplyVersion(v) { if (!v || selected.size===0) return; await bulkPatch({ version: v }); }
 async function bulkApplyStatus(s) { if (!s || selected.size===0) return; await bulkPatch({ status: s }); }
@@ -5496,6 +6770,7 @@ function calcStats(items) {
 }
 
 function render() {
+  const scrollAnchor = captureScrollAnchor();
   const all = Object.values(projects).flat();
   const g = calcStats(all);
 
@@ -5564,15 +6839,26 @@ function render() {
     ${groupByOpts.map(([v, lbl]) => `<option value="${v}" ${filters.groupBy===v?'selected':''}>${lbl}</option>`).join("")}
   </select>`;
 
+  const sortByOpts = [
+    ["manual", "Sort: Manual"],
+    ["created_desc", "Sort: Newest first"],
+    ["created_asc", "Sort: Oldest first"],
+    ["updated_desc", "Sort: Recently updated"],
+  ];
+  const sortBySelect = `<select class="filter-select ${filters.sortBy!=='manual'?'is-active':''}" onchange="setFilter('sortBy', this.value)" title="Sort items within each group…">
+    ${sortByOpts.map(([v, lbl]) => `<option value="${v}" ${filters.sortBy===v?'selected':''}>${lbl}</option>`).join("")}
+  </select>`;
+
   document.getElementById("filter-rows").innerHTML = [
     groupBySelect,
+    sortBySelect,
     renderSelect("version", versionOpts),
     allDeals.length > 1 ? renderSelect("deal", dealOpts) : "",
     allCategories.length > 1 ? renderSelect("category", catOpts) : "",
   ].filter(Boolean).join("");
 
   // Toggle Reset visibility when any filter is active
-  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "" || filters.groupBy !== "project";
+  const anyActive = filters.status !== "all" || filters.version !== "all" || filters.deal !== "all" || filters.category !== "all" || (filters.search || "").trim() !== "" || filters.groupBy !== "project" || filters.sortBy !== "manual";
   document.getElementById("filter-reset").classList.toggle("visible", anyActive);
 
   // Apply filters
@@ -5602,10 +6888,7 @@ function render() {
   if (filteredAll.length === 0) {
     html = `<div class="empty"><div class="empty-mark">∅</div>No items match this filter.</div>`;
   } else if (filters.groupBy === "project") {
-    const dealNames = Object.keys(projects).sort((a,b) => {
-      const sa = calcStats(projects[a]), sb = calcStats(projects[b]);
-      return (sb.open + sb.in_flight) - (sa.open + sa.in_flight);
-    });
+    const dealNames = Object.keys(projects).sort((a,b) => a.localeCompare(b, undefined, { numeric: true }));
     const filteredDeals = dealNames.map(name => [name, projects[name].filter(matchesFilters)]).filter(([_, items]) => items.length > 0);
     html = filteredDeals.map(([name, items]) => renderDeal(name, items)).join("");
   } else {
@@ -5653,6 +6936,8 @@ function render() {
   if (typeof updateItemSidebar === "function" && document.body.classList.contains("has-sidebar")) {
     updateItemSidebar();
   }
+  _isFirstRender = false;
+  restoreScrollAnchor(scrollAnchor);
 }
 
 // === Bucketing & generic group rendering (for dynamic group-by) ===
@@ -5767,7 +7052,7 @@ function renderGenericGroup(key, items, dim) {
         ${showProgress ? `<span class="group-count">${stats.completed}/${stats.total} · ${stats.pct}%</span>` : `<span class="group-count">${items.length} item${items.length===1?'':'s'}</span>`}
       </div>
       <div class="group-body">
-        ${items.map(renderItem).join("")}
+        ${[...items].sort(itemSorter()).map(renderItem).join("")}
         <button class="add-row-btn" onclick='openAdd(${ctxJSON})' title="Add a new item to ${escapeAttr(groupLabel(key, dim))}">
           <span class="add-row-plus">+</span> Add item to ${escapeHtml(groupLabel(key, dim))}
         </button>
@@ -5830,7 +7115,7 @@ function renderDeal(name, items) {
           </div>
           <div class="progress-bar progress-version"><div class="progress-fill" style="width: ${vs.pct}%"></div></div>
           <div class="vgroup-body" data-version-body="${safeV}" data-project-body="${escapeAttr(name)}" style="margin-top:14px;">
-            ${byVersion.get(v).map(renderItem).join("")}
+            ${[...byVersion.get(v)].sort(itemSorter()).map(renderItem).join("")}
             <button class="add-row-btn" onclick="openAdd({ project: '${escapeAttr(name)}', version: '${safeV}' })" title="Add a new item to ${escapeAttr(name)} v${safeV}">
               <span class="add-row-plus">+</span> Add item to v${escapeHtml(v)}
             </button>
@@ -6209,7 +7494,9 @@ function formatCreatedDate(iso) {
   const sameYear = d.getFullYear() === now.getFullYear();
   const month = d.toLocaleString(undefined, { month: "short" });
   const day = d.getDate();
-  const short = sameYear ? `${month} ${day}` : `${month} ${day} '${String(d.getFullYear()).slice(-2)}`;
+  const time = d.toLocaleString(undefined, { hour: "numeric", minute: "2-digit" }).replace(/\s/g, "").toLowerCase();
+  const datePart = sameYear ? `${month} ${day}` : `${month} ${day} '${String(d.getFullYear()).slice(-2)}`;
+  const short = `${datePart} ${time}`;
   const full = `Created ${d.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}`;
   return { short, full };
 }

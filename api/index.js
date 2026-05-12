@@ -478,10 +478,14 @@ app.get('/api/pay/:invoiceNumber', async (req, res) => {
   // Pull tracker items + attachments. When present, qa_items.amount_cents is
   // the canonical per-item price and qa_attachments are the photos Brian sent.
   // Falls back to the hand-crafted config.lineItems for legacy invoices.
+  //
+  // NOTE: `video_url` is INTENTIONALLY OMITTED from the SELECT. That column
+  // stores INTERNAL Loom links we use for dev tracking — they must never
+  // appear on the client-facing payment page.
   let items = [];
   try {
     const itemRows = await queryClient`
-      SELECT id, seq_num, version, category, title, description, source_context, source_date, status, video_url, amount_cents
+      SELECT id, seq_num, version, category, title, description, source_context, source_date, status, amount_cents
       FROM qa_items
       WHERE invoice_number = ${config.invoiceNumber}
       ORDER BY

@@ -403,10 +403,14 @@ export function registerRoutes(app: Express) {
     // canonical line-item source (qa_items.amount_cents is the price per
     // item, attachments are the photos Brian sent). When absent, we fall
     // back to the hand-crafted config.lineItems for legacy invoices.
+    //
+    // NOTE: `video_url` is INTENTIONALLY OMITTED from the SELECT. That
+    // column stores INTERNAL Loom links we use for dev tracking — they
+    // must never appear on the client-facing payment page.
     let items: any[] = [];
     try {
       const itemsResult: any = await db.execute(sql`
-        SELECT id, seq_num, version, category, title, description, source_context, source_date, status, video_url, amount_cents
+        SELECT id, seq_num, version, category, title, description, source_context, source_date, status, amount_cents
         FROM qa_items
         WHERE invoice_number = ${config.invoiceNumber}
         ORDER BY

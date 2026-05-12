@@ -475,6 +475,48 @@ app.get('/api/pay/:invoiceNumber', async (req, res) => {
     console.error("[Payment Page] DB check failed:", e);
   }
 
+  // Pull tracker items + attachments. When present, qa_items.amount_cents is
+  // the canonical per-item price and qa_attachments are the photos Brian sent.
+  // Falls back to the hand-crafted config.lineItems for legacy invoices.
+  let items = [];
+  try {
+    const itemRows = await queryClient`
+      SELECT id, seq_num, version, category, title, description, source_context, source_date, status, video_url, amount_cents
+      FROM qa_items
+      WHERE invoice_number = ${config.invoiceNumber}
+      ORDER BY
+        (CASE WHEN COALESCE(amount_cents, 0) > 0 THEN 0 ELSE 1 END),
+        COALESCE(source_date, created_at),
+        seq_num
+    `;
+    if (itemRows.length) {
+      const attachments = await queryClient`
+        SELECT item_id, filename, mime_type, public_url
+        FROM qa_attachments
+        WHERE item_id IN (SELECT id FROM qa_items WHERE invoice_number = ${config.invoiceNumber})
+        ORDER BY created_at ASC
+      `;
+      const attachmentsByItem = new Map();
+      for (const a of attachments) {
+        const g = attachmentsByItem.get(a.item_id) || [];
+        g.push(a);
+        attachmentsByItem.set(a.item_id, g);
+      }
+      items = itemRows.map((r) => ({ ...r, attachments: attachmentsByItem.get(r.id) || [] }));
+    }
+  } catch (e) {
+    console.error("[Payment Page] tracker items enrichment failed:", e);
+  }
+
+  // Derive lineItems from tracker items when available (single source of truth).
+  const derivedLineItems = items.length
+    ? items.map((it) => ({
+        description: `#${it.seq_num} — ${it.title}`,
+        detail: (it.description || it.source_context || "").replace(/\s+/g, " ").trim().slice(0, 280),
+        amount: (Number(it.amount_cents) || 0) / 100,
+      }))
+    : config.lineItems;
+
   res.json({
     invoiceNumber: config.invoiceNumber,
     clientName: config.clientName,
@@ -489,7 +531,8 @@ app.get('/api/pay/:invoiceNumber', async (req, res) => {
     discountDeadline: deadlineDisplay,
     originalTotal: config.fullTotal,
     savings: isDiscounted ? savings : 0,
-    lineItems: config.lineItems,
+    lineItems: derivedLineItems,
+    items,
     isPaid,
   });
 });

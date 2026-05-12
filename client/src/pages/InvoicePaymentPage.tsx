@@ -1,7 +1,28 @@
 import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { SEO } from "@/components/SEO";
-import { CheckCircle, Clock, Shield, FileText, ArrowRight, Sparkles } from "lucide-react";
+import { CheckCircle, Clock, Shield, FileText, ArrowRight, Sparkles, X } from "lucide-react";
+
+interface InvoiceAttachment {
+  item_id: string;
+  filename: string;
+  mime_type: string;
+  public_url: string;
+}
+
+interface InvoiceItem {
+  id: string;
+  seq_num: number;
+  version: string | null;
+  category: string | null;
+  title: string;
+  description: string | null;
+  source_context: string | null;
+  source_date: string | null;
+  status: string;
+  video_url: string | null;
+  attachments: InvoiceAttachment[];
+}
 
 interface InvoiceData {
   invoiceNumber: string;
@@ -22,6 +43,7 @@ interface InvoiceData {
     detail: string;
     amount: number;
   }[];
+  items?: InvoiceItem[];
   isPaid: boolean;
 }
 
@@ -31,6 +53,7 @@ export default function InvoicePaymentPage() {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedAttachment, setExpandedAttachment] = useState<InvoiceAttachment | null>(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const paymentSuccess = urlParams.get("status") === "success";
@@ -186,22 +209,118 @@ export default function InvoicePaymentPage() {
             </div>
           </div>
 
-          {/* Line Items */}
+          {/* Line Items — driven directly by tracker items when available
+              so each row carries its own price + photos + Brian's request
+              context (single source of truth, no redundancy). Legacy
+              invoices without tracker data fall back to the simple list. */}
           <div className="px-6 py-5 border-b border-white/5">
             <p className="text-xs uppercase tracking-wider font-medium text-gray-600 mb-4">Line Items</p>
-            <div className="space-y-3">
-              {invoice.lineItems.map((item, i) => (
-                <div key={i} className="flex justify-between items-start group">
-                  <div className="flex-1 pr-4">
-                    <p className="text-sm font-medium text-gray-200">{item.description}</p>
-                    <p className="text-xs text-gray-600 mt-0.5">{item.detail}</p>
+
+            {invoice.items && invoice.items.length > 0 ? (
+              <div className="space-y-4">
+                {(() => {
+                  let renderedFreeHeader = false;
+                  return invoice.items.map((item) => {
+                    const cents = (item as any).amount_cents ?? 0;
+                    const isFree = cents === 0;
+                    const showFreeHeader = isFree && !renderedFreeHeader;
+                    if (showFreeHeader) renderedFreeHeader = true;
+                    const desc = (item.description || item.source_context || "").replace(/\s+/g, " ").trim();
+                    return (
+                      <div key={item.id}>
+                        {showFreeHeader && (
+                          <div className="my-4 -mx-6 px-6 py-2 bg-[#00ff88]/5 border-y border-[#00ff88]/15">
+                            <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[#00ff88]">
+                              Included at no charge — fixes &amp; polish
+                            </p>
+                          </div>
+                        )}
+                        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:gap-6">
+                          <div className="min-w-0">
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                              <span className="font-mono text-xs font-semibold text-[#00d4ff]">#{item.seq_num}</span>
+                              <span className={`text-sm font-medium ${isFree ? "text-gray-400" : "text-gray-100"}`}>
+                                {item.title}
+                              </span>
+                              {item.category && (
+                                <span className="text-[10px] uppercase tracking-wider font-semibold text-gray-600 px-1.5 py-0.5 rounded bg-white/5">
+                                  {item.category}
+                                </span>
+                              )}
+                            </div>
+                            {desc && (
+                              <p className="text-xs text-gray-500 mt-1 leading-5">
+                                {desc.slice(0, 240)}{desc.length > 240 ? "…" : ""}
+                              </p>
+                            )}
+                            {(item.attachments?.length > 0 || item.video_url) && (
+                              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                {item.attachments.slice(0, 4).map((att) => {
+                                  const isImg = att.mime_type?.startsWith("image/");
+                                  const isVid = ["video/mp4", "video/webm", "video/ogg"].includes(att.mime_type || "");
+                                  return (
+                                    <button
+                                      key={att.public_url}
+                                      type="button"
+                                      onClick={() => (isImg || isVid) && setExpandedAttachment(att)}
+                                      className="group block overflow-hidden rounded-md border border-white/10 bg-[#0a0a0f] hover:border-[#00d4ff]/40 transition-colors w-16 h-16"
+                                      title={att.filename}
+                                    >
+                                      {isImg ? (
+                                        <img src={att.public_url} alt={att.filename} className="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" />
+                                      ) : isVid ? (
+                                        <video src={att.public_url} className="h-full w-full object-cover" muted playsInline />
+                                      ) : (
+                                        <div className="flex h-full w-full items-center justify-center text-[9px] font-medium text-gray-500 px-1 text-center">file</div>
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                                {item.video_url && (
+                                  <a
+                                    href={item.video_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center justify-center rounded-md border border-[#00d4ff]/30 bg-[#00d4ff]/5 px-2 h-16 text-[10px] font-semibold text-[#00d4ff] hover:bg-[#00d4ff]/10"
+                                  >
+                                    Watch
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="sm:text-right">
+                            {isFree ? (
+                              <p className="text-xs font-semibold tracking-wider uppercase whitespace-nowrap text-[#00ff88]/80 font-mono">
+                                $0.00 — Free
+                              </p>
+                            ) : (
+                              <p className="text-sm font-semibold text-white tabular-nums whitespace-nowrap font-mono">
+                                ${formatCurrency(cents / 100)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {invoice.lineItems.map((item, i) => (
+                  <div key={i} className="flex justify-between items-start group">
+                    <div className="flex-1 pr-4">
+                      <p className="text-sm font-medium text-gray-200">{item.description}</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{item.detail}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-white tabular-nums whitespace-nowrap font-mono">
+                      ${formatCurrency(item.amount)}
+                    </p>
                   </div>
-                  <p className="text-sm font-semibold text-white tabular-nums whitespace-nowrap font-mono">
-                    ${formatCurrency(item.amount)}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Subtotal / Discount */}
             <div className="mt-5 pt-4 border-t border-white/5 space-y-2">
@@ -253,6 +372,47 @@ export default function InvoicePaymentPage() {
           Better Systems AI &bull; Custom Software & Automation &bull; bettersystems.ai
         </p>
       </div>
+
+      {/* Attachment lightbox */}
+      {expandedAttachment && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={expandedAttachment.filename}
+          onClick={() => setExpandedAttachment(null)}
+        >
+          <div className="relative max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-xl border border-white/10 bg-[#111118] shadow-2xl">
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
+              <div className="truncate text-sm font-semibold text-gray-100">{expandedAttachment.filename}</div>
+              <button
+                type="button"
+                onClick={() => setExpandedAttachment(null)}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-gray-200 transition hover:bg-white/10"
+                aria-label="Close media preview"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-[calc(92vh-60px)] overflow-auto p-3" onClick={(e) => e.stopPropagation()}>
+              {expandedAttachment.mime_type?.startsWith("image/") ? (
+                <img
+                  src={expandedAttachment.public_url}
+                  alt={expandedAttachment.filename}
+                  className="mx-auto max-h-[calc(92vh-96px)] w-auto max-w-full rounded-lg object-contain"
+                />
+              ) : (
+                <video
+                  src={expandedAttachment.public_url}
+                  className="mx-auto max-h-[calc(92vh-96px)] w-auto max-w-full rounded-lg"
+                  controls
+                  autoPlay
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -270,6 +270,98 @@ export function registerRoutes(app: Express) {
         { description: "2.3.1 — Builder Compliance & Disclosures", detail: "Homes built by [Builder], Buyer representation available, Brian Mitchell REALTOR text", amount: 63.75 },
       ],
     },
+    "BSA-2026-008": {
+      invoiceNumber: "BSA-2026-008",
+      clientName: "Brian Mitchell",
+      projectName: "Mitch's Map — Release 2.4",
+      issuedDate: "May 12, 2026",
+      dueDate: "May 26, 2026",
+      subtotal: 2347.50,
+      fullTotal: 2347.50,
+      discountPercent: 5,
+      discountDeadline: "2026-05-26T23:59:59-07:00",
+      discountPaymentUrl: "https://buy.stripe.com/dRm8wQ94S80RfSDfpKc3m0s",
+      fullPaymentUrl: "https://buy.stripe.com/6oU5kEbd0dlbdKv6Tec3m0t",
+      // Line items are derived dynamically from qa_items (project='mitchs-map')
+      // tagged with this invoice_number, with amount_cents as the per-item
+      // price and qa_attachments as the photos. Kept here as an empty
+      // placeholder so the handler's `config.lineItems` fallback path
+      // safely returns an empty array if the DB enrichment errors.
+      lineItems: [
+        // ─── 2.4.1 — Filter & Search UX (5 items / $350) ───
+        { description: "2.4.1.1 — Builder type filter (national vs local) with counts", detail: "Top-level filter chip surface with live counts and persisted state.", amount: 75.00 },
+        { description: "2.4.1.2 — Community type filter (55+ / Gated)", detail: "Two-state filter chips for active-adult and gated communities.", amount: 75.00 },
+        { description: "2.4.1.3 — Collapsible filter sections", detail: "Filter sheet sections collapse so the panel isn't overwhelming on mobile.", amount: 65.00 },
+        { description: "2.4.1.4 — Filter sheet layout reorder", detail: "Price Range moved above Amenities so the most-used filter is first.", amount: 65.00 },
+        { description: "2.4.1.5 — Apply / Reset button placement", detail: "Action buttons anchored to bottom of sheet for thumb reach.", amount: 70.00 },
+
+        // ─── 2.4.2 — Lead Capture + Contact Card (6 items / $435) ───
+        { description: "2.4.2.1 — Brian profile photo on Contact Me modal", detail: "Headshot integrated into the lead-capture sheet header.", amount: 60.00 },
+        { description: "2.4.2.2 — Playable pitch video on Contact card photo", detail: "Tap headshot → fullscreen video lightbox; Brian's video plays inline.", amount: 90.00 },
+        { description: "2.4.2.3 — Contact card creative layout", detail: "Bigger headshot, corner play badge, magazine-style block.", amount: 85.00 },
+        { description: "2.4.2.4 — Replace contact photo with Zillow-blue headshot", detail: "Updated to Brian's new hat-shot photo on the exact Zillow-blue background.", amount: 60.00 },
+        { description: "2.4.2.5 — Lead confirmation email flow", detail: "Submitting the form sends 'thanks, we got it' to the lead AND notifies the admin via Resend.", amount: 85.00 },
+        { description: "2.4.2.6 — Brokerage name + REALTOR® display updates", detail: "Header brokerage stacked, REALTOR® mark, legal-name corrections.", amount: 55.00 },
+
+        // ─── 2.4.3 — Amenity Experience (6 items / $385) ───
+        { description: "2.4.3.1 — Amenities promoted to community-level with own card", detail: "Tap an amenity pin opens a dedicated detail card instead of an inline overlay.", amount: 75.00 },
+        { description: "2.4.3.2 — Amenity pins with icon-in-pin look + label below", detail: "Custom pin shape with the amenity icon centered and the label underneath.", amount: 65.00 },
+        { description: "2.4.3.3 — Amenity pins sized larger than Google POIs", detail: "Our amenity pins now visually dominate built-in Google Maps POIs.", amount: 55.00 },
+        { description: "2.4.3.4 — Amenity card play button anchored bottom-right", detail: "Video play affordance anchored consistently in the amenity card hero.", amount: 45.00 },
+        { description: "2.4.3.5 — Amenity captions on photos", detail: "Captions display under amenity photos on the public card.", amount: 55.00 },
+        { description: "2.4.3.6 — Amenity manager (admin edit/delete + photos)", detail: "Full admin CRUD for amenities — add, edit, reorder photos, delete.", amount: 90.00 },
+
+        // ─── 2.4.4 — Builder, Community + Model Media (10 items / $805) ───
+        { description: "2.4.4.1 — Multi-photo gallery on community detail card", detail: "Swipeable photo gallery + fullscreen lightbox on community cards.", amount: 85.00 },
+        { description: "2.4.4.2 — Multi-photo gallery on builder card", detail: "Same swipe + lightbox pattern on builder cards, plus inline video.", amount: 85.00 },
+        { description: "2.4.4.3 — Per-model photo gallery (hero swaps when model picked)", detail: "Selecting a model pill swaps the hero gallery to that model's photos.", amount: 100.00 },
+        { description: "2.4.4.4 — Per-model multi-photo + main thumbnail selector", detail: "Model edit form supports multi-upload, drag-to-reorder, set main photo.", amount: 85.00 },
+        { description: "2.4.4.5 — Per-model Floor Plan PDF (replaces builder Spec Sheet)", detail: "Each model can host its own floor plan PDF; surfaces on the public card.", amount: 80.00 },
+        { description: "2.4.4.6 — Per-model video on builder card", detail: "Each model carries its own video URL; the tour pill plays the right one.", amount: 75.00 },
+        { description: "2.4.4.7 — Per-model description on detail sheet", detail: "Model description text surfaced under stats on the public sheet.", amount: 55.00 },
+        { description: "2.4.4.8 — Community detail card + fullscreen video modal", detail: "Dedicated community sheet with photos, video, builder pivots, share.", amount: 85.00 },
+        { description: "2.4.4.9 — Shareable URLs on every detail card + copy-link button", detail: "?builder, ?community, ?model, ?amenity deep links + share affordance.", amount: 90.00 },
+        { description: "2.4.4.10 — Drag-reorder + inline captions on photo managers", detail: "Admin photo managers across all entity types get drag-handles + caption inputs.", amount: 65.00 },
+
+        // ─── 2.4.5 — Splash, Branding + Content Updates (7 items / $287.50) ───
+        { description: "2.4.5.1 — Splash rebuild with 6 real AZ community tiles", detail: "Replaced placeholder imagery with Brian's actual communities (Sterling Grove, Aloravita, Verrado, Northpointe at Vistancia, Barney Farms, Harvest).", amount: 55.00 },
+        { description: "2.4.5.2 — Disney-style floating splash + shopping tile", detail: "Animated splash with floating preview tiles + labels.", amount: 50.00 },
+        { description: "2.4.5.3 — Splash mobile-only behavior", detail: "Desktop skips the splash; mobile keeps the brand moment.", amount: 35.00 },
+        { description: "2.4.5.4 — New MM-flag favicon (all sizes)", detail: "Favicon applied across web manifest + Apple touch icons.", amount: 35.00 },
+        { description: "2.4.5.5 — New logo with TM + larger legible tagline", detail: "Updated logo PNG with TM mark + more legible 'find new homes' tagline.", amount: 35.00 },
+        { description: "2.4.5.6 — Tighter header padding around logo + REALTOR text", detail: "Cleaned up header so the logo and right-side text aren't crowded.", amount: 35.00 },
+        { description: "2.4.5.7 — Brokerage legal name updates", detail: "Full legal brokerage name displayed correctly in all required spots.", amount: 42.50 },
+
+        // ─── 2.5.1 — Admin Tools + Launch Readiness (5 items / $285) ───
+        { description: "2.5.1.1 — Soft-delete + audit log infrastructure", detail: "deleted_at columns + Postgres triggers capturing every change with before/after JSON. Deletes recoverable; full paper trail for every edit going forward.", amount: 100.00 },
+        { description: "2.5.1.2 — Admin delete buttons (builders + communities lists)", detail: "Trash icon + confirm dialog on both list pages so removal is surfaced.", amount: 50.00 },
+        { description: "2.5.1.3 — Route-level admin auth", detail: "Authentication enforced at the route layer — no admin UI leak before login.", amount: 55.00 },
+        { description: "2.5.1.4 — Add Model pre-create fix", detail: "Clicking Add Model now creates the DB row server-side first, so the new multi-photo gallery UI shows immediately.", amount: 40.00 },
+        { description: "2.5.1.5 — Free-form Base Price + decimal field support", detail: "Model edit form allows exact prices and decimal bedrooms/bathrooms/garages.", amount: 40.00 },
+
+        // ─── INCLUDED AT NO CHARGE — bug fixes, regressions, polish ───
+        // Showing these as $0 line items so Brian sees the total volume of work delivered.
+        { description: "Bug Fix — Header logo size glitch stabilized (iOS render)", detail: "Logo no longer randomly resizes during iOS toolbar collapse animations.", amount: 0.00 },
+        { description: "Bug Fix — Map controls leaked through splash exit", detail: "Locate + map type buttons no longer flicker over the splash before it finishes animating out.", amount: 0.00 },
+        { description: "Bug Fix — Duplicate Builder Type pills in PriceFilter", detail: "Removed the duplicate pill row caused by a filter merge regression.", amount: 0.00 },
+        { description: "Bug Fix — Contact video — always-on placeholder for prod", detail: "Play button now works on first deploy even before a real video URL is saved.", amount: 0.00 },
+        { description: "Bug Fix — Detail sheet sizing / z-index / control visibility", detail: "Polish round on the redesigned detail sheets so controls are always reachable.", amount: 0.00 },
+        { description: "Bug Fix — Logo aspect-ratio matches actual PNG dimensions", detail: "Eliminated subtle stretching from a declared aspect that didn't match the new logo PNG.", amount: 0.00 },
+        { description: "Bug Fix — Parent community boundary visible on builder map", detail: "Boundary polygon now renders again when a builder is selected inside a community.", amount: 0.00 },
+        { description: "Bug Fix — Deep-link race + Escape clears share URL", detail: "?community / ?model deep links work on fresh load; Escape closes card AND clears URL.", amount: 0.00 },
+        { description: "Bug Fix — Duplicate React keys on AnimatePresence children", detail: "Cleared a React warning during card open/close transitions.", amount: 0.00 },
+        { description: "Bug Fix — Duplicate /public/icon.png + favicon.png conflict", detail: "Resolved a Next.js 500 caused by overlapping App Router + public file conflicts.", amount: 0.00 },
+        { description: "Bug Fix — Cleaner amenity card photo navigation", detail: "Photo arrows and pill UI now degrade gracefully when there's a single photo.", amount: 0.00 },
+        { description: "Bug Fix — AnimatePresence keys 2nd round (PhotoGallery + VideoModal)", detail: "Final follow-up fix to remove the last duplicate-key warning.", amount: 0.00 },
+        { description: "Bug Fix — Half-step decimals on standalone model edit form", detail: "Decimal bedrooms/bathrooms/garages now save correctly from the standalone edit page.", amount: 0.00 },
+        { description: "Bug Fix — Restored TM superscript regression", detail: "TM mark on the Mitch's Map wordmark restored after a merge dropped it.", amount: 0.00 },
+        { description: "Bug Fix — Previous map key icon reappearance", detail: "Map legend no longer flashes back in after dismissal.", amount: 0.00 },
+        { description: "Bug Fix — Location and Map type buttons overlapping builder view", detail: "Z-index conflict between map controls and the builder detail sheet resolved.", amount: 0.00 },
+        { description: "Bug Fix — Location/Map type buttons leak on initial splash animation", detail: "Gating logic restored so controls only appear after the splash exits cleanly.", amount: 0.00 },
+        { description: "Bug Fix — Amenities multi-photo + improved video dynamics", detail: "Internal QA pass on the amenity gallery + video transitions.", amount: 0.00 },
+        { description: "Bug Fix — Photo manager polish (drag, captions, video, tour hint)", detail: "Internal QA pass on the cross-entity photo manager refactor.", amount: 0.00 },
+      ],
+    },
   };
 
   app.get("/api/pay/:invoiceNumber", async (req, res) => {
@@ -307,6 +399,54 @@ export function registerRoutes(app: Express) {
       console.error("[Payment Page] DB check failed:", e);
     }
 
+    // Pull tracker items + attachments. When present, they become the
+    // canonical line-item source (qa_items.amount_cents is the price per
+    // item, attachments are the photos Brian sent). When absent, we fall
+    // back to the hand-crafted config.lineItems for legacy invoices.
+    let items: any[] = [];
+    try {
+      const itemsResult: any = await db.execute(sql`
+        SELECT id, seq_num, version, category, title, description, source_context, source_date, status, video_url, amount_cents
+        FROM qa_items
+        WHERE invoice_number = ${config.invoiceNumber}
+        ORDER BY
+          (CASE WHEN COALESCE(amount_cents, 0) > 0 THEN 0 ELSE 1 END),
+          COALESCE(source_date, created_at),
+          seq_num
+      `);
+      const itemRows = itemsResult.rows || itemsResult;
+      let attachments: any[] = [];
+      if (itemRows.length) {
+        const attResult: any = await db.execute(sql`
+          SELECT item_id, filename, mime_type, public_url
+          FROM qa_attachments
+          WHERE item_id IN (SELECT id FROM qa_items WHERE invoice_number = ${config.invoiceNumber})
+          ORDER BY created_at ASC
+        `);
+        attachments = attResult.rows || attResult;
+      }
+      const attachmentsByItem = new Map<string, any[]>();
+      for (const a of attachments) {
+        const g = attachmentsByItem.get(a.item_id) || [];
+        g.push(a);
+        attachmentsByItem.set(a.item_id, g);
+      }
+      items = itemRows.map((r: any) => ({ ...r, attachments: attachmentsByItem.get(r.id) || [] }));
+    } catch (e) {
+      console.error("[Payment Page] tracker items enrichment failed:", e);
+    }
+
+    // Derive lineItems from tracker items when available (single source of
+    // truth). Falls back to hand-crafted config.lineItems for older
+    // invoices that pre-date the qa_items integration.
+    const derivedLineItems = items.length
+      ? items.map((it) => ({
+          description: `#${it.seq_num} — ${it.title}`,
+          detail: (it.description || it.source_context || "").replace(/\s+/g, " ").trim().slice(0, 280),
+          amount: (Number(it.amount_cents) || 0) / 100,
+        }))
+      : config.lineItems;
+
     res.json({
       invoiceNumber: config.invoiceNumber,
       clientName: config.clientName,
@@ -321,9 +461,110 @@ export function registerRoutes(app: Express) {
       discountDeadline: deadlineDisplay,
       originalTotal: config.fullTotal,
       savings: isDiscounted ? savings : 0,
-      lineItems: config.lineItems,
+      lineItems: derivedLineItems,
+      items,
       isPaid,
     });
+  });
+
+  app.get("/api/invoice-drafts/mitchs-map-launch-edition", async (_req, res) => {
+    try {
+      const result: any = await db.execute(sql`
+        SELECT id, seq_num, version, category, title, description, source_context, source_date, status, video_url
+        FROM qa_items
+        WHERE project = 'mitchs-map'
+          AND status IN ('completed', 'shipped')
+          AND charged IS NOT TRUE
+          AND invoice_number IS NULL
+        ORDER BY COALESCE(source_date, created_at), seq_num
+      `);
+      const rows = result.rows || result;
+      const ids = rows.map((row: any) => row.id);
+      let attachments: any[] = [];
+      if (ids.length) {
+        const idsCsv = ids.map((id: string) => `'${id}'::uuid`).join(",");
+        const attachmentsResult: any = await db.execute(sql.raw(`
+          SELECT item_id, filename, mime_type, public_url
+          FROM qa_attachments
+          WHERE item_id IN (${idsCsv})
+          ORDER BY created_at ASC
+        `));
+        attachments = attachmentsResult.rows || attachmentsResult;
+      }
+      const attachmentsByItem = new Map<string, any[]>();
+      for (const attachment of attachments) {
+        const group = attachmentsByItem.get(attachment.item_id) || [];
+        group.push(attachment);
+        attachmentsByItem.set(attachment.item_id, group);
+      }
+      const items = rows.map((row: any) => ({
+        ...row,
+        attachments: attachmentsByItem.get(row.id) || [],
+      }));
+
+      res.json({
+        invoiceNumber: "BSA-2026-008",
+        status: "Draft",
+        clientName: "Brian Mitchell",
+        projectName: "Mitch's Map — Release 2.4",
+        issuedDate: "May 11, 2026",
+        dueDate: "Due on receipt",
+        total: 3800,
+        priorInvoices: [
+          {
+            invoiceNumber: "BSA-2026-004",
+            label: "Phase 1 delivery + scope additions",
+            issuedDate: "February 8, 2026",
+            amount: 2393.50,
+            status: "Paid",
+          },
+          {
+            invoiceNumber: "BSA-2026-006",
+            label: "Phase 2 development",
+            issuedDate: "April 15, 2026",
+            amount: 1955,
+            status: "Paid",
+          },
+        ],
+        lineItems: [
+          {
+            description: "2.4.1 — Filter & Search UX",
+            detail: "Builder type filter, community type filter, collapsible filter sections, price/filter layout, and apply/reset placement.",
+            amount: 520,
+          },
+          {
+            description: "2.4.2 — Lead Capture + Contact Card",
+            detail: "Contact form email flow, Brian photo/video card, CTA updates, brokerage display updates, and related launch polish.",
+            amount: 650,
+          },
+          {
+            description: "2.4.3 — Amenity Experience",
+            detail: "Standalone amenity cards, larger amenity pins, amenity captions, inline video playback behavior, and amenity filter updates.",
+            amount: 575,
+          },
+          {
+            description: "2.4.4 — Builder, Community + Model Media",
+            detail: "Multi-photo galleries, drag reorder, captions, model/community photos and videos, inline tour playback behavior, floor plan PDFs, and public card presentation updates.",
+            amount: 1200,
+          },
+          {
+            description: "2.4.5 — Splash, Branding + Content Updates",
+            detail: "Real AZ splash photos, logo/favicon swaps, color updates, brokerage text, contact photo, and visual polish.",
+            amount: 430,
+          },
+          {
+            description: "2.5.1 — Admin Tools + Launch Readiness",
+            detail: "Amenity manager, admin edit/delete controls, safer field handling, QA, and completed launch blockers.",
+            amount: 425,
+          },
+        ],
+        pricingNote: "Bug fixes, compliance corrections, and small cleanup items are included at no charge.",
+        items,
+      });
+    } catch (error: any) {
+      console.error("mitchs-map launch invoice draft error:", error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Public API routes
@@ -2479,7 +2720,7 @@ export function registerRoutes(app: Express) {
         "status", "version", "category", "title", "description", "charged", "commit_hash", "amount_cents",
         "source", "source_date", "source_context", "source_ref", "sort_order", "assignee",
         "delivered_at", "invoiced_at", "paid_at", "invoice_number", "bundle", "stripe_charge_id", "video_url",
-        "time_estimate_hours",
+        "time_estimate_hours", "developed_by_ai",
       ];
       // Fetch current row for audit diff
       const beforeRes: any = await db.execute(sql`SELECT * FROM qa_items WHERE id = ${id}::uuid`);

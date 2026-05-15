@@ -27,12 +27,28 @@ interface Recording {
   recorded_at: string;
   duration_seconds: number;
   summary: string | null;
+  topics?: string[] | null;
+  people?: string[] | null;
+  companies?: string[] | null;
+  projects?: string[] | null;
+  tags?: string[] | null;
+}
+interface DealRecording {
+  deal_key: string;
+  recording_id: number;
+  title: string;
+  recorded_at: string;
+  summary: string | null;
+  people: string[] | null;
+  companies: string[] | null;
+  topics: string[] | null;
 }
 interface Payload {
   today: string;
   advisor_briefing: string | null;
   action_items: ActionItem[];
   deal_activity: DealActivity[];
+  deal_recordings?: DealRecording[];
   recent_recordings: Recording[];
   weekly_kpis: { week_start: string; actions_closed: number; recordings_count: number };
   system_health: {
@@ -241,16 +257,22 @@ export default function MorningBriefPage() {
           <div className="space-y-2">
             {DEALS.map(d => {
               const a = data.deal_activity.find(x => x.deal_key === d.key);
-              const days = a ? daysAgo(a.last_touch) : null;
+              const r = data.deal_recordings?.find(x => x.deal_key === d.key);
+              const lastTouchIso = r?.recorded_at || a?.last_touch || null;
+              const days = lastTouchIso ? daysAgo(lastTouchIso) : null;
               const urgency = days === null ? "red" : days >= 7 ? "red" : days >= 3 ? "yellow" : "green";
               return (
                 <DealCard
                   key={d.key}
                   label={d.label}
-                  lastTouchText={a ? fmtRelative(a.last_touch) : "no recent comms"}
+                  lastTouchText={lastTouchIso ? fmtRelative(lastTouchIso) : "no recent comms"}
+                  lastSource={r ? "recording" : a ? "iMessage" : null}
                   urgency={urgency}
                   cta={d.cta}
                   copyText={d.copyText}
+                  recordingSummary={r?.summary || null}
+                  recordingTitle={r?.title || null}
+                  recordingPeople={r?.people || null}
                 />
               );
             })}
@@ -293,19 +315,11 @@ export default function MorningBriefPage() {
         {data.recent_recordings.length > 0 && (
           <section className="mb-6">
             <h2 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
-              <FileText className="w-4 h-4" /> Last 48h Recordings
+              <FileText className="w-4 h-4" /> Recordings (last 7 days, {data.recent_recordings.length})
             </h2>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {data.recent_recordings.map(r => (
-                <div key={r.id} className="text-sm bg-zinc-900 border border-zinc-800 rounded px-3 py-2">
-                  <div className="text-zinc-200">{r.title}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
-                    {new Date(r.recorded_at).toLocaleString()} · {Math.round(r.duration_seconds / 60)}m
-                  </div>
-                  {r.summary && (
-                    <div className="text-xs text-zinc-400 mt-1 line-clamp-2">{r.summary}</div>
-                  )}
-                </div>
+                <RecordingCard key={r.id} r={r} />
               ))}
             </div>
           </section>
@@ -332,13 +346,18 @@ export default function MorningBriefPage() {
 }
 
 function DealCard({
-  label, lastTouchText, urgency, cta, copyText,
+  label, lastTouchText, lastSource, urgency, cta, copyText,
+  recordingSummary, recordingTitle, recordingPeople,
 }: {
   label: string;
   lastTouchText: string;
+  lastSource: "recording" | "iMessage" | null;
   urgency: "green" | "yellow" | "red";
   cta: string;
   copyText: string;
+  recordingSummary: string | null;
+  recordingTitle: string | null;
+  recordingPeople: string[] | null;
 }) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
@@ -347,18 +366,41 @@ function DealCard({
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+  const sourceTag = lastSource === "recording"
+    ? <span className="text-[10px] opacity-60 uppercase tracking-wide">rec</span>
+    : lastSource === "iMessage"
+      ? <span className="text-[10px] opacity-60 uppercase tracking-wide">sms</span>
+      : null;
   return (
     <div className={`rounded-lg border ${STATUS_COLOR[urgency]} bg-zinc-900/60 px-3 py-2.5`}>
       <button onClick={() => setOpen(!open)} className="w-full text-left">
         <div className="flex items-center justify-between">
           <div className="font-medium text-sm">{label}</div>
-          <div className="text-xs opacity-70">{lastTouchText}</div>
+          <div className="text-xs opacity-70 flex items-center gap-1.5">
+            {lastTouchText}{sourceTag}
+          </div>
         </div>
         <div className="text-xs mt-0.5 opacity-80">→ {cta}</div>
+        {recordingSummary && (
+          <div className="text-xs mt-1.5 opacity-75 line-clamp-2 italic">
+            "{recordingSummary.slice(0, 240)}{recordingSummary.length > 240 ? "…" : ""}"
+          </div>
+        )}
       </button>
       {open && (
-        <div className="mt-2 pt-2 border-t border-current/20">
-          <div className="text-xs whitespace-pre-wrap opacity-90 mb-2">{copyText}</div>
+        <div className="mt-2 pt-2 border-t border-current/20 space-y-2">
+          {recordingTitle && (
+            <div className="text-xs opacity-70">
+              From: <span className="font-medium">{recordingTitle}</span>
+              {recordingPeople && recordingPeople.length > 0 && (
+                <span className="opacity-60"> · w/ {recordingPeople.slice(0, 3).join(", ")}</span>
+              )}
+            </div>
+          )}
+          {recordingSummary && (
+            <div className="text-xs whitespace-pre-wrap opacity-85">{recordingSummary}</div>
+          )}
+          <div className="text-xs whitespace-pre-wrap opacity-90">{copyText}</div>
           <button
             onClick={handleCopy}
             className="text-xs px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 transition"
@@ -367,6 +409,49 @@ function DealCard({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function RecordingCard({ r }: { r: Recording }) {
+  const [open, setOpen] = useState(false);
+  const minutes = Math.round(r.duration_seconds / 60);
+  const chips = [
+    ...(r.companies || []).map(c => ({ type: "company", text: c })),
+    ...(r.people || []).slice(0, 4).map(p => ({ type: "person", text: p })),
+    ...(r.topics || []).slice(0, 3).map(t => ({ type: "topic", text: t })),
+  ];
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5">
+      <button onClick={() => setOpen(!open)} className="w-full text-left">
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-sm text-zinc-200 font-medium flex-1">{r.title}</div>
+          <div className="text-xs text-zinc-500 whitespace-nowrap">
+            {fmtRelative(r.recorded_at)} · {minutes}m
+          </div>
+        </div>
+        {r.summary && (
+          <div className={`text-xs text-zinc-400 mt-1 ${open ? "" : "line-clamp-2"}`}>
+            {r.summary}
+          </div>
+        )}
+        {chips.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {chips.map((c, i) => (
+              <span
+                key={i}
+                className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                  c.type === "company" ? "border-emerald-500/30 text-emerald-300/80 bg-emerald-500/5"
+                  : c.type === "person" ? "border-blue-500/30 text-blue-300/80 bg-blue-500/5"
+                  : "border-zinc-700 text-zinc-400"
+                }`}
+              >
+                {c.text}
+              </span>
+            ))}
+          </div>
+        )}
+      </button>
     </div>
   );
 }

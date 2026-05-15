@@ -3225,12 +3225,53 @@ async function buildMissionPayload() {
     GROUP BY deal_key
   `;
 
+  // Recordings — last 7 days, full entity arrays so the page can show
+  // takeaways + deal/person chips. Recordings are the primary signal now.
   const recordings = await queryClient`
-    SELECT id, title, recorded_at, duration_seconds, summary
+    SELECT id, title, recorded_at, duration_seconds, summary, topics,
+           people, companies, projects, tags
     FROM recordings
-    WHERE transcription_status = 'completed' AND recorded_at > NOW() - INTERVAL '48 hours'
-    ORDER BY recorded_at DESC LIMIT 6
+    WHERE transcription_status = 'completed' AND recorded_at > NOW() - INTERVAL '7 days'
+    ORDER BY recorded_at DESC LIMIT 20
   `;
+
+  // For each active deal, find the most recent recording mentioning it.
+  // Matches against companies / people / projects / tags / summary text.
+  const dealRecordingsRaw = await queryClient`
+    WITH deal_keywords AS (
+      SELECT * FROM (VALUES
+        ('Heritage Headquarters', ARRAY['Heritage','Caroline Torres','Caroline','Heritage Headquarters']),
+        ('Fernando deal', ARRAY['Fernando']),
+        ('Testal × Desert Moonlighting', ARRAY['Desert Moon','Linda','Linda Johnson','Testal']),
+        ('Brian Mitchell', ARRAY['Brian Mitchell','New Build Watch','Brian']),
+        ('Hiring Sabrina', ARRAY['Sabrina']),
+        ('Waste diversion ops', ARRAY['Waste','Mike McMahon','Vanguard','salchicha'])
+      ) AS t(deal_key, kw)
+    )
+    SELECT dk.deal_key,
+           r.id AS recording_id,
+           r.title,
+           r.recorded_at,
+           r.summary,
+           r.people,
+           r.companies,
+           r.topics
+    FROM deal_keywords dk
+    LEFT JOIN LATERAL (
+      SELECT id, title, recorded_at, summary, people, companies, topics
+      FROM recordings r
+      WHERE r.transcription_status = 'completed'
+        AND (
+          EXISTS (SELECT 1 FROM unnest(r.companies) c WHERE c = ANY(dk.kw))
+          OR EXISTS (SELECT 1 FROM unnest(r.people)    p WHERE p = ANY(dk.kw))
+          OR EXISTS (SELECT 1 FROM unnest(r.projects)  pr WHERE pr = ANY(dk.kw))
+          OR EXISTS (SELECT 1 FROM unnest(r.tags)      tg WHERE tg = ANY(dk.kw))
+          OR (r.summary IS NOT NULL AND r.summary ILIKE ANY(SELECT '%'||k||'%' FROM unnest(dk.kw) AS k))
+        )
+      ORDER BY recorded_at DESC LIMIT 1
+    ) r ON TRUE
+  `;
+  const deal_recordings = dealRecordingsRaw.filter(r => r.recording_id !== null);
 
   const weekStart = new Date();
   const day = weekStart.getDay();
@@ -3270,6 +3311,7 @@ async function buildMissionPayload() {
     advisor_briefing: advisor,
     action_items: actionItems,
     deal_activity: dealActivity,
+    deal_recordings,
     recent_recordings: recordings,
     weekly_kpis: {
       week_start: weekStart.toISOString(),

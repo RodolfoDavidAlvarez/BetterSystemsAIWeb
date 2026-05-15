@@ -3159,5 +3159,341 @@ app.get('/api/dev-tracker/unresolved', devTrackerAuth(['owner', 'admin', 'develo
   }
 });
 
+// ============================================================
+// Mission Dashboard — /admin/mission
+// Single endpoint returning today's full advisor briefing payload
+// for the Mission UI: priorities, deal cards, action items,
+// weekly KPIs, system health, comms backlog.
+// Gated to owner + admin only.
+// ============================================================
+
+// Shared helper — pulls today's full mission payload (used by both
+// the authenticated /api/mission/today and the public /api/morning-brief).
+async function buildMissionPayload() {
+  // 1. Today's advisor briefing. Prefer DB (cloud routine writes here);
+  //    fall back to local DAILY_ADVISOR file for older local-only generators.
+  const todayAz = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' });
+  let advisor = null;
+  try {
+    const [row] = await queryClient`
+      SELECT content FROM advisor_briefings
+      WHERE briefing_date = ${todayAz}
+      ORDER BY updated_at DESC LIMIT 1
+    `;
+    if (row) advisor = row.content;
+  } catch (_) { /* table may not exist on old envs */ }
+  if (!advisor) {
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const os = await import('os');
+      const advisorPath = path.join(os.homedir(), '.claude/projects/-Users-rodolfoalvarez/memory/DAILY_ADVISOR', `${todayAz}.md`);
+      advisor = await fs.readFile(advisorPath, 'utf8');
+    } catch (_) { /* no advisor file either */ }
+  }
+
+  const actionItems = await queryClient`
+    SELECT id, title, company, project, priority, due_date, status, created_at
+    FROM action_items
+    WHERE status IN ('pending', 'needs_review', 'in_progress')
+    ORDER BY
+      CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
+      due_date NULLS LAST,
+      created_at DESC
+    LIMIT 50
+  `;
+
+  const dealActivity = await queryClient`
+    WITH recent AS (
+      SELECT
+        CASE
+          WHEN message_text ILIKE '%Heritage%' OR contact_name ILIKE '%Caroline%' THEN 'Heritage Headquarters'
+          WHEN message_text ILIKE '%Fernando%' OR contact_name ILIKE '%Fernando%' THEN 'Fernando deal'
+          WHEN message_text ILIKE '%Testal%' OR message_text ILIKE '%Desert Moon%' OR contact_name ILIKE '%Linda%' THEN 'Testal × Desert Moonlighting'
+          WHEN message_text ILIKE '%Brian%' OR contact_name ILIKE '%Brian Mitchell%' THEN 'Brian Mitchell'
+          WHEN message_text ILIKE '%Sabrina%' OR contact_name ILIKE '%Sabrina%' THEN 'Hiring Sabrina'
+          WHEN message_text ILIKE '%Waste%' OR message_text ILIKE '%salchicha%' THEN 'Waste diversion ops'
+          WHEN message_text ILIKE '%Agave%' OR contact_name ILIKE '%Alexandra%' OR contact_name ILIKE '%Victoria%' THEN 'Agave Fleet'
+          ELSE NULL
+        END AS deal_key,
+        timestamp
+      FROM client_comms
+      WHERE source = 'imessage' AND timestamp > NOW() - INTERVAL '30 days'
+    )
+    SELECT deal_key, MAX(timestamp) AS last_touch, COUNT(*) AS msg_count
+    FROM recent WHERE deal_key IS NOT NULL
+    GROUP BY deal_key
+  `;
+
+  const recordings = await queryClient`
+    SELECT id, title, recorded_at, duration_seconds, summary
+    FROM recordings
+    WHERE transcription_status = 'completed' AND recorded_at > NOW() - INTERVAL '48 hours'
+    ORDER BY recorded_at DESC LIMIT 6
+  `;
+
+  const weekStart = new Date();
+  const day = weekStart.getDay();
+  const daysBack = day === 0 ? 6 : day - 1;
+  weekStart.setDate(weekStart.getDate() - daysBack);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const [actionsClosedThisWeek] = await queryClient`
+    SELECT COUNT(*)::int AS count FROM action_items
+    WHERE status = 'completed' AND updated_at >= ${weekStart.toISOString()}
+  `;
+  const [recordingsThisWeek] = await queryClient`
+    SELECT COUNT(*)::int AS count FROM recordings WHERE recorded_at >= ${weekStart.toISOString()}
+  `;
+
+  let briefingFresh = null;
+  try {
+    const [row] = await queryClient`
+      SELECT updated_at FROM advisor_briefings
+      WHERE briefing_date = ${todayAz}
+      ORDER BY updated_at DESC LIMIT 1
+    `;
+    if (row) {
+      briefingFresh = {
+        mtime: row.updated_at,
+        ageMinutes: Math.round((Date.now() - new Date(row.updated_at).getTime()) / 60000),
+      };
+    }
+  } catch (_) {}
+
+  const [devTrackerUnresolved] = await queryClient`
+    SELECT COUNT(*)::int AS count FROM qa_notes WHERE resolved_at IS NULL
+  `;
+
+  return {
+    today: todayAz,
+    advisor_briefing: advisor,
+    action_items: actionItems,
+    deal_activity: dealActivity,
+    recent_recordings: recordings,
+    weekly_kpis: {
+      week_start: weekStart.toISOString(),
+      actions_closed: actionsClosedThisWeek?.count || 0,
+      recordings_count: recordingsThisWeek?.count || 0,
+    },
+    system_health: {
+      briefing_fresh: briefingFresh,
+      dev_tracker_unresolved: devTrackerUnresolved?.count || 0,
+    },
+  };
+}
+
+// Public morning brief — gated by static passcode (?key=2372 or x-mb-key header).
+// Used by /morning-brief on the public site. No JWT required.
+app.get('/api/morning-brief', async (req, res) => {
+  const key = req.query.key || req.header('x-mb-key');
+  if (key !== (process.env.MORNING_BRIEF_KEY || '2372')) {
+    return res.status(401).json({ error: 'invalid passcode' });
+  }
+  try {
+    const payload = await buildMissionPayload();
+    res.json(payload);
+  } catch (e) {
+    console.error('morning-brief error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Allow the cloud routine (or any authorized writer) to publish today's briefing.
+// Same passcode gate. Upserts on (briefing_date).
+app.post('/api/morning-brief', async (req, res) => {
+  const key = req.query.key || req.header('x-mb-key');
+  if (key !== (process.env.MORNING_BRIEF_KEY || '2372')) {
+    return res.status(401).json({ error: 'invalid passcode' });
+  }
+  try {
+    const { briefing_date, content, summary, data, created_by } = req.body || {};
+    const dateAz = briefing_date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' });
+    if (!content) return res.status(400).json({ error: 'content required' });
+    const [row] = await queryClient`
+      INSERT INTO advisor_briefings (briefing_date, content, summary, data, created_by, updated_at)
+      VALUES (${dateAz}, ${content}, ${summary || null}, ${data || {}}, ${created_by || 'morning_advisor'}, NOW())
+      ON CONFLICT (briefing_date) DO UPDATE
+        SET content = EXCLUDED.content,
+            summary = EXCLUDED.summary,
+            data = EXCLUDED.data,
+            created_by = EXCLUDED.created_by,
+            updated_at = NOW()
+      RETURNING id, briefing_date, updated_at
+    `;
+    res.json({ ok: true, briefing: row });
+  } catch (e) {
+    console.error('morning-brief POST error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/mission/today', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const payload = await buildMissionPayload();
+    return res.json(payload);
+  } catch (e) {
+    console.error('mission/today error:', e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+// (Legacy block below intentionally bypassed by early return above.)
+app.get('/api/mission/today-legacy', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    // 1. Latest daily advisor file (today's briefing if generated)
+    let advisor = null;
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const os = await import('os');
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' });
+      const advisorPath = path.join(os.homedir(), '.claude/projects/-Users-rodolfoalvarez/memory/DAILY_ADVISOR', `${today}.md`);
+      advisor = await fs.readFile(advisorPath, 'utf8');
+    } catch (_) { /* no advisor file yet */ }
+
+    // 2. Action items: pending + due today + overdue
+    const actionItems = await queryClient`
+      SELECT id, title, company, project, priority, due_date, status, created_at
+      FROM action_items
+      WHERE status IN ('pending', 'needs_review', 'in_progress')
+      ORDER BY
+        CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
+        due_date NULLS LAST,
+        created_at DESC
+      LIMIT 50
+    `;
+
+    // 3. Active deal cards — last-touch from client_comms + recordings
+    const dealKeys = ['Heritage', 'Fernando', 'Testal', 'Desert Moon', 'Brian Mitchell', 'Sabrina', 'Waste Diversion', 'Agave'];
+    const dealActivity = await queryClient`
+      WITH recent AS (
+        SELECT
+          CASE
+            WHEN message_text ILIKE '%Heritage%' OR contact_name ILIKE '%Caroline%' THEN 'Heritage Headquarters'
+            WHEN message_text ILIKE '%Fernando%' OR contact_name ILIKE '%Fernando%' THEN 'Fernando deal'
+            WHEN message_text ILIKE '%Testal%' OR message_text ILIKE '%Desert Moon%' OR contact_name ILIKE '%Linda%' THEN 'Testal × Desert Moonlighting'
+            WHEN message_text ILIKE '%Brian%' OR contact_name ILIKE '%Brian Mitchell%' THEN 'Brian Mitchell'
+            WHEN message_text ILIKE '%Sabrina%' OR contact_name ILIKE '%Sabrina%' THEN 'Hiring Sabrina'
+            WHEN message_text ILIKE '%Waste%' OR message_text ILIKE '%salchicha%' THEN 'Waste diversion ops'
+            WHEN message_text ILIKE '%Agave%' OR contact_name ILIKE '%Alexandra%' OR contact_name ILIKE '%Victoria%' THEN 'Agave Fleet'
+            ELSE NULL
+          END AS deal_key,
+          timestamp,
+          message_text,
+          contact_name,
+          direction
+        FROM client_comms
+        WHERE source = 'imessage'
+          AND timestamp > NOW() - INTERVAL '30 days'
+      )
+      SELECT deal_key, MAX(timestamp) AS last_touch, COUNT(*) AS msg_count
+      FROM recent WHERE deal_key IS NOT NULL
+      GROUP BY deal_key
+    `;
+
+    // 4. Recent recordings (last 48h)
+    const recordings = await queryClient`
+      SELECT id, title, recorded_at, duration_seconds, summary
+      FROM recordings
+      WHERE transcription_status = 'completed'
+        AND recorded_at > NOW() - INTERVAL '48 hours'
+      ORDER BY recorded_at DESC
+      LIMIT 6
+    `;
+
+    // 5. Weekly KPI scoreboard — start of current week (Mon) AZ
+    const weekStart = new Date();
+    const day = weekStart.getDay(); // 0=Sun
+    const daysBack = day === 0 ? 6 : day - 1;
+    weekStart.setDate(weekStart.getDate() - daysBack);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const [actionsClosedThisWeek] = await queryClient`
+      SELECT COUNT(*)::int AS count
+      FROM action_items
+      WHERE status = 'completed' AND updated_at >= ${weekStart.toISOString()}
+    `;
+
+    const [recordingsThisWeek] = await queryClient`
+      SELECT COUNT(*)::int AS count
+      FROM recordings
+      WHERE recorded_at >= ${weekStart.toISOString()}
+    `;
+
+    // 6. System health
+    let briefingFresh = null;
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const os = await import('os');
+      const s = await fs.stat(path.join(os.homedir(), '.claude/projects/-Users-rodolfoalvarez/memory/CONTEXT_BRIEFING.md'));
+      briefingFresh = { mtime: s.mtime, ageMinutes: Math.round((Date.now() - s.mtimeMs) / 60000) };
+    } catch (_) {}
+
+    const [devTrackerUnresolved] = await queryClient`
+      SELECT COUNT(*)::int AS count FROM qa_notes WHERE resolved_at IS NULL
+    `;
+
+    res.json({
+      today: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' }),
+      advisor_briefing: advisor,
+      action_items: actionItems,
+      deal_activity: dealActivity,
+      recent_recordings: recordings,
+      weekly_kpis: {
+        week_start: weekStart.toISOString(),
+        actions_closed: actionsClosedThisWeek?.count || 0,
+        recordings_count: recordingsThisWeek?.count || 0,
+        // Other KPIs (revenue, new clients, proposals) need their own source tables — placeholders for v1
+      },
+      system_health: {
+        briefing_fresh: briefingFresh,
+        dev_tracker_unresolved: devTrackerUnresolved?.count || 0,
+      },
+    });
+  } catch (e) {
+    console.error('mission/today error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── Advisor feedback ──────────────────────────────────────────────────────
+// Rodo rates each daily briefing (good / off / missed) + free-text notes.
+// Routine reads yesterday's feedback first thing so the advisor learns.
+
+app.post('/api/mission/feedback', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const { briefing_date, rating, notes } = req.body || {};
+    if (!briefing_date || !['good', 'off', 'missed'].includes(rating)) {
+      return res.status(400).json({ error: 'briefing_date + rating (good|off|missed) required' });
+    }
+    const [row] = await queryClient`
+      INSERT INTO advisor_feedback (briefing_date, rating, notes, source)
+      VALUES (${briefing_date}, ${rating}, ${notes || null}, 'mission_dashboard')
+      RETURNING id, briefing_date, rating, notes, created_at
+    `;
+    res.json({ ok: true, feedback: row });
+  } catch (e) {
+    console.error('mission/feedback error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/mission/feedback', devTrackerAuth(['owner', 'admin']), async (req, res) => {
+  try {
+    const days = parseInt(req.query.days || '7', 10);
+    const rows = await queryClient`
+      SELECT id, briefing_date, rating, notes, created_at
+      FROM advisor_feedback
+      WHERE briefing_date >= NOW() - (${days} || ' days')::interval
+      ORDER BY briefing_date DESC, created_at DESC
+    `;
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Export for Vercel
 export default app;

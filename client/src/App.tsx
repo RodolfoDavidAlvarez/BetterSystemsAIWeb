@@ -20,6 +20,7 @@ import BookingPage from "./pages/BookingPage";
 import ContractorCRMPage from "./pages/ContractorCRMPage";
 import InvoicePaymentPage from "./pages/InvoicePaymentPage";
 import AIPresentationPage from "./pages/AIPresentationPage";
+import MorningBriefPage from "./pages/MorningBriefPage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
 // Admin imports
@@ -71,6 +72,8 @@ function App() {
               <Route path="/review" component={ReviewSurveyPage} />
               <Route path="/pay/:invoiceNumber" component={InvoicePaymentPage} />
               <Route path="/ai-presentation" component={AIPresentationPage} />
+              <Route path="/morning-brief" component={MorningBriefPage} />
+              <Route path="/brief" component={MorningBriefPage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />

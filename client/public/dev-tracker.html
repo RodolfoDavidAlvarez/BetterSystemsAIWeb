@@ -751,6 +751,21 @@
     margin-right: 6px;
     vertical-align: middle;
   }
+  /* "AI" pill — flags items that were touched by the AI developer agent.
+     Branch is committed locally only; awaits human review + push. */
+  .item-meta .ai-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: 0;
+    cursor: help;
+    line-height: 1.4;
+    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.25);
+  }
   /* Notes & attach — minimal icon + count, no pill chrome */
   .item-meta .notes-link,
   .item-meta .attach-link {
@@ -3050,6 +3065,19 @@
     max-height: 220px;
     overflow: auto;
     border: 1px solid #0a0a0a;
+  }
+  /* Inline links inside the dark Source-Context pre-block (drawer + inline panel). */
+  .drawer-context a.ctx-link,
+  .context-body a.ctx-link {
+    color: #7cc4ff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+  .drawer-context a.ctx-link:hover,
+  .context-body a.ctx-link:hover {
+    color: #a8dbff;
+    text-decoration-thickness: 2px;
   }
 
   /* Attachments dropzone hint when empty */
@@ -7303,6 +7331,7 @@ function renderItemLine(it) {
           </span>
           <input type="file" id="att-input-${it.id}" multiple accept="*/*" style="display:none" onchange="handleAttachInput('${it.id}', this)" />
           ${(() => { const c = formatCreatedDate(it.created_at); return c.short ? `<span class="meta-item created-date" title="${escapeAttr(c.full)}">${escapeHtml(c.short)}</span>` : ""; })()}
+          ${it.developed_by_ai ? `<span class="meta-item ai-badge" title="Developed by AI — branch is local-only, awaiting human review/push">AI</span>` : ""}
           ${it.bundle ? `<span class="meta-item bundle-pill" title="Invoice line-item bundle">${escapeHtml(it.bundle)}</span>` : ""}
           ${watchPillFor(it)}
           ${invoiceBadgeFor(it)}
@@ -7374,6 +7403,15 @@ function renderItemDrawer(it) {
           </select>
         </div>
 
+        <div class="drawer-section half">
+          <span class="drawer-label">Developed by AI</span>
+          <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+            <input type="checkbox" ${it.developed_by_ai ? 'checked' : ''}
+                   onchange="patchItem('${it.id}', { developed_by_ai: this.checked })" />
+            <span>${it.developed_by_ai ? 'Yes — local branch awaiting review' : 'No (human-developed)'}</span>
+          </label>
+        </div>
+
         <div class="drawer-section">
           <span class="drawer-label">Meta</span>
           <div class="drawer-meta">
@@ -7409,7 +7447,7 @@ function renderItemDrawer(it) {
         ${hasContext ? `
           <div class="drawer-section full">
             <span class="drawer-label">Source context ${refType ? `<span class="lbl-count">${escapeHtml(refType.replace('-', ' '))}</span>` : ''}</span>
-            <pre class="drawer-context">${escapeHtml(it.source_context)}</pre>
+            <pre class="drawer-context">${linkifyEscaped(escapeHtml(it.source_context))}</pre>
           </div>
         ` : ''}
 
@@ -7515,7 +7553,7 @@ function renderItemFull(it) {
           <span class="context-head-label">${refTypeIcon(refType)} Source Context${refType ? ' · ' + refType.replace('-', ' ') : ''}</span>
           ${it.source_ref ? `<span class="context-head-ref">${escapeHtml(JSON.stringify(it.source_ref))}</span>` : ""}
         </div>
-        <pre class="context-body">${escapeHtml(it.source_context)}</pre>
+        <pre class="context-body">${linkifyEscaped(escapeHtml(it.source_context))}</pre>
       </div>
     ` : ""}
     ${showNotes ? `
@@ -7584,6 +7622,21 @@ function formatCreatedDate(iso) {
 }
 function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]); }
 function escapeAttr(s) { return escapeHtml(s).replace(/`/g, "&#96;"); }
+// Wraps bare http/https URLs inside already-escaped HTML in clickable <a> tags.
+// Trailing chars that aren't part of the URL (HTML entities from escapeHtml, plus
+// common punctuation) stay outside the link.
+function linkifyEscaped(escaped) {
+  return (escaped || "").replace(/(https?:\/\/[^\s<>"]+)/g, (m) => {
+    let url = m, suffix = "";
+    // Strip trailing escapeHtml entities first (e.g. <https://x.com> → matched URL ends in &gt;).
+    const ent = url.match(/(?:&(?:amp|lt|gt|quot|#39);?)$/i);
+    if (ent) { url = url.slice(0, -ent[0].length); suffix = ent[0] + suffix; }
+    // Then strip trailing punctuation.
+    const trail = url.match(/[.,;:!?)\]'"]+$/);
+    if (trail) { url = url.slice(0, -trail[0].length); suffix = trail[0] + suffix; }
+    return `<a href="${url}" target="_blank" rel="noopener" class="ctx-link">${url}</a>${suffix}`;
+  });
+}
 
 // openAdd can be called bare (defaults from last item) or with a context
 // like { project: "mitchs-map", version: "2.5" } to pre-fill the modal.

@@ -3306,6 +3306,60 @@ async function buildMissionPayload() {
     SELECT COUNT(*)::int AS count FROM qa_notes WHERE resolved_at IS NULL
   `;
 
+  // Real-time systems status
+  const [recMax] = await queryClient`SELECT MAX(recorded_at) AS t FROM recordings WHERE transcription_status='completed'`;
+  const [commsMax] = await queryClient`SELECT MAX(timestamp) AS t FROM client_comms WHERE source='imessage'`;
+  const [pendingActions] = await queryClient`SELECT COUNT(*)::int AS n FROM action_items WHERE status='pending'`;
+
+  // Most recent run per routine (advisor + cleaner)
+  const routineRuns = await queryClient`
+    SELECT DISTINCT ON (routine_name)
+      routine_name, status, started_at, finished_at, summary, data
+    FROM routine_runs
+    WHERE routine_name IN ('morning_advisor','action_items_cleaner')
+    ORDER BY routine_name, started_at DESC
+  `;
+  const lastByRoutine = {};
+  for (const r of routineRuns) lastByRoutine[r.routine_name] = r;
+
+  function ageHours(iso) {
+    if (!iso) return null;
+    return Math.round((Date.now() - new Date(iso).getTime()) / 3600000);
+  }
+
+  const systems_status = {
+    morning_advisor: lastByRoutine.morning_advisor
+      ? {
+          status: lastByRoutine.morning_advisor.status,
+          last_run_at: lastByRoutine.morning_advisor.finished_at || lastByRoutine.morning_advisor.started_at,
+          summary: lastByRoutine.morning_advisor.summary,
+          age_hours: ageHours(lastByRoutine.morning_advisor.finished_at || lastByRoutine.morning_advisor.started_at),
+        }
+      : null,
+    action_items_cleaner: lastByRoutine.action_items_cleaner
+      ? {
+          status: lastByRoutine.action_items_cleaner.status,
+          last_run_at: lastByRoutine.action_items_cleaner.finished_at || lastByRoutine.action_items_cleaner.started_at,
+          summary: lastByRoutine.action_items_cleaner.summary,
+          age_hours: ageHours(lastByRoutine.action_items_cleaner.finished_at || lastByRoutine.action_items_cleaner.started_at),
+        }
+      : null,
+    recording_sync: {
+      last_recording_at: recMax?.t || null,
+      age_hours: ageHours(recMax?.t),
+    },
+    imessage_sync: {
+      last_message_at: commsMax?.t || null,
+      age_hours: ageHours(commsMax?.t),
+    },
+    action_items: {
+      pending: pendingActions?.n || 0,
+    },
+    dev_tracker: {
+      open_notes: devTrackerUnresolved?.count || 0,
+    },
+  };
+
   return {
     today: todayAz,
     advisor_briefing: advisor,
@@ -3322,6 +3376,7 @@ async function buildMissionPayload() {
       briefing_fresh: briefingFresh,
       dev_tracker_unresolved: devTrackerUnresolved?.count || 0,
     },
+    systems_status,
   };
 }
 

@@ -43,6 +43,20 @@ interface DealRecording {
   companies: string[] | null;
   topics: string[] | null;
 }
+interface RoutineStatus {
+  status: "running" | "completed" | "failed";
+  last_run_at: string | null;
+  summary: string | null;
+  age_hours: number | null;
+}
+interface SystemsStatus {
+  morning_advisor: RoutineStatus | null;
+  action_items_cleaner: RoutineStatus | null;
+  recording_sync: { last_recording_at: string | null; age_hours: number | null };
+  imessage_sync: { last_message_at: string | null; age_hours: number | null };
+  action_items: { pending: number };
+  dev_tracker: { open_notes: number };
+}
 interface Payload {
   today: string;
   advisor_briefing: string | null;
@@ -55,6 +69,7 @@ interface Payload {
     briefing_fresh: { mtime: string; ageMinutes: number } | null;
     dev_tracker_unresolved: number;
   };
+  systems_status?: SystemsStatus;
 }
 
 // ─── Active deals (matches the cloud routine's deal list) ─────────────────
@@ -325,7 +340,7 @@ export default function MorningBriefPage() {
           </section>
         )}
 
-        <section className="mb-12">
+        <section className="mb-6">
           <h2 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" /> This Week
           </h2>
@@ -338,6 +353,22 @@ export default function MorningBriefPage() {
               <div className="text-xs text-zinc-500">Recordings</div>
               <div className="text-xl font-semibold">{data.weekly_kpis.recordings_count}</div>
             </div>
+          </div>
+        </section>
+
+        {data.systems_status && <SystemsStatusPanel s={data.systems_status} />}
+
+        <section className="mb-12">
+          <h2 className="text-sm font-medium text-zinc-400 mb-2">Resources</h2>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <a href="https://claude.ai/code/routines" target="_blank" rel="noreferrer"
+               className="flex items-center justify-between px-3 py-2 bg-zinc-900 border border-zinc-800 rounded hover:bg-zinc-800/50">
+              <span>Manage Routines</span><span className="text-xs text-zinc-500">claude.ai</span>
+            </a>
+            <a href="/admin/mission"
+               className="flex items-center justify-between px-3 py-2 bg-zinc-900 border border-zinc-800 rounded hover:bg-zinc-800/50">
+              <span>Admin Mission</span><span className="text-xs text-zinc-500">private</span>
+            </a>
           </div>
         </section>
       </div>
@@ -411,6 +442,119 @@ function DealCard({
       )}
     </div>
   );
+}
+
+function SystemsStatusPanel({ s }: { s: SystemsStatus }) {
+  const advisorState = pickStatus(s.morning_advisor, 26);
+  const cleanerState = pickStatus(s.action_items_cleaner, 26);
+  const recState = ageState(s.recording_sync.age_hours, 48, 168);
+  const smsState = ageState(s.imessage_sync.age_hours, 30, 72);
+  const actionsState: "green" | "yellow" | "red" = s.action_items.pending > 500 ? "red" : s.action_items.pending > 200 ? "yellow" : "green";
+
+  return (
+    <section className="mb-6">
+      <h2 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
+        <Activity className="w-4 h-4" /> Systems Status
+      </h2>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl divide-y divide-zinc-800">
+        <StatusRow
+          label="Morning Advisor (A1) — 6:47 AM AZ"
+          status={advisorState}
+          value={s.morning_advisor
+            ? `${s.morning_advisor.status} · ${fmtAge(s.morning_advisor.age_hours)}`
+            : "no runs yet"}
+          detail={s.morning_advisor?.summary || null}
+        />
+        <StatusRow
+          label="Action Items Cleaner (B1) — 5:00 AM AZ"
+          status={cleanerState}
+          value={s.action_items_cleaner
+            ? `${s.action_items_cleaner.status} · ${fmtAge(s.action_items_cleaner.age_hours)}`
+            : "no runs yet"}
+          detail={s.action_items_cleaner?.summary || null}
+        />
+        <StatusRow
+          label="Recording sync (Plaud)"
+          status={recState}
+          value={s.recording_sync.last_recording_at
+            ? `last: ${fmtAge(s.recording_sync.age_hours)}`
+            : "no recordings"}
+        />
+        <StatusRow
+          label="iMessage sync (Mac)"
+          status={smsState}
+          value={s.imessage_sync.last_message_at
+            ? `last: ${fmtAge(s.imessage_sync.age_hours)}`
+            : "no messages"}
+        />
+        <StatusRow
+          label="Pending action items"
+          status={actionsState}
+          value={`${s.action_items.pending}`}
+        />
+        <StatusRow
+          label="Dev tracker open notes"
+          status={s.dev_tracker.open_notes > 10 ? "yellow" : "green"}
+          value={`${s.dev_tracker.open_notes} open`}
+        />
+      </div>
+      <p className="text-[11px] text-zinc-500 mt-2">
+        All routines run in Anthropic's cloud on your Claude Code subscription. No per-token API charges. No dependency on this Mac being awake.
+      </p>
+    </section>
+  );
+}
+
+function StatusRow({ label, value, status, detail }: {
+  label: string;
+  value: string;
+  status: "green" | "yellow" | "red";
+  detail?: string | null;
+}) {
+  return (
+    <div className="px-3 py-2 flex items-start justify-between text-sm gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="text-zinc-300">{label}</div>
+        {detail && <div className="text-xs text-zinc-500 mt-0.5 truncate">{detail}</div>}
+      </div>
+      <div className={`inline-flex items-center gap-1.5 whitespace-nowrap ${
+        status === "green" ? "text-emerald-300" :
+        status === "yellow" ? "text-amber-300" :
+        "text-rose-300"
+      }`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${
+          status === "green" ? "bg-emerald-400" :
+          status === "yellow" ? "bg-amber-400" :
+          "bg-rose-400"
+        }`} />
+        <span className="text-xs">{value}</span>
+      </div>
+    </div>
+  );
+}
+
+function pickStatus(r: RoutineStatus | null, redAfterHours: number): "green" | "yellow" | "red" {
+  if (!r) return "red";
+  if (r.status === "failed") return "red";
+  if (r.status === "running") return "yellow";
+  if (r.age_hours === null) return "yellow";
+  if (r.age_hours > redAfterHours) return "red";
+  return "green";
+}
+
+function ageState(hours: number | null, yellowAt: number, redAt: number): "green" | "yellow" | "red" {
+  if (hours === null) return "red";
+  if (hours >= redAt) return "red";
+  if (hours >= yellowAt) return "yellow";
+  return "green";
+}
+
+function fmtAge(hours: number | null): string {
+  if (hours === null) return "—";
+  if (hours < 1) return "<1h";
+  if (hours < 24) return `${hours}h ago`;
+  const d = Math.round(hours / 24);
+  return `${d}d ago`;
 }
 
 function RecordingCard({ r }: { r: Recording }) {

@@ -20,6 +20,9 @@ import BookingPage from "./pages/BookingPage";
 import ContractorCRMPage from "./pages/ContractorCRMPage";
 import InvoicePaymentPage from "./pages/InvoicePaymentPage";
 import AIPresentationPage from "./pages/AIPresentationPage";
+import PrivacyMyOrganicSoilPage from "./pages/PrivacyMyOrganicSoilPage";
+import TermsMyOrganicSoilPage from "./pages/TermsMyOrganicSoilPage";
+import SupportMyOrganicSoilPage from "./pages/SupportMyOrganicSoilPage";
 import MorningBriefPage from "./pages/MorningBriefPage";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 
@@ -74,6 +77,11 @@ function App() {
               <Route path="/ai-presentation" component={AIPresentationPage} />
               <Route path="/morning-brief" component={MorningBriefPage} />
               <Route path="/brief" component={MorningBriefPage} />
+
+              {/* SSW Sales Portal app — legal + support pages (App Store compliance) */}
+              <Route path="/privacy/myorganicsoil" component={PrivacyMyOrganicSoilPage} />
+              <Route path="/terms/myorganicsoil" component={TermsMyOrganicSoilPage} />
+              <Route path="/support/myorganicsoil" component={SupportMyOrganicSoilPage} />
 
               {/* Admin Routes */}
               <Route path="/admin/login" component={LoginPage} />
